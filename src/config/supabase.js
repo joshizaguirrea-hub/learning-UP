@@ -13,9 +13,9 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// TODO: reemplazar por tus valores reales de Supabase.
-export const SUPABASE_URL = "https://TU-PROYECTO.supabase.co";
-export const SUPABASE_ANON_KEY = "TU-ANON-KEY-PUBLICA";
+// Credenciales del proyecto "Learning UP" (la publishable key es publica y segura).
+export const SUPABASE_URL = "https://goacgplqxntihuitvdcm.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_i_jQkHVOI_Ac5EK3ixjQXw_9sazdoqF";
 
 /** True si las credenciales ya fueron configuradas (para avisar en la UI). */
 export const isConfigured =
