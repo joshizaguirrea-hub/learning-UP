@@ -1,0 +1,11 @@
+{
+  "name": "LinguaPath - Aprende idiomas",
+  "short_name": "LinguaPath",
+  "description": "Aprende ingles con examen de ubicacion MCER, plan personalizado, contenido con IA y profesores.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4338ca",
+  "lang": "es",
+  "icons": []
+}
