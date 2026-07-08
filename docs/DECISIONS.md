@@ -64,4 +64,17 @@
 - **Consecuencias:** (+) Protege al alumno y retiene talento. (-) Reglas de
   precio un poco mas complejas (encapsuladas en un modulo).
 
+## ADR-006 — Desactivar el candado de sesion de Supabase (navigator.locks)
+
+- **Estado:** Aceptada (2026-07-06) — leccion heredada de Fit Match
+- **Contexto:** En Fit Match, el candado entre-pestanas que usa supabase-js
+  (navigator.locks) dejaba el login colgado en "Ingresando..." para siempre en
+  ciertos navegadores/contextos.
+- **Decision:** Al crear el cliente pasamos `auth.lock` como una funcion que
+  ejecuta directamente el callback (`async (_n, _t, fn) => await fn()`),
+  desactivando el candado. Config en `src/config/supabase.js`.
+- **Consecuencias:** (+) Evita el cuelgue de login conocido. (-) Sin el candado
+  entre-pestanas; aceptable para el MVP (sin operaciones criticas concurrentes
+  entre pestanas).
+
 _Ultima actualizacion: 2026-07-06 · Autor: Horus_

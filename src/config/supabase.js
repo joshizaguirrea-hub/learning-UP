@@ -21,4 +21,14 @@ export const SUPABASE_ANON_KEY = "TU-ANON-KEY-PUBLICA";
 export const isConfigured =
   !SUPABASE_URL.includes("TU-PROYECTO") && !SUPABASE_ANON_KEY.includes("TU-ANON");
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    // Gotcha heredado de Fit Match: el candado entre-pestanas (navigator.locks)
+    // dejaba el login colgado en "Ingresando..." para siempre. Lo desactivamos
+    // ejecutando la funcion directamente. Ver docs/DECISIONS.md (ADR-006).
+    lock: async (_name, _acquireTimeout, fn) => await fn(),
+  },
+});
