@@ -1,45 +1,66 @@
-# Plataforma de Aprendizaje de Idiomas
+# LinguaPath - Plataforma de Aprendizaje de Idiomas
 
 Plataforma EdTech de dos lados (estudiantes y profesores) para aprender idiomas,
-basada en el estandar MCER/CEFR, con plan de estudio personalizado, contenido +
-IA, y un marketplace de profesores.
+basada en el estandar MCER/CEFR: examen de ubicacion, plan de estudio
+personalizado, contenido + IA, y un marketplace de profesores.
 
 > Alcance del MVP: **ingles** primero (arquitectura lista para multi-idioma).
-> Ver `DISENO.md` para el documento de diseno completo.
+> Proyecto personal. Stack elegido por costo $0 (ver `docs/DECISIONS.md`, ADR-001).
+
+## Documentacion
+
+- `DISENO.md` — diseno de negocio (el "que" y el "por que").
+- `docs/ARCHITECTURE.md` — arquitectura tecnica (el "como").
+- `docs/DECISIONS.md` — registro de decisiones (ADRs).
 
 ## Stack
 
-- **Backend:** Python + FastAPI + SQLModel
-- **Frontend:** HTMX + Tailwind (via CDN en MVP)
-- **DB:** SQLite (MVP) -> PostgreSQL (produccion)
-- **Auth:** sesiones firmadas + hashing de contrasenas (passlib/bcrypt)
+- **Frontend:** HTML + Tailwind (CDN) + JavaScript **ES Modules** (sin build).
+- **Backend (BaaS):** Supabase free tier (auth, Postgres, storage).
+- **Hosting:** GitHub Pages. **PWA** con Service Worker.
 
-## Desarrollo
+## Puesta en marcha
+
+### 1. Configurar Supabase (gratis)
+1. Crea un proyecto en https://supabase.com
+2. En el **SQL Editor**, corre `sql/001_users_profiles.sql`.
+3. En **Project Settings -> API**, copia la **URL** y la **anon key**.
+4. Pegalas en `src/config/supabase.js`.
+
+### 2. Correr en local
+Los ES Modules necesitan servirse por HTTP (no `file://`). Usa cualquier
+servidor estatico, por ejemplo con Python:
 
 ```bash
-# Crear entorno e instalar dependencias (Walmart index)
-uv venv
-uv pip install -r requirements.txt --index-url https://pypi.ci.artifacts.walmart.com/artifactory/api/pypi/external-pypi/simple --allow-insecure-host pypi.ci.artifacts.walmart.com
-
-# Correr el servidor
-uv run uvicorn app.main:app --reload
+python -m http.server 5500
 ```
 
-Luego abrir http://127.0.0.1:8000
+Luego abre http://127.0.0.1:5500
 
-## Estructura
+### 3. Desplegar (gratis)
+Sube el repo a GitHub y activa **GitHub Pages** desde la rama `main`.
+No hay paso de build.
+
+## Estructura (arquitectura por capas)
 
 ```
-app/
-  main.py          # entrypoint FastAPI
-  config.py        # settings
-  database.py      # engine + sesion SQLModel
-  models.py        # entidades (User, StudentProfile, TeacherProfile, ...)
-  security.py      # hashing + sesiones
-  routers/
-    auth.py        # registro / login / logout
-    student.py     # dashboard estudiante
-    teacher.py     # dashboard profesor
-  templates/       # Jinja2 + HTMX
-  static/
+src/
+  main.js         # punto de entrada (router + sesion + guardias)
+  config/         # cliente Supabase (llaves publicas)
+  data/           # catalogos puros (cefr, languages)
+  core/           # motores de logica pura (pricing, placement, plan)
+  services/       # I/O con Supabase (auth, profiles)
+  features/       # cada feature aislada (auth-ui, student, teacher)
+  ui/             # presentacion reutilizable (dom, router, a11y)
+sql/              # migraciones numeradas para Supabase
+docs/             # ARCHITECTURE.md, DECISIONS.md
+tests/            # pruebas (unitarias de core + E2E)
 ```
+
+Dependencias en una sola direccion: `data -> core -> features -> ui`, con
+`services` inyectados. `core` es puro y testeable sin navegador.
+
+## Pruebas
+
+Ver `tests/README.md`. Los motores de `core/` se prueban con Node (sin navegador);
+los flujos completos con Playwright (fase siguiente).

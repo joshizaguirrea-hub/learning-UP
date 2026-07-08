@@ -1,25 +1,27 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-*.egg-info/
+# Dependencias
+node_modules/
 
-# Env / secrets
+# Entornos y secretos
 .env
 *.env
+# Nota: src/config/supabase.js solo lleva la anon key (publica). Si prefieres no
+# versionar tus llaves, copia el archivo a supabase.local.js e ignoralo aqui.
 
-# DB (contiene datos de usuarios - PII)
+# Restos del prototipo previo (Python) por si quedan
+.venv/
+venv/
+__pycache__/
+*.py[cod]
 *.db
 *.sqlite
 *.sqlite3
 
+# Logs
+*.log
+
 # IDE
 .vscode/
 .idea/
-
-# Logs
-*.log
 
 # OS
 .DS_Store
