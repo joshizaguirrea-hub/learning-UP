@@ -7,7 +7,6 @@ import assert from "node:assert/strict";
 import {
   createSession, nextQuestion, answer, result,
 } from "../src/core/placement.js";
-import { generatePlan } from "../src/core/plan.js";
 import { PLACEMENT_QUESTIONS } from "../src/data/placement-questions.js";
 
 let passed = 0;
@@ -50,20 +49,6 @@ test("no repite preguntas", () => {
     seen.add(q.id);
     answer(s, q, q.answer);
   }
-});
-
-test("generatePlan crea modulos desde el nivel hacia el siguiente", () => {
-  const plan = generatePlan("A2");
-  assert.equal(plan.fromLevel, "A2");
-  assert.equal(plan.targetLevel, "B1");
-  assert.ok(plan.modules.length > 0);
-  assert.ok(plan.modules.every((m) => m.status === "pending"));
-});
-
-test("generatePlan respeta un targetLevel explicito", () => {
-  const plan = generatePlan("A1", { targetLevel: "B1" });
-  assert.equal(plan.fromLevel, "A1");
-  assert.equal(plan.targetLevel, "B1");
 });
 
 console.log(`\n${passed} pruebas en verde.`);

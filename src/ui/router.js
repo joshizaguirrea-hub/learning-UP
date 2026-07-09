@@ -2,7 +2,7 @@
  * ui/router.js — Router por hash (#/ruta). Sin dependencias.
  *
  * Capa de presentacion. Mapea rutas a funciones que renderizan una vista.
- * Soporta un parametro dinamico por ruta, ej: on("/modulo/:id", (params) => ...).
+ * Soporta un parametro dinamico por ruta, ej: on("/unidad/:id", (params) => ...).
  */
 
 const routes = []; // { pattern: string[], handler }

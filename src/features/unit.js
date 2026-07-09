@@ -12,7 +12,7 @@ import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
 const CARD = "bg-white rounded-xl p-6 shadow-sm border border-slate-200";
-const PHASE_LABEL = { present: "Presentacion", practice: "Practica", produce: "Produccion" };
+const PHASE_LABEL = { learn: "Aprende", present: "Presentacion", practice: "Practica", produce: "Produccion" };
 
 export async function renderUnit(container, params, user) {
   const unit = unitById(params.id);

@@ -28,6 +28,11 @@ export async function renderLessonPlayer(container, params, user) {
   }
   const { unit, lesson } = found;
 
+  // Fase "Aprende": contenido para consumir (input), sin examen.
+  if (lesson.phase === "learn" || (lesson.content && lesson.activities.length === 0)) {
+    return renderLearn(container, unit, lesson, user);
+  }
+
   // Cada actividad se renderiza con un lector de su respuesta.
   const readers = [];
   const activityEls = lesson.activities.map((act, i) => {
@@ -78,6 +83,59 @@ export async function renderLessonPlayer(container, params, user) {
     el("section", { class: "mt-6 space-y-6" }, ...activityEls),
     submit,
     resultSlot));
+  focusMainHeading(container);
+}
+
+// ---------------------------------------------------------------------------
+// Fase APRENDE: lectura nivelada + glosario + frases clave + nota de uso.
+// ---------------------------------------------------------------------------
+async function renderLearn(container, unit, lesson, user) {
+  const c = lesson.content || {};
+
+  const glossary = (c.glossary || []).map((g) =>
+    el("div", { class: "flex justify-between gap-4 py-1.5 border-b border-slate-100 last:border-0" },
+      el("span", { class: "font-semibold" }, g.term),
+      el("span", { class: "text-slate-600 text-right" }, g.translation)));
+
+  const done = el("div");
+  const finishBtn = el("button", {
+    class: "mt-6 " + PRIMARY,
+    onclick: async () => {
+      await completeLesson(user.id, lesson.id, 100);
+      if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
+      mount(done, el("div", {},
+        feedback(true, "Listo! Ya estudiaste el material." +
+          (lesson.teachesVocab ? " Agregamos el vocabulario a tu repaso diario (SRS)." : "")),
+        el("button", { class: "mt-4 " + PRIMARY, onclick: () => go(`/unidad/${unit.id}`) }, "Continuar a practicar")));
+      announce("Material completado.");
+    },
+  }, "Ya lo estudie");
+
+  mount(container, el("div", { class: CARD },
+    el("a", { href: `#/unidad/${unit.id}`, class: "text-sm text-indigo-700 underline" }, "< Volver a la unidad"),
+    el("div", { class: "flex items-center gap-2 mt-3" },
+      el("span", { class: "text-xs bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full" }, "Aprende"),
+      el("h1", { class: "text-2xl font-bold" }, lesson.title)),
+    lesson.intro ? el("p", { class: "mt-3 text-slate-600 text-sm" }, lesson.intro) : null,
+
+    c.reading ? el("section", { class: "mt-5" },
+      el("h2", { class: "font-bold" }, "Lectura"),
+      el("p", { class: "mt-2 text-slate-800 leading-relaxed bg-slate-50 rounded-lg p-4" }, c.reading)) : null,
+
+    c.glossary?.length ? el("section", { class: "mt-6" },
+      el("h2", { class: "font-bold" }, "Glosario"),
+      el("div", { class: "mt-2" }, ...glossary)) : null,
+
+    c.keyPhrases?.length ? el("section", { class: "mt-6" },
+      el("h2", { class: "font-bold" }, "Frases clave"),
+      el("ul", { class: "mt-2 space-y-1 text-slate-700" },
+        ...c.keyPhrases.map((p) => el("li", { class: "text-sm" }, "- " + p)))) : null,
+
+    c.note ? el("section", { class: "mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4" },
+      el("h2", { class: "font-bold text-amber-900" }, "Nota de uso"),
+      el("p", { class: "mt-1 text-sm text-amber-900" }, c.note)) : null,
+
+    finishBtn, done));
   focusMainHeading(container);
 }
 
