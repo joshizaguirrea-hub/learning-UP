@@ -47,6 +47,12 @@ export async function logout() {
   await supabase.auth.signOut();
 }
 
+/** Actualiza el nombre visible del usuario (metadata de auth). */
+export async function updateDisplayName(fullName) {
+  const { error } = await supabase.auth.updateUser({ data: { full_name: fullName } });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
 /** Devuelve el usuario autenticado actual (o null).
  *  Usa getSession() (lee la sesion persistida localmente): es instantaneo y
  *  confiable para guardias de ruta, a diferencia de getUser() que hace red. */

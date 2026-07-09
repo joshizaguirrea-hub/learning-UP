@@ -15,6 +15,7 @@ import {
   skillProgress, totalXp, playerLevel, xpToNext, achievements,
 } from "../core/gamification.js";
 import { el, mount } from "../ui/dom.js";
+import { getAccent } from "../ui/prefs.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -64,13 +65,14 @@ function profileHeader(name, profile, xp, level) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
   const info = CEFR_INFO[profile.cefr_level] || {};
   const { into } = xpToNext(xp);
+  const accent = getAccent();
 
   return el("section", { class: PANEL + " overflow-hidden" },
     el("h1", { class: "sr-only" }, `Perfil de ${name}`),
-    el("div", { class: "h-20 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600" }),
+    el("div", { class: `h-20 bg-gradient-to-r ${accent.grad}` }),
     el("div", { class: "px-5 pb-5" },
       el("div", { class: "flex items-end gap-4 -mt-10" },
-        el("div", { class: "w-20 h-20 rounded-full bg-slate-800 border-4 border-slate-900 flex items-center justify-center text-2xl font-extrabold text-indigo-300" }, initials || "?"),
+        el("div", { class: `w-20 h-20 rounded-full bg-gradient-to-br ${accent.grad} border-4 border-slate-900 flex items-center justify-center text-2xl font-extrabold text-white` }, initials || "?"),
         el("div", { class: "pb-1" },
           el("p", { class: "text-xl font-bold" }, name),
           el("p", { class: "text-sm text-slate-400" },
