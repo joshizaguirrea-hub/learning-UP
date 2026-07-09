@@ -20,6 +20,7 @@ import { renderCalendar } from "./features/calendar.js";
 import { renderChat } from "./features/chat.js";
 import { renderSettings } from "./features/settings.js";
 import { renderQuality } from "./features/quality.js";
+import { renderCompetency } from "./features/competency.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
@@ -82,6 +83,7 @@ function setupRoutes() {
   on("/chat", () => requireAuth(() => renderChat(app)));
   on("/ajustes", () => requireAuth((u) => renderSettings(app, u)));
   on("/calidad", () => requireAuth(() => renderQuality(app)));
+  on("/competencia/:skill", (params) => requireAuth((u) => renderCompetency(app, params, u)));
   onNotFound(renderHome);
 }
 
