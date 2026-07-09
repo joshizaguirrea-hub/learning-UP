@@ -47,10 +47,12 @@ export async function logout() {
   await supabase.auth.signOut();
 }
 
-/** Devuelve el usuario autenticado actual (o null). */
+/** Devuelve el usuario autenticado actual (o null).
+ *  Usa getSession() (lee la sesion persistida localmente): es instantaneo y
+ *  confiable para guardias de ruta, a diferencia de getUser() que hace red. */
 export async function currentUser() {
-  const { data } = await supabase.auth.getUser();
-  return data.user || null;
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user || null;
 }
 
 /** Suscribe a cambios de sesion (login/logout). Devuelve la subscripcion. */
