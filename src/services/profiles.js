@@ -5,6 +5,7 @@
  * `student_profiles` y `teacher_profiles`.
  */
 import { supabase } from "../config/supabase.js";
+import { computeStreak } from "../core/streak.js";
 
 /**
  * Crea el perfil base + el perfil especifico del rol.
@@ -55,4 +56,22 @@ export async function getTeacherProfile(userId) {
     .eq("user_id", userId)
     .single();
   return data || null;
+}
+
+/**
+ * Registra actividad de hoy y actualiza la racha (habito).
+ * Idempotente por dia: si ya estudio hoy, no cambia nada.
+ * @returns {{streak, changed}} racha nueva y si hoy conto como dia nuevo.
+ */
+export async function recordActivity(userId) {
+  const profile = await getStudentProfile(userId);
+  if (!profile) return { streak: 0, changed: false };
+  const { streak, changed, today } = computeStreak(profile.last_active, profile.streak || 0);
+  if (changed) {
+    await supabase
+      .from("student_profiles")
+      .update({ streak, last_active: today })
+      .eq("user_id", userId);
+  }
+  return { streak, changed };
 }

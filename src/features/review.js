@@ -6,6 +6,7 @@
  * core/srs y la persiste con services/srs.
  */
 import { getDueCards, saveCard } from "../services/srs.js";
+import { recordActivity } from "../services/profiles.js";
 import { vocabById } from "../data/units/index.js";
 import { review } from "../core/srs.js";
 import { el, mount } from "../ui/dom.js";
@@ -35,6 +36,7 @@ export async function renderReview(container, user) {
 
   let index = 0;
   let reviewed = 0;
+  let recorded = false;
   showCard();
 
   function showCard() {
@@ -52,6 +54,7 @@ export async function renderReview(container, user) {
         onclick: async () => {
           const updated = review({ ease: Number(card.ease), interval: card.interval, reps: card.reps, due: card.due }, g.key);
           await saveCard(user.id, card.vocab_id, updated);
+          if (!recorded) { recorded = true; await recordActivity(user.id); }
           reviewed++;
           index++;
           showCard();
