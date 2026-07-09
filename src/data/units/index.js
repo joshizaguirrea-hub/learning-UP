@@ -5,8 +5,9 @@
  * nueva = crear su archivo y sumarla a esta lista (la logica no cambia).
  */
 import { WORK_CAREER_B1 } from "./work-career-b1.js";
+import { TRAVEL_PLANS_B1 } from "./travel-plans-b1.js";
 
-export const UNITS = [WORK_CAREER_B1];
+export const UNITS = [WORK_CAREER_B1, TRAVEL_PLANS_B1];
 
 /** Unidades disponibles para un nivel MCER dado. */
 export function unitsForLevel(level) {
