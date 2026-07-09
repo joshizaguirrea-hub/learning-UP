@@ -1,6 +1,6 @@
 # Analisis de Mercado — Apps de Aprendizaje de Idiomas
 
-> Investigacion competitiva para LinguaPath: que hacen las mejores apps y QUE
+> Investigacion competitiva para Learning UP: que hacen las mejores apps y QUE
 > podemos adaptar (priorizando lo GRATIS de construir en nuestro stack).
 >
 > **Aviso:** elaborado con conocimiento del mercado (hasta ~2024-2025), sin
@@ -134,7 +134,7 @@
 
 ## 4. Que YA tenemos vs. el mercado
 
-| Capacidad | Estado en LinguaPath |
+| Capacidad | Estado en Learning UP |
 |-----------|----------------------|
 | Camino/mapa de niveles | LISTO (Mi Plan) |
 | SRS (repaso espaciado) | LISTO |

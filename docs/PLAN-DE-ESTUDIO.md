@@ -1,4 +1,4 @@
-# Plan de Estudio Detallado — LinguaPath (Ingles)
+# Plan de Estudio Detallado — Learning UP (Ingles)
 
 > Documento de diseno curricular de primer nivel. Investigacion y estructura por
 > Horus (rol: disenador de curriculo). Base: **MCER/CEFR** (Marco Comun Europeo

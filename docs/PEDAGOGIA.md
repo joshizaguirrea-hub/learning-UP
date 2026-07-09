@@ -1,4 +1,4 @@
-# Diseno Curricular — LinguaPath
+# Diseno Curricular — Learning UP
 
 > Como construimos un CURSO de verdad, no lecciones sueltas. Basado en metodos
 > con evidencia cientifica y en estandares profesionales (MCER/CEFR).

@@ -1,4 +1,4 @@
-# Arquitectura — Plataforma de Idiomas (LinguaPath)
+# Arquitectura — Plataforma de Idiomas (Learning UP)
 
 > Documento vivo. Define la arquitectura objetivo desde el dia uno, aprendiendo
 > de la deuda tecnica que Fit Match documento (archivos monstruo, cache-busting
