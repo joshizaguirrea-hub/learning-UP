@@ -1,4 +1,4 @@
-# Pruebas — LinguaPath
+# Pruebas — Learning UP
 
 ## Unitarias (motores de `core/`, sin navegador)
 

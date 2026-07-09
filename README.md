@@ -1,4 +1,4 @@
-# LinguaPath - Plataforma de Aprendizaje de Idiomas
+# Learning UP - Plataforma de Aprendizaje de Idiomas
 
 Plataforma EdTech de dos lados (estudiantes y profesores) para aprender idiomas,
 basada en el estandar MCER/CEFR: examen de ubicacion, plan de estudio
