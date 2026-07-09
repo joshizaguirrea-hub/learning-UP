@@ -12,7 +12,7 @@ import { unitsForLevel } from "../data/units/index.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import {
-  skillProgress, totalXp, playerLevel, xpToNext, achievements,
+  skillProgress, totalXp, xpToNext, achievements,
 } from "../core/gamification.js";
 import { el, mount } from "../ui/dom.js";
 import { getAccent } from "../ui/prefs.js";
@@ -43,14 +43,13 @@ export async function renderStudent(container, user) {
 
   const skills = skillProgress(units, completed);
   const xp = totalXp(lessonsDone, srs.learned);
-  const level = playerLevel(xp);
   const logros = achievements({
     placementDone: true, lessonsDone, vocabLearned: srs.learned, unitsCompleted,
   });
 
   mount(container, el("div", { class: "space-y-6" },
-    profileHeader(name, profile, xp, level),
-    statsRow(xp, level, srs.learned, lessonsDone),
+    profileHeader(name, profile, xp),
+    statsRow(xp, profile.cefr_level, srs.learned, lessonsDone),
     due > 0 ? reviewBanner(due) : null,
     skillsSection(skills),
     el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
@@ -62,7 +61,7 @@ export async function renderStudent(container, user) {
 // --------------------------------------------------------------------------
 // Perfil (banner con gradiente + avatar + barra de XP)
 // --------------------------------------------------------------------------
-function profileHeader(name, profile, xp, level) {
+function profileHeader(name, profile, xp) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
   const info = CEFR_INFO[profile.cefr_level] || {};
   const { into } = xpToNext(xp);
@@ -80,7 +79,7 @@ function profileHeader(name, profile, xp, level) {
             `Nivel ${profile.cefr_level} - ${info.label || ""}`))),
       el("div", { class: "mt-4" },
         el("div", { class: "flex justify-between text-xs text-slate-400 mb-1" },
-          el("span", {}, `Nivel de jugador ${level}`),
+          el("span", {}, "Experiencia"),
           el("span", {}, `${into}/100 XP`)),
         el("div", { class: "w-full bg-slate-800 rounded-full h-2", role: "progressbar",
           "aria-valuenow": String(into), "aria-valuemin": "0", "aria-valuemax": "100" },
@@ -90,13 +89,13 @@ function profileHeader(name, profile, xp, level) {
 // --------------------------------------------------------------------------
 // Fila de estadisticas
 // --------------------------------------------------------------------------
-function statsRow(xp, level, vocab, lessons) {
+function statsRow(xp, cefrLevel, vocab, lessons) {
   const stat = (value, label) =>
     el("div", { class: PANEL + " p-4 text-center" },
       el("p", { class: "text-2xl font-extrabold text-indigo-300" }, String(value)),
       el("p", { class: "text-xs text-slate-400 mt-1" }, label));
   return el("section", { class: "grid grid-cols-2 sm:grid-cols-4 gap-3" },
-    stat(xp, "XP total"), stat(level, "Nivel"), stat(vocab, "Palabras"), stat(lessons, "Lecciones"));
+    stat(cefrLevel, "Tu nivel"), stat(xp, "XP total"), stat(vocab, "Palabras"), stat(lessons, "Lecciones"));
 }
 
 // --------------------------------------------------------------------------
@@ -119,9 +118,10 @@ function skillCard(s) {
         el("p", { class: "text-2xl font-extrabold text-white leading-none" }, `${s.pct}%`),
         el("p", { class: "text-[10px] text-white/70 uppercase tracking-wide mt-1" }, "Dominio"));
 
-  return el("div", {
-    class: `relative overflow-hidden rounded-xl bg-gradient-to-r ${gradient} shadow-lg ` +
-      (s.locked ? "opacity-60" : ""),
+  return el(s.locked ? "div" : "a", {
+    href: s.locked ? null : `#/competencia/${s.key}`,
+    class: `block relative overflow-hidden rounded-xl bg-gradient-to-r ${gradient} shadow-lg ` +
+      (s.locked ? "opacity-60" : "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60"),
   },
     el("div", { class: "flex items-center gap-4 p-4" },
       iconBox,
