@@ -38,22 +38,61 @@ export const WORK_CAREER_B1 = {
   ],
 
   lessons: [
+    // ---------------- APRENDE (input comprensible) ----------------
+    {
+      id: "wc-l0",
+      order: 1,
+      phase: "learn",
+      title: "Aprende: el mundo del trabajo",
+      intro:
+        "Primero, aprende. Lee la historia, estudia el vocabulario y las frases clave. " +
+        "Esto es lo que practicaras despues (aqui no hay que responder nada).",
+      teachesVocab: true, // al completar, crea las tarjetas SRS del vocab de la unidad
+      content: {
+        reading:
+          "Meet Laura. She is a project manager at a tech company. She is in charge of a " +
+          "small team of five people. Every morning she has a meeting with her colleagues to " +
+          "talk about their tasks and deadlines. Laura has eight years of experience. Last month " +
+          "she got a promotion, so now she also helps to hire new staff. She enjoys her job, but " +
+          "she says the deadlines can be stressful. Next year she wants to apply for a director role.",
+        glossary: [
+          { term: "in charge of", translation: "a cargo de" },
+          { term: "colleagues", translation: "companeros de trabajo" },
+          { term: "tasks", translation: "tareas" },
+          { term: "deadlines", translation: "fechas limite" },
+          { term: "experience", translation: "experiencia" },
+          { term: "promotion", translation: "ascenso" },
+          { term: "to hire", translation: "contratar" },
+          { term: "to apply for", translation: "postular a" },
+        ],
+        keyPhrases: [
+          "I'm in charge of... (Estoy a cargo de...)",
+          "I'm responsible for... (Soy responsable de...)",
+          "I have X years of experience. (Tengo X anos de experiencia.)",
+          "I'd like to apply for... (Me gustaria postular a...)",
+        ],
+        note:
+          "Usa 'to be in charge of' + sustantivo o gerundio: 'in charge of the team', " +
+          "'in charge of hiring'. Para experiencia: 'experience IN + area' o 'experience WITH + herramienta'.",
+      },
+      activities: [],
+    },
+
     // ---------------- PRESENTACION ----------------
     {
       id: "wc-l1",
-      order: 1,
+      order: 2,
       phase: "present",
       title: "Presentacion: hablar de tu trabajo",
       intro:
         "En el trabajo usamos frases como 'I'm in charge of...', 'I work with my colleagues on...'. " +
-        "Lee el dialogo y aprende el vocabulario clave (luego lo repasaras con tarjetas).",
+        "Lee el dialogo y comprueba que entendiste.",
       dialogue: [
         "A: What do you do?",
         "B: I'm a project manager. I'm in charge of a small team.",
         "A: Sounds busy! Do you have many meetings?",
         "B: Yes, and tight deadlines too. But I like the challenge.",
       ],
-      teachesVocab: true, // al completar, crea las tarjetas SRS del vocab de la unidad
       activities: [
         {
           id: "wc-l1-a1", type: "multiple_choice",
@@ -75,7 +114,7 @@ export const WORK_CAREER_B1 = {
     // ---------------- PRACTICA ----------------
     {
       id: "wc-l2",
-      order: 2,
+      order: 3,
       phase: "practice",
       title: "Practica: vocabulario y estructuras",
       intro: "Ahora usa el vocabulario en contexto. Escribe, ordena y elige.",
@@ -115,7 +154,7 @@ export const WORK_CAREER_B1 = {
     // ---------------- PRODUCCION (tarea real, TBL) ----------------
     {
       id: "wc-l3",
-      order: 3,
+      order: 4,
       phase: "produce",
       title: "Produccion: tu correo profesional",
       intro:

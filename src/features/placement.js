@@ -1,13 +1,12 @@
 /**
  * features/placement.js — UI del examen de ubicacion.
  *
- * Capa de feature: orquesta el motor puro (core/placement + core/plan) con la
+ * Capa de feature: orquesta el motor puro (core/placement) con la
  * persistencia (services/placement) y la presentacion (ui/). No calcula el nivel
  * (eso es del core) ni habla con Supabase directo (eso es del service).
  */
 import { PLACEMENT_QUESTIONS } from "../data/placement-questions.js";
 import { createSession, nextQuestion, answer, progress, result } from "../core/placement.js";
-import { generatePlan } from "../core/plan.js";
 import { savePlacement } from "../services/placement.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { el, mount } from "../ui/dom.js";
@@ -61,8 +60,7 @@ async function showResult(container, user, session) {
     el("p", { class: "mt-2 text-slate-600 text-sm" }, "Un momento, guardando tu plan.")));
 
   const examResult = result(session);
-  const plan = generatePlan(examResult.cefr);
-  const saved = await savePlacement(user.id, examResult, plan);
+  const saved = await savePlacement(user.id, examResult);
 
   const info = CEFR_INFO[examResult.cefr] || {};
   const children = [
@@ -73,8 +71,7 @@ async function showResult(container, user, session) {
     el("p", { class: "mt-4 text-sm text-slate-500" },
       `Acertaste ${examResult.correct} de ${examResult.total} preguntas.`),
     el("div", { class: "mt-4 bg-indigo-50 rounded-lg p-4 text-sm text-indigo-900" },
-      `Creamos tu plan de estudio de ${plan.fromLevel} hacia ${plan.targetLevel} ` +
-      `con ${plan.totalModules} modulos.`),
+      "Preparamos tu curso con unidades para tu nivel. A aprender!"),
   ];
 
   if (!saved.ok) {
@@ -88,7 +85,7 @@ async function showResult(container, user, session) {
     class: "mt-6 w-full bg-indigo-700 text-white font-semibold py-2.5 rounded-lg " +
       "hover:bg-indigo-800 focus:outline focus:outline-2 focus:outline-indigo-900",
     onclick: () => go("/student"),
-  }, "Ver mi plan de estudio"));
+  }, "Ver mi curso"));
 
   mount(container, el("div", { class: CARD + " text-center" }, ...children));
   focusMainHeading(container);
