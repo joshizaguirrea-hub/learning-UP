@@ -43,6 +43,7 @@ export const WORK_CAREER_B1 = {
       id: "wc-l0",
       order: 1,
       phase: "learn",
+      skills: ["reading", "vocabulary"],
       title: "Aprende: el mundo del trabajo",
       intro:
         "Primero, aprende. Lee la historia, estudia el vocabulario y las frases clave. " +
@@ -83,6 +84,7 @@ export const WORK_CAREER_B1 = {
       id: "wc-l1",
       order: 2,
       phase: "present",
+      skills: ["grammar", "vocabulary"],
       title: "Presentacion: hablar de tu trabajo",
       intro:
         "En el trabajo usamos frases como 'I'm in charge of...', 'I work with my colleagues on...'. " +
@@ -116,6 +118,7 @@ export const WORK_CAREER_B1 = {
       id: "wc-l2",
       order: 3,
       phase: "practice",
+      skills: ["grammar", "vocabulary"],
       title: "Practica: vocabulario y estructuras",
       intro: "Ahora usa el vocabulario en contexto. Escribe, ordena y elige.",
       activities: [
@@ -156,6 +159,7 @@ export const WORK_CAREER_B1 = {
       id: "wc-l3",
       order: 4,
       phase: "produce",
+      skills: ["writing", "grammar"],
       title: "Produccion: tu correo profesional",
       intro:
         "Tarea real: vas a construir las frases clave de un correo para postular a un trabajo. " +
