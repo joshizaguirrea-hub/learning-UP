@@ -123,3 +123,69 @@ Asi definimos el "estandar de calidad" con una unidad y luego producimos rapido.
 - **Paso D:** escalar unidades por nivel; luego listening/speaking con patrocinio.
 
 _Ultima actualizacion: 2026-07-06 · Autor: Horus (doctor en idiomas honorario)_
+
+---
+
+## 9. UN SOLO viaje (fusion de "plan" y "curso")
+
+**Problema detectado:** conviven dos sistemas paralelos y confusos:
+- "Tu plan de estudio" (modulos por competencia: Gramatica-B1, Vocabulario-B1...).
+- "Tu curso" (unidades tematicas).
+
+**Decision:** hay UN solo camino. La **unidad tematica** es la unidad de aprendizaje.
+El viejo "plan por competencias" se **absorbe**: cada unidad ya cubre las 6
+competencias en su ciclo. El dashboard muestra un unico "Mi ruta": la secuencia
+de unidades del nivel, con progreso y maestria. El plan por modulos sueltos se
+retira (o se degrada a un "mapa de nivel" de solo lectura).
+
+```
+Examen -> nivel MCER -> RUTA = [Unidad 1, Unidad 2, ... Unidad N]
+  cada Unidad: Aprende -> Practica -> Produce -> Repasa (SRS) -> Examen de maestria
+  al dominar todas las unidades del nivel -> subes de nivel (+ certificado)
+```
+
+## 10. El modelo de contenido que ENSENA (fase "Aprende")
+
+Hoy tenemos Practica/Produce/Repasa, pero falta lo que de verdad ENSENA: el
+**input comprensible**. Cada leccion de tipo "present" (o una fase "learn" nueva)
+debe entregar material para consumir ANTES de practicar:
+
+- **Explicacion clara** con ejemplos (ya existe, se enriquece).
+- **Lectura o dialogo nivelado** (comprensible input, i+1) con glosario.
+- **Presentacion de vocabulario** (termino + traduccion + ejemplo + [audio]).
+- **Nota cultural / de uso** (cuando aplica).
+- (Con patrocinio) **audio** del dialogo y **video** corto.
+
+Estructura de datos propuesta para la fase Aprende:
+```
+lesson.phase = "learn"
+lesson.content = {
+  reading: "texto nivelado...",
+  glossary: [{term, translation}],
+  keyPhrases: ["..."],
+  note: "nota de uso/cultural"
+}
+```
+
+## 11. Como se CAPTA/produce el contenido a escala
+
+1. **Ahora (gratis):** autoria manual con plantilla de alta calidad (1 unidad
+   excelente = molde). Recursos educativos abiertos (OER/dominio publico) para
+   lecturas. NUNCA scrapear competidores.
+2. **Con patrocinio:** generacion asistida por **IA** (lecciones, lecturas,
+   ejemplos, audio TTS) + curaduria humana. Este es el gran acelerador de escala.
+3. **Comunidad:** profesores verificados aportan y curan contenido.
+
+## 12. El diferenciador (agregado unico)
+
+Nadie junta en un solo lugar y gratis:
+- Curriculo real MCER + **input comprensible** rico, +
+- **SRS** (repaso espaciado, retencion real), +
+- **Maestria** (avanzas al dominar), +
+- **Plan persistente** que te sigue entre **profesores humanos** con bitacora
+  compartida (esto casi nadie lo hace bien), +
+- Gratis primero, pago solo para profesores/certificado.
+
+> Posicionamiento: "un tutor completo + Anki + Busuu + profesores humanos, en uno".
+
+_Ultima actualizacion (v2): 2026-07-06 · Autor: Horus_
