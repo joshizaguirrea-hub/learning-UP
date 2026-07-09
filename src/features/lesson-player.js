@@ -83,18 +83,27 @@ function renderPractice(container, unit, lesson, user) {
     const score = gradeAll(lesson.activities, responses);
     const reviewNodes = lesson.activities.map((act, i) => reviewNode(act, responses[i], i));
 
-    const banner = feedback(score.passed,
-      score.passed
-        ? `Muy bien! ${score.correct}/${score.total} correctas. Leccion completada.`
-        : `Tuviste ${score.correct}/${score.total}. Necesitas 60%. Repasa las explicaciones e intenta otra vez.`);
-
+    let saveError = null;
     if (score.passed) {
-      await completeLesson(user.id, lesson.id, Math.round(score.ratio * 100));
-      if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
-      await recordActivity(user.id);
+      const saved = await completeLesson(user.id, lesson.id, Math.round(score.ratio * 100));
+      if (!saved.ok) saveError = saved.error;
+      // Efectos secundarios (SRS + racha) NO deben tumbar el completado.
+      try {
+        if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
+        await recordActivity(user.id);
+      } catch (e) {
+        console.error("[leccion] efecto secundario fallo:", e);
+      }
     }
 
-    const action = score.passed
+    const banner = saveError
+      ? feedback(false, "No se pudo guardar tu progreso: " + saveError + ". Revisa tu conexion e intenta de nuevo.")
+      : feedback(score.passed,
+          score.passed
+            ? `Muy bien! ${score.correct}/${score.total} correctas. Leccion completada.`
+            : `Tuviste ${score.correct}/${score.total}. Necesitas 60%. Repasa las explicaciones e intenta otra vez.`);
+
+    const action = (score.passed && !saveError)
       ? el("button", { class: "mt-6 " + PRIMARY, onclick: () => go(`/unidad/${unit.id}`) }, "Volver a la unidad")
       : el("button", { class: "mt-6 " + PRIMARY, onclick: showForm }, "Reintentar");
 
@@ -152,9 +161,17 @@ async function renderLearn(container, unit, lesson, user) {
   const finishBtn = el("button", {
     class: "mt-6 " + PRIMARY,
     onclick: async () => {
-      await completeLesson(user.id, lesson.id, 100);
-      if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
-      await recordActivity(user.id);
+      const saved = await completeLesson(user.id, lesson.id, 100);
+      if (!saved.ok) {
+        mount(done, feedback(false, "No se pudo guardar tu progreso: " + saved.error + ". Revisa tu conexion e intenta de nuevo."));
+        return;
+      }
+      try {
+        if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
+        await recordActivity(user.id);
+      } catch (e) {
+        console.error("[leccion] efecto secundario fallo:", e);
+      }
       mount(done, el("div", {},
         feedback(true, "Listo! Ya estudiaste el material." +
           (lesson.teachesVocab ? " Agregamos el vocabulario a tu repaso diario (SRS)." : "")),
