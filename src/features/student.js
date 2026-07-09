@@ -180,7 +180,7 @@ function achievementsSection(logros) {
         (a.unlocked ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-600") },
         a.unlocked ? "*" : "-"),
       el("p", { class: "mt-2 text-sm font-semibold " + (a.unlocked ? "text-slate-100" : "text-slate-500") }, a.title),
-      el("p", { class: "text-xs text-slate-500 mt-0.5" }, a.desc));
+      el("p", { class: "text-xs text-slate-500 mt-0.5" }, a.desc)));
 
   return el("section", { class: PANEL + " p-5" },
     el("h2", { class: "text-lg font-bold" }, "Logros"),
