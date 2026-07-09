@@ -10,6 +10,7 @@ import { getProfile } from "./services/profiles.js";
 import { renderRegister, renderLogin } from "./features/auth-ui.js";
 import { renderStudent } from "./features/student.js";
 import { renderTeacher } from "./features/teacher.js";
+import { renderPlacement } from "./features/placement.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 
@@ -59,6 +60,7 @@ function setupRoutes() {
   on("/register", () => renderRegister(app));
   on("/student", () => requireAuth((u) => renderStudent(app, u)));
   on("/teacher", () => requireAuth((u) => renderTeacher(app, u)));
+  on("/examen", () => requireAuth((u) => renderPlacement(app, u)));
   onNotFound(renderHome);
 }
 
