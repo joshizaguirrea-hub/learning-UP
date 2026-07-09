@@ -14,8 +14,14 @@ import { renderPlacement } from "./features/placement.js";
 import { renderUnit } from "./features/unit.js";
 import { renderLessonPlayer } from "./features/lesson-player.js";
 import { renderReview } from "./features/review.js";
+import { renderMap } from "./features/map.js";
+import { renderTeachers } from "./features/teachers.js";
+import { renderCalendar } from "./features/calendar.js";
+import { renderChat } from "./features/chat.js";
+import { renderSettings } from "./features/settings.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
+import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
 
 const app = qs("#app");
 
@@ -69,12 +75,19 @@ function setupRoutes() {
   on("/unidad/:id", (params) => requireAuth((u) => renderUnit(app, params, u)));
   on("/leccion/:id", (params) => requireAuth((u) => renderLessonPlayer(app, params, u)));
   on("/repaso", () => requireAuth((u) => renderReview(app, u)));
+  on("/plan", () => requireAuth((u) => renderMap(app, u)));
+  on("/profesores", () => requireAuth(() => renderTeachers(app)));
+  on("/calendario", () => requireAuth(() => renderCalendar(app)));
+  on("/chat", () => requireAuth(() => renderChat(app)));
+  on("/ajustes", () => requireAuth((u) => renderSettings(app, u)));
   onNotFound(renderHome);
 }
 
 /** Actualiza el boton de sesion en el header. */
 function refreshHeader(user) {
   const slot = qs("#session-slot");
+  setNavVisible(!!user);
+  if (user) renderBottomNav();
   if (!slot) return;
   if (user) {
     mount(slot, el("a", {
@@ -92,6 +105,9 @@ function init() {
   if (!isConfigured) { renderConfigWarning(); return; }
   setupRoutes();
   startRouter();
+  renderLangSelector();
+  // Mantiene sincronizada la ruta activa de la barra inferior.
+  window.addEventListener("hashchange", renderBottomNav);
   currentUser().then(refreshHeader);
   onAuthChange((user) => {
     refreshHeader(user);

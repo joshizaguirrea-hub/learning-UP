@@ -7,10 +7,11 @@
 
 export const LANGUAGES = [
   { code: "en", name: "Ingles", flag: "GB", enabled: true },
+  { code: "es", name: "Espanol", flag: "ES", enabled: false },
   { code: "pt", name: "Portugues", flag: "PT", enabled: false },
-  { code: "de", name: "Aleman", flag: "DE", enabled: false },
-  { code: "ja", name: "Japones", flag: "JP", enabled: false },
   { code: "fr", name: "Frances", flag: "FR", enabled: false },
+  { code: "ja", name: "Japones", flag: "JP", enabled: false },
+  { code: "it", name: "Italiano", flag: "IT", enabled: false },
 ];
 
 /** Solo los idiomas disponibles ahora mismo. */
