@@ -61,6 +61,7 @@ export async function getTeacherProfile(userId) {
 /**
  * Registra actividad de hoy y actualiza la racha (habito).
  * Idempotente por dia: si ya estudio hoy, no cambia nada.
+ * Tambien registra el dia en activity_days (heatmap) y la mejor racha.
  * @returns {{streak, changed}} racha nueva y si hoy conto como dia nuevo.
  */
 export async function recordActivity(userId) {
@@ -68,10 +69,24 @@ export async function recordActivity(userId) {
   if (!profile) return { streak: 0, changed: false };
   const { streak, changed, today } = computeStreak(profile.last_active, profile.streak || 0);
   if (changed) {
+    const best = Math.max(profile.best_streak || 0, streak);
     await supabase
       .from("student_profiles")
-      .update({ streak, last_active: today })
+      .update({ streak, last_active: today, best_streak: best })
       .eq("user_id", userId);
+    // Registra el dia para el mapa de calor (upsert sobre la PK user_id+day).
+    await supabase
+      .from("activity_days")
+      .upsert({ user_id: userId, day: today, count: 1 }, { onConflict: "user_id,day" });
   }
   return { streak, changed };
+}
+
+/** Actualiza campos editables del perfil de estudiante (bio, metas, etc.). */
+export async function updateStudentProfile(userId, fields) {
+  const { error } = await supabase
+    .from("student_profiles")
+    .update(fields)
+    .eq("user_id", userId);
+  return error ? { ok: false, error: error.message } : { ok: true };
 }
