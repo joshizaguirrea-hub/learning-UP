@@ -68,6 +68,22 @@ export const TRAVEL_PLANS_B1 = {
         note:
           "Usa 'going to' para planes ya decididos ('I'm going to travel') y 'will' para " +
           "predicciones o decisiones del momento ('I think it will rain', 'I'll help you').",
+        grammar: {
+          title: "Futuro: going to vs will",
+          form: "going to = plan decidido  |  will = prediccion o decision del momento",
+          examples: [
+            "I'm going to visit Canada. (ya lo decidi)",
+            "It's cold, I'll take a jacket. (decision ahora)",
+            "I think it will rain tomorrow. (prediccion)",
+          ],
+          mistakes: [
+            { wrong: "I will visit Canada, I booked it.", right: "I'm going to visit Canada, I booked it." },
+          ],
+        },
+        check: [
+          { prompt: "Where is Sofia going?", choices: ["Canada", "Mexico", "Spain"], answer: 0 },
+          { prompt: "When does her flight depart?", choices: ["Friday morning", "Sunday night", "Monday"], answer: 0 },
+        ],
       },
       activities: [],
     },
@@ -87,10 +103,12 @@ export const TRAVEL_PLANS_B1 = {
       activities: [
         { id: "tp-l1-a1", type: "multiple_choice",
           prompt: "'I already booked it, I ___ visit Canada.' (plan decidido)",
-          payload: { choices: ["will", "am going to", "would"], answer: 1 } },
+          payload: { choices: ["will", "am going to", "would"], answer: 1 },
+          explain: "Ya reservaste = plan decidido, se usa 'going to'." },
         { id: "tp-l1-a2", type: "multiple_choice",
           prompt: "'It's cold! I ___ take a jacket.' (decision del momento)",
-          payload: { choices: ["will", "am going to", "was going to"], answer: 0 } },
+          payload: { choices: ["will", "am going to", "was going to"], answer: 0 },
+          explain: "Reaccionas al frio ahora = decision del momento = 'will'." },
       ],
     },
     {
@@ -103,10 +121,12 @@ export const TRAVEL_PLANS_B1 = {
       activities: [
         { id: "tp-l2-a1", type: "cloze",
           prompt: "Completa: 'I want to ___ a hotel room.' (reservar)",
-          payload: { answer: "book" } },
+          payload: { answer: "book" },
+          explain: "'To book' = reservar (hotel, vuelo, mesa...)." },
         { id: "tp-l2-a2", type: "cloze",
           prompt: "Completa: 'The plane will ___ at 9 a.m.' (partir)",
-          payload: { answer: "depart", alt: ["leave"] } },
+          payload: { answer: "depart", alt: ["leave"] },
+          explain: "'Depart' = salir/partir (formal, para transporte). 'leave' tambien vale." },
         { id: "tp-l2-a3", type: "word_bank",
           prompt: "Ordena la frase (plan de viaje):",
           payload: { words: ["going", "I'm", "to", "Canada", "visit"], answer: ["I'm", "going", "to", "visit", "Canada"] } },

@@ -75,6 +75,22 @@ export const WORK_CAREER_B1 = {
         note:
           "Usa 'to be in charge of' + sustantivo o gerundio: 'in charge of the team', " +
           "'in charge of hiring'. Para experiencia: 'experience IN + area' o 'experience WITH + herramienta'.",
+        grammar: {
+          title: "Hablar de responsabilidades",
+          form: "subject + be + in charge of / responsible for + (noun | -ing)",
+          examples: [
+            "I'm in charge of the sales team.",
+            "She is responsible for hiring new staff.",
+          ],
+          mistakes: [
+            { wrong: "I'm in charge the team.", right: "I'm in charge of the team." },
+            { wrong: "He is responsible of sales.", right: "He is responsible for sales." },
+          ],
+        },
+        check: [
+          { prompt: "What is Laura in charge of?", choices: ["A small team", "The whole company", "The kitchen"], answer: 0 },
+          { prompt: "What did Laura get last month?", choices: ["A raise only", "A promotion", "A new office"], answer: 1 },
+        ],
       },
       activities: [],
     },
@@ -100,6 +116,7 @@ export const WORK_CAREER_B1 = {
           id: "wc-l1-a1", type: "multiple_choice",
           prompt: "'I'm in charge of the team' means:",
           payload: { choices: ["I lead the team", "I left the team", "I joined today"], answer: 0 },
+          explain: "'To be in charge of' = estar a cargo de / liderar. Ojo: 'left' es pasado de 'leave' (dejar).",
         },
         {
           id: "wc-l1-a2", type: "matching",
@@ -126,16 +143,19 @@ export const WORK_CAREER_B1 = {
           id: "wc-l2-a1", type: "cloze",
           prompt: "Completa: 'The ___ for the project is next Monday.' (fecha limite)",
           payload: { answer: "deadline" },
+          explain: "'Deadline' es la fecha limite para entregar algo.",
         },
         {
           id: "wc-l2-a2", type: "cloze",
           prompt: "Completa: 'I want to ___ for a new job.' (postular)",
           payload: { answer: "apply", alt: ["apply for"] },
+          explain: "'To apply for a job' = postular a un empleo. Casi siempre va con 'for'.",
         },
         {
           id: "wc-l2-a3", type: "word_bank",
           prompt: "Ordena las palabras para formar la frase:",
           payload: { words: ["charge", "I'm", "of", "in", "sales"], answer: ["I'm", "in", "charge", "of", "sales"] },
+          explain: "Orden fijo: 'in charge of' + area. 'I'm in charge of sales.'",
         },
         {
           id: "wc-l2-a4", type: "multiple_choice",
@@ -145,11 +165,13 @@ export const WORK_CAREER_B1 = {
             "She has five years of experience.",
             "She having five years experience.",
           ], answer: 1 },
+          explain: "Con 'she/he/it' el verbo lleva -s: 'She has'. 'have' es incorrecto en 3a persona.",
         },
         {
           id: "wc-l2-a5", type: "cloze",
           prompt: "Completa: 'He got a ___ and now he is a manager.' (ascenso)",
           payload: { answer: "promotion" },
+          explain: "'Promotion' = ascenso (subir de puesto).",
         },
       ],
     },
