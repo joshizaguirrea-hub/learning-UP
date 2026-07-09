@@ -11,6 +11,8 @@ import { countDue, srsStats } from "../services/srs.js";
 import { unitsForLevel } from "../data/units/index.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { CEFR_INFO } from "../data/cefr.js";
+import { ICONS } from "../ui/icons.js";
+import { didToday } from "../core/streak.js";
 import {
   skillProgress, totalXp, xpToNext, achievements,
 } from "../core/gamification.js";
@@ -44,13 +46,13 @@ export async function renderStudent(container, user) {
   const skills = skillProgress(units, completed);
   const xp = totalXp(lessonsDone, srs.learned);
   const logros = achievements({
-    placementDone: true, lessonsDone, vocabLearned: srs.learned, unitsCompleted,
+    placementDone: true, lessonsDone, vocabLearned: srs.learned, unitsCompleted, streak: profile.streak || 0,
   });
 
   mount(container, el("div", { class: "space-y-6" },
     profileHeader(name, profile, xp),
-    statsRow(xp, profile.cefr_level, srs.learned, lessonsDone),
-    due > 0 ? reviewBanner(due) : null,
+    nextActionHero(profile, units, completed, due),
+    statsRow(profile, srs.learned, lessonsDone),
     skillsSection(skills),
     el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
       courseSection(units, progressMap),
@@ -89,13 +91,46 @@ function profileHeader(name, profile, xp) {
 // --------------------------------------------------------------------------
 // Fila de estadisticas
 // --------------------------------------------------------------------------
-function statsRow(xp, cefrLevel, vocab, lessons) {
+function statsRow(profile, vocab, lessons) {
   const stat = (value, label) =>
     el("div", { class: PANEL + " p-4 text-center" },
       el("p", { class: "text-2xl font-extrabold text-indigo-300" }, String(value)),
       el("p", { class: "text-xs text-slate-400 mt-1" }, label));
   return el("section", { class: "grid grid-cols-2 sm:grid-cols-4 gap-3" },
-    stat(cefrLevel, "Tu nivel"), stat(xp, "XP total"), stat(vocab, "Palabras"), stat(lessons, "Lecciones"));
+    stat(profile.cefr_level, "Tu nivel"), stat(profile.streak || 0, "Racha (dias)"),
+    stat(vocab, "Palabras"), stat(lessons, "Lecciones"));
+}
+
+/** Tarjeta "Continua aqui": friccion cero + racha + meta de hoy (retencion). */
+function nextActionHero(profile, units, completed, due) {
+  const action = nextAction(units, completed, due);
+  const goalDone = didToday(profile.last_active);
+  const streak = profile.streak || 0;
+
+  return el("section", { class: "rounded-2xl overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg" },
+    el("div", { class: "p-5 flex items-center gap-4 flex-wrap" },
+      el("div", { class: "flex items-center gap-2" },
+        el("span", { class: "w-9 h-9 text-amber-300", html: ICONS.flame }),
+        el("div", {},
+          el("p", { class: "text-2xl font-extrabold text-white leading-none" }, String(streak)),
+          el("p", { class: "text-[10px] text-white/80 uppercase tracking-wide" }, "dias de racha"))),
+      el("div", { class: "flex-1 min-w-[12rem]" },
+        el("p", { class: "text-white/80 text-sm" }, goalDone ? "Meta de hoy cumplida. Sigue asi!" : "Meta de hoy: estudia algo"),
+        el("p", { class: "text-white font-bold text-lg" }, action.label)),
+      el("a", { href: action.href,
+        class: "flex items-center gap-2 bg-white text-indigo-700 font-bold px-5 py-3 rounded-xl hover:bg-indigo-50 focus:outline focus:outline-2 focus:outline-white" },
+        el("span", { class: "w-5 h-5", html: ICONS.play }), action.cta)));
+}
+
+/** Decide la mejor accion siguiente (friccion cero). */
+function nextAction(units, completed, due) {
+  if (due > 0) return { label: `Repaso del dia: ${due} tarjetas`, cta: "Repasar", href: "#/repaso" };
+  for (const u of units) {
+    for (const l of u.lessons) {
+      if (!completed.has(l.id)) return { label: `${u.title}: ${l.title}`, cta: "Continuar", href: `#/leccion/${l.id}` };
+    }
+  }
+  return { label: "Vas al dia. Explora tu mapa!", cta: "Ver mapa", href: "#/plan" };
 }
 
 // --------------------------------------------------------------------------
@@ -161,16 +196,6 @@ function courseSection(units, progressMap) {
     el("h2", { class: "text-lg font-bold" }, "Tu curso"),
     el("p", { class: "text-slate-400 text-sm mt-1" }, "Unidades tematicas con lecciones interactivas."),
     el("div", { class: "mt-4 grid gap-3" }, ...cards));
-}
-
-function reviewBanner(due) {
-  return el("a", {
-    href: "#/repaso",
-    class: "block p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 shadow-lg " +
-      "hover:from-emerald-500 hover:to-teal-600 focus:outline focus:outline-2 focus:outline-emerald-400",
-  },
-    el("p", { class: "font-bold text-white" }, `Repaso del dia: ${due} tarjetas`),
-    el("p", { class: "text-sm text-white/80" }, "Manten tu vocabulario fresco con repaso espaciado (SRS)."));
 }
 
 function achievementsSection(logros) {

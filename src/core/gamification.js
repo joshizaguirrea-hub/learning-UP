@@ -72,6 +72,8 @@ export function achievements(s) {
       unlocked: s.lessonsDone >= 5 },
     { id: "unit_master", title: "Maestro de unidad", desc: "Completaste una unidad entera",
       unlocked: s.unitsCompleted >= 1 },
+    { id: "streak_7", title: "Constante", desc: "7 dias seguidos de estudio",
+      unlocked: (s.streak || 0) >= 7 },
     { id: "on_fire", title: "Imparable", desc: "Completaste 15 lecciones",
       unlocked: s.lessonsDone >= 15 },
   ];

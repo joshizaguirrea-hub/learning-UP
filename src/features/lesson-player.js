@@ -9,6 +9,7 @@ import { findLesson } from "../data/units/index.js";
 import { grade, gradeAll } from "../core/activities.js";
 import { completeLesson } from "../services/course.js";
 import { ensureCards } from "../services/srs.js";
+import { recordActivity } from "../services/profiles.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
@@ -90,6 +91,7 @@ function renderPractice(container, unit, lesson, user) {
     if (score.passed) {
       await completeLesson(user.id, lesson.id, Math.round(score.ratio * 100));
       if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
+      await recordActivity(user.id);
     }
 
     const action = score.passed
@@ -152,6 +154,7 @@ async function renderLearn(container, unit, lesson, user) {
     onclick: async () => {
       await completeLesson(user.id, lesson.id, 100);
       if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
+      await recordActivity(user.id);
       mount(done, el("div", {},
         feedback(true, "Listo! Ya estudiaste el material." +
           (lesson.teachesVocab ? " Agregamos el vocabulario a tu repaso diario (SRS)." : "")),
