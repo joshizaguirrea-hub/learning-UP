@@ -62,9 +62,17 @@ export function renderSettings(container, user) {
       onclick: async () => { await logout(); go("/"); },
     }, "Cerrar sesion"));
 
+  const toolsCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Herramientas"),
+    el("p", { class: "text-sm text-slate-400 mt-1" }, "Revisa que tan robusto y completo es el contenido del curso."),
+    el("button", {
+      class: "mt-4 " + PRIMARY,
+      onclick: () => go("/calidad"),
+    }, "Ver reporte de calidad"));
+
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, accentCard, sessionCard));
+    nameCard, accentCard, toolsCard, sessionCard));
   focusMainHeading(container);
 }
 

@@ -53,8 +53,9 @@ export async function renderStudent(container, user) {
     statsRow(xp, level, srs.learned, lessonsDone),
     due > 0 ? reviewBanner(due) : null,
     skillsSection(skills),
-    courseSection(units, progressMap),
-    achievementsSection(logros)));
+    el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
+      courseSection(units, progressMap),
+      achievementsSection(logros))));
   focusMainHeading(container);
 }
 
@@ -104,7 +105,7 @@ function statsRow(xp, level, vocab, lessons) {
 function skillsSection(skills) {
   return el("section", {},
     el("h2", { class: "text-lg font-bold mb-3" }, "Tus competencias"),
-    el("div", { class: "space-y-3" }, ...skills.map(skillCard)));
+    el("div", { class: "grid sm:grid-cols-2 gap-3" }, ...skills.map(skillCard)));
 }
 
 function skillCard(s) {

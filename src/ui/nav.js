@@ -44,7 +44,7 @@ export function renderBottomNav() {
   });
 
   nav.replaceChildren(
-    el("div", { class: "max-w-5xl mx-auto px-2 flex items-stretch" }, ...items));
+    el("div", { class: "max-w-6xl mx-auto px-2 flex items-stretch" }, ...items));
 }
 
 // --------------------------------------------------------------------------
