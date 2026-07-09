@@ -12,6 +12,9 @@ import { renderStudent } from "./features/student.js";
 import { renderTeacher } from "./features/teacher.js";
 import { renderPlacement } from "./features/placement.js";
 import { renderLesson } from "./features/lesson.js";
+import { renderUnit } from "./features/unit.js";
+import { renderLessonPlayer } from "./features/lesson-player.js";
+import { renderReview } from "./features/review.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 
@@ -63,6 +66,9 @@ function setupRoutes() {
   on("/teacher", () => requireAuth((u) => renderTeacher(app, u)));
   on("/examen", () => requireAuth((u) => renderPlacement(app, u)));
   on("/modulo/:id", (params) => requireAuth(() => renderLesson(app, params)));
+  on("/unidad/:id", (params) => requireAuth((u) => renderUnit(app, params, u)));
+  on("/leccion/:id", (params) => requireAuth((u) => renderLessonPlayer(app, params, u)));
+  on("/repaso", () => requireAuth((u) => renderReview(app, u)));
   onNotFound(renderHome);
 }
 

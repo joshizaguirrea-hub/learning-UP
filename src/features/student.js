@@ -6,6 +6,8 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCurrentPlan } from "../services/placement.js";
+import { unitsForLevel } from "../data/units/index.js";
+import { countDue } from "../services/srs.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
@@ -25,13 +27,18 @@ export async function renderStudent(container, user) {
   const blocks = [header, done ? levelCard(profile) : placementCta()];
 
   if (done) {
+    const [units, due] = await Promise.all([
+      Promise.resolve(unitsForLevel(profile.cefr_level)),
+      countDue(user.id),
+    ]);
+    blocks.push(courseSection(units, due));
     const plan = await getCurrentPlan(user.id);
     if (plan) blocks.push(planSection(plan));
   }
 
   blocks.push(el("section", { class: "grid sm:grid-cols-2 gap-6 mt-6" },
-    stub("Contenido y practicas", "Libros, audios y ejercicios (proximamente)."),
-    stub("Buscar profesor", "Marketplace de profesores (Fase 2).")));
+    stub("Buscar profesor", "Marketplace de profesores (Fase 2)."),
+    stub("Certificados", "Certificado MCER al completar tu nivel (proximamente).")));
 
   mount(container, el("div", {}, ...blocks));
   focusMainHeading(container);
@@ -103,6 +110,38 @@ function statusBadge(status) {
   };
   const [label, cls] = map[status] || map.pending;
   return el("span", { class: `text-xs px-2 py-0.5 rounded-full ${cls}` }, label);
+}
+
+/** Seccion "Tu curso": unidades del nivel + acceso al repaso SRS del dia. */
+function courseSection(units, due) {
+  const unitCards = units.length
+    ? units.map((u) =>
+        el("a", {
+          href: `#/unidad/${u.id}`,
+          class: "block p-4 rounded-lg border border-slate-200 hover:bg-indigo-50 " +
+            "focus:outline focus:outline-2 focus:outline-indigo-600",
+        },
+          el("div", { class: "flex items-center gap-2" },
+            el("span", { class: "text-xs font-mono bg-slate-100 px-2 py-0.5 rounded" }, u.level),
+            el("span", { class: "font-semibold" }, u.title)),
+          el("p", { class: "text-sm text-slate-600 mt-1" }, u.subtitle)))
+    : [el("p", { class: "text-sm text-slate-500" }, "Pronto habra mas unidades para tu nivel.")];
+
+  const reviewBanner = due > 0
+    ? el("a", {
+        href: "#/repaso",
+        class: "block mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-200 " +
+          "hover:bg-emerald-100 focus:outline focus:outline-2 focus:outline-emerald-600",
+      },
+        el("span", { class: "font-semibold text-emerald-900" }, `Repaso del dia: ${due} tarjetas`),
+        el("span", { class: "block text-sm text-emerald-800" }, "Manten tu vocabulario fresco con repaso espaciado."))
+    : null;
+
+  return el("section", { class: "mt-6 " + CARD },
+    el("h2", { class: "font-bold text-lg" }, "Tu curso"),
+    el("p", { class: "text-slate-600 text-sm mt-1" }, "Unidades tematicas con lecciones interactivas."),
+    el("div", { class: "mt-4 grid gap-3" }, ...unitCards),
+    reviewBanner);
 }
 
 function stub(title, text) {
