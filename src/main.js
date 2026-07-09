@@ -21,6 +21,8 @@ import { renderChat } from "./features/chat.js";
 import { renderSettings } from "./features/settings.js";
 import { renderQuality } from "./features/quality.js";
 import { renderCompetency } from "./features/competency.js";
+import { renderProfile } from "./features/profile.js";
+import { renderProfileEdit } from "./features/profile-edit.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
@@ -84,6 +86,8 @@ function setupRoutes() {
   on("/ajustes", () => requireAuth((u) => renderSettings(app, u)));
   on("/calidad", () => requireAuth(() => renderQuality(app)));
   on("/competencia/:skill", (params) => requireAuth((u) => renderCompetency(app, params, u)));
+  on("/perfil", () => requireAuth((u) => renderProfile(app, u)));
+  on("/perfil/editar", () => requireAuth((u) => renderProfileEdit(app, u)));
   onNotFound(renderHome);
 }
 

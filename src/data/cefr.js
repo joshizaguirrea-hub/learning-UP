@@ -28,3 +28,11 @@ export function cefrRank(level) {
 export function isAtLeast(a, b) {
   return cefrRank(a) >= cefrRank(b) && cefrRank(a) !== -1;
 }
+
+/** Devuelve el siguiente nivel del estudiante (o null si ya es el maximo). */
+export function nextLevel(level) {
+  const i = CEFR_ORDER.indexOf(level);
+  // No proponemos "Native" como meta para estudiantes: el tope es C2.
+  if (i < 0 || level === "C2" || level === "Native") return null;
+  return CEFR_ORDER[i + 1];
+}
