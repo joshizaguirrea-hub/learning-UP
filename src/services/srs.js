@@ -59,3 +59,14 @@ export async function saveCard(userId, vocabId, card) {
     .eq("vocab_id", vocabId);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
+
+/** Estadisticas del SRS: total de tarjetas y cuantas ya se han repasado. */
+export async function srsStats(userId) {
+  const { data } = await supabase
+    .from("srs_cards")
+    .select("reps")
+    .eq("user_id", userId);
+  const total = data?.length || 0;
+  const learned = data?.filter((c) => c.reps >= 1).length || 0;
+  return { total, learned };
+}

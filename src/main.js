@@ -21,13 +21,15 @@ const app = qs("#app");
 
 /** Vista simple de bienvenida cuando no hay sesion. */
 function renderHome() {
-  mount(app, el("section", { class: "text-center py-10" },
-    el("h1", { class: "text-4xl font-extrabold" }, "Aprende ingles con un plan hecho para ti"),
-    el("p", { class: "mt-4 text-lg text-slate-600 max-w-2xl mx-auto" },
-      "Examen de ubicacion (MCER), plan personalizado, contenido con IA y profesores cuando los necesites."),
-    el("div", { class: "mt-8 flex gap-3 justify-center" },
-      el("a", { href: "#/register", class: "bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg hover:bg-indigo-800" }, "Empezar gratis"),
-      el("a", { href: "#/login", class: "bg-white text-indigo-700 border border-indigo-200 font-semibold px-6 py-3 rounded-lg hover:bg-indigo-50" }, "Ya tengo cuenta"))));
+  mount(app, el("section", { class: "text-center py-12" },
+    el("h1", { class: "text-4xl sm:text-5xl font-extrabold" },
+      "Aprende ingles con un ",
+      el("span", { class: "bg-gradient-to-r from-indigo-400 to-fuchsia-400 bg-clip-text text-transparent" }, "plan hecho para ti")),
+    el("p", { class: "mt-4 text-lg text-slate-400 max-w-2xl mx-auto" },
+      "Examen de ubicacion (MCER), curso por unidades, repaso espaciado y profesores cuando los necesites."),
+    el("div", { class: "mt-8 flex flex-wrap gap-3 justify-center" },
+      el("a", { href: "#/register", class: "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-6 py-3 rounded-lg hover:from-indigo-400 hover:to-fuchsia-400" }, "Empezar gratis"),
+      el("a", { href: "#/login", class: "bg-slate-800 text-slate-100 border border-slate-700 font-semibold px-6 py-3 rounded-lg hover:bg-slate-700" }, "Ya tengo cuenta"))));
 }
 
 /** Aviso si Supabase aun no esta configurado (evita errores confusos). */
@@ -76,13 +78,13 @@ function refreshHeader(user) {
   if (!slot) return;
   if (user) {
     mount(slot, el("a", {
-      href: "#/", class: "underline hover:no-underline cursor-pointer",
+      href: "#/", class: "text-slate-300 hover:text-white cursor-pointer",
       onclick: async (e) => { e.preventDefault(); await logout(); go("/"); },
     }, "Salir"));
   } else {
-    mount(slot, el("span", { class: "flex gap-4" },
-      el("a", { href: "#/login", class: "underline hover:no-underline" }, "Iniciar sesion"),
-      el("a", { href: "#/register", class: "bg-white text-indigo-700 font-semibold px-3 py-1.5 rounded-md" }, "Registrarme")));
+    mount(slot, el("span", { class: "flex items-center gap-4" },
+      el("a", { href: "#/login", class: "text-slate-300 hover:text-white" }, "Iniciar sesion"),
+      el("a", { href: "#/register", class: "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-3 py-1.5 rounded-md" }, "Registrarme")));
   }
 }
 
