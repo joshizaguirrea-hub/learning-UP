@@ -2,15 +2,15 @@
  * ui/router.js — Router por hash (#/ruta). Sin dependencias.
  *
  * Capa de presentacion. Mapea rutas a funciones que renderizan una vista.
- * Simple a proposito: para un SPA pequeno no necesitamos History API ni libs.
+ * Soporta un parametro dinamico por ruta, ej: on("/modulo/:id", (params) => ...).
  */
 
-const routes = new Map();
+const routes = []; // { pattern: string[], handler }
 let notFoundHandler = () => {};
 
-/** Registra una ruta: on("/login", render) */
+/** Registra una ruta. El path puede incluir segmentos ":param". */
 export function on(path, handler) {
-  routes.set(path, handler);
+  routes.push({ segments: path.split("/"), handler });
 }
 
 /** Handler para rutas no encontradas. */
@@ -29,11 +29,25 @@ export function currentPath() {
   return location.hash.slice(1) || "/";
 }
 
+/** Intenta casar la ruta actual con un patron; devuelve params o null. */
+function match(segments, pathSegments) {
+  if (segments.length !== pathSegments.length) return null;
+  const params = {};
+  for (let i = 0; i < segments.length; i++) {
+    if (segments[i].startsWith(":")) params[segments[i].slice(1)] = decodeURIComponent(pathSegments[i]);
+    else if (segments[i] !== pathSegments[i]) return null;
+  }
+  return params;
+}
+
 /** Resuelve y ejecuta el handler de la ruta actual. */
 function resolve() {
-  const path = currentPath();
-  const handler = routes.get(path) || notFoundHandler;
-  handler();
+  const pathSegments = currentPath().split("/");
+  for (const route of routes) {
+    const params = match(route.segments, pathSegments);
+    if (params) { route.handler(params); return; }
+  }
+  notFoundHandler();
 }
 
 /** Arranca el router y escucha cambios de hash. */
