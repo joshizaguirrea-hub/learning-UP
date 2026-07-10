@@ -70,3 +70,16 @@ export async function srsStats(userId) {
   const learned = data?.filter((c) => c.reps >= 1).length || 0;
   return { total, learned };
 }
+
+/** Devuelve un mapa { vocab_id: card } para una lista de ids (mazos bonus). */
+export async function getCardsByIds(userId, ids) {
+  if (!ids || !ids.length) return {};
+  const { data } = await supabase
+    .from("srs_cards")
+    .select("*")
+    .eq("user_id", userId)
+    .in("vocab_id", ids);
+  const map = {};
+  (data || []).forEach((c) => { map[c.vocab_id] = c; });
+  return map;
+}
