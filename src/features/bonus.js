@@ -143,8 +143,8 @@ export async function renderBonusDeck(container, params, user) {
       itemDots(deck, cardMap, index),
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
-        el("h1", { class: "text-4xl font-extrabold text-slate-100" }, item.front),
-        speakButton(item.front, { cls: "w-9 h-9" })),
+        el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
+        speakButton(item.front, { cls: "w-11 h-11" })),
       statusChip(card.reps || 0),
       el("p", { class: "mt-2 text-xs text-slate-500" }, "Piensa la respuesta y luego comprueba."),
       back, showBtn, grades);
@@ -152,7 +152,7 @@ export async function renderBonusDeck(container, params, user) {
     // Panel lateral con "pops" de ayuda (regla, usos, tips). Solo verbos.
     const aside = deck.practice ? tipsAside(item) : null;
 
-    mount(container, el("div", { class: "max-w-5xl mx-auto grid lg:grid-cols-3 gap-4 items-start" },
+    mount(container, el("div", { class: "grid lg:grid-cols-3 gap-6 items-start" },
       el("div", { class: "lg:col-span-2" }, cardEl),
       aside ? el("aside", { class: "lg:col-span-1" }, aside) : null));
     focusMainHeading(container);

@@ -1,10 +1,11 @@
 /* styles/app.css — Estilos propios sobre Tailwind (CDN). */
 
 /* Legibilidad base (accesibilidad). Tailwind usa rem, asi que subir la raiz
- * agranda TODO (textos, botones, espaciados) de forma consistente. */
-html { font-size: 20px; }
-html[data-text-size="lg"] { font-size: 23px; }
-html[data-text-size="xl"] { font-size: 26px; }
+ * agranda TODO. Con clamp la letra CRECE en pantallas grandes y no queda
+ * diminuta en monitores anchos. min - ideal(segun ancho) - max. */
+html { font-size: clamp(20px, 0.55vw + 16px, 27px); }
+html[data-text-size="lg"] { font-size: clamp(23px, 0.7vw + 18px, 31px); }
+html[data-text-size="xl"] { font-size: clamp(26px, 0.9vw + 20px, 36px); }
 
 body {
   line-height: 1.65;
