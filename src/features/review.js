@@ -10,6 +10,7 @@ import { recordActivity } from "../services/profiles.js";
 import { vocabById } from "../data/units/index.js";
 import { review } from "../core/srs.js";
 import { el, mount } from "../ui/dom.js";
+import { speakButton } from "../ui/speech.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -47,7 +48,8 @@ export async function renderReview(container, user) {
 
     const back = el("div", { class: "mt-4 hidden" },
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, vocab.translation),
-      vocab.example ? el("p", { class: "mt-2 text-slate-400 italic" }, `"${vocab.example}"`) : null);
+      vocab.example ? el("p", { class: "mt-2 text-slate-400 italic flex items-center justify-center gap-2" },
+        el("span", {}, `"${vocab.example}"`), speakButton(vocab.example)) : null);
 
     const grades = el("div", { class: "mt-6 grid grid-cols-2 sm:grid-cols-4 gap-2 hidden" },
       ...GRADES.map((g) => el("button", {
@@ -69,7 +71,9 @@ export async function renderReview(container, user) {
 
     mount(container, el("div", { class: CARD },
       el("p", { class: "text-sm text-slate-400" }, `Tarjeta ${index + 1} de ${cards.length}`),
-      el("h1", { class: "text-4xl font-extrabold mt-4 text-slate-100" }, vocab.term),
+      el("div", { class: "mt-4 flex items-center justify-center gap-3" },
+        el("h1", { class: "text-4xl font-extrabold text-slate-100" }, vocab.term),
+        speakButton(vocab.term, { cls: "w-9 h-9" })),
       back, showBtn, grades));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${cards.length}`);
