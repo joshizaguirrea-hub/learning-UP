@@ -9,7 +9,7 @@ import { priceCap } from "../core/pricing.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
 
-const CARD = "bg-white rounded-xl p-6 shadow-sm border border-slate-200";
+const CARD = "bg-slate-900 rounded-2xl p-6 border border-slate-800";
 
 export async function renderTeacher(container, user) {
   const profile = (await getTeacherProfile(user.id)) || {};
@@ -17,7 +17,7 @@ export async function renderTeacher(container, user) {
 
   const header = el("div", { class: "flex items-center justify-between flex-wrap gap-3" },
     el("h1", { class: "text-2xl font-bold" }, `Hola, ${name}`),
-    el("span", { class: "text-sm bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full" }, "Profesor"));
+    el("span", { class: "text-sm bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-full" }, "Profesor"));
 
   const cap = profile.max_cefr_level
     ? `$${priceCap(profile.max_cefr_level, profile.rating_avg || 0)}/h`
@@ -54,5 +54,5 @@ function statusRow(ok, text) {
 function stub(title, text) {
   return el("div", { class: CARD + " opacity-60" },
     el("h3", { class: "font-bold" }, title),
-    el("p", { class: "mt-2 text-slate-600 text-sm" }, text));
+    el("p", { class: "mt-2 text-slate-400 text-sm" }, text));
 }
