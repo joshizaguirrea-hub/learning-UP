@@ -36,6 +36,7 @@ export function buildPractice(item) {
   const examples = item.examples || [];
   const past = item.past || (item.participle ? null : item.back); // regular: back = pasado
   const participle = item.participle || null;
+  const irregular = !!item.participle; // los mazos irregulares definen participle
 
   // --- Facil: elegir el pasado ---------------------------------------------
   if (past && !String(past).includes("/")) {
@@ -49,6 +50,9 @@ export function buildPractice(item) {
       choices,
       answer: choices.findIndex((c) => normalize(c) === normalize(past)),
       explain: `El pasado de "${item.front}" es "${past}".`,
+      why: irregular
+        ? `"${item.front}" es un verbo IRREGULAR: su pasado no se forma con -ed, hay que memorizarlo ("${past}").`
+        : `"${item.front}" es REGULAR: el pasado se forma agregando -ed ("${past}").`,
     });
   }
 
@@ -62,7 +66,9 @@ export function buildPractice(item) {
         prompt: blank(ex.en, past),
         answer: past,
         es: ex.es,
-        explain: `Respuesta: "${past}". ${ex.en}`,
+        explain: `Respuesta: "${past}".`,
+        why: `Usamos el PASADO SIMPLE porque la accion ya termino. ` +
+          (irregular ? `Forma irregular: "${past}".` : `Regular con -ed: "${past}".`),
       });
     }
   }
@@ -77,7 +83,9 @@ export function buildPractice(item) {
         prompt: blank(ex.en, participle),
         answer: participle,
         es: ex.es,
-        explain: `Respuesta: "${participle}". ${ex.en}`,
+        explain: `Respuesta: "${participle}".`,
+        why: `Con el PRESENT PERFECT (have/has + PARTICIPIO) se usa el participio, no el pasado. ` +
+          `Participio de "${item.front}": "${participle}".`,
       });
     }
   }

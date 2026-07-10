@@ -179,7 +179,9 @@ function practiceBlock(item) {
 
 function exerciseCard(ex) {
   const fb = el("div", { class: "mt-2 text-sm", role: "status" });
-  const ok = (msg) => mount(fb, el("p", { class: "text-emerald-300" }, "Correcto! " + (msg || "")));
+  const ok = (ex2) => mount(fb, el("div", { class: "rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2" },
+    el("p", { class: "text-emerald-300 font-semibold" }, "Correcto! " + (ex2.explain || "")),
+    ex2.why ? el("p", { class: "mt-1 text-slate-300 text-xs" }, "Por que: " + ex2.why) : null));
   const retry = () => mount(fb, el("p", { class: "text-amber-300" }, "Aun no, intenta otra vez."));
 
   let body;
@@ -191,7 +193,7 @@ function exerciseCard(ex) {
           class: "w-full text-left px-3 py-2 rounded-lg border border-slate-700 text-slate-200 " +
             "hover:bg-slate-700/60 focus:outline focus:outline-2 focus:outline-indigo-500",
           onclick: () => {
-            if (i === ex.answer) { b.classList.add("bg-emerald-500/20", "border-emerald-500/50"); ok(ex.explain); }
+            if (i === ex.answer) { b.classList.add("bg-emerald-500/20", "border-emerald-500/50"); ok(ex); }
             else { b.classList.add("bg-red-500/15", "border-red-500/40"); retry(); }
           },
         }, c);
@@ -205,7 +207,7 @@ function exerciseCard(ex) {
       placeholder: "Escribe el verbo",
     });
     const check = () => {
-      if (normalize(input.value) === normalize(ex.answer)) ok(ex.explain);
+      if (normalize(input.value) === normalize(ex.answer)) ok(ex);
       else retry();
     };
     input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
