@@ -1,15 +1,15 @@
 /**
- * ui/dictionary.js — Diccionario/traductor FLOTANTE, disponible en toda la app.
+ * features/dictionary.js — Diccionario/traductor FLOTANTE, disponible en toda la app.
  *
  * Un boton flotante (FAB) discreto abre un panel para traducir palabras o frases
  * ES <-> EN. Vive fuera de #app (colgado del body) para sobrevivir a los cambios
  * de ruta. Si seleccionas texto en la pagina y lo abres, se rellena solo.
  *
- * Presentacion pura + llamada al servicio de traduccion. Accesible (WCAG AA).
+ * Widget de feature: orquesta ui (dom/speech) + servicio de traduccion. Accesible (WCAG AA).
  */
-import { el } from "./dom.js";
-import { ICONS } from "./icons.js";
-import { speakButton } from "./speech.js";
+import { el } from "../ui/dom.js";
+import { ICONS } from "../ui/icons.js";
+import { speakButton } from "../ui/speech.js";
 import { translate, looksEnglish } from "../services/dictionary.js";
 
 let mounted = false;
@@ -121,3 +121,4 @@ export function mountDictionary() {
 function isSpeakable(t) {
   return typeof t === "string" && t.trim().length > 0;
 }
+

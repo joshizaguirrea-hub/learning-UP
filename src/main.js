@@ -28,7 +28,7 @@ import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
 import { applyTextSize, applyContrast } from "./ui/prefs.js";
-import { mountDictionary } from "./ui/dictionary.js";
+import { mountDictionary } from "./features/dictionary.js";
 const app = qs("#app");
 
 /** Vista simple de bienvenida cuando no hay sesion. */
