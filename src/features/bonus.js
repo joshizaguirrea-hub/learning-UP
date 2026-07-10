@@ -11,6 +11,7 @@ import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { review } from "../core/srs.js";
 import { buildPractice } from "../core/verb-practice.js";
+import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { normalize } from "../core/activities.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay } from "../ui/prefs.js";
@@ -121,6 +122,7 @@ export async function renderBonusDeck(container, params, user) {
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
       formsRow(item),
       examplesBlock(item.examples),
+      deck.practice ? generatorBlock(item) : null,
       deck.practice ? practiceBlock(item) : null);
 
     const grades = el("div", { class: "mt-6 grid grid-cols-3 gap-2 hidden" },
@@ -148,7 +150,39 @@ export async function renderBonusDeck(container, params, user) {
     if (getAutoplay()) speak(item.front);
   }
 
-  // Fila con las tres formas del verbo (solo si el item las define).
+  // Generador de mas ejemplos adaptados al nivel (offline, plantillas).
+function generatorBlock(item) {
+  const out = el("div", { class: "mt-2 space-y-2" });
+
+  const select = el("select", {
+    "aria-label": "Nivel de los ejemplos",
+    class: "rounded-md bg-slate-900 border border-slate-700 text-slate-100 px-2 py-1.5 text-sm " +
+      "focus:outline focus:outline-2 focus:outline-indigo-500",
+  }, ...GEN_LEVELS.map((l) => el("option", { value: l.id }, l.label)));
+  select.value = "intermedio";
+
+  const genBtn = el("button", {
+    type: "button",
+    class: "px-4 py-1.5 rounded-md bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-500 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-400",
+    onclick: () => {
+      const level = select.value;
+      const items = generateExamples(item, level, 2);
+      items.forEach((ex) => out.append(
+        el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3 flex items-center gap-2" },
+          speakButton(ex.en),
+          el("p", { class: "text-slate-100" }, ex.en))));
+    },
+  }, "Generar mas ejemplos");
+
+  return el("div", { class: "mt-4 text-left rounded-lg border border-slate-700/60 p-3" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Mas ejemplos a tu nivel"),
+    el("div", { class: "mt-2 flex items-center justify-center gap-2 flex-wrap" },
+      el("span", { class: "text-sm text-slate-400" }, "Nivel:"), select, genBtn),
+    out);
+}
+
+// Fila con las tres formas del verbo (solo si el item las define).
 function formsRow(item) {
   if (!item.past && !item.participle) return null;
   const chip = (label, value) => el("div", { class: "px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700" },
