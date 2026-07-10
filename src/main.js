@@ -23,6 +23,7 @@ import { renderQuality } from "./features/quality.js";
 import { renderCompetency } from "./features/competency.js";
 import { renderProfile } from "./features/profile.js";
 import { renderProfileEdit } from "./features/profile-edit.js";
+import { renderBonus, renderBonusDeck } from "./features/bonus.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
@@ -88,6 +89,8 @@ function setupRoutes() {
   on("/competencia/:skill", (params) => requireAuth((u) => renderCompetency(app, params, u)));
   on("/perfil", () => requireAuth((u) => renderProfile(app, u)));
   on("/perfil/editar", () => requireAuth((u) => renderProfileEdit(app, u)));
+  on("/bonus", () => requireAuth((u) => renderBonus(app, u)));
+  on("/bonus/:id", (params) => requireAuth((u) => renderBonusDeck(app, params, u)));
   onNotFound(renderHome);
 }
 

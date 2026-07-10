@@ -54,6 +54,7 @@ export async function renderStudent(container, user) {
     nextActionHero(profile, units, completed, due),
     statsRow(profile, srs.learned, lessonsDone),
     skillsSection(skills),
+    bonusBanner(),
     el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
       courseSection(units, progressMap),
       achievementsSection(logros))));
@@ -140,6 +141,21 @@ function skillsSection(skills) {
   return el("section", {},
     el("h2", { class: "text-lg font-bold mb-3" }, "Tus competencias"),
     el("div", { class: "grid sm:grid-cols-2 gap-3" }, ...skills.map(skillCard)));
+}
+
+/** Banner de acceso a los mazos Bonus + medallas. */
+function bonusBanner() {
+  return el("a", {
+    href: "#/bonus",
+    class: "block rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 p-5 shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-amber-300",
+  },
+    el("div", { class: "flex items-center gap-4" },
+      el("span", { class: "w-10 h-10 text-white shrink-0", html: ICONS.star }),
+      el("div", { class: "flex-1" },
+        el("p", { class: "font-bold text-white text-lg" }, "Bonus: gana medallas"),
+        el("p", { class: "text-white/85 text-sm" }, "Domina verbos irregulares, pasados y mas. Contenido de memorizar.")),
+      el("span", { class: "text-white/90 text-sm font-semibold" }, "Ir ->")));
 }
 
 function skillCard(s) {
