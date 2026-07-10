@@ -7,6 +7,9 @@
  *
  * item irregular: { id, front, past, participle, back, examples:[{en,es}] }
  * item regular/tiempo: { id, front, back, examples:[{en,es}] }
+ *
+ * Los ejemplos son nivel B1-B2 (frases reales, phrasal verbs, modismos) para
+ * que el estudiante vea el verbo en uso autentico, no en frases de juguete.
  */
 
 export const BONUS_DECKS = [
@@ -21,85 +24,85 @@ export const BONUS_DECKS = [
     medalDesc: "Dominaste los verbos irregulares clave",
     items: [
       { id: "bv-go", front: "go", past: "went", participle: "gone", back: "went / gone", examples: [
-        { en: "I go to the gym on Mondays.", es: "Voy al gimnasio los lunes." },
-        { en: "She went home early.", es: "Ella se fue a casa temprano." },
-        { en: "They have gone to Spain.", es: "Han ido a Espana." }] },
+        { en: "I always go over the report before a meeting.", es: "Siempre reviso el informe antes de una reunion." },
+        { en: "She went out of her way to help a new coworker.", es: "Hizo un gran esfuerzo por ayudar a un companero nuevo." },
+        { en: "By the time we arrived, most of the food had gone.", es: "Para cuando llegamos, casi toda la comida se habia acabado." }] },
       { id: "bv-eat", front: "eat", past: "ate", participle: "eaten", back: "ate / eaten", examples: [
-        { en: "We eat dinner at 8.", es: "Cenamos a las 8." },
-        { en: "He ate a big lunch.", es: "El comio un gran almuerzo." },
-        { en: "I have eaten sushi before.", es: "He comido sushi antes." }] },
+        { en: "We rarely eat out during the week.", es: "Rara vez comemos fuera entre semana." },
+        { en: "He ate his words after the project succeeded.", es: "Se trago sus palabras cuando el proyecto tuvo exito." },
+        { en: "I've never eaten anything as spicy as that.", es: "Nunca he comido algo tan picante como eso." }] },
       { id: "bv-see", front: "see", past: "saw", participle: "seen", back: "saw / seen", examples: [
-        { en: "I see the problem.", es: "Veo el problema." },
-        { en: "She saw a movie.", es: "Ella vio una pelicula." },
-        { en: "Have you seen my keys?", es: "Has visto mis llaves?" }] },
+        { en: "I don't see the point in arguing now.", es: "No le veo sentido a discutir ahora." },
+        { en: "The manager saw through his weak excuse.", es: "El gerente se dio cuenta de su excusa floja." },
+        { en: "Have you seen the latest figures?", es: "Has visto las cifras mas recientes?" }] },
       { id: "bv-come", front: "come", past: "came", participle: "come", back: "came / come", examples: [
-        { en: "They come every week.", es: "Vienen cada semana." },
-        { en: "He came to the party.", es: "El vino a la fiesta." },
-        { en: "Winter has come.", es: "Ha llegado el invierno." }] },
+        { en: "Great opportunities don't come around often.", es: "Las buenas oportunidades no aparecen a menudo." },
+        { en: "The idea came to me while stuck in traffic.", es: "La idea se me ocurrio atascado en el trafico." },
+        { en: "Your hard work has finally come to fruition.", es: "Tu esfuerzo por fin ha dado frutos." }] },
       { id: "bv-take", front: "take", past: "took", participle: "taken", back: "took / taken", examples: [
-        { en: "I take the bus daily.", es: "Tomo el bus a diario." },
-        { en: "We took a taxi.", es: "Tomamos un taxi." },
-        { en: "She has taken the exam.", es: "Ella ha tomado el examen." }] },
+        { en: "It can take months to build a reputation.", es: "Puede tomar meses construir una reputacion." },
+        { en: "She took charge of the situation right away.", es: "Ella tomo el mando de la situacion de inmediato." },
+        { en: "He has taken on far too many tasks.", es: "Se ha echado encima demasiadas tareas." }] },
       { id: "bv-make", front: "make", past: "made", participle: "made", back: "made / made", examples: [
-        { en: "I make coffee each morning.", es: "Hago cafe cada manana." },
-        { en: "They made a mistake.", es: "Cometieron un error." },
-        { en: "He has made dinner.", es: "El ha hecho la cena." }] },
+        { en: "Try to make the most of every chance.", es: "Trata de aprovechar al maximo cada oportunidad." },
+        { en: "They made up their minds after a debate.", es: "Se decidieron tras un debate." },
+        { en: "We've made real progress this quarter.", es: "Hemos hecho un progreso real este trimestre." }] },
       { id: "bv-know", front: "know", past: "knew", participle: "known", back: "knew / known", examples: [
-        { en: "I know the answer.", es: "Se la respuesta." },
-        { en: "She knew him well.", es: "Lo conocia bien." },
-        { en: "I have known her for years.", es: "La conozco desde hace anos." }] },
+        { en: "You never know what life has in store.", es: "Nunca sabes lo que la vida te tiene guardado." },
+        { en: "Deep down, she knew it wouldn't work.", es: "En el fondo, sabia que no funcionaria." },
+        { en: "He has known his partner for a decade.", es: "Conoce a su socio desde hace una decada." }] },
       { id: "bv-get", front: "get", past: "got", participle: "gotten", back: "got / gotten", examples: [
-        { en: "I get up at 6.", es: "Me levanto a las 6." },
-        { en: "He got a new car.", es: "El consiguio un auto nuevo." },
-        { en: "She has gotten better.", es: "Ella ha mejorado." }] },
+        { en: "It takes time to get used to a new routine.", es: "Cuesta acostumbrarse a una rutina nueva." },
+        { en: "We got off to a rocky start last year.", es: "Empezamos con mal pie el ano pasado." },
+        { en: "The situation has gotten out of hand.", es: "La situacion se ha salido de control." }] },
       { id: "bv-give", front: "give", past: "gave", participle: "given", back: "gave / given", examples: [
-        { en: "They give classes online.", es: "Dan clases en linea." },
-        { en: "He gave me a book.", es: "El me dio un libro." },
-        { en: "I have given my answer.", es: "He dado mi respuesta." }] },
+        { en: "Don't give up when things get tough.", es: "No te rindas cuando las cosas se ponen dificiles." },
+        { en: "The teacher gave us a heads-up about it.", es: "El profesor nos aviso con anticipacion." },
+        { en: "I've given it a lot of thought.", es: "Le he dado muchas vueltas." }] },
       { id: "bv-find", front: "find", past: "found", participle: "found", back: "found / found", examples: [
-        { en: "I can't find it.", es: "No lo encuentro." },
-        { en: "She found her wallet.", es: "Encontro su billetera." },
-        { en: "We have found a solution.", es: "Hemos encontrado una solucion." }] },
+        { en: "It's hard to find time to exercise.", es: "Es dificil encontrar tiempo para hacer ejercicio." },
+        { en: "After months searching, she found a job.", es: "Tras meses buscando, encontro trabajo." },
+        { en: "We've found ourselves in a tricky spot.", es: "Nos hemos metido en un aprieto." }] },
       { id: "bv-think", front: "think", past: "thought", participle: "thought", back: "thought / thought", examples: [
-        { en: "I think it's easy.", es: "Creo que es facil." },
-        { en: "He thought about it.", es: "El lo penso." },
-        { en: "I have thought a lot.", es: "He pensado mucho." }] },
+        { en: "I can't think straight with all this noise.", es: "No puedo pensar con claridad con tanto ruido." },
+        { en: "He thought twice before signing.", es: "Lo penso dos veces antes de firmar." },
+        { en: "I've thought about it and I'd rather wait.", es: "Lo he pensado y prefiero esperar." }] },
       { id: "bv-tell", front: "tell", past: "told", participle: "told", back: "told / told", examples: [
-        { en: "I always tell the truth.", es: "Siempre digo la verdad." },
-        { en: "She told a story.", es: "Ella conto una historia." },
-        { en: "He has told everyone.", es: "Se lo ha dicho a todos." }] },
+        { en: "It's hard to tell if he's joking.", es: "Es dificil saber si esta bromeando." },
+        { en: "She told him off for being late again.", es: "Lo regano por llegar tarde otra vez." },
+        { en: "I've told you time and again to be careful.", es: "Te he dicho una y otra vez que tengas cuidado." }] },
       { id: "bv-buy", front: "buy", past: "bought", participle: "bought", back: "bought / bought", examples: [
-        { en: "We buy food here.", es: "Compramos comida aqui." },
-        { en: "I bought a ticket.", es: "Compre un boleto." },
-        { en: "They have bought a house.", es: "Han comprado una casa." }] },
+        { en: "I wouldn't buy into every rumor you hear.", es: "Yo no me creeria cada rumor que escuchas." },
+        { en: "They bought the house despite the price.", es: "Compraron la casa a pesar del precio." },
+        { en: "She has bought into the company's vision.", es: "Ella ha comprado la vision de la empresa." }] },
       { id: "bv-bring", front: "bring", past: "brought", participle: "brought", back: "brought / brought", examples: [
-        { en: "Please bring water.", es: "Por favor trae agua." },
-        { en: "She brought a friend.", es: "Trajo a un amigo." },
-        { en: "I have brought the files.", es: "He traido los archivos." }] },
+        { en: "New technology can bring about big changes.", es: "La nueva tecnologia puede provocar grandes cambios." },
+        { en: "The scandal brought down the whole team.", es: "El escandalo derribo a todo el equipo." },
+        { en: "His comments have brought up a key issue.", es: "Sus comentarios han sacado a relucir un tema clave." }] },
       { id: "bv-write", front: "write", past: "wrote", participle: "written", back: "wrote / written", examples: [
-        { en: "I write every day.", es: "Escribo cada dia." },
-        { en: "He wrote a letter.", es: "Escribio una carta." },
-        { en: "She has written a book.", es: "Ha escrito un libro." }] },
-      { id: "bv-read", front: "read", past: "read", participle: "read", back: "read / read (se pronuncia 'red')", examples: [
-        { en: "I read at night.", es: "Leo de noche." },
-        { en: "She read the news.", es: "Leyo las noticias." },
-        { en: "I have read that book.", es: "He leido ese libro." }] },
+        { en: "Make sure you write down the main points.", es: "Asegurate de anotar los puntos principales." },
+        { en: "She wrote off the loss and moved on.", es: "Dio la perdida por perdida y siguio adelante." },
+        { en: "The report is poorly written.", es: "El informe esta mal redactado." }] },
+      { id: "bv-read", front: "read", past: "read", participle: "read", back: "read / read (suena 'red')", examples: [
+        { en: "Try to read between the lines of his message.", es: "Trata de leer entre lineas su mensaje." },
+        { en: "I read the contract carefully before signing.", es: "Lei el contrato con cuidado antes de firmar." },
+        { en: "Once you've read the guidelines, let me know.", es: "Cuando hayas leido las pautas, avisame." }] },
       { id: "bv-run", front: "run", past: "ran", participle: "run", back: "ran / run", examples: [
-        { en: "They run in the park.", es: "Corren en el parque." },
-        { en: "He ran a marathon.", es: "Corrio un maraton." },
-        { en: "I have run 5 km today.", es: "He corrido 5 km hoy." }] },
+        { en: "We're starting to run out of time.", es: "Estamos empezando a quedarnos sin tiempo." },
+        { en: "The meeting ran over by almost an hour.", es: "La reunion se alargo casi una hora." },
+        { en: "She has run the department for years.", es: "Ha dirigido el departamento por anos." }] },
       { id: "bv-speak", front: "speak", past: "spoke", participle: "spoken", back: "spoke / spoken", examples: [
-        { en: "I speak English.", es: "Hablo ingles." },
-        { en: "She spoke clearly.", es: "Hablo claramente." },
-        { en: "He has spoken to the boss.", es: "Ha hablado con el jefe." }] },
+        { en: "Actions speak louder than words.", es: "Las acciones hablan mas que las palabras." },
+        { en: "He spoke up when nobody else would.", es: "Alzo la voz cuando nadie mas lo hacia." },
+        { en: "I've spoken to the client about the delay.", es: "He hablado con el cliente sobre el retraso." }] },
       { id: "bv-drink", front: "drink", past: "drank", participle: "drunk", back: "drank / drunk", examples: [
-        { en: "I drink water.", es: "Bebo agua." },
-        { en: "He drank coffee.", es: "Bebio cafe." },
-        { en: "She has drunk too much soda.", es: "Ha bebido demasiada gaseosa." }] },
+        { en: "You should drink plenty of water when you travel.", es: "Deberias beber mucha agua cuando viajas." },
+        { en: "They drank a toast to the newlyweds.", es: "Brindaron por los recien casados." },
+        { en: "He has drunk nothing but coffee all day.", es: "No ha bebido mas que cafe en todo el dia." }] },
       { id: "bv-become", front: "become", past: "became", participle: "become", back: "became / become", examples: [
-        { en: "They become friends fast.", es: "Se hacen amigos rapido." },
-        { en: "She became a doctor.", es: "Se convirtio en doctora." },
-        { en: "It has become popular.", es: "Se ha vuelto popular." }] },
+        { en: "With practice, it can become second nature.", es: "Con practica, puede volverse algo natural." },
+        { en: "The situation became increasingly complex.", es: "La situacion se volvio cada vez mas compleja." },
+        { en: "Remote work has become the norm for many.", es: "El trabajo remoto se ha vuelto la norma para muchos." }] },
     ],
   },
   {
@@ -113,41 +116,41 @@ export const BONUS_DECKS = [
     medalDesc: "Dominaste el pasado de verbos regulares",
     items: [
       { id: "br-work", front: "work", back: "worked", examples: [
-        { en: "I work from home.", es: "Trabajo desde casa." },
-        { en: "I worked late yesterday.", es: "Trabaje tarde ayer." }] },
+        { en: "I work from home most of the week.", es: "Trabajo desde casa casi toda la semana." },
+        { en: "We worked around the clock to meet the deadline.", es: "Trabajamos sin parar para cumplir el plazo." }] },
       { id: "br-play", front: "play", back: "played", examples: [
-        { en: "They play soccer.", es: "Juegan futbol." },
-        { en: "She played tennis.", es: "Ella jugo tenis." }] },
+        { en: "They play a key role in the project.", es: "Juegan un papel clave en el proyecto." },
+        { en: "She played it safe and kept her old job.", es: "Fue precavida y conservo su antiguo trabajo." }] },
       { id: "br-study", front: "study", back: "studied", examples: [
-        { en: "I study English.", es: "Estudio ingles." },
-        { en: "He studied all night.", es: "El estudio toda la noche." }] },
+        { en: "I study English to boost my career.", es: "Estudio ingles para impulsar mi carrera." },
+        { en: "He studied the market before investing.", es: "Estudio el mercado antes de invertir." }] },
       { id: "br-watch", front: "watch", back: "watched", examples: [
-        { en: "We watch series.", es: "Vemos series." },
-        { en: "We watched a movie.", es: "Vimos una pelicula." }] },
+        { en: "You should watch your spending this month.", es: "Deberias vigilar tus gastos este mes." },
+        { en: "We watched the situation closely for weeks.", es: "Observamos la situacion de cerca por semanas." }] },
       { id: "br-live", front: "live", back: "lived", examples: [
-        { en: "I live in Lima.", es: "Vivo en Lima." },
-        { en: "They lived in Peru.", es: "Vivieron en Peru." }] },
+        { en: "I try to live within my means.", es: "Trato de vivir segun mis posibilidades." },
+        { en: "They lived abroad for several years.", es: "Vivieron en el extranjero varios anos." }] },
       { id: "br-travel", front: "travel", back: "traveled", examples: [
-        { en: "I travel a lot.", es: "Viajo mucho." },
-        { en: "I traveled last month.", es: "Viaje el mes pasado." }] },
+        { en: "News travels fast in a small office.", es: "Las noticias vuelan en una oficina pequena." },
+        { en: "I traveled extensively for work last year.", es: "Viaje mucho por trabajo el ano pasado." }] },
       { id: "br-cook", front: "cook", back: "cooked", examples: [
-        { en: "She cooks well.", es: "Ella cocina bien." },
-        { en: "She cooked dinner.", es: "Ella cocino la cena." }] },
+        { en: "She cooks under pressure without stress.", es: "Cocina bajo presion sin estresarse." },
+        { en: "He cooked up an excuse on the spot.", es: "Se invento una excusa al instante." }] },
       { id: "br-call", front: "call", back: "called", examples: [
-        { en: "I call my mom daily.", es: "Llamo a mi mama a diario." },
-        { en: "He called me.", es: "El me llamo." }] },
+        { en: "I'll call the shots on this decision.", es: "Yo tomare las decisiones en esto." },
+        { en: "They called off the meeting at the last minute.", es: "Cancelaron la reunion a ultima hora." }] },
       { id: "br-want", front: "want", back: "wanted", examples: [
-        { en: "I want to learn.", es: "Quiero aprender." },
-        { en: "I wanted to help.", es: "Queria ayudar." }] },
+        { en: "I want to make a good impression.", es: "Quiero causar una buena impresion." },
+        { en: "She wanted nothing to do with the plan.", es: "No queria saber nada del plan." }] },
       { id: "br-start", front: "start", back: "started", examples: [
-        { en: "Classes start today.", es: "Las clases empiezan hoy." },
-        { en: "The class started at 9.", es: "La clase empezo a las 9." }] },
+        { en: "Let's start from scratch on this design.", es: "Empecemos desde cero con este diseno." },
+        { en: "The project started off on the wrong foot.", es: "El proyecto empezo con mal pie." }] },
       { id: "br-finish", front: "finish", back: "finished", examples: [
-        { en: "We finish at 5.", es: "Terminamos a las 5." },
-        { en: "We finished the task.", es: "Terminamos la tarea." }] },
+        { en: "We need to finish up before Friday.", es: "Tenemos que terminar antes del viernes." },
+        { en: "She finished the task ahead of schedule.", es: "Termino la tarea antes de lo previsto." }] },
       { id: "br-stop", front: "stop", back: "stopped", examples: [
-        { en: "Buses stop here.", es: "Los buses paran aqui." },
-        { en: "The bus stopped here.", es: "El bus paro aqui." }] },
+        { en: "We can't stop halfway through now.", es: "No podemos parar a medio camino ahora." },
+        { en: "He stopped by the office to sign the papers.", es: "Paso por la oficina a firmar los papeles." }] },
     ],
   },
   {
@@ -160,25 +163,25 @@ export const BONUS_DECKS = [
     medalDesc: "Dominaste las expresiones de tiempo pasado",
     items: [
       { id: "bt-yesterday", front: "yesterday", back: "ayer", examples: [
-        { en: "I saw him yesterday.", es: "Lo vi ayer." }] },
+        { en: "I only found out about it yesterday.", es: "Me entere de eso apenas ayer." }] },
       { id: "bt-lastnight", front: "last night", back: "anoche", examples: [
-        { en: "We studied last night.", es: "Estudiamos anoche." }] },
+        { en: "We stayed up late working last night.", es: "Nos quedamos hasta tarde trabajando anoche." }] },
       { id: "bt-lastweek", front: "last week", back: "la semana pasada", examples: [
-        { en: "She left last week.", es: "Se fue la semana pasada." }] },
+        { en: "She handed in her notice last week.", es: "Presento su renuncia la semana pasada." }] },
       { id: "bt-lastyear", front: "last year", back: "el ano pasado", examples: [
-        { en: "I traveled last year.", es: "Viaje el ano pasado." }] },
+        { en: "The company doubled its sales last year.", es: "La empresa duplico sus ventas el ano pasado." }] },
       { id: "bt-ago", front: "two days ago", back: "hace dos dias", examples: [
-        { en: "He called two days ago.", es: "Llamo hace dos dias." }] },
+        { en: "They wrapped up the deal two days ago.", es: "Cerraron el trato hace dos dias." }] },
       { id: "bt-thismorning", front: "this morning", back: "esta manana", examples: [
-        { en: "I ran this morning.", es: "Corri esta manana." }] },
+        { en: "I caught up on my emails this morning.", es: "Me puse al dia con mis correos esta manana." }] },
       { id: "bt-lastweekend", front: "last weekend", back: "el fin de semana pasado", examples: [
-        { en: "We relaxed last weekend.", es: "Descansamos el fin de semana pasado." }] },
+        { en: "We unplugged completely last weekend.", es: "Desconectamos por completo el fin de semana pasado." }] },
       { id: "bt-anhourago", front: "an hour ago", back: "hace una hora", examples: [
-        { en: "She arrived an hour ago.", es: "Llego hace una hora." }] },
+        { en: "The client called back an hour ago.", es: "El cliente devolvio la llamada hace una hora." }] },
       { id: "bt-theotherday", front: "the other day", back: "el otro dia", examples: [
-        { en: "I met her the other day.", es: "La conoci el otro dia." }] },
-      { id: "bt-in2010", front: "in 2010", back: "en 2010", examples: [
-        { en: "They married in 2010.", es: "Se casaron en 2010." }] },
+        { en: "I ran into an old colleague the other day.", es: "Me encontre con un antiguo colega el otro dia." }] },
+      { id: "bt-in2010", front: "back in 2010", back: "alla por 2010", examples: [
+        { en: "The firm was founded back in 2010.", es: "La empresa se fundo alla por 2010." }] },
     ],
   },
 ];

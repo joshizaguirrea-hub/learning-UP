@@ -2,15 +2,23 @@
 
 /* Legibilidad base (accesibilidad). Tailwind usa rem, asi que subir la raiz
  * agranda TODO (textos, botones, espaciados) de forma consistente. */
-html { font-size: 17px; }
-html[data-text-size="lg"] { font-size: 19px; }
-html[data-text-size="xl"] { font-size: 21px; }
+html { font-size: 19px; }
+html[data-text-size="lg"] { font-size: 22px; }
+html[data-text-size="xl"] { font-size: 25px; }
 
 body {
-  line-height: 1.6;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+/* Modo alto contraste: aclara textos apagados y refuerza bordes/enlaces. */
+html[data-contrast="high"] .text-slate-500,
+html[data-contrast="high"] .text-slate-400 { color: #e2e8f0 !important; }
+html[data-contrast="high"] .text-slate-300 { color: #f8fafc !important; }
+html[data-contrast="high"] .border-slate-800,
+html[data-contrast="high"] .border-slate-700 { border-color: #94a3b8 !important; }
+html[data-contrast="high"] a { text-decoration: underline; }
 
 /* Utilidad para lectores de pantalla (accesibilidad WCAG). */
 .sr-only {
