@@ -10,6 +10,8 @@ import { BONUS_DECKS, bonusDeckById } from "../data/bonus-decks.js";
 import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { review } from "../core/srs.js";
+import { buildPractice } from "../core/verb-practice.js";
+import { normalize } from "../core/activities.js";
 import { speakButton } from "../ui/speech.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
@@ -110,7 +112,8 @@ export async function renderBonusDeck(container, params, user) {
     const back = el("div", { class: "mt-4 hidden" },
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
       formsRow(item),
-      examplesBlock(item.examples));
+      examplesBlock(item.examples),
+      deck.practice ? practiceBlock(item) : null);
 
     const grades = el("div", { class: "mt-6 grid grid-cols-3 gap-2 hidden" },
       gradeBtn("Otra vez", "again", "bg-red-500/20 text-red-300 hover:bg-red-500/30", item, card),
@@ -156,6 +159,65 @@ function examplesBlock(examples) {
         speakButton(ex.en),
         el("p", { class: "text-slate-100" }, ex.en)),
       el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, ex.es))));
+}
+
+// Bloque de practica interactiva (3 ejercicios auto-corregibles por dificultad).
+const LEVEL_CLS = {
+  Facil: "bg-emerald-500/20 text-emerald-300",
+  Intermedio: "bg-amber-500/20 text-amber-300",
+  Dificil: "bg-red-500/20 text-red-300",
+};
+
+function practiceBlock(item) {
+  const exercises = buildPractice(item);
+  if (!exercises.length) return null;
+  return el("div", { class: "mt-5 text-left" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Practica el uso"),
+    el("div", { class: "mt-2 space-y-3" }, ...exercises.map(exerciseCard)));
+}
+
+function exerciseCard(ex) {
+  const fb = el("div", { class: "mt-2 text-sm", role: "status" });
+  const ok = (msg) => mount(fb, el("p", { class: "text-emerald-300" }, "Correcto! " + (msg || "")));
+  const retry = () => mount(fb, el("p", { class: "text-amber-300" }, "Aun no, intenta otra vez."));
+
+  let body;
+  if (ex.kind === "choice") {
+    body = el("div", { class: "mt-3 grid gap-2" },
+      ...ex.choices.map((c, i) => {
+        const b = el("button", {
+          type: "button",
+          class: "w-full text-left px-3 py-2 rounded-lg border border-slate-700 text-slate-200 " +
+            "hover:bg-slate-700/60 focus:outline focus:outline-2 focus:outline-indigo-500",
+          onclick: () => {
+            if (i === ex.answer) { b.classList.add("bg-emerald-500/20", "border-emerald-500/50"); ok(ex.explain); }
+            else { b.classList.add("bg-red-500/15", "border-red-500/40"); retry(); }
+          },
+        }, c);
+        return b;
+      }));
+  } else {
+    const input = el("input", {
+      type: "text", autocomplete: "off", autocapitalize: "none",
+      class: "flex-1 rounded-md bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 " +
+        "focus:outline focus:outline-2 focus:outline-indigo-500",
+      placeholder: "Escribe el verbo",
+    });
+    const check = () => {
+      if (normalize(input.value) === normalize(ex.answer)) ok(ex.explain);
+      else retry();
+    };
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
+    body = el("div", { class: "mt-3 flex gap-2" }, input,
+      el("button", { type: "button", class: "px-4 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-500", onclick: check }, "Comprobar"));
+  }
+
+  return el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3" },
+    el("div", { class: "flex items-center gap-2" },
+      el("span", { class: "text-[10px] uppercase px-2 py-0.5 rounded-full " + (LEVEL_CLS[ex.level] || "bg-slate-700 text-slate-300") }, ex.level),
+      el("p", { class: "text-slate-100 text-sm" }, ex.prompt)),
+    ex.es ? el("p", { class: "text-xs text-slate-500 mt-1" }, ex.es) : null,
+    body, fb);
 }
 
 function gradeBtn(label, key, cls, item, card) {    return el("button", {
