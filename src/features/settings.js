@@ -5,7 +5,8 @@
  * acento del perfil (preferencia local). Tambien acceso a cerrar sesion.
  */
 import { updateDisplayName, logout, currentUser } from "../services/auth.js";
-import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES } from "../ui/prefs.js";
+import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
+  getHighContrast, setHighContrast, getAutoplay, setAutoplay } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
@@ -74,6 +75,14 @@ export function renderSettings(container, user) {
     el("p", { class: "text-sm text-slate-400 mt-1" }, "Agranda la letra de toda la app para leer mas comodo."),
     sizeButtons);
 
+  // Accesibilidad: alto contraste y auto-audio.
+  const a11yCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Accesibilidad"),
+    toggleRow("Alto contraste", "Aclara los textos y refuerza bordes para ver mejor.",
+      getHighContrast(), (on) => { setHighContrast(on); announce(on ? "Alto contraste activado." : "Alto contraste desactivado."); renderSettings(container, user); }),
+    toggleRow("Reproducir audio automatico", "Escucha la palabra en cuanto aparece (repaso y bonus).",
+      getAutoplay(), (on) => { setAutoplay(on); announce(on ? "Audio automatico activado." : "Audio automatico desactivado."); renderSettings(container, user); }));
+
   const sessionCard = el("section", { class: PANEL + " mt-6" },
     el("h2", { class: "font-bold text-lg" }, "Sesion"),
     el("button", {
@@ -91,8 +100,26 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, sizeCard, accentCard, toolsCard, sessionCard));
+    nameCard, sizeCard, a11yCard, accentCard, toolsCard, sessionCard));
   focusMainHeading(container);
+}
+
+/** Fila con etiqueta, descripcion y un switch accesible. */
+function toggleRow(title, desc, on, onChange) {
+  const btn = el("button", {
+    type: "button",
+    role: "switch",
+    "aria-checked": on ? "true" : "false",
+    "aria-label": title,
+    class: "relative w-14 h-8 rounded-full transition-colors shrink-0 focus:outline focus:outline-2 focus:outline-indigo-400 " +
+      (on ? "bg-indigo-500" : "bg-slate-700"),
+    onclick: () => onChange(!on),
+  }, el("span", { class: "absolute top-1 left-1 w-6 h-6 rounded-full bg-white transition-transform " + (on ? "translate-x-6" : "") }));
+  return el("div", { class: "flex items-center justify-between gap-4 mt-4" },
+    el("div", {},
+      el("p", { class: "font-semibold" }, title),
+      el("p", { class: "text-sm text-slate-400" }, desc)),
+    btn);
 }
 
 function msg(ok, text) {

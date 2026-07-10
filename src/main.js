@@ -27,8 +27,7 @@ import { renderBonus, renderBonusDeck } from "./features/bonus.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
-import { applyTextSize } from "./ui/prefs.js";
-
+import { applyTextSize, applyContrast } from "./ui/prefs.js";
 const app = qs("#app");
 
 /** Vista simple de bienvenida cuando no hay sesion. */
@@ -115,6 +114,7 @@ function refreshHeader(user) {
 
 function init() {
   applyTextSize(); // aplica el tamano de texto guardado (accesibilidad)
+  applyContrast(); // aplica el modo alto contraste guardado
   if (!isConfigured) { renderConfigWarning(); return; }
   setupRoutes();
   startRouter();

@@ -6,6 +6,8 @@
  */
 const ACCENT_KEY = "linguapath.accent";
 const TEXT_SIZE_KEY = "linguapath.textsize";
+const CONTRAST_KEY = "linguapath.contrast";
+const AUTOPLAY_KEY = "linguapath.autoplay";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -54,4 +56,36 @@ export function applyTextSize() {
   const root = document.documentElement;
   if (id === "base") root.removeAttribute("data-text-size");
   else root.setAttribute("data-text-size", id);
+}
+
+// --- Alto contraste (accesibilidad) ----------------------------------------
+
+/** True si el modo alto contraste esta activo. */
+export function getHighContrast() {
+  return localStorage.getItem(CONTRAST_KEY) === "high";
+}
+
+/** Activa/desactiva alto contraste y lo aplica. */
+export function setHighContrast(on) {
+  localStorage.setItem(CONTRAST_KEY, on ? "high" : "normal");
+  applyContrast();
+}
+
+/** Aplica el contraste guardado al documento (llamar al arrancar). */
+export function applyContrast() {
+  const root = document.documentElement;
+  if (getHighContrast()) root.setAttribute("data-contrast", "high");
+  else root.removeAttribute("data-contrast");
+}
+
+// --- Auto-reproducir audio (accesibilidad) ---------------------------------
+
+/** True si se debe reproducir el audio automaticamente al mostrar una palabra. */
+export function getAutoplay() {
+  return localStorage.getItem(AUTOPLAY_KEY) === "on";
+}
+
+/** Activa/desactiva el auto-audio. */
+export function setAutoplay(on) {
+  localStorage.setItem(AUTOPLAY_KEY, on ? "on" : "off");
 }

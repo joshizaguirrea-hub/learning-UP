@@ -10,7 +10,8 @@ import { recordActivity } from "../services/profiles.js";
 import { vocabById } from "../data/units/index.js";
 import { review } from "../core/srs.js";
 import { el, mount } from "../ui/dom.js";
-import { speakButton } from "../ui/speech.js";
+import { speakButton, speak } from "../ui/speech.js";
+import { getAutoplay } from "../ui/prefs.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -77,6 +78,7 @@ export async function renderReview(container, user) {
       back, showBtn, grades));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${cards.length}`);
+    if (getAutoplay()) speak(vocab.term);
   }
 
   function showDone() {

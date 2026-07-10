@@ -12,7 +12,8 @@ import { recordActivity } from "../services/profiles.js";
 import { review } from "../core/srs.js";
 import { buildPractice } from "../core/verb-practice.js";
 import { normalize } from "../core/activities.js";
-import { speakButton } from "../ui/speech.js";
+import { speakButton, speak } from "../ui/speech.js";
+import { getAutoplay } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
@@ -144,6 +145,7 @@ export async function renderBonusDeck(container, params, user) {
       back, showBtn, grades));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
+    if (getAutoplay()) speak(item.front);
   }
 
   // Fila con las tres formas del verbo (solo si el item las define).
