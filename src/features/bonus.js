@@ -9,7 +9,6 @@
 import { BONUS_DECKS, bonusDeckById } from "../data/bonus-decks.js";
 import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
-import { review } from "../core/srs.js";
 import { buildPractice } from "../core/verb-practice.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { generateTips } from "../core/verb-tips.js";
@@ -120,34 +119,60 @@ export async function renderBonusDeck(container, params, user) {
     if (index >= deck.items.length) { showDone(); return; }
     const item = deck.items[index];
     const card = cardMap[item.id] || { ease: 2.5, interval: 0, reps: 0, due: null };
+    const last = deck.items.length - 1;
+
+    // Contenedores que se actualizan en vivo al aprender el verbo.
+    const statusHolder = el("div", {}, statusChip(card.reps || 0));
+    const dotsHolder = el("div", {}, itemDots(deck, cardMap, index));
+    const doneMsg = el("div", { class: "mt-3", role: "status" });
+
+    // Marca el verbo como aprendido (al completar practicas, o al revelar si no hay).
+    const completeVerb = async () => {
+      if ((cardMap[item.id]?.reps || 0) >= MASTER_REPS) return; // ya aprendido
+      const updated = { ease: 2.5, interval: 1, reps: MASTER_REPS, due: null };
+      cardMap[item.id] = { ...card, ...updated };
+      await saveCard(user.id, item.id, updated);
+      if (!recorded) { recorded = true; await recordActivity(user.id); }
+      mount(statusHolder, statusChip(MASTER_REPS));
+      mount(dotsHolder, itemDots(deck, cardMap, index));
+      mount(doneMsg, el("p", { class: "text-emerald-300 font-semibold" }, "Verbo aprendido! Puedes avanzar al siguiente."));
+      announce("Verbo aprendido.");
+    };
 
     const back = el("div", { class: "mt-4 hidden" },
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
       formsRow(item),
       examplesBlock(item.examples),
       deck.practice ? generatorBlock(item) : null,
-      deck.practice ? practiceBlock(item) : null);
-
-    const grades = el("div", { class: "mt-6 grid grid-cols-3 gap-2 hidden" },
-      gradeBtn("Otra vez", "again", "bg-red-500/20 text-red-300 hover:bg-red-500/30", item, card),
-      gradeBtn("Bien", "good", "bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30", item, card),
-      gradeBtn("Facil", "easy", "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30", item, card));
+      deck.practice ? practiceBlock(item, completeVerb) : null);
 
     const showBtn = el("button", { class: "mt-6 " + BTN,
-      onclick: () => { back.classList.remove("hidden"); grades.classList.remove("hidden"); showBtn.classList.add("hidden"); } },
+      onclick: () => {
+        back.classList.remove("hidden");
+        showBtn.classList.add("hidden");
+        if (!deck.practice) completeVerb(); // sin practicas: aprende al revelar
+      } },
       "Comprobar respuesta");
+
+    // Navegacion entre verbos: solo Devolverse y Siguiente.
+    const navCls = "font-semibold px-6 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 " +
+      "hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-indigo-400";
+    const nav = el("div", { class: "mt-6 flex items-center justify-between gap-3" },
+      el("button", { class: navCls, disabled: index === 0, onclick: () => { index--; showCard(); } }, "Devolverse"),
+      el("button", { class: navCls, onclick: () => { index++; showCard(); } }, index === last ? "Terminar" : "Siguiente"));
 
     const cardEl = el("div", { class: PANEL + " text-center" },
       el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
-      itemDots(deck, cardMap, index),
+      dotsHolder,
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-11 h-11" })),
-      statusChip(card.reps || 0),
-      el("p", { class: "mt-2 text-xs text-slate-500" }, "Piensa la respuesta y luego comprueba."),
-      back, showBtn, grades);
+      statusHolder,
+      el("p", { class: "mt-2 text-xs text-slate-500" },
+        deck.practice ? "Completa las practicas para aprender el verbo." : "Piensa la respuesta y luego comprueba."),
+      back, showBtn, doneMsg, nav);
 
     // Panel lateral con "pops" de ayuda (regla, usos, tips). Solo verbos.
     const aside = deck.practice ? tipsAside(item) : null;
@@ -273,12 +298,14 @@ function clozeFromExample(ex) {
     fb);
 }
 
-// Fila con las tres formas del verbo (solo si el item las define).
+// Fila con las tres formas del verbo, cada una con su audio.
 function formsRow(item) {
   if (!item.past && !item.participle) return null;
-  const chip = (label, value) => el("div", { class: "px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700" },
+  const chip = (label, value) => el("div", { class: "px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-center" },
     el("p", { class: "text-[10px] uppercase tracking-wide text-slate-500" }, label),
-    el("p", { class: "text-sm font-semibold text-slate-100" }, value));
+    el("div", { class: "flex items-center justify-center gap-1" },
+      el("p", { class: "text-sm font-semibold text-slate-100" }, value),
+      speakButton(value, { cls: "w-6 h-6" })));
   return el("div", { class: "mt-3 flex flex-wrap justify-center gap-2" },
     chip("Base", item.front),
     chip("Pasado", item.past),
@@ -298,19 +325,29 @@ function examplesBlock(examples) {
 }
 
 // Bloque de practica interactiva (3 ejercicios auto-corregibles por dificultad).
-function practiceBlock(item) {
+// Al resolver TODOS correctamente, llama onComplete() para aprender el verbo.
+function practiceBlock(item, onComplete) {
   const exercises = buildPractice(item);
-  if (!exercises.length) return null;
+  if (!exercises.length) { if (onComplete) onComplete(); return null; }
+  let solved = 0;
+  const onSolved = () => {
+    solved++;
+    if (solved >= exercises.length && onComplete) onComplete();
+  };
   return el("div", { class: "mt-5 text-left" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Practica el uso"),
-    el("div", { class: "mt-2 space-y-3" }, ...exercises.map(exerciseCard)));
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Practica el uso (completa las 3 para aprender)"),
+    el("div", { class: "mt-2 space-y-3" }, ...exercises.map((ex) => exerciseCard(ex, onSolved))));
 }
 
-function exerciseCard(ex) {
+function exerciseCard(ex, onSolved) {
+  let done = false;
   const fb = el("div", { class: "mt-2 text-sm", role: "status" });
-  const ok = (ex2) => mount(fb, el("div", { class: "rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2" },
-    el("p", { class: "text-emerald-300 font-semibold" }, "Correcto! " + (ex2.explain || "")),
-    ex2.why ? el("p", { class: "mt-1 text-slate-300 text-xs" }, "Por que: " + ex2.why) : null));
+  const ok = (ex2) => {
+    mount(fb, el("div", { class: "rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2" },
+      el("p", { class: "text-emerald-300 font-semibold" }, "Correcto! " + (ex2.explain || "")),
+      ex2.why ? el("p", { class: "mt-1 text-slate-300 text-xs" }, "Por que: " + ex2.why) : null));
+    if (!done) { done = true; if (onSolved) onSolved(); } // cuenta una sola vez
+  };
   const retry = () => mount(fb, el("p", { class: "text-amber-300" }, "Aun no, intenta otra vez."));
 
   let body;
@@ -355,14 +392,10 @@ function exerciseCard(ex) {
 // Chip de estado del item segun sus repasos (Nuevo / En progreso / Dominado).
 function statusChip(reps) {
   if (reps >= MASTER_REPS) {
-    return el("span", { class: "inline-flex items-center gap-1 mt-2 text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300" },
-      el("span", { class: "w-3 h-3", html: ICONS.check }), "Dominado");
+    return el("span", { class: "inline-flex items-center gap-1 mt-2 text-sm px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300" },
+      el("span", { class: "w-4 h-4", html: ICONS.check }), "Aprendido");
   }
-  if (reps > 0) {
-    return el("span", { class: "inline-block mt-2 text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300" },
-      `En progreso (${reps}/${MASTER_REPS} repasos para dominar)`);
-  }
-  return el("span", { class: "inline-block mt-2 text-xs px-2.5 py-1 rounded-full bg-slate-700 text-slate-300" }, "Nuevo");
+  return el("span", { class: "inline-block mt-2 text-sm px-3 py-1 rounded-full bg-slate-700 text-slate-300" }, "Nuevo");
 }
 
 // Fila de puntitos: un punto por item, coloreado por dominio, resalta el actual.
@@ -375,19 +408,6 @@ function itemDots(deck, cardMap, currentIndex) {
       return el("span", { class: `w-2.5 h-2.5 rounded-full ${cls}${ring}`, title: it.front });
     }));
 }
-
-function gradeBtn(label, key, cls, item, card) {    return el("button", {
-      class: `${cls} font-semibold px-3 py-2 rounded-lg focus:outline focus:outline-2 focus:outline-indigo-400`,
-      onclick: async () => {
-        const updated = review({ ease: Number(card.ease), interval: card.interval, reps: card.reps, due: card.due }, key);
-        await saveCard(user.id, item.id, updated);
-        cardMap[item.id] = { ...card, ...updated };
-        if (!recorded) { recorded = true; await recordActivity(user.id); }
-        index++;
-        showCard();
-      },
-    }, label);
-  }
 
   function showDone() {
     const done = learnedCount(deck, cardMap);
