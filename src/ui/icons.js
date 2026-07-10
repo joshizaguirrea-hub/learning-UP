@@ -21,4 +21,5 @@ export const ICONS = {
   star: wrap('<path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18.8 6.1 21l1.2-6.5L2.5 9.9 9.1 9z"/>'),
   flame: wrap('<path d="M12 3c1 3 4 4 4 8a4 4 0 11-8 0c0-1.2.4-2 1-2.8C8.6 9.4 9 8 9 7c1.2.6 2 1.6 2 2.8C12 8 12 5 12 3z"/>'),
   play: wrap('<path d="M7 5l12 7-12 7z"/>'),
+  sound: wrap('<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8a5 5 0 010 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'),
 };

@@ -11,6 +11,7 @@ import { completeLesson } from "../services/course.js";
 import { ensureCards } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { ICONS } from "../ui/icons.js";
+import { speakButton } from "../ui/speech.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
@@ -50,7 +51,8 @@ function renderPractice(container, unit, lesson, user) {
     lesson.intro ? el("p", { class: "text-slate-300" }, lesson.intro) : null,
     lesson.dialogue
       ? el("ul", { class: "mt-4 space-y-1 " + BOX + " text-slate-300 text-sm" },
-          ...lesson.dialogue.map((line) => el("li", {}, line)))
+          ...lesson.dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
+            speakButton(line.replace(/^[A-Z]:\s*/, "")), el("span", {}, line))))
       : null);
 
   showForm();
@@ -186,20 +188,23 @@ async function renderLearn(container, unit, lesson, user) {
       el("h1", { class: "text-2xl font-bold" }, lesson.title)),
     lesson.intro ? el("p", { class: "mt-3 text-slate-400 text-sm" }, lesson.intro) : null,
 
-    c.reading ? section("Lectura",
-      el("p", { class: "text-slate-200 leading-relaxed " + BOX }, c.reading)) : null,
+    c.reading ? el("section", { class: "mt-6" },
+      el("div", { class: "flex items-center gap-2" },
+        el("h2", { class: "font-bold text-slate-100" }, "Lectura"),
+        speakButton(c.reading)),
+      el("div", { class: "mt-2" }, el("p", { class: "text-slate-200 leading-relaxed " + BOX }, c.reading))) : null,
 
     c.grammar ? grammarBox(c.grammar) : null,
 
     c.glossary?.length ? section("Glosario",
       el("div", {}, ...c.glossary.map((g) =>
-        el("div", { class: "flex justify-between gap-4 py-1.5 border-b border-slate-800 last:border-0" },
-          el("span", { class: "font-semibold text-slate-100" }, g.term),
+        el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
+          el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, g.term, speakButton(g.term)),
           el("span", { class: "text-slate-400 text-right" }, g.translation))))) : null,
 
     c.keyPhrases?.length ? section("Frases clave",
       el("ul", { class: "space-y-1 text-slate-300" },
-        ...c.keyPhrases.map((p) => el("li", { class: "text-sm" }, "- " + p)))) : null,
+        ...c.keyPhrases.map((p) => el("li", { class: "text-sm flex items-center gap-2" }, speakButton(p), "- " + p)))) : null,
 
     c.note ? el("section", { class: "mt-6 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
       el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
