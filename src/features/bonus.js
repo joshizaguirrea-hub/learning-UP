@@ -134,10 +134,12 @@ export async function renderBonusDeck(container, params, user) {
     mount(container, el("div", { class: PANEL + " max-w-2xl mx-auto text-center" },
       el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
+      itemDots(deck, cardMap, index),
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-4xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-9 h-9" })),
+      statusChip(card.reps || 0),
       el("p", { class: "mt-2 text-xs text-slate-500" }, "Piensa la respuesta y luego comprueba."),
       back, showBtn, grades));
     focusMainHeading(container);
@@ -221,6 +223,30 @@ function exerciseCard(ex) {
       el("p", { class: "text-slate-100 text-sm" }, ex.prompt)),
     ex.es ? el("p", { class: "text-xs text-slate-500 mt-1" }, ex.es) : null,
     body, fb);
+}
+
+// Chip de estado del item segun sus repasos (Nuevo / En progreso / Dominado).
+function statusChip(reps) {
+  if (reps >= MASTER_REPS) {
+    return el("span", { class: "inline-flex items-center gap-1 mt-2 text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300" },
+      el("span", { class: "w-3 h-3", html: ICONS.check }), "Dominado");
+  }
+  if (reps > 0) {
+    return el("span", { class: "inline-block mt-2 text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300" },
+      `En progreso (${reps}/${MASTER_REPS} repasos para dominar)`);
+  }
+  return el("span", { class: "inline-block mt-2 text-xs px-2.5 py-1 rounded-full bg-slate-700 text-slate-300" }, "Nuevo");
+}
+
+// Fila de puntitos: un punto por item, coloreado por dominio, resalta el actual.
+function itemDots(deck, cardMap, currentIndex) {
+  return el("div", { class: "flex flex-wrap justify-center gap-1.5 mt-3" },
+    ...deck.items.map((it, i) => {
+      const reps = cardMap[it.id]?.reps || 0;
+      const cls = reps >= MASTER_REPS ? "bg-emerald-400" : reps > 0 ? "bg-amber-400" : "bg-slate-600";
+      const ring = i === currentIndex ? " ring-2 ring-white ring-offset-1 ring-offset-slate-900" : "";
+      return el("span", { class: `w-2.5 h-2.5 rounded-full ${cls}${ring}`, title: it.front });
+    }));
 }
 
 function gradeBtn(label, key, cls, item, card) {    return el("button", {
