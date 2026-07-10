@@ -23,6 +23,13 @@ const BTN = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-sem
   "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
 const MASTER_REPS = 2; // repasos correctos para considerar un item "dominado"
 
+// Clases de color por nivel de dificultad de las practicas.
+const LEVEL_CLS = {
+  Facil: "bg-emerald-500/20 text-emerald-300",
+  Intermedio: "bg-amber-500/20 text-amber-300",
+  Dificil: "bg-red-500/20 text-red-300",
+};
+
 function learnedCount(deck, cardMap) {
   return deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
 }
@@ -162,12 +169,6 @@ function examplesBlock(examples) {
 }
 
 // Bloque de practica interactiva (3 ejercicios auto-corregibles por dificultad).
-const LEVEL_CLS = {
-  Facil: "bg-emerald-500/20 text-emerald-300",
-  Intermedio: "bg-amber-500/20 text-amber-300",
-  Dificil: "bg-red-500/20 text-red-300",
-};
-
 function practiceBlock(item) {
   const exercises = buildPractice(item);
   if (!exercises.length) return null;
