@@ -109,8 +109,8 @@ export async function renderBonusDeck(container, params, user) {
 
     const back = el("div", { class: "mt-4 hidden" },
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
-      item.example ? el("p", { class: "mt-2 text-slate-400 italic flex items-center justify-center gap-2" },
-        el("span", {}, `"${item.example}"`), speakButton(item.example)) : null);
+      formsRow(item),
+      examplesBlock(item.examples));
 
     const grades = el("div", { class: "mt-6 grid grid-cols-3 gap-2 hidden" },
       gradeBtn("Otra vez", "again", "bg-red-500/20 text-red-300 hover:bg-red-500/30", item, card),
@@ -121,7 +121,7 @@ export async function renderBonusDeck(container, params, user) {
       onclick: () => { back.classList.remove("hidden"); grades.classList.remove("hidden"); showBtn.classList.add("hidden"); } },
       "Comprobar respuesta");
 
-    mount(container, el("div", { class: PANEL + " max-w-xl mx-auto text-center" },
+    mount(container, el("div", { class: PANEL + " max-w-2xl mx-auto text-center" },
       el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
@@ -134,8 +134,31 @@ export async function renderBonusDeck(container, params, user) {
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
   }
 
-  function gradeBtn(label, key, cls, item, card) {
-    return el("button", {
+  // Fila con las tres formas del verbo (solo si el item las define).
+function formsRow(item) {
+  if (!item.past && !item.participle) return null;
+  const chip = (label, value) => el("div", { class: "px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700" },
+    el("p", { class: "text-[10px] uppercase tracking-wide text-slate-500" }, label),
+    el("p", { class: "text-sm font-semibold text-slate-100" }, value));
+  return el("div", { class: "mt-3 flex flex-wrap justify-center gap-2" },
+    chip("Base", item.front),
+    chip("Pasado", item.past),
+    chip("Participio", item.participle));
+}
+
+// Bloque de ejemplos de uso (ingles con audio + traduccion).
+function examplesBlock(examples) {
+  if (!examples || !examples.length) return null;
+  return el("div", { class: "mt-4 text-left space-y-2" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Ejemplos de uso"),
+    ...examples.map((ex) => el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3" },
+      el("div", { class: "flex items-center gap-2" },
+        speakButton(ex.en),
+        el("p", { class: "text-slate-100" }, ex.en)),
+      el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, ex.es))));
+}
+
+function gradeBtn(label, key, cls, item, card) {    return el("button", {
       class: `${cls} font-semibold px-3 py-2 rounded-lg focus:outline focus:outline-2 focus:outline-indigo-400`,
       onclick: async () => {
         const updated = review({ ease: Number(card.ease), interval: card.interval, reps: card.reps, due: card.due }, key);
