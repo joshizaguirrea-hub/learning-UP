@@ -5,7 +5,7 @@
  * acento del perfil (preferencia local). Tambien acceso a cerrar sesion.
  */
 import { updateDisplayName, logout, currentUser } from "../services/auth.js";
-import { getAccent, setAccent, ACCENTS } from "../ui/prefs.js";
+import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
@@ -55,6 +55,25 @@ export function renderSettings(container, user) {
     el("p", { class: "text-sm text-slate-400 mt-1" }, "Elige el color de tu avatar y detalles."),
     swatches);
 
+  // Selector de tamano de texto (accesibilidad).
+  const currentSize = getTextSize();
+  const sizeButtons = el("div", { class: "mt-4 flex flex-wrap gap-3" }, ...TEXT_SIZES.map((t) => {
+    const selected = t.id === currentSize;
+    return el("button", {
+      class: "px-5 py-3 rounded-lg border font-bold " +
+        (selected ? "bg-indigo-500/20 border-indigo-400 text-indigo-200" : "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700") +
+        " focus:outline focus:outline-2 focus:outline-indigo-400",
+      "aria-pressed": selected ? "true" : "false",
+      "aria-label": `Tamano de texto ${t.desc}${selected ? " (seleccionado)" : ""}`,
+      onclick: () => { setTextSize(t.id); announce(`Tamano de texto: ${t.desc}.`); renderSettings(container, user); },
+    }, el("span", { class: "mr-2" }, t.label), el("span", { class: "text-xs font-normal text-slate-400" }, t.desc));
+  }));
+
+  const sizeCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Tamano de texto"),
+    el("p", { class: "text-sm text-slate-400 mt-1" }, "Agranda la letra de toda la app para leer mas comodo."),
+    sizeButtons);
+
   const sessionCard = el("section", { class: PANEL + " mt-6" },
     el("h2", { class: "font-bold text-lg" }, "Sesion"),
     el("button", {
@@ -72,7 +91,7 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, accentCard, toolsCard, sessionCard));
+    nameCard, sizeCard, accentCard, toolsCard, sessionCard));
   focusMainHeading(container);
 }
 

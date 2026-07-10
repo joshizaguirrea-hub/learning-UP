@@ -1,5 +1,17 @@
 /* styles/app.css — Estilos propios sobre Tailwind (CDN). */
 
+/* Legibilidad base (accesibilidad). Tailwind usa rem, asi que subir la raiz
+ * agranda TODO (textos, botones, espaciados) de forma consistente. */
+html { font-size: 17px; }
+html[data-text-size="lg"] { font-size: 19px; }
+html[data-text-size="xl"] { font-size: 21px; }
+
+body {
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 /* Utilidad para lectores de pantalla (accesibilidad WCAG). */
 .sr-only {
   position: absolute;

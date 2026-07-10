@@ -5,6 +5,7 @@
  * personalizaciones visuales del usuario.
  */
 const ACCENT_KEY = "linguapath.accent";
+const TEXT_SIZE_KEY = "linguapath.textsize";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -25,4 +26,32 @@ export function getAccent() {
 /** Guarda el acento por su id. */
 export function setAccent(id) {
   localStorage.setItem(ACCENT_KEY, id);
+}
+
+// --- Tamano de texto (accesibilidad) ---------------------------------------
+
+/** Niveles de tamano de texto. Aplican via html[data-text-size]. */
+export const TEXT_SIZES = [
+  { id: "base", label: "A", desc: "Normal" },
+  { id: "lg", label: "A+", desc: "Grande" },
+  { id: "xl", label: "A++", desc: "Muy grande" },
+];
+
+/** Devuelve el id del tamano de texto elegido. Default: base. */
+export function getTextSize() {
+  return localStorage.getItem(TEXT_SIZE_KEY) || "base";
+}
+
+/** Guarda el tamano de texto y lo aplica al instante. */
+export function setTextSize(id) {
+  localStorage.setItem(TEXT_SIZE_KEY, id);
+  applyTextSize();
+}
+
+/** Aplica el tamano de texto guardado al documento (llamar al arrancar). */
+export function applyTextSize() {
+  const id = getTextSize();
+  const root = document.documentElement;
+  if (id === "base") root.removeAttribute("data-text-size");
+  else root.setAttribute("data-text-size", id);
 }
