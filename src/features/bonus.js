@@ -12,6 +12,7 @@ import { recordActivity } from "../services/profiles.js";
 import { review } from "../core/srs.js";
 import { buildPractice } from "../core/verb-practice.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
+import { generateTips } from "../core/verb-tips.js";
 import { normalize } from "../core/activities.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay } from "../ui/prefs.js";
@@ -134,7 +135,7 @@ export async function renderBonusDeck(container, params, user) {
       onclick: () => { back.classList.remove("hidden"); grades.classList.remove("hidden"); showBtn.classList.add("hidden"); } },
       "Comprobar respuesta");
 
-    mount(container, el("div", { class: PANEL + " max-w-2xl mx-auto text-center" },
+    const cardEl = el("div", { class: PANEL + " text-center" },
       el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       itemDots(deck, cardMap, index),
@@ -144,13 +145,36 @@ export async function renderBonusDeck(container, params, user) {
         speakButton(item.front, { cls: "w-9 h-9" })),
       statusChip(card.reps || 0),
       el("p", { class: "mt-2 text-xs text-slate-500" }, "Piensa la respuesta y luego comprueba."),
-      back, showBtn, grades));
+      back, showBtn, grades);
+
+    // Panel lateral con "pops" de ayuda (regla, usos, tips). Solo verbos.
+    const aside = deck.practice ? tipsAside(item) : null;
+
+    mount(container, el("div", { class: "max-w-5xl mx-auto grid lg:grid-cols-3 gap-4 items-start" },
+      el("div", { class: "lg:col-span-2" }, cardEl),
+      aside ? el("aside", { class: "lg:col-span-1" }, aside) : null));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
     if (getAutoplay()) speak(item.front);
   }
 
-  // Generador de mas ejemplos adaptados al nivel (offline, plantillas).
+  // Panel lateral de "pops": tarjetas de ayuda (regla, usos, tips) del verbo.
+const TIP_TONE = {
+  rule: "border-l-indigo-400 bg-indigo-500/10",
+  use: "border-l-emerald-400 bg-emerald-500/10",
+  note: "border-l-amber-400 bg-amber-500/10",
+};
+
+function tipsAside(item) {
+  const tips = generateTips(item);
+  return el("div", { class: "space-y-3 text-left" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Entiende el verbo"),
+    ...tips.map((t) => el("div", { class: "rounded-lg border-l-4 p-3 " + (TIP_TONE[t.tone] || TIP_TONE.note) },
+      el("p", { class: "font-semibold text-slate-100 text-sm" }, t.title),
+      el("p", { class: "mt-1 text-sm text-slate-300" }, t.body))));
+}
+
+// Generador de mas ejemplos adaptados al nivel (offline, plantillas).
 function generatorBlock(item) {
   const out = el("div", { class: "mt-2 space-y-2" });
 
