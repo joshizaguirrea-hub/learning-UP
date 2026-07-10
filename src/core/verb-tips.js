@@ -32,6 +32,8 @@ export function generateTips(item) {
   // 1) La regla del verbo.
   tips.push({
     tone: "rule",
+    icon: "book",
+    grad: "from-indigo-500 to-blue-600",
     title: "La regla",
     body: irregular
       ? `"${base}" es IRREGULAR: sus formas no siguen la regla -ed, hay que memorizarlas. ` +
@@ -42,6 +44,8 @@ export function generateTips(item) {
   // 2) Presente simple.
   tips.push({
     tone: "use",
+    icon: "clock",
+    grad: "from-emerald-500 to-teal-600",
     title: "Presente simple",
     body: `Para rutinas y hechos generales. Con I/you/we/they usas la base: "${base}". ` +
       `Ej: I ${base} every day.`,
@@ -50,6 +54,8 @@ export function generateTips(item) {
   // 3) Pasado simple.
   tips.push({
     tone: "use",
+    icon: "clock",
+    grad: "from-sky-500 to-indigo-600",
     title: "Pasado simple",
     body: `Para una accion terminada en el pasado. Usa "${past}". ` +
       `Suele acompanarse de yesterday, last week, ago. Ej: Yesterday I ${past}.`,
@@ -59,6 +65,8 @@ export function generateTips(item) {
   if (participle) {
     tips.push({
       tone: "use",
+      icon: "clock",
+      grad: "from-fuchsia-500 to-purple-600",
       title: "Present perfect",
       body: `have/has + PARTICIPIO ("${participle}"). Para experiencias o acciones con efecto en el presente. ` +
         `Va con ever, never, already, just, yet. Ej: I have ${participle} before.`,
@@ -67,7 +75,7 @@ export function generateTips(item) {
 
   // 5) Nota especial del verbo, si existe.
   if (NOTES[base]) {
-    tips.push({ tone: "note", title: "Tip", body: NOTES[base] });
+    tips.push({ tone: "note", icon: "bulb", grad: "from-amber-500 to-orange-600", title: "Tip", body: NOTES[base] });
   }
 
   return tips;
