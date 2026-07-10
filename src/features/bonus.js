@@ -119,14 +119,16 @@ export async function renderBonusDeck(container, params, user) {
 
     const showBtn = el("button", { class: "mt-6 " + BTN,
       onclick: () => { back.classList.remove("hidden"); grades.classList.remove("hidden"); showBtn.classList.add("hidden"); } },
-      "Mostrar respuesta");
+      "Comprobar respuesta");
 
     mount(container, el("div", { class: PANEL + " max-w-xl mx-auto text-center" },
       el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
-      el("div", { class: "mt-4 flex items-center justify-center gap-3" },
+      deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
+      el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-4xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-9 h-9" })),
+      el("p", { class: "mt-2 text-xs text-slate-500" }, "Piensa la respuesta y luego comprueba."),
       back, showBtn, grades));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
