@@ -16,6 +16,7 @@ export const BONUS_DECKS = [
     subtitle: "Base - pasado - participio",
     recall: "Di el PASADO y el PARTICIPIO",
     gradient: "from-indigo-500 to-blue-600",
+    practice: true,
     medalTitle: "Maestro de irregulares",
     medalDesc: "Dominaste los verbos irregulares clave",
     items: [
@@ -107,6 +108,7 @@ export const BONUS_DECKS = [
     subtitle: "Verbos regulares en pasado",
     recall: "Di el PASADO (-ed)",
     gradient: "from-emerald-500 to-teal-600",
+    practice: true,
     medalTitle: "Rey del -ed",
     medalDesc: "Dominaste el pasado de verbos regulares",
     items: [
