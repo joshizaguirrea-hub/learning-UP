@@ -9,17 +9,17 @@ import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
-const INPUT = "mt-1 w-full rounded-md border border-slate-300 px-3 py-2 " +
-  "focus:outline focus:outline-2 focus:outline-indigo-600";
-const CARD = "max-w-md mx-auto bg-white rounded-xl p-8 shadow-sm border border-slate-200";
-const PRIMARY = "w-full bg-indigo-700 text-white font-semibold py-2.5 rounded-lg " +
-  "hover:bg-indigo-800 focus:outline focus:outline-2 focus:outline-indigo-900";
+const INPUT = "mt-1 w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 px-3 py-2 " +
+  "focus:outline focus:outline-2 focus:outline-indigo-500";
+const CARD = "max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8";
+const PRIMARY = "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold py-2.5 rounded-lg " +
+  "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
 
 /** Muestra un error accesible dentro del formulario. */
 function errorBox(message) {
   return el("div", {
     role: "alert",
-    class: "mt-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded-md px-3 py-2",
+    class: "mt-4 bg-red-500/10 border border-red-500/40 text-red-300 text-sm rounded-md px-3 py-2",
   }, message);
 }
 
@@ -46,7 +46,7 @@ export function renderRegister(container) {
       }
       if (result.pendingConfirmation) {
         mount(errSlot, el("div", {
-          class: "mt-4 bg-emerald-50 border border-emerald-200 text-emerald-800 " +
+          class: "mt-4 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 " +
             "text-sm rounded-md px-3 py-2",
         }, "Revisa tu correo para confirmar la cuenta."));
         return;
@@ -64,12 +64,12 @@ export function renderRegister(container) {
 
   const view = el("div", { class: CARD },
     el("h1", { class: "text-2xl font-bold" }, "Crear cuenta"),
-    el("p", { class: "text-slate-600 text-sm mt-1" }, "Empieza a aprender ingles hoy."),
+    el("p", { class: "text-slate-400 text-sm mt-1" }, "Empieza a aprender ingles hoy."),
     errSlot,
     form,
-    el("p", { class: "mt-4 text-sm text-slate-600" },
+    el("p", { class: "mt-4 text-sm text-slate-400" },
       "Ya tienes cuenta? ",
-      el("a", { href: "#/login", class: "text-indigo-700 underline" }, "Inicia sesion")),
+      el("a", { href: "#/login", class: "text-indigo-400 hover:text-indigo-300" }, "Inicia sesion")),
   );
 
   mount(container, view);
@@ -106,9 +106,9 @@ export function renderLogin(container) {
     el("h1", { class: "text-2xl font-bold" }, "Iniciar sesion"),
     errSlot,
     form,
-    el("p", { class: "mt-4 text-sm text-slate-600" },
+    el("p", { class: "mt-4 text-sm text-slate-400" },
       "No tienes cuenta? ",
-      el("a", { href: "#/register", class: "text-indigo-700 underline" }, "Registrate")),
+      el("a", { href: "#/register", class: "text-indigo-400 hover:text-indigo-300" }, "Registrate")),
   );
 
   mount(container, view);
@@ -134,7 +134,7 @@ function roleFieldset() {
 }
 
 function adultCheckbox() {
-  return el("label", { class: "flex items-start gap-2 text-sm text-slate-700" },
-    el("input", { type: "checkbox", name: "is_adult", class: "mt-1", required: "" }),
+  return el("label", { class: "flex items-start gap-2 text-sm text-slate-300" },
+    el("input", { type: "checkbox", name: "is_adult", class: "mt-1 accent-indigo-500", required: "" }),
     el("span", {}, "Confirmo que soy mayor de 18 anos."));
 }

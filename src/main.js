@@ -44,9 +44,9 @@ function renderHome() {
 
 /** Aviso si Supabase aun no esta configurado (evita errores confusos). */
 function renderConfigWarning() {
-  mount(app, el("div", { class: "max-w-xl mx-auto bg-amber-50 border border-amber-200 rounded-xl p-6" },
-    el("h1", { class: "text-xl font-bold text-amber-900" }, "Falta configurar Supabase"),
-    el("p", { class: "mt-2 text-amber-800 text-sm" },
+  mount(app, el("div", { class: "max-w-xl mx-auto bg-amber-500/10 border border-amber-500/40 rounded-2xl p-6" },
+    el("h1", { class: "text-xl font-bold text-amber-300" }, "Falta configurar Supabase"),
+    el("p", { class: "mt-2 text-amber-200 text-sm" },
       "Edita src/config/supabase.js con la URL y la anon key de tu proyecto. Ver README.md.")));
 }
 
