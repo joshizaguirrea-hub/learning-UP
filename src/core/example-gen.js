@@ -71,6 +71,14 @@ function fill(frame, forms) {
     .replace("{part}", forms.part);
 }
 
+// Rellena un frame y ademas dice QUE forma se uso (para poder practicarla).
+function fillWithAnswer(frame, forms) {
+  let answer = forms.base;
+  if (frame.includes("{past}")) answer = forms.past;
+  else if (frame.includes("{part}")) answer = forms.part;
+  return { en: fill(frame, forms), answer };
+}
+
 function pickN(arr, n) {
   return [...arr].sort(() => Math.random() - 0.5).slice(0, n);
 }
@@ -80,7 +88,7 @@ function pickN(arr, n) {
  * @param {object} item - { front, past?, participle?, back }
  * @param {string} level - 'basico' | 'intermedio' | 'avanzado'
  * @param {number} count
- * @returns {Array<{en:string, level:string}>}
+ * @returns {Array<{en:string, answer:string, level:string}>}
  */
 export function generateExamples(item, level = "intermedio", count = 2) {
   const bank = FRAMES[level] || FRAMES.intermedio;
@@ -94,5 +102,8 @@ export function generateExamples(item, level = "intermedio", count = 2) {
   const pool = [...bank.present, ...bank.past];
   if (forms.part) pool.push(...bank.perfect);
 
-  return pickN(pool, count).map((frame) => ({ en: fill(frame, forms), level }));
+  return pickN(pool, count).map((frame) => {
+    const { en, answer } = fillWithAnswer(frame, forms);
+    return { en, answer, level };
+  });
 }

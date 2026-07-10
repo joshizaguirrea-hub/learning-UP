@@ -15,7 +15,7 @@ import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { generateTips } from "../core/verb-tips.js";
 import { normalize } from "../core/activities.js";
 import { speakButton, speak } from "../ui/speech.js";
-import { getAutoplay } from "../ui/prefs.js";
+import { getAutoplay, getGenLevel, setGenLevel } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
@@ -183,8 +183,9 @@ function generatorBlock(item) {
     "aria-label": "Nivel de los ejemplos",
     class: "rounded-md bg-slate-900 border border-slate-700 text-slate-100 px-2 py-1.5 text-sm " +
       "focus:outline focus:outline-2 focus:outline-indigo-500",
+    onchange: () => setGenLevel(select.value), // recuerda la preferencia
   }, ...GEN_LEVELS.map((l) => el("option", { value: l.id }, l.label)));
-  select.value = "intermedio";
+  select.value = getGenLevel();
 
   const genBtn = el("button", {
     type: "button",
@@ -193,10 +194,7 @@ function generatorBlock(item) {
     onclick: () => {
       const level = select.value;
       const items = generateExamples(item, level, 2);
-      items.forEach((ex) => out.append(
-        el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3 flex items-center gap-2" },
-          speakButton(ex.en),
-          el("p", { class: "text-slate-100" }, ex.en))));
+      items.forEach((ex) => out.append(generatedRow(ex)));
     },
   }, "Generar mas ejemplos");
 
@@ -205,6 +203,46 @@ function generatorBlock(item) {
     el("div", { class: "mt-2 flex items-center justify-center gap-2 flex-wrap" },
       el("span", { class: "text-sm text-slate-400" }, "Nivel:"), select, genBtn),
     out);
+}
+
+// Fila de un ejemplo generado: audio + frase + boton para convertirlo en practica.
+function generatedRow(ex) {
+  const row = el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3" });
+  const view = el("div", { class: "flex items-center gap-2" },
+    speakButton(ex.en),
+    el("p", { class: "flex-1 text-slate-100" }, ex.en),
+    el("button", {
+      type: "button",
+      class: "text-xs px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 hover:bg-indigo-500/30 " +
+        "focus:outline focus:outline-2 focus:outline-indigo-400 shrink-0",
+      onclick: () => mount(row, clozeFromExample(ex)),
+    }, "Practicar"));
+  mount(row, view);
+  return row;
+}
+
+// Convierte un ejemplo generado en un ejercicio de completar (cloze).
+function clozeFromExample(ex) {
+  const re = new RegExp("\\b" + ex.answer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+  const prompt = ex.en.replace(re, "_____");
+  const fb = el("div", { class: "mt-2 text-sm", role: "status" });
+  const input = el("input", {
+    type: "text", autocomplete: "off", autocapitalize: "none",
+    class: "flex-1 rounded-md bg-slate-900 border border-slate-700 text-slate-100 px-3 py-2 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-500",
+    placeholder: "Escribe el verbo",
+  });
+  const check = () => {
+    if (normalize(input.value) === normalize(ex.answer))
+      mount(fb, el("p", { class: "text-emerald-300" }, `Correcto! "${ex.answer}". ${ex.en}`));
+    else mount(fb, el("p", { class: "text-amber-300" }, "Aun no, intenta otra vez."));
+  };
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); check(); } });
+  return el("div", {},
+    el("p", { class: "text-slate-100" }, prompt),
+    el("div", { class: "mt-2 flex gap-2" }, input,
+      el("button", { type: "button", class: "px-4 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-500", onclick: check }, "Comprobar")),
+    fb);
 }
 
 // Fila con las tres formas del verbo (solo si el item las define).
