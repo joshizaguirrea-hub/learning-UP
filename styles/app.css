@@ -2,9 +2,9 @@
 
 /* Legibilidad base (accesibilidad). Tailwind usa rem, asi que subir la raiz
  * agranda TODO (textos, botones, espaciados) de forma consistente. */
-html { font-size: 19px; }
-html[data-text-size="lg"] { font-size: 22px; }
-html[data-text-size="xl"] { font-size: 25px; }
+html { font-size: 20px; }
+html[data-text-size="lg"] { font-size: 23px; }
+html[data-text-size="xl"] { font-size: 26px; }
 
 body {
   line-height: 1.65;

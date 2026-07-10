@@ -33,12 +33,7 @@ const LEVEL_CLS = {
   Dificil: "bg-red-500/20 text-red-300",
 };
 
-// Colores de los "pops" del panel lateral segun su tono.
-const TIP_TONE = {
-  rule: "border-l-indigo-400 bg-indigo-500/10",
-  use: "border-l-emerald-400 bg-emerald-500/10",
-  note: "border-l-amber-400 bg-amber-500/10",
-};
+// Colores de los chips de dificultad ya definidos arriba (LEVEL_CLS).
 
 function learnedCount(deck, cardMap) {
   return deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
@@ -165,14 +160,47 @@ export async function renderBonusDeck(container, params, user) {
     if (getAutoplay()) speak(item.front);
   }
 
-  // Panel lateral de "pops": tarjetas de ayuda (regla, usos, tips) del verbo.
+  // Panel lateral de "pops": iconos estilo iPhone que despliegan la regla al tocar.
 function tipsAside(item) {
   const tips = generateTips(item);
-  return el("div", { class: "space-y-3 text-left" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Entiende el verbo"),
-    ...tips.map((t) => el("div", { class: "rounded-lg border-l-4 p-3 " + (TIP_TONE[t.tone] || TIP_TONE.note) },
-      el("p", { class: "font-semibold text-slate-100 text-sm" }, t.title),
-      el("p", { class: "mt-1 text-sm text-slate-300" }, t.body))));
+  return el("div", { class: "space-y-2 text-left" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Toca para aprender"),
+    ...tips.map(tipAccordion));
+}
+
+// Un "pop" plegable: icono llamativo + titulo; al tocar despliega el contenido.
+function tipAccordion(t) {
+  const body = el("div", { class: "hidden mt-3 text-sm text-slate-200 leading-relaxed" }, t.body);
+  const chev = el("span", { class: "w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0", html: ICONS.chevron });
+  let open = false;
+
+  const header = el("button", {
+    type: "button",
+    "aria-expanded": "false",
+    class: "w-full flex items-center gap-3 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded-xl",
+    onclick: () => {
+      open = !open;
+      body.classList.toggle("hidden", !open);
+      header.setAttribute("aria-expanded", open ? "true" : "false");
+      chev.style.transform = open ? "rotate(180deg)" : "";
+    },
+  },
+    iosIcon(t.icon, t.grad),
+    el("span", { class: "flex-1 font-semibold text-slate-100" }, t.title),
+    chev);
+
+  return el("div", { class: "rounded-2xl bg-slate-800/40 border border-slate-700/60 p-3 hover:bg-slate-800/70 transition-colors" },
+    header, body);
+}
+
+// Tile estilo icono de iPhone: cuadrado redondeado, degradado vibrante y brillo.
+function iosIcon(icon, grad) {
+  return el("span", {
+    class: "relative inline-flex items-center justify-center w-12 h-12 rounded-2xl " +
+      "bg-gradient-to-br " + (grad || "from-slate-500 to-slate-700") + " text-white shadow-lg shrink-0 overflow-hidden",
+  },
+    el("span", { class: "absolute inset-x-0 top-0 h-1/2 bg-white/25" }),
+    el("span", { class: "relative w-6 h-6", html: ICONS[icon] || ICONS.info }));
 }
 
 // Generador de mas ejemplos adaptados al nivel (offline, plantillas).

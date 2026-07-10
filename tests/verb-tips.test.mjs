@@ -37,4 +37,11 @@ test("verbo con nota especial incluye un tip", () => {
   assert.ok(tips.some((t) => t.tone === "note"));
 });
 
+test("cada tip trae icono y degradado (para los pops iOS)", () => {
+  for (const t of generateTips(irregular)) {
+    assert.ok(t.icon && t.icon.length > 0, "falta icon");
+    assert.ok(t.grad && t.grad.includes("from-"), "falta grad");
+  }
+});
+
 console.log(`\n${passed} pruebas en verde.`);
