@@ -33,6 +33,13 @@ const LEVEL_CLS = {
   Dificil: "bg-red-500/20 text-red-300",
 };
 
+// Colores de los "pops" del panel lateral segun su tono.
+const TIP_TONE = {
+  rule: "border-l-indigo-400 bg-indigo-500/10",
+  use: "border-l-emerald-400 bg-emerald-500/10",
+  note: "border-l-amber-400 bg-amber-500/10",
+};
+
 function learnedCount(deck, cardMap) {
   return deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
 }
@@ -159,12 +166,6 @@ export async function renderBonusDeck(container, params, user) {
   }
 
   // Panel lateral de "pops": tarjetas de ayuda (regla, usos, tips) del verbo.
-const TIP_TONE = {
-  rule: "border-l-indigo-400 bg-indigo-500/10",
-  use: "border-l-emerald-400 bg-emerald-500/10",
-  note: "border-l-amber-400 bg-amber-500/10",
-};
-
 function tipsAside(item) {
   const tips = generateTips(item);
   return el("div", { class: "space-y-3 text-left" },
