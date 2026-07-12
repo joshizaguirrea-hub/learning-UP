@@ -41,6 +41,14 @@ export const SKILL_PLANS = {
         "Manejo condicionales (3ro y mixtos) y modales perfectos.",
       ],
     },
+    C1: {
+      focus: "Estructuras avanzadas para dar enfasis y matiz: inversion, cleft y subjuntivo.",
+      canDo: [
+        "Uso la inversion (Never have I...) y las cleft sentences.",
+        "Empleo el subjuntivo en propuestas y demandas formales.",
+        "Manejo el idioma con flexibilidad y precision.",
+      ],
+    },
   },
   vocabulary: {
     A1: {
@@ -73,6 +81,14 @@ export const SKILL_PLANS = {
         "Uso vocabulario de trabajo, ciencia, arte y sociedad.",
         "Empleo colocaciones y expresiones mas naturales.",
         "Distingo registro formal e informal.",
+      ],
+    },
+    C1: {
+      focus: "Vocabulario academico y de especialidad, con matices y lenguaje figurado.",
+      canDo: [
+        "Uso vocabulario academico y tecnico con precision.",
+        "Manejo colocaciones sofisticadas y matices semanticos.",
+        "Reconozco lenguaje figurado y registro.",
       ],
     },
   },
@@ -109,6 +125,14 @@ export const SKILL_PLANS = {
         "Sigo argumentos con pros y contras.",
       ],
     },
+    C1: {
+      focus: "Interpretar textos largos y exigentes, incluido el sentido implicito.",
+      canDo: [
+        "Interpreto textos academicos, tecnicos y de opinion complejos.",
+        "Capto el sentido implicito y la actitud del autor.",
+        "Sintetizo informacion de varias fuentes.",
+      ],
+    },
   },
   writing: {
     A1: {
@@ -143,6 +167,14 @@ export const SKILL_PLANS = {
         "Uso conectores del discurso con soltura.",
       ],
     },
+    C1: {
+      focus: "Producir textos bien estructurados: ensayos, informes y propuestas.",
+      canDo: [
+        "Escribo textos extensos con cohesion avanzada.",
+        "Adapto el registro al proposito y la audiencia.",
+        "Uso estructuras enfaticas por efecto estilistico.",
+      ],
+    },
   },
   listening: {
     A1: {
@@ -161,6 +193,10 @@ export const SKILL_PLANS = {
       focus: "Seguir debates, conferencias y contenido nativo semi-rapido. (Requiere audio: proximamente)",
       canDo: [],
     },
+    C1: {
+      focus: "Entender casi todo, incluido lo implicito y actitudinal. (Requiere audio: proximamente)",
+      canDo: [],
+    },
   },
   speaking: {
     A1: {
@@ -177,6 +213,10 @@ export const SKILL_PLANS = {
     },
     B2: {
       focus: "Debatir, matizar y sostener un discurso extendido. (Requiere IA/voz: proximamente)",
+      canDo: [],
+    },
+    C1: {
+      focus: "Discurso fluido, flexible y apropiado al contexto. (Requiere IA/voz: proximamente)",
       canDo: [],
     },
   },
