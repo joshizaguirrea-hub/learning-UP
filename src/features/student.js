@@ -2,7 +2,7 @@
  * features/student.js — Dashboard del estudiante (estilo "Fit Match", tema oscuro).
  *
  * Capa de feature: arma el perfil gamificado (avatar, XP, nivel), las tarjetas
- * de dominio por competencia (gradientes), el curso, el repaso y los logros.
+ * de dominio por competencia (gradientes), el curso y el repaso.
  * Los calculos viven en core/gamification (puro); aqui solo se orquesta y pinta.
  */
 import { getStudentProfile } from "../services/profiles.js";
@@ -14,7 +14,7 @@ import { CEFR_INFO } from "../data/cefr.js";
 import { ICONS } from "../ui/icons.js";
 import { didToday } from "../core/streak.js";
 import {
-  skillProgress, totalXp, xpToNext, achievements,
+  skillProgress, totalXp, xpToNext,
 } from "../core/gamification.js";
 import { el, mount } from "../ui/dom.js";
 import { getAccent } from "../ui/prefs.js";
@@ -41,13 +41,9 @@ export async function renderStudent(container, user) {
     Object.entries(progressMap).filter(([, v]) => v.status === "done").map(([id]) => id));
   const lessonsDone = completed.size;
   const units = unitsForLevel(profile.cefr_level);
-  const unitsCompleted = units.filter((u) => u.lessons.every((l) => completed.has(l.id))).length;
 
   const skills = skillProgress(units, completed);
   const xp = totalXp(lessonsDone, srs.learned);
-  const logros = achievements({
-    placementDone: true, lessonsDone, vocabLearned: srs.learned, unitsCompleted, streak: profile.streak || 0,
-  });
 
   mount(container, el("div", { class: "space-y-6" },
     profileHeader(name, profile, xp),
@@ -55,9 +51,7 @@ export async function renderStudent(container, user) {
     statsRow(profile, srs.learned, lessonsDone),
     skillsSection(skills),
     bonusBanner(),
-    el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
-      courseSection(units, progressMap),
-      achievementsSection(logros))));
+    courseSection(units, progressMap)));
   focusMainHeading(container);
 }
 
@@ -186,7 +180,7 @@ function skillCard(s) {
 }
 
 // --------------------------------------------------------------------------
-// Curso (unidades) + repaso + logros
+// Curso (unidades) + repaso
 // --------------------------------------------------------------------------
 function courseSection(units, progressMap) {
   const cards = units.length
@@ -212,23 +206,6 @@ function courseSection(units, progressMap) {
     el("h2", { class: "text-lg font-bold" }, "Tu curso"),
     el("p", { class: "text-slate-400 text-sm mt-1" }, "Unidades tematicas con lecciones interactivas."),
     el("div", { class: "mt-4 grid gap-3" }, ...cards));
-}
-
-function achievementsSection(logros) {
-  const cards = logros.map((a) =>
-    el("div", {
-      class: "p-4 rounded-xl border text-center " +
-        (a.unlocked ? "bg-slate-800 border-amber-500/40" : "bg-slate-900 border-slate-800 opacity-50"),
-    },
-      el("div", { class: "w-10 h-10 mx-auto rounded-full flex items-center justify-center text-lg font-bold " +
-        (a.unlocked ? "bg-amber-500/20 text-amber-300" : "bg-slate-800 text-slate-600") },
-        a.unlocked ? "*" : "-"),
-      el("p", { class: "mt-2 text-sm font-semibold " + (a.unlocked ? "text-slate-100" : "text-slate-500") }, a.title),
-      el("p", { class: "text-xs text-slate-500 mt-0.5" }, a.desc)));
-
-  return el("section", { class: PANEL + " p-5" },
-    el("h2", { class: "text-lg font-bold" }, "Logros"),
-    el("div", { class: "mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3" }, ...cards));
 }
 
 // --------------------------------------------------------------------------
