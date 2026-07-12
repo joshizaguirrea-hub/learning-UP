@@ -1,8 +1,7 @@
 /**
  * data/units/a2-free-time-sport.js — Unidad tematica "Free time & sport" (A2).
  *
- * Datos PUROS. Introduccion al primer condicional y adverbios de modo, con
- * vocabulario de deporte. Ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A2_FREE_TIME_SPORT = {
@@ -33,84 +32,54 @@ export const A2_FREE_TIME_SPORT = {
   ],
 
   lessons: [
+    // ================= READING =================
     {
-      id: "a2fs-l0",
+      id: "a2fs-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: el gran partido",
-      intro:
-        "Lee la historia y estudia el primer condicional y los adverbios. Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: el gran partido",
+      intro: "Competencia de LECTURA. Lee la historia y comprueba que entendiste.",
       content: {
         reading:
           "Our team has an important match on Saturday. The coach says: 'If we train hard, we will " +
           "win. If we play badly, we will lose.' Our best player runs very quickly and scores well. " +
           "She practises every day to stay fit. 'If you believe in yourselves, you will play better,' " +
           "says the coach. Everyone is excited. If it doesn't rain, the match will be perfect!",
-        glossary: [
-          { term: "If we train, we will win", translation: "Si entrenamos, ganaremos" },
-          { term: "quickly", translation: "rapidamente" },
-          { term: "well / badly", translation: "bien / mal" },
-          { term: "to score", translation: "anotar" },
-          { term: "fit", translation: "en forma" },
-          { term: "coach", translation: "entrenador" },
-        ],
         keyPhrases: [
-          "If + present, ... will + verbo (primer condicional)",
-          "She plays well / badly. (Juega bien / mal.)",
-          "He runs quickly. (Corre rapidamente.)",
-          "If it rains, we will stay home. (Si llueve, nos quedamos.)",
+          "Busca las condiciones (If...) y sus resultados (will...).",
+          "Fijate en los adverbios: quickly, well, badly.",
         ],
-        note:
-          "Primer condicional (situaciones reales del futuro): 'If + presente, ... will + verbo base'. " +
-          "Los adverbios de modo dicen COMO se hace algo y suelen terminar en -ly: quick->quickly. " +
-          "Ojo: 'good' es adjetivo, pero su adverbio es 'well'.",
-        grammar: {
-          title: "Primer condicional / adverbios de modo",
-          form: "If + present simple, subject + will + base · adjetivo + ly = adverbio",
-          examples: [
-            "If we train, we will win.",
-            "She sings beautifully.",
-          ],
-          mistakes: [
-            { wrong: "If we will train, we win.", right: "If we train, we will win." },
-            { wrong: "He plays good.", right: "He plays well." },
-          ],
-        },
         check: [
           { prompt: "What happens if they train hard?", choices: ["They will lose", "They will win", "Nothing"], answer: 1 },
           { prompt: "How does the best player run?", choices: ["Slowly", "Quickly", "Badly"], answer: 1 },
+          { prompt: "How often does she practise?", choices: ["Every day", "Once a week", "Never"], answer: 0 },
+          { prompt: "When will the match be perfect?", choices: ["If it rains", "If it doesn't rain", "If they lose"], answer: 1 },
         ],
       },
       activities: [],
     },
+
+    // ================= VOCABULARY =================
     {
-      id: "a2fs-l1",
+      id: "a2fs-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: hablar de resultados",
-      intro: "Usamos el primer condicional para consecuencias reales. Lee el dialogo.",
-      dialogue: [
-        "A: Do you think we'll win on Saturday?",
-        "B: If we train hard, we will win for sure.",
-        "A: And if it rains?",
-        "B: If it rains, the match will be difficult.",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: deporte y resultados",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "team / match", translation: "equipo / partido" },
+        { term: "to win / to lose", translation: "ganar / perder" },
+        { term: "to train / to score", translation: "entrenar / anotar" },
+        { term: "well / badly", translation: "bien / mal" },
+        { term: "quickly", translation: "rapidamente" },
+        { term: "fit", translation: "en forma" },
       ],
       activities: [
         {
-          id: "a2fs-l1-a1", type: "multiple_choice",
-          prompt: "Choose the correct first conditional:",
-          payload: { choices: [
-            "If we will study, we pass.",
-            "If we study, we will pass.",
-            "If we studying, we will pass.",
-          ], answer: 1 },
-          explain: "If + presente, ... will + base. El 'if' NO lleva will.",
-        },
-        {
-          id: "a2fs-l1-a2", type: "matching",
+          id: "a2fs-vocab-a1", type: "matching",
           prompt: "Empareja el adjetivo con su adverbio:",
           payload: { pairs: [
             { left: "good", right: "well" },
@@ -118,83 +87,100 @@ export const A2_FREE_TIME_SPORT = {
             { left: "bad", right: "badly" },
           ] },
         },
-      ],
-    },
-    {
-      id: "a2fs-l2",
-      order: 3,
-      phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: condicional y adverbios",
-      intro: "Completa, elige y ordena para practicar.",
-      activities: [
         {
-          id: "a2fs-l2-a1", type: "cloze",
-          prompt: "Completa: 'If we train, we ___ win.' (futuro)",
-          payload: { answer: "will" },
-          explain: "Primer condicional: la consecuencia lleva 'will'.",
+          id: "a2fs-vocab-a2", type: "multiple_choice",
+          prompt: "Which word means 'ganar'?",
+          payload: { choices: ["to lose", "to win", "to train"], answer: 1 },
+          explain: "'To win' = ganar.",
         },
         {
-          id: "a2fs-l2-a2", type: "cloze",
+          id: "a2fs-vocab-a3", type: "cloze",
+          prompt: "Completa: 'She ___ two goals.' (score -> pasado)",
+          payload: { answer: "scored" },
+          explain: "Pasado regular: score -> scored.",
+        },
+        {
+          id: "a2fs-vocab-a4", type: "multiple_choice",
+          prompt: "Which word means 'en forma'?",
+          payload: { choices: ["fit", "match", "team"], answer: 0 },
+          explain: "'Fit' = en forma.",
+        },
+      ],
+    },
+
+    // ================= GRAMMAR =================
+    {
+      id: "a2fs-gram",
+      order: 3,
+      phase: "practice",
+      skills: ["grammar"],
+      title: "Grammar: primer condicional",
+      intro: "Competencia de GRAMATICA. Aprende el primer condicional y los adverbios de modo.",
+      grammar: {
+        title: "Primer condicional / adverbios de modo",
+        form: "If + present simple, subject + will + base · adjetivo + ly = adverbio",
+        examples: ["If we train, we will win.", "She sings beautifully."],
+        mistakes: [
+          { wrong: "If we will train, we win.", right: "If we train, we will win." },
+          { wrong: "He plays good.", right: "He plays well." },
+        ],
+      },
+      activities: [
+        {
+          id: "a2fs-gram-a1", type: "cloze",
+          prompt: "Completa: 'If we train, we ___ win.' (futuro)",
+          payload: { answer: "will" },
+          explain: "La consecuencia lleva 'will'.",
+        },
+        {
+          id: "a2fs-gram-a2", type: "cloze",
           prompt: "Completa: 'He runs very ___.' (quick -> adverbio)",
           payload: { answer: "quickly" },
           explain: "Adverbio de modo: quick -> quickly.",
         },
         {
-          id: "a2fs-l2-a3", type: "multiple_choice",
+          id: "a2fs-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "She plays very good.",
-            "She plays very well.",
-            "She plays very goodly.",
-          ], answer: 1 },
+          payload: { choices: ["She plays very good.", "She plays very well.", "She plays very goodly."], answer: 1 },
           explain: "El adverbio de 'good' es 'well'.",
         },
         {
-          id: "a2fs-l2-a4", type: "word_bank",
+          id: "a2fs-gram-a4", type: "word_bank",
           prompt: "Ordena el condicional:",
-          payload: { words: ["rains,", "If", "stay", "it", "we'll", "home"],
-                     answer: ["If", "it", "rains,", "we'll", "stay", "home"] },
+          payload: { words: ["rains,", "If", "stay", "it", "we'll", "home"], answer: ["If", "it", "rains,", "we'll", "stay", "home"] },
           explain: "Orden: If + it + rains, + we'll + stay + home.",
-        },
-        {
-          id: "a2fs-l2-a5", type: "cloze",
-          prompt: "Completa: 'She ___ two goals.' (score -> pasado)",
-          payload: { answer: "scored" },
-          explain: "Pasado regular: score -> scored.",
         },
       ],
     },
+
+    // ================= WRITING =================
     {
-      id: "a2fs-l3",
+      id: "a2fs-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: predice resultados",
-      intro: "Tarea real: construye frases con el primer condicional. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: predice resultados",
+      intro: "Competencia de ESCRITURA. Construye frases con el primer condicional. Ordena cada frase.",
       activities: [
         {
-          id: "a2fs-l3-a1", type: "word_bank",
+          id: "a2fs-write-a1", type: "word_bank",
           prompt: "Di que si entrenan, ganaran:",
-          payload: { words: ["train,", "If", "we'll", "we", "win"],
-                     answer: ["If", "we", "train,", "we'll", "win"] },
+          payload: { words: ["train,", "If", "we'll", "we", "win"], answer: ["If", "we", "train,", "we'll", "win"] },
         },
         {
-          id: "a2fs-l3-a2", type: "word_bank",
+          id: "a2fs-write-a2", type: "word_bank",
           prompt: "Di que ella juega muy bien:",
-          payload: { words: ["well", "She", "very", "plays"],
-                     answer: ["She", "plays", "very", "well"] },
+          payload: { words: ["well", "She", "very", "plays"], answer: ["She", "plays", "very", "well"] },
         },
         {
-          id: "a2fs-l3-a3", type: "word_bank",
+          id: "a2fs-write-a3", type: "word_bank",
           prompt: "Di que si llueve, se quedaran en casa:",
-          payload: { words: ["rains,", "If", "stay", "it", "we'll", "home"],
-                     answer: ["If", "it", "rains,", "we'll", "stay", "home"] },
+          payload: { words: ["rains,", "If", "stay", "it", "we'll", "home"], answer: ["If", "it", "rains,", "we'll", "stay", "home"] },
         },
         {
-          id: "a2fs-l3-a4", type: "multiple_choice",
-          prompt: "Which word means 'ganar'?",
-          payload: { choices: ["to lose", "to win", "to train"], answer: 1 },
+          id: "a2fs-write-a4", type: "multiple_choice",
+          prompt: "Choose the correct first conditional:",
+          payload: { choices: ["If we will study, we pass.", "If we study, we will pass.", "If we studying, we will pass."], answer: 1 },
         },
       ],
     },

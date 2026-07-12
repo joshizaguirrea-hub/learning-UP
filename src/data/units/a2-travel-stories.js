@@ -1,8 +1,7 @@
 /**
  * data/units/a2-travel-stories.js — Unidad tematica "Travel stories" (A2).
  *
- * Datos PUROS. Past continuous vs past simple para narrar. Ciclo PPP del
- * estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A2_TRAVEL_STORIES = {
@@ -33,83 +32,54 @@ export const A2_TRAVEL_STORIES = {
   ],
 
   lessons: [
+    // ================= READING =================
     {
-      id: "a2ts-l0",
+      id: "a2ts-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: una aventura de viaje",
-      intro:
-        "Lee la historia y estudia el past continuous con el past simple. Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: una aventura de viaje",
+      intro: "Competencia de LECTURA. Lee la historia y comprueba que entendiste.",
       content: {
         reading:
           "Last summer, we went on a trip to Italy. When we arrived at the airport, it was raining. " +
           "While we were waiting for a taxi, I lost my map! We got lost in the city for two hours. " +
           "We were walking near the river when a kind woman helped us. Finally, we found our hotel. " +
           "It was a small adventure, but the trip was amazing.",
-        glossary: [
-          { term: "it was raining", translation: "estaba lloviendo" },
-          { term: "while we were waiting", translation: "mientras esperabamos" },
-          { term: "we were walking", translation: "estabamos caminando" },
-          { term: "lost", translation: "perdi (lose)" },
-          { term: "got lost", translation: "nos perdimos" },
-          { term: "found", translation: "encontramos (find)" },
-        ],
         keyPhrases: [
-          "I was + verbo-ing (accion en progreso en el pasado)",
-          "While I was ..., ... happened. (Mientras..., paso...)",
-          "When we arrived... (Cuando llegamos...)",
-          "It was amazing! (Fue increible!)",
+          "Distingue el 'fondo' (was raining) de la accion (I lost).",
+          "Busca donde se perdieron y quien los ayudo.",
         ],
-        note:
-          "Past continuous (was/were + verbo-ing) describe una accion EN PROGRESO en el pasado. " +
-          "Suele interrumpirse por una accion corta en past simple: 'I was walking when it started to rain'.",
-        grammar: {
-          title: "Past continuous vs past simple",
-          form: "was/were + verbo-ing (fondo) + when + past simple (accion breve)",
-          examples: [
-            "I was reading when you called.",
-            "While we were waiting, it rained.",
-          ],
-          mistakes: [
-            { wrong: "I was call you.", right: "I was calling you." },
-            { wrong: "While I waiting.", right: "While I was waiting." },
-          ],
-        },
         check: [
           { prompt: "What was the weather when they arrived?", choices: ["Sunny", "Raining", "Snowing"], answer: 1 },
           { prompt: "What did they lose?", choices: ["The map", "The luggage", "The passport"], answer: 0 },
+          { prompt: "How long were they lost?", choices: ["One hour", "Two hours", "All day"], answer: 1 },
+          { prompt: "Who helped them?", choices: ["A taxi driver", "A kind woman", "A police officer"], answer: 1 },
         ],
       },
       activities: [],
     },
+
+    // ================= VOCABULARY =================
     {
-      id: "a2ts-l1",
+      id: "a2ts-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: contar una anecdota",
-      intro: "Usamos past continuous para el 'fondo' y past simple para la accion. Lee el dialogo.",
-      dialogue: [
-        "A: What happened on your trip?",
-        "B: Well, we were walking in the city when it started to rain.",
-        "A: Oh no! What did you do?",
-        "B: We ran to a cafe and waited there.",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: viajes y aventuras",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "trip / adventure", translation: "viaje / aventura" },
+        { term: "airport / hotel", translation: "aeropuerto / hotel" },
+        { term: "to arrive", translation: "llegar" },
+        { term: "luggage / map", translation: "equipaje / mapa" },
+        { term: "to get lost", translation: "perderse" },
+        { term: "amazing", translation: "increible" },
       ],
       activities: [
         {
-          id: "a2ts-l1-a1", type: "multiple_choice",
-          prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "I was walk when it rained.",
-            "I was walking when it rained.",
-            "I walking when it rained.",
-          ], answer: 1 },
-          explain: "Past continuous: was + verbo-ing (walking).",
-        },
-        {
-          id: "a2ts-l1-a2", type: "matching",
+          id: "a2ts-vocab-a1", type: "matching",
           prompt: "Empareja la palabra con su significado:",
           payload: { pairs: [
             { left: "trip", right: "viaje" },
@@ -117,78 +87,98 @@ export const A2_TRAVEL_STORIES = {
             { left: "hotel", right: "hotel" },
           ] },
         },
-      ],
-    },
-    {
-      id: "a2ts-l2",
-      order: 3,
-      phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: past continuous",
-      intro: "Completa, elige y ordena para practicar.",
-      activities: [
         {
-          id: "a2ts-l2-a1", type: "cloze",
-          prompt: "Completa: 'I ___ waiting for a taxi.' (was/were)",
-          payload: { answer: "was" },
-          explain: "Con 'I' usamos 'was' + verbo-ing.",
+          id: "a2ts-vocab-a2", type: "cloze",
+          prompt: "Completa: 'We ___ lost in the city.' (get -> pasado)",
+          payload: { answer: "got" },
+          explain: "'get lost' en pasado: 'got lost'.",
         },
         {
-          id: "a2ts-l2-a2", type: "cloze",
+          id: "a2ts-vocab-a3", type: "multiple_choice",
+          prompt: "Which word means 'increible'?",
+          payload: { choices: ["amazing", "tired", "cheap"], answer: 0 },
+          explain: "'Amazing' = increible.",
+        },
+        {
+          id: "a2ts-vocab-a4", type: "multiple_choice",
+          prompt: "Where do you catch a plane?",
+          payload: { choices: ["hotel", "airport", "map"], answer: 1 },
+          explain: "'Airport' = aeropuerto.",
+        },
+      ],
+    },
+
+    // ================= GRAMMAR =================
+    {
+      id: "a2ts-gram",
+      order: 3,
+      phase: "practice",
+      skills: ["grammar"],
+      title: "Grammar: past continuous",
+      intro: "Competencia de GRAMATICA. Aprende el past continuous con el past simple.",
+      grammar: {
+        title: "Past continuous vs past simple",
+        form: "was/were + verbo-ing (fondo) + when + past simple (accion breve)",
+        examples: ["I was reading when you called.", "While we were waiting, it rained."],
+        mistakes: [
+          { wrong: "I was call you.", right: "I was calling you." },
+          { wrong: "While I waiting.", right: "While I was waiting." },
+        ],
+      },
+      activities: [
+        {
+          id: "a2ts-gram-a1", type: "cloze",
+          prompt: "Completa: 'I ___ waiting for a taxi.' (was/were)",
+          payload: { answer: "was" },
+          explain: "Con 'I': 'was' + verbo-ing.",
+        },
+        {
+          id: "a2ts-gram-a2", type: "cloze",
           prompt: "Completa: 'They were ___ near the river.' (walk -> -ing)",
           payload: { answer: "walking" },
           explain: "Past continuous: were + walking.",
         },
         {
-          id: "a2ts-l2-a3", type: "multiple_choice",
+          id: "a2ts-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "While we waited, it started to rain.",
-            "While we were waiting, it started to rain.",
-            "While we waiting, it started to rain.",
-          ], answer: 1 },
+          payload: { choices: ["While we waited, it started to rain.", "While we were waiting, it started to rain.", "While we waiting, it started to rain."], answer: 1 },
           explain: "El 'fondo' va en past continuous: 'were waiting'.",
         },
         {
-          id: "a2ts-l2-a4", type: "word_bank",
+          id: "a2ts-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
           payload: { words: ["reading", "was", "I", "a", "book"], answer: ["I", "was", "reading", "a", "book"] },
           explain: "Orden: I + was + reading + a + book.",
         },
-        {
-          id: "a2ts-l2-a5", type: "cloze",
-          prompt: "Completa: 'We ___ lost in the city.' (get -> pasado)",
-          payload: { answer: "got" },
-          explain: "'get lost' en pasado: 'got lost'.",
-        },
       ],
     },
+
+    // ================= WRITING =================
     {
-      id: "a2ts-l3",
+      id: "a2ts-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: tu historia de viaje",
-      intro: "Tarea real: construye frases para contar una anecdota de viaje. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: tu historia de viaje",
+      intro: "Competencia de ESCRITURA. Construye frases para contar una anecdota. Ordena cada frase.",
       activities: [
         {
-          id: "a2ts-l3-a1", type: "word_bank",
+          id: "a2ts-write-a1", type: "word_bank",
           prompt: "Di que estabas caminando:",
           payload: { words: ["walking", "I", "was"], answer: ["I", "was", "walking"] },
         },
         {
-          id: "a2ts-l3-a2", type: "word_bank",
+          id: "a2ts-write-a2", type: "word_bank",
           prompt: "Di que empezo a llover:",
           payload: { words: ["to", "It", "rain", "started"], answer: ["It", "started", "to", "rain"] },
         },
         {
-          id: "a2ts-l3-a3", type: "word_bank",
+          id: "a2ts-write-a3", type: "word_bank",
           prompt: "Di que se perdieron en la ciudad:",
-          payload: { words: ["the", "We", "got", "in", "lost", "city"],
-                     answer: ["We", "got", "lost", "in", "the", "city"] },
+          payload: { words: ["the", "We", "got", "in", "lost", "city"], answer: ["We", "got", "lost", "in", "the", "city"] },
         },
         {
-          id: "a2ts-l3-a4", type: "multiple_choice",
+          id: "a2ts-write-a4", type: "multiple_choice",
           prompt: "Which sentence describes an action in progress in the past?",
           payload: { choices: ["I walked home.", "I was walking home.", "I walk home."], answer: 1 },
         },

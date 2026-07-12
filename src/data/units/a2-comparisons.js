@@ -1,8 +1,7 @@
 /**
  * data/units/a2-comparisons.js — Unidad tematica "Comparisons" (A2).
  *
- * Datos PUROS. Comparativos y superlativos para comparar personas y lugares.
- * Ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A2_COMPARISONS = {
@@ -33,79 +32,54 @@ export const A2_COMPARISONS = {
   ],
 
   lessons: [
+    // ================= READING =================
     {
-      id: "a2cm-l0",
+      id: "a2cm-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: dos ciudades",
-      intro:
-        "Lee la comparacion y estudia comparativos y superlativos. Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: dos ciudades",
+      intro: "Competencia de LECTURA. Lee la comparacion y comprueba que entendiste.",
       content: {
         reading:
           "I live in a small town, but my sister lives in a big city. The city is bigger and busier " +
           "than my town. Life there is more expensive, and the traffic is worse. But the city has the " +
           "best restaurants and the most popular museums. My town is quieter and cheaper. For me, my " +
           "town is more beautiful, but the city is more exciting. Which one is better? It depends!",
-        glossary: [
-          { term: "bigger than", translation: "mas grande que" },
-          { term: "more expensive", translation: "mas caro" },
-          { term: "worse", translation: "peor (bad)" },
-          { term: "the best", translation: "el/la mejor" },
-          { term: "the most popular", translation: "el/la mas popular" },
-          { term: "quieter", translation: "mas tranquilo" },
-        ],
         keyPhrases: [
-          "X is bigger than Y. (X es mas grande que Y.)",
-          "X is more expensive than Y. (X es mas caro que Y.)",
-          "It's the best / the most... (Es el mejor / el mas...)",
-          "It depends! (Depende!)",
+          "Compara: que es mas grande, mas caro, mas tranquilo.",
+          "Fijate en los superlativos: the best, the most popular.",
         ],
-        note:
-          "Adjetivos cortos: +er (big->bigger) y the +est (the biggest). Adjetivos largos: more + adj " +
-          "(more expensive) y the most + adj. Irregulares: good/better/best, bad/worse/worst.",
-        grammar: {
-          title: "Comparativo y superlativo",
-          form: "corto: adj+er ... than / the adj+est · largo: more adj than / the most adj",
-          examples: [
-            "The train is faster than the bus.",
-            "It's the most popular beach.",
-          ],
-          mistakes: [
-            { wrong: "It's more bigger.", right: "It's bigger." },
-            { wrong: "She is the most tall.", right: "She is the tallest." },
-          ],
-        },
         check: [
           { prompt: "Where is life more expensive?", choices: ["The town", "The city", "Both same"], answer: 1 },
           { prompt: "What does the town have?", choices: ["The best museums", "More traffic", "A quieter life"], answer: 2 },
+          { prompt: "What does the city have?", choices: ["The best restaurants", "Cheaper life", "Less traffic"], answer: 0 },
+          { prompt: "Which is more exciting?", choices: ["The town", "The city", "Neither"], answer: 1 },
         ],
       },
       activities: [],
     },
+
+    // ================= VOCABULARY =================
     {
-      id: "a2cm-l1",
+      id: "a2cm-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: comparar",
-      intro: "Usamos -er/more + 'than' para comparar. Lee el dialogo.",
-      dialogue: [
-        "A: Is the bus faster than the train?",
-        "B: No, the train is faster and more comfortable.",
-        "A: But the bus is cheaper, right?",
-        "B: Yes, the bus is the cheapest option.",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: adjetivos para comparar",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "big / small", translation: "grande / pequeno" },
+        { term: "cheap / expensive", translation: "barato / caro" },
+        { term: "fast", translation: "rapido" },
+        { term: "popular / beautiful", translation: "popular / hermoso" },
+        { term: "good / bad", translation: "bueno / malo" },
+        { term: "than", translation: "que (comparacion)" },
       ],
       activities: [
         {
-          id: "a2cm-l1-a1", type: "multiple_choice",
-          prompt: "Choose the correct comparative:",
-          payload: { choices: ["more big", "bigger", "biggest"], answer: 1 },
-          explain: "Adjetivo corto 'big' -> 'bigger'.",
-        },
-        {
-          id: "a2cm-l1-a2", type: "matching",
+          id: "a2cm-vocab-a1", type: "matching",
           prompt: "Empareja el adjetivo con su comparativo:",
           payload: { pairs: [
             { left: "good", right: "better" },
@@ -113,83 +87,100 @@ export const A2_COMPARISONS = {
             { left: "fast", right: "faster" },
           ] },
         },
+        {
+          id: "a2cm-vocab-a2", type: "multiple_choice",
+          prompt: "Which word means 'barato'?",
+          payload: { choices: ["expensive", "cheap", "popular"], answer: 1 },
+          explain: "'Cheap' = barato.",
+        },
+        {
+          id: "a2cm-vocab-a3", type: "multiple_choice",
+          prompt: "What is the superlative of 'bad'?",
+          payload: { choices: ["baddest", "worse", "the worst"], answer: 2 },
+          explain: "Irregular: bad -> worse -> the worst.",
+        },
+        {
+          id: "a2cm-vocab-a4", type: "cloze",
+          prompt: "Completa: 'He is taller ___ me.' (que)",
+          payload: { answer: "than" },
+          explain: "'than' conecta la comparacion.",
+        },
       ],
     },
+
+    // ================= GRAMMAR =================
     {
-      id: "a2cm-l2",
+      id: "a2cm-gram",
       order: 3,
       phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: comparativos y superlativos",
-      intro: "Completa, elige y ordena para practicar.",
+      skills: ["grammar"],
+      title: "Grammar: comparativo y superlativo",
+      intro: "Competencia de GRAMATICA. Aprende a formar comparativos y superlativos.",
+      grammar: {
+        title: "Comparativo y superlativo",
+        form: "corto: adj+er ... than / the adj+est · largo: more adj than / the most adj",
+        examples: ["The train is faster than the bus.", "It's the most popular beach."],
+        mistakes: [
+          { wrong: "It's more bigger.", right: "It's bigger." },
+          { wrong: "She is the most tall.", right: "She is the tallest." },
+        ],
+      },
       activities: [
         {
-          id: "a2cm-l2-a1", type: "cloze",
+          id: "a2cm-gram-a1", type: "cloze",
           prompt: "Completa: 'The train is ___ than the bus.' (fast -> comparativo)",
           payload: { answer: "faster" },
           explain: "Adjetivo corto: fast -> faster.",
         },
         {
-          id: "a2cm-l2-a2", type: "cloze",
+          id: "a2cm-gram-a2", type: "cloze",
           prompt: "Completa: 'It's the ___ popular beach.' (superlativo largo)",
           payload: { answer: "most" },
           explain: "Adjetivo largo: the most popular.",
         },
         {
-          id: "a2cm-l2-a3", type: "multiple_choice",
+          id: "a2cm-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "This car is more expensiver.",
-            "This car is more expensive.",
-            "This car is expensiver.",
-          ], answer: 1 },
-          explain: "Adjetivo largo: 'more expensive' (no se combina con -er).",
+          payload: { choices: ["This car is more expensiver.", "This car is more expensive.", "This car is expensiver."], answer: 1 },
+          explain: "Adjetivo largo: 'more expensive'.",
         },
         {
-          id: "a2cm-l2-a4", type: "word_bank",
+          id: "a2cm-gram-a4", type: "word_bank",
           prompt: "Ordena la comparacion:",
-          payload: { words: ["taller", "He", "than", "is", "me"],
-                     answer: ["He", "is", "taller", "than", "me"] },
+          payload: { words: ["taller", "He", "than", "is", "me"], answer: ["He", "is", "taller", "than", "me"] },
           explain: "Orden: He + is + taller + than + me.",
-        },
-        {
-          id: "a2cm-l2-a5", type: "cloze",
-          prompt: "Completa: 'This is the ___ cafe in town.' (good -> superlativo)",
-          payload: { answer: "best" },
-          explain: "Irregular: good -> the best.",
         },
       ],
     },
+
+    // ================= WRITING =================
     {
-      id: "a2cm-l3",
+      id: "a2cm-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: compara dos lugares",
-      intro: "Tarea real: construye comparaciones. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: compara dos lugares",
+      intro: "Competencia de ESCRITURA. Construye comparaciones. Ordena cada frase.",
       activities: [
         {
-          id: "a2cm-l3-a1", type: "word_bank",
+          id: "a2cm-write-a1", type: "word_bank",
           prompt: "Di que la ciudad es mas grande que el pueblo:",
-          payload: { words: ["bigger", "The", "city", "the", "than", "is", "town"],
-                     answer: ["The", "city", "is", "bigger", "than", "the", "town"] },
+          payload: { words: ["bigger", "The", "city", "the", "than", "is", "town"], answer: ["The", "city", "is", "bigger", "than", "the", "town"] },
         },
         {
-          id: "a2cm-l3-a2", type: "word_bank",
+          id: "a2cm-write-a2", type: "word_bank",
           prompt: "Di que el bus es mas barato:",
-          payload: { words: ["cheaper", "The", "is", "bus"],
-                     answer: ["The", "bus", "is", "cheaper"] },
+          payload: { words: ["cheaper", "The", "is", "bus"], answer: ["The", "bus", "is", "cheaper"] },
         },
         {
-          id: "a2cm-l3-a3", type: "word_bank",
+          id: "a2cm-write-a3", type: "word_bank",
           prompt: "Di que es el mejor restaurante:",
-          payload: { words: ["best", "It's", "the", "restaurant"],
-                     answer: ["It's", "the", "best", "restaurant"] },
+          payload: { words: ["best", "It's", "the", "restaurant"], answer: ["It's", "the", "best", "restaurant"] },
         },
         {
-          id: "a2cm-l3-a4", type: "multiple_choice",
-          prompt: "What is the superlative of 'bad'?",
-          payload: { choices: ["baddest", "worse", "the worst"], answer: 2 },
+          id: "a2cm-write-a4", type: "multiple_choice",
+          prompt: "Which is the correct comparative of 'big'?",
+          payload: { choices: ["more big", "bigger", "biggest"], answer: 1 },
         },
       ],
     },
