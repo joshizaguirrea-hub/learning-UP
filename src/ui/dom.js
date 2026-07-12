@@ -17,6 +17,19 @@ export const qsa = (sel, root = document) => [...root.querySelectorAll(sel)];
  */
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);
+  // Tolerante: si "attrs" no es un objeto plano de atributos (p.ej. es un
+  // Node, un texto o un arreglo), lo tratamos como el primer hijo en vez de
+  // descartarlo en silencio. Asi un elemento pasado por error se renderiza
+  // igual (Zen: los errores nunca deben pasar en silencio).
+  if (
+    attrs == null ||
+    typeof attrs !== "object" ||
+    attrs.nodeType ||
+    Array.isArray(attrs)
+  ) {
+    if (attrs != null) children.unshift(attrs);
+    attrs = {};
+  }
   for (const [key, value] of Object.entries(attrs)) {
     if (key === "class") node.className = value;
     else if (key === "html") node.innerHTML = value;
