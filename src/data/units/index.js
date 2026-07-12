@@ -45,6 +45,9 @@ import { OPINION_ESSAYS_B2 } from "./opinion-essays-b2.js";
 import { ACADEMIC_C1 } from "./academic-c1.js";
 import { PERSUASION_C1 } from "./persuasion-c1.js";
 import { GLOBAL_ISSUES_C1 } from "./global-issues-c1.js";
+import { LANGUAGE_STYLE_C1 } from "./language-style-c1.js";
+import { CULTURE_IDENTITY_C1 } from "./culture-identity-c1.js";
+import { WORKPLACE_C1 } from "./workplace-c1.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -60,7 +63,7 @@ export const UNITS = [
   WORK_WORLD_B2, SCIENCE_B2, ARTS_B2, SOCIETY_B2, MIND_B2, MEDIA_INFLUENCE_B2,
   SUSTAINABILITY_B2, ETHICS_B2, ECONOMY_B2, OPINION_ESSAYS_B2,
   // --- C1 ---
-  ACADEMIC_C1, PERSUASION_C1, GLOBAL_ISSUES_C1,
+  ACADEMIC_C1, PERSUASION_C1, GLOBAL_ISSUES_C1, LANGUAGE_STYLE_C1, CULTURE_IDENTITY_C1, WORKPLACE_C1,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
