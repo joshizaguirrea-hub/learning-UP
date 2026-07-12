@@ -134,6 +134,11 @@ En **Supabase → Authentication → URL Configuration** quedó así:
         npm run test:e2e         (contra el sitio publico)
       Ver `tests-e2e/README.md`. Pendiente a futuro: tests CON login (cuenta
       de prueba de Supabase) y flujo de completar verbo.
+      NOTA: la primera corrida cazó un BUG real (2026-07-12): los <label> de
+      login/registro se descartaban por pasarse como attrs a el() -> formularios
+      sin etiquetas (falla WCAG). Arreglado en src/ui/dom.js (el() tolerante) y
+      src/features/auth-ui.js (call sites con {}). SW v0.25.1. Regla: SIEMPRE
+      pasar {} como 2do arg de el() aunque no haya atributos.
 - [ ] Enganchar medallas al perfil.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
