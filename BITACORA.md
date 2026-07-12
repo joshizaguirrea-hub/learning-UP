@@ -145,13 +145,14 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       del dashboard (viven en /perfil). SW v0.26.1.
 - [~] CURRICULO robusto A1 -> B1 (certificacion CEFR). Plan disenado en
       docs/PLAN-DE-ESTUDIO.md (60+ unidades). Produccion por lotes, cada unidad
-      pasa el auditor (/calidad). Progreso: **A1 100% (8/8 unidades)** (Hello,
-      Family, Routine, Food, Home, Shopping, Free time, Yesterday). Descriptores
-      A1 en skill-plans.js. Falta: A2 (0/8) y completar B1 (2/12). SW v0.28.0.
-      Convencion de ids por unidad: prefijo corto (a1h-, a1f-, a1r-, a1fd-, a1hm-,
-      a1sh-, a1ft-, a1y-, a2lw-, a2ts-, a2ci-, a2hb-, a2mp-, a2cm-, a2wj-, a2fs-)
-      para vocab y lecciones -> evita colisiones globales. Progreso: **A1 100%
-      (8/8)** y **A2 100% (8/8)**. Falta completar B1 (2/12). SW v0.29.0.
+      pasa el auditor (/calidad). **A1 100% (8/8), A2 100% (8/8), B1 100% (12/12)** =
+      28 unidades. TODAS en el MODELO DESACOPLADO POR COMPETENCIA: 1 leccion =
+      1 competencia (Reading/Vocabulary/Grammar/Writing) con contenido UNICO ->
+      el % de dominio por competencia es independiente y real. Listening/Speaking
+      quedan bloqueadas hasta audio/IA. Reproductor (lesson-player) muestra
+      lectura/gramatica/glosario tambien en lecciones de practica (helpers DRY).
+      Convencion de ids por unidad: prefijo corto por tema. Camino A1->B1 CERRADO.
+      Falta a futuro: B2, C1, C2. SW v0.33.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
