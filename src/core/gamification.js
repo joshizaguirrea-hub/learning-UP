@@ -10,6 +10,25 @@ import { SKILL_META } from "../data/skill-meta.js";
 const XP_PER_LESSON = 20;
 const XP_PER_VOCAB = 5;
 
+/** Repasos correctos para considerar "dominado" un item de un mazo Bonus. */
+export const MASTER_REPS = 2;
+
+/**
+ * Estado de las medallas de los mazos Bonus (logica pura, sin I/O ni DOM).
+ * Una medalla se gana al dominar el mazo: todos sus items con reps >= MASTER_REPS.
+ * @param {Array} decks - catalogo de mazos ({ id, items:[{id}], medalTitle, ... })
+ * @param {Object} cardMap - mapa id -> { reps } del progreso SRS del usuario
+ * @returns {Array} [{ deck, done, total, mastered, pct }] en el orden de `decks`
+ */
+export function bonusMedals(decks, cardMap) {
+  return decks.map((deck) => {
+    const total = deck.items.length;
+    const done = deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
+    const mastered = total > 0 && done === total;
+    return { deck, done, total, mastered, pct: total ? Math.round((done / total) * 100) : 0 };
+  });
+}
+
 /**
  * Dominio por competencia. Recorre todas las lecciones de todas las unidades,
  * cuenta cuantas entrenan cada skill y cuantas de esas estan completadas.

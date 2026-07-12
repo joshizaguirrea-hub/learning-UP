@@ -13,6 +13,7 @@ import { buildPractice } from "../core/verb-practice.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { generateTips } from "../core/verb-tips.js";
 import { normalize } from "../core/activities.js";
+import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay, getGenLevel, setGenLevel } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
@@ -23,7 +24,6 @@ import { go } from "../ui/router.js";
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl p-5";
 const BTN = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-6 py-2.5 rounded-lg " +
   "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
-const MASTER_REPS = 2; // repasos correctos para considerar un item "dominado"
 
 // Clases de color por nivel de dificultad de las practicas.
 const LEVEL_CLS = {
@@ -31,8 +31,6 @@ const LEVEL_CLS = {
   Intermedio: "bg-amber-500/20 text-amber-300",
   Dificil: "bg-red-500/20 text-red-300",
 };
-
-// Colores de los chips de dificultad ya definidos arriba (LEVEL_CLS).
 
 function learnedCount(deck, cardMap) {
   return deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
@@ -45,12 +43,7 @@ export async function renderBonus(container, user) {
   const allIds = BONUS_DECKS.flatMap((d) => d.items.map((i) => i.id));
   const cardMap = await getCardsByIds(user.id, allIds);
 
-  const decks = BONUS_DECKS.map((deck) => {
-    const done = learnedCount(deck, cardMap);
-    const total = deck.items.length;
-    const mastered = done === total;
-    return { deck, done, total, mastered, pct: Math.round((done / total) * 100) };
-  });
+  const decks = bonusMedals(BONUS_DECKS, cardMap);
 
   const medalsEarned = decks.filter((d) => d.mastered).length;
 

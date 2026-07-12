@@ -7,16 +7,18 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
-import { srsStats } from "../services/srs.js";
+import { srsStats, getCardsByIds } from "../services/srs.js";
 import { getActiveDays } from "../services/activity.js";
 import { unitsForLevel } from "../data/units/index.js";
 import { SKILL_META } from "../data/skill-meta.js";
+import { BONUS_DECKS } from "../data/bonus-decks.js";
 import { CEFR_INFO, nextLevel } from "../data/cefr.js";
 import { motivationById } from "../data/motivations.js";
-import { skillProgress, totalXp, achievements } from "../core/gamification.js";
+import { skillProgress, totalXp, achievements, bonusMedals } from "../core/gamification.js";
 import { isoDay } from "../core/srs.js";
 import { radarSvg } from "../ui/radar.js";
 import { heatmapNode } from "../ui/heatmap.js";
+import { ICONS } from "../ui/icons.js";
 import { getAccent } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
@@ -33,7 +35,7 @@ export async function renderProfile(container, user) {
   const name = user.user_metadata?.full_name || "estudiante";
   const level = profile.cefr_level;
 
-  const [progress, srs] = await Promise.all([
+const [progress, srs] = await Promise.all([
     getCourseProgress(user.id),
     srsStats(user.id),
   ]);
@@ -56,6 +58,11 @@ export async function renderProfile(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const logros = achievements({ placementDone: true, lessonsDone, vocabLearned: srs.learned, unitsCompleted, streak: profile.streak || 0 });
 
+  // Medallas de los mazos Bonus (misma logica pura que /bonus).
+  const bonusIds = BONUS_DECKS.flatMap((d) => d.items.map((i) => i.id));
+  const bonusCards = await getCardsByIds(user.id, bonusIds);
+  const medals = bonusMedals(BONUS_DECKS, bonusCards);
+
   mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" },
     identityCard(name, profile, user),
     el("div", { class: "grid lg:grid-cols-2 gap-6 items-start" },
@@ -65,6 +72,7 @@ export async function renderProfile(container, user) {
         goalsCard(profile))),
     statsRow(profile, xp, srs.learned, lessonsDone),
     heatmapCard(activeDays),
+    medalsCard(medals),
     achievementsCard(logros)));
   focusMainHeading(container);
 }
@@ -153,6 +161,28 @@ function heatmapCard(activeDays) {
     el("h2", { class: "font-bold" }, "Tu actividad"),
     el("p", { class: "text-xs text-slate-400 mt-0.5 mb-3" }, "Ultimas 17 semanas. Cada cuadro verde es un dia que estudiaste."),
     heatmapNode(activeDays));
+}
+
+function medalsCard(medals) {
+  const earned = medals.filter((m) => m.mastered).length;
+  const cards = medals.map((m) =>
+    el("div", {
+      class: "p-3 rounded-xl border text-center " +
+        (m.mastered ? "bg-amber-500/10 border-amber-500/40" : "bg-slate-800/40 border-slate-700 opacity-60"),
+    },
+      el("div", { class: "mx-auto w-10 h-10 rounded-full flex items-center justify-center " +
+        (m.mastered ? "bg-amber-500/20 text-amber-300" : "bg-slate-700 text-slate-500"), html: ICONS.star }),
+      el("p", { class: "mt-2 text-sm font-semibold " + (m.mastered ? "text-amber-300" : "text-slate-400") }, m.deck.medalTitle),
+      el("p", { class: "text-xs text-slate-500 mt-1" },
+        m.mastered ? m.deck.medalDesc : `${m.done}/${m.total} para ganarla`)));
+
+  return el("section", { class: PANEL },
+    el("div", { class: "flex items-center justify-between gap-2" },
+      el("h2", { class: "font-bold" }, "Medallas Bonus"),
+      el("span", { class: "text-xs text-slate-400" }, `${earned}/${medals.length} ganadas`)),
+    el("div", { class: "mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3" }, ...cards),
+    el("button", { class: "mt-4 text-sm text-indigo-400 hover:text-indigo-300",
+      onclick: () => go("/bonus") }, "Ir a los mazos Bonus ->"));
 }
 
 function achievementsCard(logros) {
