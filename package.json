@@ -1,0 +1,18 @@
+{
+  "name": "learning-up",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Learning UP - app web gratuita para aprender ingles (Vanilla JS + Supabase + PWA).",
+  "scripts": {
+    "test:unit": "node tests/verb-tips.test.mjs && node tests/verb-practice.test.mjs && node tests/example-gen.test.mjs && node tests/srs.test.mjs && node tests/streak.test.mjs && node tests/gamification.test.mjs && node tests/placement.test.mjs && node tests/pricing.test.mjs && node tests/activities.test.mjs && node tests/content-audit.test.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:local": "cross-env E2E_BASE_URL=http://127.0.0.1:5500/ playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "e2e:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "cross-env": "^7.0.3"
+  }
+}
