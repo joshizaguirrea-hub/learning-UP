@@ -49,6 +49,14 @@ export const SKILL_PLANS = {
         "Manejo el idioma con flexibilidad y precision.",
       ],
     },
+    C2: {
+      focus: "Maestria: control total del estilo, registro y estructuras marcadas.",
+      canDo: [
+        "Uso fronting y estructuras marcadas por efecto estilistico.",
+        "Manejo clausulas concesivas y matices sutiles.",
+        "Elijo la forma exacta por su efecto, como un nativo.",
+      ],
+    },
   },
   vocabulary: {
     A1: {
@@ -89,6 +97,14 @@ export const SKILL_PLANS = {
         "Uso vocabulario academico y tecnico con precision.",
         "Manejo colocaciones sofisticadas y matices semanticos.",
         "Reconozco lenguaje figurado y registro.",
+      ],
+    },
+    C2: {
+      focus: "Vocabulario idiomatico y preciso (8000+ palabras), con matices culturales.",
+      canDo: [
+        "Uso modismos y phrasal verbs con naturalidad.",
+        "Capto matices sutiles, humor y subtexto.",
+        "Elijo la palabra exacta en cualquier contexto.",
       ],
     },
   },
@@ -133,6 +149,14 @@ export const SKILL_PLANS = {
         "Sintetizo informacion de varias fuentes.",
       ],
     },
+    C2: {
+      focus: "Interpretar cualquier texto, incluido el matiz cultural y el subtexto.",
+      canDo: [
+        "Interpreto textos literarios y tecnicos exigentes.",
+        "Capto ironia, humor y sentido implicito.",
+        "Entiendo cualquier registro y variedad.",
+      ],
+    },
   },
   writing: {
     A1: {
@@ -175,6 +199,14 @@ export const SKILL_PLANS = {
         "Uso estructuras enfaticas por efecto estilistico.",
       ],
     },
+    C2: {
+      focus: "Producir textos de calidad profesional o publicable en cualquier genero.",
+      canDo: [
+        "Escribo en distintos generos con estilo pulido.",
+        "Controlo cohesion, tono y registro por completo.",
+        "Reviso y edito hasta un nivel casi nativo.",
+      ],
+    },
   },
   listening: {
     A1: {
@@ -197,6 +229,10 @@ export const SKILL_PLANS = {
       focus: "Entender casi todo, incluido lo implicito y actitudinal. (Requiere audio: proximamente)",
       canDo: [],
     },
+    C2: {
+      focus: "Entender cualquier variedad y velocidad, incluido el implicito. (Requiere audio: proximamente)",
+      canDo: [],
+    },
   },
   speaking: {
     A1: {
@@ -217,6 +253,10 @@ export const SKILL_PLANS = {
     },
     C1: {
       focus: "Discurso fluido, flexible y apropiado al contexto. (Requiere IA/voz: proximamente)",
+      canDo: [],
+    },
+    C2: {
+      focus: "Indistinguible en fluidez de un usuario muy competente. (Requiere IA/voz: proximamente)",
       canDo: [],
     },
   },
