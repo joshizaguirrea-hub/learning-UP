@@ -98,14 +98,15 @@ git pull
   https://joshizaguirrea-hub.github.io/learning-UP/
   ```
 
-###  Pendiente para que el login funcione en el link público
-En **Supabase** hay que autorizar el dominio nuevo:
-1. Entra a https://supabase.com → tu proyecto → **Authentication → URL Configuration**
-2. En **Site URL** y **Redirect URLs** agrega:
-   ```
-   https://joshizaguirrea-hub.github.io/learning-UP/
-   ```
-3. Guarda. (Sin esto, la app carga pero el login falla.)
+###  Login en el link público —  RESUELTO (2026-07-12)
+En **Supabase → Authentication → URL Configuration** quedó así:
+- **Site URL:** `https://joshizaguirrea-hub.github.io/learning-UP/`
+- **Redirect URLs** (2):
+  ```
+  https://joshizaguirrea-hub.github.io/learning-UP/
+  http://127.0.0.1:5500/**   (comodín para pruebas locales)
+  ```
+**Verificado:** login funciona en el link público (perfil + XP + racha visibles).
 
 ---
 
@@ -115,15 +116,17 @@ En **Supabase** hay que autorizar el dominio nuevo:
   (`sb_publishable_...`) → **es pública y segura** para el navegador.
 - **NUNCA** subas la `service_role` key al frontend.
 - La seguridad real depende de tener **Row Level Security (RLS)** activo en
-  las tablas de Supabase. <- revisar/confirmar.
+  las tablas de Supabase. →  CONFIRMADO: RLS habilitado + policies
+  (`select/insert/update _own`) en las 9 tablas. Verificado en código y en
+  la práctica (el usuario solo ve sus propios datos).
 
 ---
 
 ##  Pendientes / próximos pasos
 
-- [ ] Ajustar URLs en Supabase (para el login en el link público). ← lo más urgente
-- [ ] Confirmar que RLS está activo en las tablas de Supabase.
-- [ ] Tests E2E con Playwright (flujos: login, completar verbo, diccionario).
+- [x] ~~Ajustar URLs en Supabase (para el login en el link público).~~  (2026-07-12)
+- [x] ~~Confirmar que RLS está activo en las tablas de Supabase.~~  (2026-07-12)
+- [ ] Tests E2E con Playwright (flujos: login, completar verbo, diccionario). ← SIGUIENTE
 - [ ] Enganchar medallas al perfil.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
