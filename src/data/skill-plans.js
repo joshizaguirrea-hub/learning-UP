@@ -33,6 +33,14 @@ export const SKILL_PLANS = {
         "Describo responsabilidades con 'in charge of / responsible for'.",
       ],
     },
+    B2: {
+      focus: "Dominar estructuras complejas: pasiva avanzada, condicionales y estilo indirecto.",
+      canDo: [
+        "Uso la pasiva en varios tiempos y el causative (have something done).",
+        "Reporto preguntas y ordenes; uso relativas explicativas.",
+        "Manejo condicionales (3ro y mixtos) y modales perfectos.",
+      ],
+    },
   },
   vocabulary: {
     A1: {
@@ -57,6 +65,14 @@ export const SKILL_PLANS = {
         "Uso vocabulario de trabajo (deadline, colleague, promotion...).",
         "Uso vocabulario de viajes (flight, to book, luggage...).",
         "Conecto ideas con however, although, so, because.",
+      ],
+    },
+    B2: {
+      focus: "Vocabulario de temas abstractos: ciencia, arte, sociedad y economia, con colocaciones.",
+      canDo: [
+        "Uso vocabulario de trabajo, ciencia, arte y sociedad.",
+        "Empleo colocaciones y expresiones mas naturales.",
+        "Distingo registro formal e informal.",
       ],
     },
   },
@@ -85,6 +101,14 @@ export const SKILL_PLANS = {
         "Identifico la idea principal y detalles.",
       ],
     },
+    B2: {
+      focus: "Leer articulos de opinion e inferir tono, actitud e intencion.",
+      canDo: [
+        "Entiendo articulos y textos semi-tecnicos.",
+        "Infiero el tono y la actitud del autor.",
+        "Sigo argumentos con pros y contras.",
+      ],
+    },
   },
   writing: {
     A1: {
@@ -111,6 +135,14 @@ export const SKILL_PLANS = {
         "Uso saludos y despedidas apropiados.",
       ],
     },
+    B2: {
+      focus: "Escribir textos claros y detallados: ensayos de opinion e informes.",
+      canDo: [
+        "Escribo un ensayo de opinion con estructura.",
+        "Defiendo un punto de vista con argumentos.",
+        "Uso conectores del discurso con soltura.",
+      ],
+    },
   },
   listening: {
     A1: {
@@ -125,6 +157,10 @@ export const SKILL_PLANS = {
       focus: "Comprender audios cortos de situaciones cotidianas. (Requiere audio: proximamente)",
       canDo: [],
     },
+    B2: {
+      focus: "Seguir debates, conferencias y contenido nativo semi-rapido. (Requiere audio: proximamente)",
+      canDo: [],
+    },
   },
   speaking: {
     A1: {
@@ -137,6 +173,10 @@ export const SKILL_PLANS = {
     },
     B1: {
       focus: "Mantener conversaciones sencillas sobre temas conocidos. (Requiere IA/voz: proximamente)",
+      canDo: [],
+    },
+    B2: {
+      focus: "Debatir, matizar y sostener un discurso extendido. (Requiere IA/voz: proximamente)",
       canDo: [],
     },
   },

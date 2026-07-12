@@ -32,8 +32,11 @@ import { LIFESTYLE_B1 } from "./lifestyle-b1.js";
 import { EXPERIENCES_B1 } from "./experiences-b1.js";
 import { DECISIONS_B1 } from "./decisions-b1.js";
 import { REPORTING_B1 } from "./reporting-b1.js";
+import { WORK_WORLD_B2 } from "./work-world-b2.js";
+import { SCIENCE_B2 } from "./science-b2.js";
+import { ARTS_B2 } from "./arts-b2.js";
 
-// Orden del catalogo: por nivel (A1 -> A2 -> B1) y dentro del nivel, por tema.
+// Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
   // --- A1 ---
   A1_HELLO, A1_FAMILY, A1_ROUTINE, A1_FOOD, A1_HOME, A1_SHOPPING, A1_FREETIME, A1_YESTERDAY,
@@ -43,6 +46,8 @@ export const UNITS = [
   // --- B1 ---
   WORK_CAREER_B1, TRAVEL_PLANS_B1, TECHNOLOGY_B1, ENVIRONMENT_B1, EDUCATION_B1, MONEY_B1,
   RELATIONSHIPS_B1, MEDIA_B1, LIFESTYLE_B1, EXPERIENCES_B1, DECISIONS_B1, REPORTING_B1,
+  // --- B2 ---
+  WORK_WORLD_B2, SCIENCE_B2, ARTS_B2,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
