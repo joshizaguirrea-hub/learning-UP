@@ -14,11 +14,22 @@ import { A1_HOME } from "./a1-home.js";
 import { A1_SHOPPING } from "./a1-shopping.js";
 import { A1_FREETIME } from "./a1-freetime.js";
 import { A1_YESTERDAY } from "./a1-yesterday.js";
+import { A2_LAST_WEEKEND } from "./a2-last-weekend.js";
+import { A2_TRAVEL_STORIES } from "./a2-travel-stories.js";
+import { A2_IN_THE_CITY } from "./a2-in-the-city.js";
+import { A2_HEALTH } from "./a2-health.js";
+import { A2_MAKING_PLANS } from "./a2-making-plans.js";
+import { A2_COMPARISONS } from "./a2-comparisons.js";
+import { A2_WORK_JOBS } from "./a2-work-jobs.js";
+import { A2_FREE_TIME_SPORT } from "./a2-free-time-sport.js";
 
-// Orden del catalogo: por nivel (A1 -> ... -> B1) y dentro del nivel, por tema.
+// Orden del catalogo: por nivel (A1 -> A2 -> ... -> B1) y dentro del nivel, por tema.
 export const UNITS = [
   // --- A1 ---
   A1_HELLO, A1_FAMILY, A1_ROUTINE, A1_FOOD, A1_HOME, A1_SHOPPING, A1_FREETIME, A1_YESTERDAY,
+  // --- A2 ---
+  A2_LAST_WEEKEND, A2_TRAVEL_STORIES, A2_IN_THE_CITY, A2_HEALTH,
+  A2_MAKING_PLANS, A2_COMPARISONS, A2_WORK_JOBS, A2_FREE_TIME_SPORT,
   // --- B1 ---
   WORK_CAREER_B1, TRAVEL_PLANS_B1,
 ];

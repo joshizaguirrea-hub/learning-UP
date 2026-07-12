@@ -17,6 +17,14 @@ export const SKILL_PLANS = {
         "Uso 'have got' y los adjetivos posesivos (my, your, her).",
       ],
     },
+    A2: {
+      focus: "Narrar en pasado, comparar y hablar del futuro con going to y will.",
+      canDo: [
+        "Uso el pasado simple (regular e irregular) y el past continuous.",
+        "Comparo con comparativos y superlativos (-er, the -est, more).",
+        "Hablo del futuro con 'going to' y 'will'; doy consejos con 'should'.",
+      ],
+    },
     B1: {
       focus: "Consolidar tiempos verbales y estructuras para expresar planes, condiciones y responsabilidades.",
       canDo: [
@@ -33,6 +41,14 @@ export const SKILL_PLANS = {
         "Reconozco y uso saludos y datos personales.",
         "Nombro a los miembros de la familia.",
         "Uso vocabulario de la rutina diaria y la hora.",
+      ],
+    },
+    A2: {
+      focus: "Manejar temas cotidianos: viajes, ciudad, salud, deporte y trabajo.",
+      canDo: [
+        "Uso vocabulario de viajes, transporte y la ciudad.",
+        "Hablo de salud, sintomas y consejos.",
+        "Uso vocabulario de deporte, tiempo libre y oficios.",
       ],
     },
     B1: {
@@ -53,6 +69,14 @@ export const SKILL_PLANS = {
         "Identifico datos concretos (nombre, pais, hora).",
       ],
     },
+    A2: {
+      focus: "Entender textos cortos, anuncios, correos personales e historias simples.",
+      canDo: [
+        "Entiendo correos personales y anuncios cortos.",
+        "Sigo una historia narrada en pasado.",
+        "Identifico ideas principales y detalles simples.",
+      ],
+    },
     B1: {
       focus: "Leer textos cortos reales e inferir significado por contexto.",
       canDo: [
@@ -71,6 +95,14 @@ export const SKILL_PLANS = {
         "Completo formularios con datos personales.",
       ],
     },
+    A2: {
+      focus: "Escribir notas, correos personales y descripciones cortas.",
+      canDo: [
+        "Escribo una nota o mensaje personal simple.",
+        "Describo una experiencia pasada por escrito.",
+        "Escribo sobre mis planes con going to / will.",
+      ],
+    },
     B1: {
       focus: "Escribir correos y mensajes claros y bien estructurados.",
       canDo: [
@@ -85,6 +117,10 @@ export const SKILL_PLANS = {
       focus: "Captar numeros, horas y preguntas personales dichas despacio. (Requiere audio: proximamente)",
       canDo: [],
     },
+    A2: {
+      focus: "Seguir conversaciones simples y mensajes claros. (Requiere audio: proximamente)",
+      canDo: [],
+    },
     B1: {
       focus: "Comprender audios cortos de situaciones cotidianas. (Requiere audio: proximamente)",
       canDo: [],
@@ -93,6 +129,10 @@ export const SKILL_PLANS = {
   speaking: {
     A1: {
       focus: "Presentarse y responder preguntas personales basicas. (Requiere IA/voz: proximamente)",
+      canDo: [],
+    },
+    A2: {
+      focus: "Describir experiencias, planes y dar opiniones simples. (Requiere IA/voz: proximamente)",
       canDo: [],
     },
     B1: {
