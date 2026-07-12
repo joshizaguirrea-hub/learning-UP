@@ -126,7 +126,7 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 - [x] ~~Ajustar URLs en Supabase (para el login en el link público).~~  (2026-07-12)
 - [x] ~~Confirmar que RLS está activo en las tablas de Supabase.~~  (2026-07-12)
-- [~] Tests E2E con Playwright: CODIGO LISTO (2026-07-12) en `tests-e2e/`.
+- [x] Tests E2E con Playwright: LISTOS Y EN VERDE (6/6, 2026-07-12) en `tests-e2e/`.
       Suite de flujos SIN login (home, login, registro, diccionario, guardia
       de rutas). FALTA correrlos en la compu personal (aqui no hay Node):
         npm install
