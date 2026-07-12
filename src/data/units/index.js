@@ -52,6 +52,9 @@ import { LITERATURE_C1 } from "./literature-c1.js";
 import { DATA_TRENDS_C1 } from "./data-trends-c1.js";
 import { DEBATE_C1 } from "./debate-c1.js";
 import { RESEARCH_C1 } from "./research-c1.js";
+import { REGISTER_C2 } from "./register-c2.js";
+import { IDIOM_C2 } from "./idiom-c2.js";
+import { ADVANCED_WRITING_C2 } from "./advanced-writing-c2.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -69,6 +72,8 @@ export const UNITS = [
   // --- C1 ---
   ACADEMIC_C1, PERSUASION_C1, GLOBAL_ISSUES_C1, LANGUAGE_STYLE_C1, CULTURE_IDENTITY_C1, WORKPLACE_C1,
   LITERATURE_C1, DATA_TRENDS_C1, DEBATE_C1, RESEARCH_C1,
+  // --- C2 ---
+  REGISTER_C2, IDIOM_C2, ADVANCED_WRITING_C2,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
