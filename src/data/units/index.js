@@ -6,8 +6,17 @@
  */
 import { WORK_CAREER_B1 } from "./work-career-b1.js";
 import { TRAVEL_PLANS_B1 } from "./travel-plans-b1.js";
+import { A1_HELLO } from "./a1-hello.js";
+import { A1_FAMILY } from "./a1-family.js";
+import { A1_ROUTINE } from "./a1-routine.js";
 
-export const UNITS = [WORK_CAREER_B1, TRAVEL_PLANS_B1];
+// Orden del catalogo: por nivel (A1 -> ... -> B1) y dentro del nivel, por tema.
+export const UNITS = [
+  // --- A1 ---
+  A1_HELLO, A1_FAMILY, A1_ROUTINE,
+  // --- B1 ---
+  WORK_CAREER_B1, TRAVEL_PLANS_B1,
+];
 
 /** Unidades disponibles para un nivel MCER dado. */
 export function unitsForLevel(level) {
