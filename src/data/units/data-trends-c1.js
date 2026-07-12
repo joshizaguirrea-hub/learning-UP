@@ -151,7 +151,7 @@ export const DATA_TRENDS_C1 = {
         {
           id: "c1dt-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
-          payload: { words: ["the", "The", "practise,", "more", "you", "better", "the", "you", "get"], answer: ["The", "more", "you", "practise,", "the", "better", "you", "get"] },
+          payload: { words: ["the", "The", "practise,", "more", "you", "better", "you", "get"], answer: ["The", "more", "you", "practise,", "the", "better", "you", "get"] },
           explain: "Orden: The + more + you + practise, + the + better + you + get.",
         },
       ],
@@ -169,7 +169,7 @@ export const DATA_TRENDS_C1 = {
         {
           id: "c1dt-write-a1", type: "word_bank",
           prompt: "Di: cuanto mas practicas, mejor te vuelves:",
-          payload: { words: ["the", "The", "practise,", "more", "you", "better", "the", "you", "get"], answer: ["The", "more", "you", "practise,", "the", "better", "you", "get"] },
+          payload: { words: ["the", "The", "practise,", "more", "you", "better", "you", "get"], answer: ["The", "more", "you", "practise,", "the", "better", "you", "get"] },
         },
         {
           id: "c1dt-write-a2", type: "word_bank",
