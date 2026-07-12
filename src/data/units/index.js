@@ -42,6 +42,9 @@ import { SUSTAINABILITY_B2 } from "./sustainability-b2.js";
 import { ETHICS_B2 } from "./ethics-b2.js";
 import { ECONOMY_B2 } from "./economy-b2.js";
 import { OPINION_ESSAYS_B2 } from "./opinion-essays-b2.js";
+import { ACADEMIC_C1 } from "./academic-c1.js";
+import { PERSUASION_C1 } from "./persuasion-c1.js";
+import { GLOBAL_ISSUES_C1 } from "./global-issues-c1.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -56,6 +59,8 @@ export const UNITS = [
   // --- B2 ---
   WORK_WORLD_B2, SCIENCE_B2, ARTS_B2, SOCIETY_B2, MIND_B2, MEDIA_INFLUENCE_B2,
   SUSTAINABILITY_B2, ETHICS_B2, ECONOMY_B2, OPINION_ESSAYS_B2,
+  // --- C1 ---
+  ACADEMIC_C1, PERSUASION_C1, GLOBAL_ISSUES_C1,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
