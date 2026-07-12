@@ -1,8 +1,7 @@
 /**
  * data/units/a1-yesterday.js — Unidad tematica "Yesterday" (A1).
  *
- * Datos PUROS. Introduccion al pasado: was/were y past simple de verbos comunes.
- * Sigue el ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A1_YESTERDAY = {
@@ -33,85 +32,54 @@ export const A1_YESTERDAY = {
   ],
 
   lessons: [
-    // ---------------- APRENDE ----------------
+    // ================= READING =================
     {
-      id: "a1y-l0",
+      id: "a1y-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: el fin de semana pasado",
-      intro:
-        "Lee lo que hizo una persona y estudia was/were y el pasado simple regular. " +
-        "Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: el fin de semana pasado",
+      intro: "Competencia de LECTURA. Lee lo que hizo la persona y comprueba que entendiste.",
       content: {
         reading:
           "Last weekend was great. On Saturday, I was at home. I watched a movie and I played " +
           "video games with my brother. On Sunday, we visited our grandmother. She was very " +
           "happy to see us. In the afternoon, my parents were tired, so we stayed at home. " +
           "It was a nice and relaxing weekend.",
-        glossary: [
-          { term: "was", translation: "estaba / fue (I/he/she/it)" },
-          { term: "were", translation: "estaban / eran (you/we/they)" },
-          { term: "watched", translation: "vi / miro (pasado de watch)" },
-          { term: "played", translation: "jugue / jugo (pasado de play)" },
-          { term: "visited", translation: "visite / visito (pasado de visit)" },
-          { term: "stayed", translation: "me quede (pasado de stay)" },
-        ],
         keyPhrases: [
-          "I was... / They were... (Yo estaba... / Ellos estaban...)",
-          "I watched / played / visited... (Vi / jugue / visite...)",
-          "Last weekend / yesterday... (El fin de semana pasado / ayer...)",
-          "It was a nice day. (Fue un buen dia.)",
+          "Busca lo que hizo el sabado y el domingo.",
+          "Fijate en was/were y en los verbos con -ed.",
         ],
-        note:
-          "Pasado del verbo to be: I/he/she/it -> was; you/we/they -> were. Para verbos regulares " +
-          "en pasado agregamos -ed: watch -> watched, play -> played, visit -> visited.",
-        grammar: {
-          title: "was/were y pasado regular (-ed)",
-          form: "was (I/he/she/it) · were (you/we/they) · verbo + ed (regular)",
-          examples: [
-            "I was at home.",
-            "They were happy.",
-            "She watched a movie.",
-          ],
-          mistakes: [
-            { wrong: "I were tired.", right: "I was tired." },
-            { wrong: "We was happy.", right: "We were happy." },
-          ],
-        },
         check: [
           { prompt: "Where was the person on Saturday?", choices: ["At school", "At home", "At work"], answer: 1 },
           { prompt: "Who did they visit on Sunday?", choices: ["A friend", "Grandmother", "A teacher"], answer: 1 },
+          { prompt: "How were the parents in the afternoon?", choices: ["Happy", "Tired", "Angry"], answer: 1 },
+          { prompt: "How was the weekend?", choices: ["Boring", "Nice and relaxing", "Terrible"], answer: 1 },
         ],
       },
       activities: [],
     },
 
-    // ---------------- PRESENTACION ----------------
+    // ================= VOCABULARY =================
     {
-      id: "a1y-l1",
+      id: "a1y-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: preguntar por el pasado",
-      intro:
-        "Para hablar del pasado usamos 'was/were' y verbos con -ed. Lee el dialogo.",
-      dialogue: [
-        "A: Where were you yesterday?",
-        "B: I was at home. I watched a movie.",
-        "A: Nice! Was it good?",
-        "B: Yes, it was great!",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: pasado y tiempo",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "yesterday / last week", translation: "ayer / la semana pasada" },
+        { term: "weekend", translation: "fin de semana" },
+        { term: "to watch / to play", translation: "ver / jugar" },
+        { term: "to visit / to stay", translation: "visitar / quedarse" },
+        { term: "tired / happy", translation: "cansado / feliz" },
+        { term: "ago", translation: "hace (tiempo)" },
       ],
       activities: [
         {
-          id: "a1y-l1-a1", type: "multiple_choice",
-          prompt: "Which is correct for 'I' in the past?",
-          payload: { choices: ["I were happy.", "I was happy.", "I is happy."], answer: 1 },
-          explain: "Con 'I' en pasado usamos 'was': I was happy.",
-        },
-        {
-          id: "a1y-l1-a2", type: "matching",
+          id: "a1y-vocab-a1", type: "matching",
           prompt: "Empareja el verbo con su pasado:",
           payload: { pairs: [
             { left: "watch", right: "watched" },
@@ -119,88 +87,100 @@ export const A1_YESTERDAY = {
             { left: "visit", right: "visited" },
           ] },
         },
+        {
+          id: "a1y-vocab-a2", type: "multiple_choice",
+          prompt: "Which word means 'ayer'?",
+          payload: { choices: ["yesterday", "tomorrow", "today"], answer: 0 },
+          explain: "'Yesterday' = ayer.",
+        },
+        {
+          id: "a1y-vocab-a3", type: "cloze",
+          prompt: "Completa: 'My parents were ___.' (cansados)",
+          payload: { answer: "tired" },
+          explain: "'Tired' = cansado.",
+        },
+        {
+          id: "a1y-vocab-a4", type: "multiple_choice",
+          prompt: "Which word means 'fin de semana'?",
+          payload: { choices: ["weekend", "week", "day"], answer: 0 },
+          explain: "'Weekend' = fin de semana.",
+        },
       ],
     },
 
-    // ---------------- PRACTICA ----------------
+    // ================= GRAMMAR =================
     {
-      id: "a1y-l2",
+      id: "a1y-gram",
       order: 3,
       phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: was/were y -ed",
-      intro: "Completa, elige y ordena para practicar.",
+      skills: ["grammar"],
+      title: "Grammar: was/were y pasado -ed",
+      intro: "Competencia de GRAMATICA. Aprende was/were y el pasado regular y practicalos.",
+      grammar: {
+        title: "was/were y pasado regular (-ed)",
+        form: "was (I/he/she/it) · were (you/we/they) · verbo + ed (regular)",
+        examples: ["I was at home.", "They were happy.", "She watched a movie."],
+        mistakes: [
+          { wrong: "I were tired.", right: "I was tired." },
+          { wrong: "We was happy.", right: "We were happy." },
+        ],
+      },
       activities: [
         {
-          id: "a1y-l2-a1", type: "cloze",
+          id: "a1y-gram-a1", type: "cloze",
           prompt: "Completa: 'They ___ happy.' (estaban)",
           payload: { answer: "were" },
-          explain: "Con they/we/you usamos 'were'.",
+          explain: "Con they/we/you: 'were'.",
         },
         {
-          id: "a1y-l2-a2", type: "cloze",
+          id: "a1y-gram-a2", type: "cloze",
           prompt: "Completa: 'I ___ a movie last night.' (ver -> pasado)",
           payload: { answer: "watched" },
           explain: "Pasado regular: watch + ed = watched.",
         },
         {
-          id: "a1y-l2-a3", type: "multiple_choice",
+          id: "a1y-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "She were at home.",
-            "She was at home.",
-            "She is at home yesterday.",
-          ], answer: 1 },
-          explain: "Con 'she' en pasado usamos 'was'.",
+          payload: { choices: ["She were at home.", "She was at home.", "She is at home yesterday."], answer: 1 },
+          explain: "Con 'she' en pasado: 'was'.",
         },
         {
-          id: "a1y-l2-a4", type: "word_bank",
+          id: "a1y-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
-          payload: { words: ["football", "played", "We", "yesterday"],
-                     answer: ["We", "played", "football", "yesterday"] },
+          payload: { words: ["football", "played", "We", "yesterday"], answer: ["We", "played", "football", "yesterday"] },
           explain: "Orden: We + played + football + yesterday.",
-        },
-        {
-          id: "a1y-l2-a5", type: "cloze",
-          prompt: "Completa: 'We ___ our grandmother.' (visitar -> pasado)",
-          payload: { answer: "visited" },
-          explain: "Pasado regular: visit + ed = visited.",
         },
       ],
     },
 
-    // ---------------- PRODUCCION ----------------
+    // ================= WRITING =================
     {
-      id: "a1y-l3",
+      id: "a1y-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: cuenta tu fin de semana",
-      intro:
-        "Tarea real: construye frases sobre lo que hiciste. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: cuenta tu fin de semana",
+      intro: "Competencia de ESCRITURA. Construye frases sobre lo que hiciste. Ordena cada frase.",
       activities: [
         {
-          id: "a1y-l3-a1", type: "word_bank",
+          id: "a1y-write-a1", type: "word_bank",
           prompt: "Di donde estabas ayer:",
-          payload: { words: ["home", "I", "at", "was", "yesterday"],
-                     answer: ["I", "was", "at", "home", "yesterday"] },
+          payload: { words: ["home", "I", "at", "was", "yesterday"], answer: ["I", "was", "at", "home", "yesterday"] },
         },
         {
-          id: "a1y-l3-a2", type: "word_bank",
+          id: "a1y-write-a2", type: "word_bank",
           prompt: "Di que viste una pelicula:",
-          payload: { words: ["a", "I", "movie", "watched"],
-                     answer: ["I", "watched", "a", "movie"] },
+          payload: { words: ["a", "I", "movie", "watched"], answer: ["I", "watched", "a", "movie"] },
         },
         {
-          id: "a1y-l3-a3", type: "word_bank",
+          id: "a1y-write-a3", type: "word_bank",
           prompt: "Di que visitaste a tu abuela:",
-          payload: { words: ["grandmother", "I", "my", "visited"],
-                     answer: ["I", "visited", "my", "grandmother"] },
+          payload: { words: ["grandmother", "I", "my", "visited"], answer: ["I", "visited", "my", "grandmother"] },
         },
         {
-          id: "a1y-l3-a4", type: "multiple_choice",
-          prompt: "Which word means 'ayer'?",
-          payload: { choices: ["yesterday", "tomorrow", "today"], answer: 0 },
+          id: "a1y-write-a4", type: "multiple_choice",
+          prompt: "Which is the past of 'to be' for 'they'?",
+          payload: { choices: ["was", "were", "is"], answer: 1 },
         },
       ],
     },

@@ -1,8 +1,7 @@
 /**
  * data/units/a1-food.js — Unidad tematica "Food & drink" (A1).
  *
- * Datos PUROS. Comida y bebida con countable/uncountable, some/any y like/don't
- * like. Sigue el ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A1_FOOD = {
@@ -33,85 +32,54 @@ export const A1_FOOD = {
   ],
 
   lessons: [
-    // ---------------- APRENDE ----------------
+    // ================= READING =================
     {
-      id: "a1fd-l0",
+      id: "a1fd-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: comida y gustos",
-      intro:
-        "Lee sobre lo que come una persona y estudia 'some/any' y 'like/don't like'. " +
-        "Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: comida y gustos",
+      intro: "Competencia de LECTURA. Lee sobre Sofia y comprueba que entendiste.",
       content: {
         reading:
           "Sofia likes healthy food. For breakfast, she has some bread, an apple and a cup " +
           "of tea. She doesn't like coffee. For lunch, she usually eats chicken with rice " +
           "and vegetables. She drinks a lot of water. She doesn't put any sugar in her tea. " +
           "In the evening, she sometimes has an egg. Sofia loves fruit but she doesn't like fish.",
-        glossary: [
-          { term: "likes", translation: "le gusta" },
-          { term: "doesn't like", translation: "no le gusta" },
-          { term: "some", translation: "algo de (afirmativo)" },
-          { term: "any", translation: "algo de (negativo/pregunta)" },
-          { term: "a lot of", translation: "mucho/a" },
-          { term: "healthy", translation: "saludable" },
-        ],
         keyPhrases: [
-          "I like... / I don't like... (Me gusta... / No me gusta...)",
-          "There is some... (Hay algo de...)",
-          "Is there any...? (Hay algo de...?)",
-          "A cup of tea, please. (Un te, por favor.)",
+          "Busca lo que le gusta y lo que no le gusta.",
+          "Fijate en 'some' y 'any' en el texto.",
         ],
-        note:
-          "Usamos 'some' en frases afirmativas ('some bread') y 'any' en negativas y " +
-          "preguntas ('any milk?'). 'a/an' va solo con contables en singular (an apple, a cup).",
-        grammar: {
-          title: "like / don't like",
-          form: "I/you/we/they + like · he/she/it + likes · negativo: don't/doesn't like",
-          examples: [
-            "I like apples.",
-            "She likes tea.",
-            "He doesn't like coffee.",
-          ],
-          mistakes: [
-            { wrong: "She like coffee.", right: "She likes coffee." },
-            { wrong: "I no like fish.", right: "I don't like fish." },
-          ],
-        },
         check: [
           { prompt: "What does Sofia drink a lot?", choices: ["Coffee", "Water", "Milk"], answer: 1 },
           { prompt: "What does Sofia NOT like?", choices: ["Fruit", "Chicken", "Fish"], answer: 2 },
+          { prompt: "What does she have for breakfast?", choices: ["Rice", "Bread and an apple", "Fish"], answer: 1 },
+          { prompt: "Does she put sugar in her tea?", choices: ["Yes", "No", "Only a lot"], answer: 1 },
         ],
       },
       activities: [],
     },
 
-    // ---------------- PRESENTACION ----------------
+    // ================= VOCABULARY =================
     {
-      id: "a1fd-l1",
+      id: "a1fd-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: en el cafe",
-      intro:
-        "Para pedir usamos 'I'd like...' o 'Can I have...?'. Lee el dialogo.",
-      dialogue: [
-        "A: Hi! Can I have a coffee, please?",
-        "B: Sure. With milk and sugar?",
-        "A: With milk, but no sugar, thanks. And some bread, please.",
-        "B: Here you are. Enjoy!",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: comida y bebida",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "water / milk", translation: "agua / leche" },
+        { term: "coffee / tea", translation: "cafe / te" },
+        { term: "bread", translation: "pan" },
+        { term: "apple", translation: "manzana" },
+        { term: "egg / rice", translation: "huevo / arroz" },
+        { term: "chicken", translation: "pollo" },
       ],
       activities: [
         {
-          id: "a1fd-l1-a1", type: "multiple_choice",
-          prompt: "How do you order politely?",
-          payload: { choices: ["Give me coffee.", "Can I have a coffee, please?", "Coffee now."], answer: 1 },
-          explain: "'Can I have..., please?' es una forma educada de pedir.",
-        },
-        {
-          id: "a1fd-l1-a2", type: "matching",
+          id: "a1fd-vocab-a1", type: "matching",
           prompt: "Empareja la palabra con su significado:",
           payload: { pairs: [
             { left: "water", right: "agua" },
@@ -119,85 +87,100 @@ export const A1_FOOD = {
             { left: "milk", right: "leche" },
           ] },
         },
+        {
+          id: "a1fd-vocab-a2", type: "cloze",
+          prompt: "Completa: 'A cup of ___, please.' (te)",
+          payload: { answer: "tea" },
+          explain: "'Tea' = te.",
+        },
+        {
+          id: "a1fd-vocab-a3", type: "multiple_choice",
+          prompt: "Which is a drink?",
+          payload: { choices: ["bread", "water", "apple"], answer: 1 },
+          explain: "'Water' (agua) es una bebida.",
+        },
+        {
+          id: "a1fd-vocab-a4", type: "multiple_choice",
+          prompt: "Which word means 'pollo'?",
+          payload: { choices: ["chicken", "egg", "rice"], answer: 0 },
+          explain: "'Chicken' = pollo.",
+        },
       ],
     },
 
-    // ---------------- PRACTICA ----------------
+    // ================= GRAMMAR =================
     {
-      id: "a1fd-l2",
+      id: "a1fd-gram",
       order: 3,
       phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: some/any y gustos",
-      intro: "Completa, elige y ordena para practicar.",
+      skills: ["grammar"],
+      title: "Grammar: some/any y gustos",
+      intro: "Competencia de GRAMATICA. Aprende some/any y like/don't like y practicalos.",
+      grammar: {
+        title: "some / any y like / don't like",
+        form: "some (afirmativo) · any (negativo/pregunta) · don't/doesn't like",
+        examples: ["There is some bread.", "Is there any milk?", "He doesn't like coffee."],
+        mistakes: [
+          { wrong: "She like coffee.", right: "She likes coffee." },
+          { wrong: "I no like fish.", right: "I don't like fish." },
+        ],
+      },
       activities: [
         {
-          id: "a1fd-l2-a1", type: "cloze",
+          id: "a1fd-gram-a1", type: "cloze",
           prompt: "Completa: 'There is ___ bread on the table.' (afirmativo)",
           payload: { answer: "some" },
-          explain: "'Some' se usa en frases afirmativas.",
+          explain: "'Some' en frases afirmativas.",
         },
         {
-          id: "a1fd-l2-a2", type: "cloze",
+          id: "a1fd-gram-a2", type: "cloze",
           prompt: "Completa: 'Is there ___ milk?' (pregunta)",
           payload: { answer: "any" },
-          explain: "'Any' se usa en preguntas y negaciones.",
+          explain: "'Any' en preguntas y negaciones.",
         },
         {
-          id: "a1fd-l2-a3", type: "multiple_choice",
+          id: "a1fd-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "He don't like coffee.",
-            "He doesn't like coffee.",
-            "He doesn't likes coffee.",
-          ], answer: 1 },
-          explain: "Con he/she/it la negacion es 'doesn't like' (verbo en base).",
+          payload: { choices: ["He don't like coffee.", "He doesn't like coffee.", "He doesn't likes coffee."], answer: 1 },
+          explain: "Con he/she/it: 'doesn't like' (verbo base).",
         },
         {
-          id: "a1fd-l2-a4", type: "word_bank",
+          id: "a1fd-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
           payload: { words: ["like", "I", "apples"], answer: ["I", "like", "apples"] },
           explain: "Orden: I + like + (comida).",
         },
-        {
-          id: "a1fd-l2-a5", type: "cloze",
-          prompt: "Completa: 'A cup of ___, please.' (te)",
-          payload: { answer: "tea" },
-          explain: "'Tea' = te. 'A cup of tea' = una taza de te.",
-        },
       ],
     },
 
-    // ---------------- PRODUCCION ----------------
+    // ================= WRITING =================
     {
-      id: "a1fd-l3",
+      id: "a1fd-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: pide en un cafe",
-      intro:
-        "Tarea real: construye frases para pedir comida y hablar de gustos. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: pide en un cafe",
+      intro: "Competencia de ESCRITURA. Construye frases para pedir y hablar de gustos. Ordena cada frase.",
       activities: [
         {
-          id: "a1fd-l3-a1", type: "word_bank",
+          id: "a1fd-write-a1", type: "word_bank",
           prompt: "Pide un cafe con educacion:",
-          payload: { words: ["a", "Can", "have", "coffee,", "I", "please?"],
-                     answer: ["Can", "I", "have", "a", "coffee,", "please?"] },
+          payload: { words: ["a", "Can", "have", "coffee,", "I", "please?"], answer: ["Can", "I", "have", "a", "coffee,", "please?"] },
         },
         {
-          id: "a1fd-l3-a2", type: "word_bank",
+          id: "a1fd-write-a2", type: "word_bank",
           prompt: "Di lo que te gusta:",
           payload: { words: ["chicken", "I", "like"], answer: ["I", "like", "chicken"] },
         },
         {
-          id: "a1fd-l3-a3", type: "word_bank",
+          id: "a1fd-write-a3", type: "word_bank",
           prompt: "Di lo que no te gusta:",
           payload: { words: ["like", "I", "don't", "fish"], answer: ["I", "don't", "like", "fish"] },
         },
         {
-          id: "a1fd-l3-a4", type: "multiple_choice",
-          prompt: "Which is a drink?",
-          payload: { choices: ["bread", "water", "apple"], answer: 1 },
+          id: "a1fd-write-a4", type: "multiple_choice",
+          prompt: "Best polite way to order:",
+          payload: { choices: ["Give me coffee.", "Can I have a coffee, please?", "Coffee now."], answer: 1 },
         },
       ],
     },

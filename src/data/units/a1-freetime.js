@@ -1,8 +1,7 @@
 /**
  * data/units/a1-freetime.js — Unidad tematica "Free time & likes" (A1).
  *
- * Datos PUROS. Tiempo libre con like/love/hate + -ing y 'can' (habilidad).
- * Sigue el ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A1_FREETIME = {
@@ -33,85 +32,54 @@ export const A1_FREETIME = {
   ],
 
   lessons: [
-    // ---------------- APRENDE ----------------
+    // ================= READING =================
     {
-      id: "a1ft-l0",
+      id: "a1ft-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: pasatiempos",
-      intro:
-        "Lee sobre los gustos de una persona y estudia like + -ing y 'can'. " +
-        "Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: pasatiempos",
+      intro: "Competencia de LECTURA. Lee sobre Max y comprueba que entendiste.",
       content: {
         reading:
           "Max has got a lot of hobbies. He loves reading and he likes listening to music. " +
           "On weekends, he plays the guitar with his friends. Max can swim very well, but he " +
           "can't dance! He hates cooking, so he usually eats with his family. His favourite " +
           "hobby is playing video games. He thinks games are fun.",
-        glossary: [
-          { term: "loves reading", translation: "le encanta leer" },
-          { term: "likes listening", translation: "le gusta escuchar" },
-          { term: "can swim", translation: "sabe nadar" },
-          { term: "can't dance", translation: "no sabe bailar" },
-          { term: "favourite", translation: "favorito" },
-          { term: "on weekends", translation: "los fines de semana" },
-        ],
         keyPhrases: [
-          "I like/love/hate + verbo-ing (reading, dancing).",
-          "I can... / I can't... (Se... / No se...)",
-          "My favourite hobby is... (Mi pasatiempo favorito es...)",
-          "Do you like...? (Te gusta...?)",
+          "Busca lo que Max ama, le gusta y odia.",
+          "Fijate en lo que 'can' y 'can't' hacer.",
         ],
-        note:
-          "Despues de like/love/hate usamos el verbo con -ing: 'I like reading', 'She hates " +
-          "cooking'. 'can' + verbo base para habilidad: 'I can swim' (no 'I can to swim').",
-        grammar: {
-          title: "like + -ing / can",
-          form: "like/love/hate + verbo-ing · can / can't + verbo base",
-          examples: [
-            "I love reading.",
-            "She can play the guitar.",
-            "He can't dance.",
-          ],
-          mistakes: [
-            { wrong: "I like read.", right: "I like reading." },
-            { wrong: "She can to swim.", right: "She can swim." },
-          ],
-        },
         check: [
           { prompt: "What can Max do well?", choices: ["Dance", "Swim", "Cook"], answer: 1 },
           { prompt: "What is Max's favourite hobby?", choices: ["Cooking", "Video games", "Running"], answer: 1 },
+          { prompt: "What does Max hate?", choices: ["Reading", "Cooking", "Music"], answer: 1 },
+          { prompt: "What can't Max do?", choices: ["Swim", "Dance", "Read"], answer: 1 },
         ],
       },
       activities: [],
     },
 
-    // ---------------- PRESENTACION ----------------
+    // ================= VOCABULARY =================
     {
-      id: "a1ft-l1",
+      id: "a1ft-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: hablar de gustos",
-      intro:
-        "Para hablar de pasatiempos usamos like + -ing y 'can'. Lee el dialogo.",
-      dialogue: [
-        "A: Do you like dancing?",
-        "B: Yes, I love dancing! Can you dance?",
-        "A: No, I can't. But I can play the guitar.",
-        "B: Cool! Music is fun.",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: pasatiempos",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "hobby", translation: "pasatiempo" },
+        { term: "to read / to swim", translation: "leer / nadar" },
+        { term: "to dance / to cook", translation: "bailar / cocinar" },
+        { term: "music / movie", translation: "musica / pelicula" },
+        { term: "game / to play", translation: "juego / jugar-tocar" },
+        { term: "fun", translation: "divertido" },
       ],
       activities: [
         {
-          id: "a1ft-l1-a1", type: "multiple_choice",
-          prompt: "Which sentence is correct?",
-          payload: { choices: ["I like read.", "I like reading.", "I like to reading."], answer: 1 },
-          explain: "Despues de 'like' usamos verbo + -ing: 'like reading'.",
-        },
-        {
-          id: "a1ft-l1-a2", type: "matching",
+          id: "a1ft-vocab-a1", type: "matching",
           prompt: "Empareja la palabra con su significado:",
           payload: { pairs: [
             { left: "to swim", right: "nadar" },
@@ -119,85 +87,100 @@ export const A1_FREETIME = {
             { left: "music", right: "musica" },
           ] },
         },
+        {
+          id: "a1ft-vocab-a2", type: "cloze",
+          prompt: "Completa: 'I can play the ___.' (guitarra)",
+          payload: { answer: "guitar" },
+          explain: "'Play the guitar' = tocar la guitarra.",
+        },
+        {
+          id: "a1ft-vocab-a3", type: "multiple_choice",
+          prompt: "Which is a hobby?",
+          payload: { choices: ["price", "cooking", "door"], answer: 1 },
+          explain: "'Cooking' (cocinar) puede ser un pasatiempo.",
+        },
+        {
+          id: "a1ft-vocab-a4", type: "multiple_choice",
+          prompt: "Which word means 'pelicula'?",
+          payload: { choices: ["music", "movie", "game"], answer: 1 },
+          explain: "'Movie' = pelicula.",
+        },
       ],
     },
 
-    // ---------------- PRACTICA ----------------
+    // ================= GRAMMAR =================
     {
-      id: "a1ft-l2",
+      id: "a1ft-gram",
       order: 3,
       phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: like + -ing y can",
-      intro: "Completa, elige y ordena para practicar.",
+      skills: ["grammar"],
+      title: "Grammar: like + -ing y can",
+      intro: "Competencia de GRAMATICA. Aprende like + -ing y 'can' y practicalos.",
+      grammar: {
+        title: "like + -ing / can",
+        form: "like/love/hate + verbo-ing · can / can't + verbo base",
+        examples: ["I love reading.", "She can play the guitar.", "He can't dance."],
+        mistakes: [
+          { wrong: "I like read.", right: "I like reading." },
+          { wrong: "She can to swim.", right: "She can swim." },
+        ],
+      },
       activities: [
         {
-          id: "a1ft-l2-a1", type: "cloze",
+          id: "a1ft-gram-a1", type: "cloze",
           prompt: "Completa: 'I love ___ books.' (leer -> forma -ing)",
           payload: { answer: "reading" },
-          explain: "Despues de 'love' va verbo + -ing: reading.",
+          explain: "Despues de 'love' va verbo + -ing.",
         },
         {
-          id: "a1ft-l2-a2", type: "cloze",
+          id: "a1ft-gram-a2", type: "cloze",
           prompt: "Completa: 'She ___ swim very well.' (sabe)",
           payload: { answer: "can" },
-          explain: "'Can' + verbo base para habilidad: can swim.",
+          explain: "'Can' + verbo base para habilidad.",
         },
         {
-          id: "a1ft-l2-a3", type: "multiple_choice",
+          id: "a1ft-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "He can to dance.",
-            "He can dances.",
-            "He can dance.",
-          ], answer: 2 },
-          explain: "'can' + verbo base, sin 'to' y sin -s: can dance.",
+          payload: { choices: ["He can to dance.", "He can dances.", "He can dance."], answer: 2 },
+          explain: "'can' + verbo base, sin 'to' y sin -s.",
         },
         {
-          id: "a1ft-l2-a4", type: "word_bank",
+          id: "a1ft-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
           payload: { words: ["dancing", "I", "like"], answer: ["I", "like", "dancing"] },
           explain: "Orden: I + like + (verbo-ing).",
         },
-        {
-          id: "a1ft-l2-a5", type: "cloze",
-          prompt: "Completa: 'I can play the ___.' (guitarra)",
-          payload: { answer: "guitar" },
-          explain: "'Guitar' = guitarra. 'Play the guitar' = tocar la guitarra.",
-        },
       ],
     },
 
-    // ---------------- PRODUCCION ----------------
+    // ================= WRITING =================
     {
-      id: "a1ft-l3",
+      id: "a1ft-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: tus pasatiempos",
-      intro:
-        "Tarea real: construye frases sobre lo que te gusta y lo que sabes hacer. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: tus pasatiempos",
+      intro: "Competencia de ESCRITURA. Construye frases sobre lo que te gusta y sabes hacer. Ordena cada frase.",
       activities: [
         {
-          id: "a1ft-l3-a1", type: "word_bank",
+          id: "a1ft-write-a1", type: "word_bank",
           prompt: "Di que te encanta leer:",
           payload: { words: ["reading", "I", "love"], answer: ["I", "love", "reading"] },
         },
         {
-          id: "a1ft-l3-a2", type: "word_bank",
+          id: "a1ft-write-a2", type: "word_bank",
           prompt: "Di que sabes nadar:",
           payload: { words: ["swim", "I", "can"], answer: ["I", "can", "swim"] },
         },
         {
-          id: "a1ft-l3-a3", type: "word_bank",
+          id: "a1ft-write-a3", type: "word_bank",
           prompt: "Pregunta a alguien si le gusta bailar:",
-          payload: { words: ["like", "Do", "you", "dancing?"],
-                     answer: ["Do", "you", "like", "dancing?"] },
+          payload: { words: ["like", "Do", "you", "dancing?"], answer: ["Do", "you", "like", "dancing?"] },
         },
         {
-          id: "a1ft-l3-a4", type: "multiple_choice",
-          prompt: "Which is a hobby?",
-          payload: { choices: ["price", "cooking", "door"], answer: 1 },
+          id: "a1ft-write-a4", type: "multiple_choice",
+          prompt: "Which sentence is correct?",
+          payload: { choices: ["I like read.", "I like reading.", "I like to reading."], answer: 1 },
         },
       ],
     },

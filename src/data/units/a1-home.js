@@ -1,8 +1,7 @@
 /**
  * data/units/a1-home.js — Unidad tematica "My home" (A1).
  *
- * Datos PUROS. La casa con there is/there are y preposiciones de lugar.
- * Sigue el ciclo PPP del estandar de calidad (ver PLAN-DE-ESTUDIO.md).
+ * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
  */
 
 export const A1_HOME = {
@@ -33,170 +32,155 @@ export const A1_HOME = {
   ],
 
   lessons: [
-    // ---------------- APRENDE ----------------
+    // ================= READING =================
     {
-      id: "a1hm-l0",
+      id: "a1hm-read",
       order: 1,
       phase: "learn",
-      skills: ["reading", "vocabulary"],
-      title: "Aprende: la casa de Sam",
-      intro:
-        "Lee la descripcion de una casa y estudia 'there is/are' y las preposiciones. " +
-        "Aqui solo se lee y se aprende.",
-      teachesVocab: true,
+      skills: ["reading"],
+      title: "Reading: la casa de Sam",
+      intro: "Competencia de LECTURA. Lee la descripcion y comprueba que entendiste.",
       content: {
         reading:
           "This is Sam's house. It is small but nice. There is a kitchen, a bathroom and two " +
           "bedrooms. In the kitchen, there is a table and there are four chairs. There is a big " +
           "window next to the door. In Sam's bedroom, there is a bed and a small table. His book " +
           "is on the table and his shoes are under the bed. Sam loves his home.",
-        glossary: [
-          { term: "there is", translation: "hay (singular)" },
-          { term: "there are", translation: "hay (plural)" },
-          { term: "on", translation: "sobre / encima de" },
-          { term: "under", translation: "debajo de" },
-          { term: "next to", translation: "al lado de" },
-          { term: "in", translation: "en / dentro de" },
-        ],
         keyPhrases: [
-          "There is a... (Hay un/una...)",
-          "There are two... (Hay dos...)",
-          "It is on/under/next to... (Esta sobre/debajo/al lado de...)",
-          "My house is small but nice. (Mi casa es pequena pero linda.)",
+          "Cuenta las habitaciones y los muebles.",
+          "Fijate en las preposiciones: on, under, next to.",
         ],
-        note:
-          "'There is' + singular (there is a table). 'There are' + plural (there are chairs). " +
-          "Las preposiciones de lugar dicen DONDE esta algo: in, on, under, next to.",
-        grammar: {
-          title: "there is / there are",
-          form: "There is + sustantivo singular · There are + sustantivo plural",
-          examples: [
-            "There is a bed in the room.",
-            "There are two windows.",
-          ],
-          mistakes: [
-            { wrong: "There is two chairs.", right: "There are two chairs." },
-            { wrong: "There are a table.", right: "There is a table." },
-          ],
-        },
         check: [
           { prompt: "How many bedrooms are there?", choices: ["One", "Two", "Three"], answer: 1 },
           { prompt: "Where are Sam's shoes?", choices: ["On the table", "Under the bed", "In the kitchen"], answer: 1 },
+          { prompt: "How many chairs are in the kitchen?", choices: ["Two", "Four", "Six"], answer: 1 },
+          { prompt: "Where is the big window?", choices: ["Next to the door", "In the bathroom", "Under the bed"], answer: 0 },
         ],
       },
       activities: [],
     },
 
-    // ---------------- PRESENTACION ----------------
+    // ================= VOCABULARY =================
     {
-      id: "a1hm-l1",
+      id: "a1hm-vocab",
       order: 2,
-      phase: "present",
-      skills: ["grammar", "vocabulary"],
-      title: "Presentacion: describir un cuarto",
-      intro:
-        "Para describir un lugar usamos 'there is/are' + preposiciones. Lee el dialogo.",
-      dialogue: [
-        "A: Is there a table in your room?",
-        "B: Yes, there is. And there are two chairs next to it.",
-        "A: Nice! Is there a window?",
-        "B: Yes, there is a big window on the wall.",
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: casa y muebles",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "house / room", translation: "casa / cuarto" },
+        { term: "kitchen", translation: "cocina" },
+        { term: "bedroom / bathroom", translation: "dormitorio / bano" },
+        { term: "table / chair", translation: "mesa / silla" },
+        { term: "bed", translation: "cama" },
+        { term: "window / door", translation: "ventana / puerta" },
       ],
       activities: [
         {
-          id: "a1hm-l1-a1", type: "multiple_choice",
-          prompt: "Which is correct for one bed?",
-          payload: { choices: ["There are a bed.", "There is a bed.", "There be a bed."], answer: 1 },
-          explain: "Con un objeto singular usamos 'There is'.",
+          id: "a1hm-vocab-a1", type: "matching",
+          prompt: "Empareja la palabra con su significado:",
+          payload: { pairs: [
+            { left: "kitchen", right: "cocina" },
+            { left: "bed", right: "cama" },
+            { left: "door", right: "puerta" },
+          ] },
         },
         {
-          id: "a1hm-l1-a2", type: "matching",
-          prompt: "Empareja la preposicion con su significado:",
-          payload: { pairs: [
-            { left: "on", right: "sobre" },
-            { left: "under", right: "debajo de" },
-            { left: "next to", right: "al lado de" },
-          ] },
+          id: "a1hm-vocab-a2", type: "multiple_choice",
+          prompt: "Which is a room?",
+          payload: { choices: ["chair", "kitchen", "window"], answer: 1 },
+          explain: "'Kitchen' (cocina) es una habitacion.",
+        },
+        {
+          id: "a1hm-vocab-a3", type: "cloze",
+          prompt: "Completa: 'There is a big ___.' (ventana)",
+          payload: { answer: "window" },
+          explain: "'Window' = ventana.",
+        },
+        {
+          id: "a1hm-vocab-a4", type: "multiple_choice",
+          prompt: "Which word means 'silla'?",
+          payload: { choices: ["table", "chair", "bed"], answer: 1 },
+          explain: "'Chair' = silla.",
         },
       ],
     },
 
-    // ---------------- PRACTICA ----------------
+    // ================= GRAMMAR =================
     {
-      id: "a1hm-l2",
+      id: "a1hm-gram",
       order: 3,
       phase: "practice",
-      skills: ["grammar", "vocabulary"],
-      title: "Practica: there is/are y lugar",
-      intro: "Completa, elige y ordena para practicar.",
+      skills: ["grammar"],
+      title: "Grammar: there is/are y lugar",
+      intro: "Competencia de GRAMATICA. Aprende there is/are y preposiciones y practicalos.",
+      grammar: {
+        title: "there is / there are",
+        form: "There is + singular · There are + plural",
+        examples: ["There is a bed in the room.", "There are two windows."],
+        mistakes: [
+          { wrong: "There is two chairs.", right: "There are two chairs." },
+          { wrong: "There are a table.", right: "There is a table." },
+        ],
+      },
       activities: [
         {
-          id: "a1hm-l2-a1", type: "cloze",
+          id: "a1hm-gram-a1", type: "cloze",
           prompt: "Completa: 'There ___ four chairs.' (hay, plural)",
           payload: { answer: "are" },
-          explain: "Con plural usamos 'there are'.",
+          explain: "Con plural: 'there are'.",
         },
         {
-          id: "a1hm-l2-a2", type: "cloze",
+          id: "a1hm-gram-a2", type: "cloze",
           prompt: "Completa: 'The book is ___ the table.' (sobre)",
           payload: { answer: "on" },
           explain: "'On' = sobre / encima de.",
         },
         {
-          id: "a1hm-l2-a3", type: "multiple_choice",
+          id: "a1hm-gram-a3", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
-          payload: { choices: [
-            "There is two bedrooms.",
-            "There are two bedrooms.",
-            "There be two bedrooms.",
-          ], answer: 1 },
+          payload: { choices: ["There is two bedrooms.", "There are two bedrooms.", "There be two bedrooms."], answer: 1 },
           explain: "Dos dormitorios = plural = 'there are'.",
         },
         {
-          id: "a1hm-l2-a4", type: "word_bank",
+          id: "a1hm-gram-a4", type: "word_bank",
           prompt: "Ordena la frase:",
           payload: { words: ["a", "There", "is", "kitchen"], answer: ["There", "is", "a", "kitchen"] },
           explain: "Orden: There + is + a + (habitacion).",
         },
-        {
-          id: "a1hm-l2-a5", type: "cloze",
-          prompt: "Completa: 'The cat is ___ the bed.' (debajo de)",
-          payload: { answer: "under" },
-          explain: "'Under' = debajo de.",
-        },
       ],
     },
 
-    // ---------------- PRODUCCION ----------------
+    // ================= WRITING =================
     {
-      id: "a1hm-l3",
+      id: "a1hm-write",
       order: 4,
       phase: "produce",
-      skills: ["writing", "grammar"],
-      title: "Produccion: describe tu casa",
-      intro:
-        "Tarea real: construye frases para describir tu casa. Ordena cada frase.",
+      skills: ["writing"],
+      title: "Writing: describe tu casa",
+      intro: "Competencia de ESCRITURA. Construye frases para describir tu casa. Ordena cada frase.",
       activities: [
         {
-          id: "a1hm-l3-a1", type: "word_bank",
+          id: "a1hm-write-a1", type: "word_bank",
           prompt: "Di que hay en tu cocina:",
           payload: { words: ["a", "There", "table", "is"], answer: ["There", "is", "a", "table"] },
         },
         {
-          id: "a1hm-l3-a2", type: "word_bank",
+          id: "a1hm-write-a2", type: "word_bank",
           prompt: "Di cuantas habitaciones hay:",
           payload: { words: ["two", "There", "bedrooms", "are"], answer: ["There", "are", "two", "bedrooms"] },
         },
         {
-          id: "a1hm-l3-a3", type: "word_bank",
+          id: "a1hm-write-a3", type: "word_bank",
           prompt: "Di donde esta el libro:",
-          payload: { words: ["on", "book", "The", "the", "table", "is"],
-                     answer: ["The", "book", "is", "on", "the", "table"] },
+          payload: { words: ["on", "book", "The", "the", "table", "is"], answer: ["The", "book", "is", "on", "the", "table"] },
         },
         {
-          id: "a1hm-l3-a4", type: "multiple_choice",
-          prompt: "Which is a room?",
-          payload: { choices: ["chair", "kitchen", "window"], answer: 1 },
+          id: "a1hm-write-a4", type: "multiple_choice",
+          prompt: "Which word means 'debajo de'?",
+          payload: { choices: ["on", "under", "next to"], answer: 1 },
         },
       ],
     },
