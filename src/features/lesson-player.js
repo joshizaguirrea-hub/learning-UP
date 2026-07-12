@@ -49,6 +49,10 @@ function renderPractice(container, unit, lesson, user) {
 
   const theory = el("section", { class: "mt-4" },
     lesson.intro ? el("p", { class: "text-slate-300" }, lesson.intro) : null,
+    lesson.passage ? readingSection(lesson.passage) : null,
+    lesson.grammar ? grammarBox(lesson.grammar) : null,
+    lesson.glossary?.length ? glossarySection(lesson.glossary) : null,
+    lesson.note ? noteSection(lesson.note) : null,
     lesson.dialogue
       ? el("ul", { class: "mt-4 space-y-1 " + BOX + " text-slate-300 text-sm" },
           ...lesson.dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
@@ -188,32 +192,47 @@ async function renderLearn(container, unit, lesson, user) {
       el("h1", { class: "text-2xl font-bold" }, lesson.title)),
     lesson.intro ? el("p", { class: "mt-3 text-slate-400 text-sm" }, lesson.intro) : null,
 
-    c.reading ? el("section", { class: "mt-6" },
-      el("div", { class: "flex items-center gap-2" },
-        el("h2", { class: "font-bold text-slate-100" }, "Lectura"),
-        speakButton(c.reading)),
-      el("div", { class: "mt-2" }, el("p", { class: "text-slate-200 leading-relaxed " + BOX }, c.reading))) : null,
+    c.reading ? readingSection(c.reading) : null,
 
     c.grammar ? grammarBox(c.grammar) : null,
 
-    c.glossary?.length ? section("Glosario",
-      el("div", {}, ...c.glossary.map((g) =>
-        el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
-          el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, g.term, speakButton(g.term)),
-          el("span", { class: "text-slate-400 text-right" }, g.translation))))) : null,
+    c.glossary?.length ? glossarySection(c.glossary) : null,
 
     c.keyPhrases?.length ? section("Frases clave",
       el("ul", { class: "space-y-1 text-slate-300" },
         ...c.keyPhrases.map((p) => el("li", { class: "text-sm flex items-center gap-2" }, speakButton(p), "- " + p)))) : null,
 
-    c.note ? el("section", { class: "mt-6 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
-      el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
-      el("p", { class: "mt-1 text-sm text-amber-200" }, c.note)) : null,
+    c.note ? noteSection(c.note) : null,
 
     c.check?.length ? comprehension(c.check) : null,
 
     finishBtn, done));
   focusMainHeading(container);
+}
+
+// ---------------------------------------------------------------------------
+// Bloques de ensenanza reutilizables (lectura / glosario / nota / gramatica).
+// ---------------------------------------------------------------------------
+function readingSection(text) {
+  return el("section", { class: "mt-6" },
+    el("div", { class: "flex items-center gap-2" },
+      el("h2", { class: "font-bold text-slate-100" }, "Lectura"),
+      speakButton(text)),
+    el("div", { class: "mt-2" }, el("p", { class: "text-slate-200 leading-relaxed " + BOX }, text)));
+}
+
+function glossarySection(glossary) {
+  return section("Glosario",
+    el("div", {}, ...glossary.map((g) =>
+      el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
+        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, g.term, speakButton(g.term)),
+        el("span", { class: "text-slate-400 text-right" }, g.translation)))));
+}
+
+function noteSection(note) {
+  return el("section", { class: "mt-6 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
+    el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
+    el("p", { class: "mt-1 text-sm text-amber-200" }, note));
 }
 
 function grammarBox(g) {
