@@ -140,6 +140,16 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       src/features/auth-ui.js (call sites con {}). SW v0.25.1. Regla: SIEMPRE
       pasar {} como 2do arg de el() aunque no haya atributos.
 - [ ] Enganchar medallas al perfil.
+- [x] Enganchar medallas al perfil: vitrina de Medallas Bonus en /perfil (2026-07-12);
+      logica pura bonusMedals() extraida a core/gamification (DRY). Logros quitados
+      del dashboard (viven en /perfil). SW v0.26.1.
+- [~] CURRICULO robusto A1 -> B1 (certificacion CEFR). Plan disenado en
+      docs/PLAN-DE-ESTUDIO.md (60+ unidades). Produccion por lotes, cada unidad
+      pasa el auditor (/calidad). Progreso: **A1 100% (8/8 unidades)** (Hello,
+      Family, Routine, Food, Home, Shopping, Free time, Yesterday). Descriptores
+      A1 en skill-plans.js. Falta: A2 (0/8) y completar B1 (2/12). SW v0.28.0.
+      Convencion de ids por unidad: prefijo corto (a1h-, a1f-, a1r-, a1fd-, a1hm-,
+      a1sh-, a1ft-, a1y-) para vocab y lecciones -> evita colisiones globales.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
