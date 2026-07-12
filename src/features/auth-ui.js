@@ -118,13 +118,13 @@ export function renderLogin(container) {
 // --- helpers de campos ------------------------------------------------------
 
 function field(labelText, input) {
-  return el("div",
+  return el("div", {},
     el("label", { for: input.id, class: "block text-sm font-medium" }, labelText),
     input);
 }
 
 function roleFieldset() {
-  return el("fieldset",
+  return el("fieldset", {},
     el("legend", { class: "block text-sm font-medium" }, "Quiero registrarme como"),
     el("div", { class: "mt-2 flex gap-4" },
       el("label", { class: "flex items-center gap-2 text-sm" },
