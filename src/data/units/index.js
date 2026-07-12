@@ -38,6 +38,10 @@ import { ARTS_B2 } from "./arts-b2.js";
 import { SOCIETY_B2 } from "./society-b2.js";
 import { MIND_B2 } from "./mind-b2.js";
 import { MEDIA_INFLUENCE_B2 } from "./media-influence-b2.js";
+import { SUSTAINABILITY_B2 } from "./sustainability-b2.js";
+import { ETHICS_B2 } from "./ethics-b2.js";
+import { ECONOMY_B2 } from "./economy-b2.js";
+import { OPINION_ESSAYS_B2 } from "./opinion-essays-b2.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -51,6 +55,7 @@ export const UNITS = [
   RELATIONSHIPS_B1, MEDIA_B1, LIFESTYLE_B1, EXPERIENCES_B1, DECISIONS_B1, REPORTING_B1,
   // --- B2 ---
   WORK_WORLD_B2, SCIENCE_B2, ARTS_B2, SOCIETY_B2, MIND_B2, MEDIA_INFLUENCE_B2,
+  SUSTAINABILITY_B2, ETHICS_B2, ECONOMY_B2, OPINION_ESSAYS_B2,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
