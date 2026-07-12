@@ -9,6 +9,14 @@
  */
 export const SKILL_PLANS = {
   grammar: {
+    A1: {
+      focus: "Construir frases simples con el verbo 'to be', present simple y have got.",
+      canDo: [
+        "Uso el verbo 'to be' (I am, you are, he is).",
+        "Formo el present simple para rutinas (I work, she works).",
+        "Uso 'have got' y los adjetivos posesivos (my, your, her).",
+      ],
+    },
     B1: {
       focus: "Consolidar tiempos verbales y estructuras para expresar planes, condiciones y responsabilidades.",
       canDo: [
@@ -19,6 +27,14 @@ export const SKILL_PLANS = {
     },
   },
   vocabulary: {
+    A1: {
+      focus: "Aprender palabras de alta frecuencia: saludos, familia, rutinas, numeros y colores.",
+      canDo: [
+        "Reconozco y uso saludos y datos personales.",
+        "Nombro a los miembros de la familia.",
+        "Uso vocabulario de la rutina diaria y la hora.",
+      ],
+    },
     B1: {
       focus: "Ampliar vocabulario de trabajo y viajes, con conectores para dar fluidez.",
       canDo: [
@@ -29,6 +45,14 @@ export const SKILL_PLANS = {
     },
   },
   reading: {
+    A1: {
+      focus: "Entender textos muy cortos: letreros, formularios y descripciones simples.",
+      canDo: [
+        "Entiendo presentaciones y descripciones personales cortas.",
+        "Reconozco palabras clave en textos muy simples.",
+        "Identifico datos concretos (nombre, pais, hora).",
+      ],
+    },
     B1: {
       focus: "Leer textos cortos reales e inferir significado por contexto.",
       canDo: [
@@ -39,6 +63,14 @@ export const SKILL_PLANS = {
     },
   },
   writing: {
+    A1: {
+      focus: "Escribir frases muy simples para presentarse y describir personas.",
+      canDo: [
+        "Escribo frases para presentarme (name, country, job).",
+        "Describo a mi familia con frases simples.",
+        "Completo formularios con datos personales.",
+      ],
+    },
     B1: {
       focus: "Escribir correos y mensajes claros y bien estructurados.",
       canDo: [
@@ -49,12 +81,20 @@ export const SKILL_PLANS = {
     },
   },
   listening: {
+    A1: {
+      focus: "Captar numeros, horas y preguntas personales dichas despacio. (Requiere audio: proximamente)",
+      canDo: [],
+    },
     B1: {
       focus: "Comprender audios cortos de situaciones cotidianas. (Requiere audio: proximamente)",
       canDo: [],
     },
   },
   speaking: {
+    A1: {
+      focus: "Presentarse y responder preguntas personales basicas. (Requiere IA/voz: proximamente)",
+      canDo: [],
+    },
     B1: {
       focus: "Mantener conversaciones sencillas sobre temas conocidos. (Requiere IA/voz: proximamente)",
       canDo: [],
