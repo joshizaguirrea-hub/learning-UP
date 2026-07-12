@@ -126,7 +126,14 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 - [x] ~~Ajustar URLs en Supabase (para el login en el link público).~~  (2026-07-12)
 - [x] ~~Confirmar que RLS está activo en las tablas de Supabase.~~  (2026-07-12)
-- [ ] Tests E2E con Playwright (flujos: login, completar verbo, diccionario). ← SIGUIENTE
+- [~] Tests E2E con Playwright: CODIGO LISTO (2026-07-12) en `tests-e2e/`.
+      Suite de flujos SIN login (home, login, registro, diccionario, guardia
+      de rutas). FALTA correrlos en la compu personal (aqui no hay Node):
+        npm install
+        npm run e2e:install
+        npm run test:e2e         (contra el sitio publico)
+      Ver `tests-e2e/README.md`. Pendiente a futuro: tests CON login (cuenta
+      de prueba de Supabase) y flujo de completar verbo.
 - [ ] Enganchar medallas al perfil.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
