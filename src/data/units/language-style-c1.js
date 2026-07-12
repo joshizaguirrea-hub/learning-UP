@@ -1,0 +1,192 @@
+/**
+ * data/units/language-style-c1.js — Unidad tematica "Language & style" (C1).
+ * Datos PUROS. Modelo desacoplado por competencia. Gramatica: participle clauses.
+ */
+
+export const LANGUAGE_STYLE_C1 = {
+  id: "language-style-c1",
+  language: "en",
+  level: "C1",
+  title: "Language & style",
+  subtitle: "Escribir con estilo usando participle clauses",
+
+  cando: [
+    "Puedo hablar del lenguaje, el estilo y el registro.",
+    "Puedo usar participle clauses para escribir con fluidez.",
+    "Puedo unir ideas de forma elegante y concisa.",
+    "Puedo escribir con un estilo mas sofisticado.",
+  ],
+
+  vocab: [
+    { id: "c1ls-1", term: "style", translation: "estilo", example: "Her writing style is elegant." },
+    { id: "c1ls-2", term: "register", translation: "registro", example: "Use a formal register." },
+    { id: "c1ls-3", term: "concise", translation: "conciso", example: "Keep your writing concise." },
+    { id: "c1ls-4", term: "fluent", translation: "fluido", example: "She is fluent in three languages." },
+    { id: "c1ls-5", term: "tone", translation: "tono", example: "The tone was serious." },
+    { id: "c1ls-6", term: "to convey", translation: "transmitir", example: "Words convey emotion." },
+    { id: "c1ls-7", term: "nuance", translation: "matiz", example: "He understands every nuance." },
+    { id: "c1ls-8", term: "vivid", translation: "vivido", example: "A vivid description." },
+    { id: "c1ls-9", term: "clarity", translation: "claridad", example: "Write with clarity." },
+    { id: "c1ls-10", term: "coherent", translation: "coherente", example: "A coherent argument." },
+  ],
+
+  lessons: [
+    // ================= READING =================
+    {
+      id: "c1ls-read",
+      order: 1,
+      phase: "learn",
+      skills: ["reading"],
+      title: "Reading: escribir con estilo",
+      intro: "Competencia de LECTURA. Lee el texto y comprueba que entendiste.",
+      content: {
+        reading:
+          "Written carefully, a good text conveys meaning with clarity. Having studied literature for " +
+          "years, Elena writes with a vivid and concise style. Choosing every word with care, she " +
+          "captures each nuance. Feeling confident, she adapts her tone to the register. Once finished, " +
+          "her essays are always coherent and fluent. Encouraged by her teachers, she now helps others " +
+          "improve their writing style.",
+        keyPhrases: [
+          "Fijate en las participle clauses: Written carefully..., Having studied..., Choosing..., Once finished...",
+          "Reemplazan clausulas completas para escribir con elegancia y concision.",
+        ],
+        check: [
+          { prompt: "What does a good text convey?", choices: ["Meaning with clarity", "Confusion", "Noise"], answer: 0 },
+          { prompt: "What had Elena studied?", choices: ["Literature", "Medicine", "Music"], answer: 0 },
+          { prompt: "How is her style?", choices: ["Vivid and concise", "Boring", "Unclear"], answer: 0 },
+          { prompt: "What does she help others do?", choices: ["Improve their writing", "Cook", "Travel"], answer: 0 },
+        ],
+      },
+      activities: [],
+    },
+
+    // ================= VOCABULARY =================
+    {
+      id: "c1ls-vocab",
+      order: 2,
+      phase: "practice",
+      skills: ["vocabulary"],
+      title: "Vocabulary: lenguaje y estilo",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
+      teachesVocab: true,
+      glossary: [
+        { term: "style / register", translation: "estilo / registro" },
+        { term: "concise / clarity", translation: "conciso / claridad" },
+        { term: "fluent / coherent", translation: "fluido / coherente" },
+        { term: "tone / nuance", translation: "tono / matiz" },
+        { term: "to convey", translation: "transmitir" },
+        { term: "vivid", translation: "vivido" },
+      ],
+      activities: [
+        {
+          id: "c1ls-vocab-a1", type: "matching",
+          prompt: "Empareja la palabra con su significado:",
+          payload: { pairs: [
+            { left: "style", right: "estilo" },
+            { left: "nuance", right: "matiz" },
+            { left: "clarity", right: "claridad" },
+          ] },
+        },
+        {
+          id: "c1ls-vocab-a2", type: "cloze",
+          prompt: "Completa: 'Keep your writing ___.' (conciso)",
+          payload: { answer: "concise" },
+          explain: "'Concise' = conciso.",
+        },
+        {
+          id: "c1ls-vocab-a3", type: "multiple_choice",
+          prompt: "Which word means 'transmitir'?",
+          payload: { choices: ["to convey", "to write", "to read"], answer: 0 },
+          explain: "'To convey' = transmitir.",
+        },
+        {
+          id: "c1ls-vocab-a4", type: "cloze",
+          prompt: "Completa: 'Use a formal ___.' (registro)",
+          payload: { answer: "register" },
+          explain: "'Register' = registro.",
+        },
+      ],
+    },
+
+    // ================= GRAMMAR =================
+    {
+      id: "c1ls-gram",
+      order: 3,
+      phase: "practice",
+      skills: ["grammar"],
+      title: "Grammar: participle clauses",
+      intro: "Competencia de GRAMATICA. Aprende a unir ideas con participle clauses.",
+      grammar: {
+        title: "Participle clauses",
+        form: "-ing (activo): Feeling tired, I left. · -ed (pasivo): Written well, it works. · Having + part: Having finished, she left.",
+        examples: ["Feeling tired, she went home.", "Written in 1990, the book is still popular.", "Having eaten, we left."],
+        mistakes: [
+          { wrong: "Because feeling tired, she left.", right: "Feeling tired, she left." },
+          { wrong: "Having ate, we left.", right: "Having eaten, we left." },
+        ],
+      },
+      activities: [
+        {
+          id: "c1ls-gram-a1", type: "cloze",
+          prompt: "Completa: '___ tired, she went home.' (feel -> -ing)",
+          payload: { answer: "Feeling" },
+          explain: "Participle activo: Feeling (= Because she felt).",
+        },
+        {
+          id: "c1ls-gram-a2", type: "cloze",
+          prompt: "Completa: 'Having ___, we left.' (finish -> participio)",
+          payload: { answer: "finished" },
+          explain: "Having + participio para accion anterior.",
+        },
+        {
+          id: "c1ls-gram-a3", type: "multiple_choice",
+          prompt: "Choose the correct participle clause:",
+          payload: { choices: [
+            "Written in 1990, the book is a classic.",
+            "Write in 1990, the book is a classic.",
+            "Writing in 1990, the book is a classic.",
+          ], answer: 0 },
+          explain: "Participle pasivo: Written (= It was written).",
+        },
+        {
+          id: "c1ls-gram-a4", type: "word_bank",
+          prompt: "Ordena la participle clause:",
+          payload: { words: ["I", "tired,", "Feeling", "left"], answer: ["Feeling", "tired,", "I", "left"] },
+          explain: "Orden: Feeling + tired, + I + left.",
+        },
+      ],
+    },
+
+    // ================= WRITING =================
+    {
+      id: "c1ls-write",
+      order: 4,
+      phase: "produce",
+      skills: ["writing"],
+      title: "Writing: escribe con estilo",
+      intro: "Competencia de ESCRITURA. Construye participle clauses. Ordena cada frase.",
+      activities: [
+        {
+          id: "c1ls-write-a1", type: "word_bank",
+          prompt: "Une con participle (sintiendote cansado, te fuiste):",
+          payload: { words: ["I", "tired,", "Feeling", "left"], answer: ["Feeling", "tired,", "I", "left"] },
+        },
+        {
+          id: "c1ls-write-a2", type: "word_bank",
+          prompt: "Habiendo terminado, se fueron:",
+          payload: { words: ["they", "Having", "left", "finished,"], answer: ["Having", "finished,", "they", "left"] },
+        },
+        {
+          id: "c1ls-write-a3", type: "word_bank",
+          prompt: "Di que escribe con claridad:",
+          payload: { words: ["clarity", "She", "with", "writes"], answer: ["She", "writes", "with", "clarity"] },
+        },
+        {
+          id: "c1ls-write-a4", type: "multiple_choice",
+          prompt: "Participle clauses help you write...",
+          payload: { choices: ["longer and unclear", "concisely and elegantly", "with more errors"], answer: 1 },
+        },
+      ],
+    },
+  ],
+};
