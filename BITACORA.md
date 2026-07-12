@@ -149,7 +149,9 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       Family, Routine, Food, Home, Shopping, Free time, Yesterday). Descriptores
       A1 en skill-plans.js. Falta: A2 (0/8) y completar B1 (2/12). SW v0.28.0.
       Convencion de ids por unidad: prefijo corto (a1h-, a1f-, a1r-, a1fd-, a1hm-,
-      a1sh-, a1ft-, a1y-) para vocab y lecciones -> evita colisiones globales.
+      a1sh-, a1ft-, a1y-, a2lw-, a2ts-, a2ci-, a2hb-, a2mp-, a2cm-, a2wj-, a2fs-)
+      para vocab y lecciones -> evita colisiones globales. Progreso: **A1 100%
+      (8/8)** y **A2 100% (8/8)**. Falta completar B1 (2/12). SW v0.29.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
