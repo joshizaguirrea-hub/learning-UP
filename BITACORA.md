@@ -145,14 +145,14 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       del dashboard (viven en /perfil). SW v0.26.1.
 - [~] CURRICULO robusto A1 -> B1 (certificacion CEFR). Plan disenado en
       docs/PLAN-DE-ESTUDIO.md (60+ unidades). Produccion por lotes, cada unidad
-      pasa el auditor (/calidad). **A1 100% (8/8), A2 100% (8/8), B1 100% (12/12)** =
-      28 unidades. TODAS en el MODELO DESACOPLADO POR COMPETENCIA: 1 leccion =
+      pasa el auditor (/calidad). **A1 100% (8/8), A2 100% (8/8), B1 100% (12/12),
+      B2 100% (10/10)** = 38 unidades. TODAS en el MODELO DESACOPLADO POR COMPETENCIA: 1 leccion =
       1 competencia (Reading/Vocabulary/Grammar/Writing) con contenido UNICO ->
       el % de dominio por competencia es independiente y real. Listening/Speaking
       quedan bloqueadas hasta audio/IA. Reproductor (lesson-player) muestra
       lectura/gramatica/glosario tambien en lecciones de practica (helpers DRY).
-      Convencion de ids por unidad: prefijo corto por tema. Camino A1->B1 CERRADO.
-      Falta a futuro: B2, C1, C2. SW v0.33.0.
+      Convencion de ids por unidad: prefijo corto por tema. Camino A1->B2 CERRADO.
+      Falta a futuro: C1, C2. SW v0.36.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
