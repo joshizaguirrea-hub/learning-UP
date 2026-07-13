@@ -55,6 +55,11 @@ import { RESEARCH_C1 } from "./research-c1.js";
 import { REGISTER_C2 } from "./register-c2.js";
 import { IDIOM_C2 } from "./idiom-c2.js";
 import { ADVANCED_WRITING_C2 } from "./advanced-writing-c2.js";
+import { CRITICAL_ANALYSIS_C2 } from "./critical-analysis-c2.js";
+import { PROFESSIONAL_COMM_C2 } from "./professional-comm-c2.js";
+import { HUMOR_SUBTEXT_C2 } from "./humor-subtext-c2.js";
+import { DEBATE_MASTERY_C2 } from "./debate-mastery-c2.js";
+import { CAPSTONE_C2 } from "./capstone-c2.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -74,6 +79,7 @@ export const UNITS = [
   LITERATURE_C1, DATA_TRENDS_C1, DEBATE_C1, RESEARCH_C1,
   // --- C2 ---
   REGISTER_C2, IDIOM_C2, ADVANCED_WRITING_C2,
+  CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
 ];
 
 /** Unidades disponibles para un nivel MCER dado. */
