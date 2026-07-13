@@ -168,6 +168,7 @@ export const ECONOMY_B2 = {
         title: "Narrative tenses (past perfect / continuous)",
         form: "past perfect: had + participio · past perfect continuous: had been + -ing",
         examples: ["She had saved for years before she opened it.", "He had been working all day when I called."],
+        explain: { tr: ["Ella hab\u00eda ahorrado durante a\u00f1os antes de abrirlo.", "\u00c9l hab\u00eda estado trabajando todo el d\u00eda cuando llam\u00e9."] },
         mistakes: [
           { wrong: "She had save for years.", right: "She had saved for years." },
           { wrong: "He had been work all day.", right: "He had been working all day." },

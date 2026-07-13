@@ -169,6 +169,7 @@ export const WORK_WORLD_B2 = {
         title: "Reported questions & commands",
         form: "pregunta: asked + (if/whether/wh-) + sujeto + verbo · orden: told + persona + to + base",
         examples: ["'Do you work?' -> She asked if I worked.", "'Wait!' -> He told me to wait."],
+        explain: { tr: ["'\u00bfTrabajas?' -> Ella pregunt\u00f3 si yo trabajaba.", "'\u00a1Espera!' -> \u00c9l me dijo que esperara."] },
         mistakes: [
           { wrong: "She asked why did I want it.", right: "She asked why I wanted it." },
           { wrong: "He told to wait me.", right: "He told me to wait." },

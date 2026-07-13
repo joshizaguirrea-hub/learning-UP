@@ -169,6 +169,7 @@ export const OPINION_ESSAYS_B2 = {
         title: "Linkers (contraste, causa, adicion)",
         form: "contraste: however / although · causa-efecto: therefore / so · adicion: furthermore / moreover",
         examples: ["Although it's hard, it's worth it.", "It rained; therefore, we stayed.", "It's cheap. Furthermore, it's fast."],
+        explain: { tr: ["Aunque es dif\u00edcil, vale la pena.", "Llovi\u00f3; por lo tanto, nos quedamos.", "Es barato. Adem\u00e1s, es r\u00e1pido."] },
         mistakes: [
           { wrong: "Although it's hard but it's worth it.", right: "Although it's hard, it's worth it." },
           { wrong: "It rained, therefore we stayed home (no punctuation).", right: "It rained; therefore, we stayed home." },

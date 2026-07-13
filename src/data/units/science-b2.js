@@ -167,6 +167,7 @@ export const SCIENCE_B2 = {
         title: "Passive (all tenses) + causative",
         form: "pasiva: be (en su tiempo) + participio · causative: have/get + objeto + participio",
         examples: ["It has been developed.", "It will be published.", "I had my car repaired."],
+        explain: { tr: ["Ha sido desarrollado.", "Ser\u00e1 publicado.", "Mand\u00e9 a reparar mi coche."] },
         mistakes: [
           { wrong: "It has develop.", right: "It has been developed." },
           { wrong: "I had repaired my car (by someone).", right: "I had my car repaired." },
