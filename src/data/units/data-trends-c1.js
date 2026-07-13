@@ -167,6 +167,7 @@ export const DATA_TRENDS_C1 = {
         title: "Double comparatives",
         form: "The + comparativo + ..., the + comparativo + ...",
         examples: ["The more you practise, the better you get.", "The higher the price, the lower the demand."],
+        explain: { tr: ["Cuanto m\u00e1s practicas, mejor te vuelves.", "Cuanto m\u00e1s alto el precio, menor la demanda."] },
         mistakes: [
           { wrong: "More you practise, more you improve.", right: "The more you practise, the more you improve." },
           { wrong: "The more high the price, the more low the demand.", right: "The higher the price, the lower the demand." },

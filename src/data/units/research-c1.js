@@ -168,6 +168,7 @@ export const RESEARCH_C1 = {
         title: "Nominalisation",
         form: "verbo -> sustantivo: analyse -> the analysis · evaluate -> the evaluation · decide -> the decision",
         examples: ["They analysed the data -> The analysis of the data...", "We evaluated it -> The evaluation showed..."],
+        explain: { tr: ["Analizaron los datos -> El an\u00e1lisis de los datos...", "Lo evaluamos -> La evaluaci\u00f3n mostr\u00f3..."] },
         mistakes: [
           { wrong: "The analyse of the data was clear.", right: "The analysis of the data was clear." },
           { wrong: "The evaluate reduced bias.", right: "The evaluation reduced bias." },

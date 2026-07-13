@@ -167,6 +167,7 @@ export const PERSUASION_C1 = {
         title: "Cleft sentences",
         form: "What + clausula + is/was + enfasis · It + is/was + enfasis + that/who + resto",
         examples: ["What I need is time.", "It was John who called.", "What she did was apologise."],
+        explain: { tr: ["Lo que necesito es tiempo.", "Fue John quien llam\u00f3.", "Lo que ella hizo fue disculparse."] },
         mistakes: [
           { wrong: "What I need is to time.", right: "What I need is time." },
           { wrong: "It was John which called.", right: "It was John who called." },
