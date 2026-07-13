@@ -167,6 +167,7 @@ export const A1_ROUTINE = {
         title: "Present simple (rutinas)",
         form: "I/you/we/they + verbo · he/she/it + verbo + s · adverbio de frecuencia ANTES del verbo",
         examples: ["I work in a hospital.", "She works in a hospital.", "He always gets up early.", "We never eat late."],
+        explain: { tr: ["Yo trabajo en un hospital.", "Ella trabaja en un hospital.", "\u00c9l siempre se levanta temprano.", "Nosotros nunca comemos tarde."] },
         mistakes: [
           { wrong: "He get up at six.", right: "He gets up at six." },
           { wrong: "I drink always coffee.", right: "I always drink coffee." },

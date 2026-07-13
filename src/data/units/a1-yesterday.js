@@ -167,6 +167,7 @@ export const A1_YESTERDAY = {
         title: "was/were y pasado regular (-ed)",
         form: "was (I/he/she/it) · were (you/we/they) · verbo + ed (regular)",
         examples: ["I was at home.", "They were happy.", "She watched a movie.", "We played football."],
+        explain: { tr: ["Yo estaba en casa.", "Ellos estaban felices.", "Ella vio una pel\u00edcula.", "Nosotros jugamos f\u00fatbol."] },
         mistakes: [
           { wrong: "I were tired.", right: "I was tired." },
           { wrong: "We was happy.", right: "We were happy." },

@@ -167,6 +167,7 @@ export const A1_FOOD = {
         title: "some / any y like / don't like",
         form: "some (afirmativo) · any (negativo/pregunta) · don't/doesn't like + sustantivo",
         examples: ["There is some bread.", "Is there any milk?", "I don't like fish.", "He doesn't like coffee."],
+        explain: { tr: ["Hay algo de pan.", "\u00bfHay leche?", "No me gusta el pescado.", "A \u00e9l no le gusta el caf\u00e9."] },
         mistakes: [
           { wrong: "She like coffee.", right: "She likes coffee." },
           { wrong: "I no like fish.", right: "I don't like fish." },

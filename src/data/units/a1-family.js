@@ -166,6 +166,7 @@ export const A1_FAMILY = {
         title: "have got y adjetivos posesivos",
         form: "I/you/we/they + have got · he/she/it + has got · my/your/his/her/our/their + sustantivo",
         examples: ["I have got two brothers.", "She has got one sister.", "This is my mother.", "That is their house."],
+        explain: { tr: ["Tengo dos hermanos.", "Ella tiene una hermana.", "Esta es mi madre.", "Esa es su casa."] },
         mistakes: [
           { wrong: "She have got a son.", right: "She has got a son." },
           { wrong: "I has got a sister.", right: "I have got a sister." },
