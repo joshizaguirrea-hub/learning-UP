@@ -17,7 +17,7 @@ import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
-import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact } from "../ui/robot.js";
+import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact, openWhyWrong } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText } from "../ui/richtext.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
@@ -150,7 +150,7 @@ export async function renderLessonPlayer(container, params, user) {
         if (card && card.firstElementChild) {
           card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state), card.firstElementChild);
         }
-        body.append(feedbackBanner(ok, act));
+        body.append(feedbackBanner(ok, act, unitGrammar, robotLang));
         mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
           state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
         announce(ok ? "Correcto" : "Incorrecto");
@@ -315,15 +315,21 @@ function topBar(unit, pct, state) {
 // ---------------------------------------------------------------------------
 // Feedback inmediato por actividad (banner tipo Duolingo).
 // ---------------------------------------------------------------------------
-function feedbackBanner(ok, act) {
+function feedbackBanner(ok, act, grammar = null, lang = "es-MX") {
+  const answerText = correctAnswerText(act);
   return el("div", {
     class: "mt-4 rounded-xl p-4 border " +
       (ok ? "border-emerald-600/60 bg-emerald-900/25" : "border-red-700/60 bg-red-900/25"),
   },
     el("p", { class: "font-bold " + (ok ? "text-emerald-300" : "text-red-300") },
       ok ? "\u2714 Correcto!" : "\u2716 No exactamente"),
-    !ok ? el("p", { class: "mt-1 text-sm text-slate-200" }, "Respuesta: " + correctAnswerText(act)) : null,
-    act.explain ? el("p", { class: "mt-2 text-sm text-slate-300" }, "Por que: " + act.explain) : null);
+    !ok ? el("p", { class: "mt-1 text-sm text-slate-200" }, "Respuesta: " + answerText) : null,
+    act.explain ? el("p", { class: "mt-2 text-sm text-slate-300" }, "Por que: " + act.explain) : null,
+    !ok ? el("button", {
+      class: "mt-3 flex items-center gap-2 text-sm text-indigo-200 border border-indigo-500/40 " +
+        "bg-indigo-500/10 rounded-xl px-3 py-2 hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
+      onclick: () => openWhyWrong(grammar, act, answerText, lang),
+    }, robotAvatar("sm"), "Por que me equivoque?") : null);
 }
 
 function correctAnswerText(act) {
