@@ -1,6 +1,6 @@
 /**
  * data/units/science-b2.js — Unidad tematica "Science & innovation" (B2).
- * Datos PUROS. Modelo desacoplado por competencia. Gramatica: passive (all tenses) + causative.
+ * Datos PUROS. MODELO DESACOPLADO + CONTENIDO ENRIQUECIDO. Gramatica: passive (all tenses) + causative.
  */
 
 export const SCIENCE_B2 = {
@@ -28,6 +28,8 @@ export const SCIENCE_B2 = {
     { id: "b2sci-8", term: "data", translation: "datos", example: "The data is clear." },
     { id: "b2sci-9", term: "to prove", translation: "probar / demostrar", example: "The study proved the theory." },
     { id: "b2sci-10", term: "device", translation: "dispositivo", example: "A new device was created." },
+    { id: "b2sci-11", term: "laboratory", translation: "laboratorio", example: "The tests were done in a laboratory." },
+    { id: "b2sci-12", term: "to fund", translation: "financiar", example: "The project was funded by the state." },
   ],
 
   lessons: [
@@ -38,23 +40,39 @@ export const SCIENCE_B2 = {
       phase: "learn",
       skills: ["reading"],
       title: "Reading: un gran avance",
-      intro: "Competencia de LECTURA. Lee el texto y comprueba que entendiste.",
+      intro: "Competencia de LECTURA. Lee DOS textos y responde las preguntas de comprension.",
       content: {
         reading:
-          "A new vaccine has been developed by a team of scientists. The research was funded by " +
-          "several universities, and the experiments have been repeated many times. Strong evidence " +
-          "was found, and the results will be published next month. The theory was proved after years " +
-          "of work. The laboratory had its equipment checked before the tests, and samples were " +
-          "analysed carefully. This breakthrough could change medicine forever.",
+          "TEXT 1 - A medical breakthrough\n" +
+          "A new vaccine has been developed by a team of scientists. The research was funded by several " +
+          "universities, and the experiments have been repeated many times. Strong evidence was found, " +
+          "and the results will be published next month. The theory was proved after years of work. The " +
+          "laboratory had its equipment checked before the tests, and samples were analysed carefully.\n\n" +
+          "TEXT 2 - In the lab\n" +
+          "A: Is the report ready? B: Almost. The data is being analysed right now. A: Good. And the old " +
+          "machine? B: We had it repaired last week. A: Perfect. When will the results be shared? B: They " +
+          "will be sent to the team tomorrow. A: This device could change everything.",
+        glossary: [
+          { term: "has been developed", translation: "ha sido desarrollada" },
+          { term: "was funded / was proved", translation: "fue financiada / demostrada" },
+          { term: "will be published / sent", translation: "sera publicada / enviada" },
+          { term: "is being analysed", translation: "esta siendo analizado" },
+          { term: "had it repaired", translation: "lo mandamos reparar (causative)" },
+          { term: "research / evidence", translation: "investigacion / evidencia" },
+          { term: "breakthrough / device", translation: "gran avance / dispositivo" },
+          { term: "laboratory / data", translation: "laboratorio / datos" },
+        ],
         keyPhrases: [
-          "Fijate en pasivas en varios tiempos: has been developed, was funded, will be published.",
-          "Fijate en el causative: had its equipment checked.",
+          "Fijate en pasivas en varios tiempos: has been developed, was funded, will be published, is being analysed.",
+          "Fijate en el causative: had its equipment checked, had it repaired.",
         ],
         check: [
-          { prompt: "What has been developed?", choices: ["A new vaccine", "A new phone", "A car"], answer: 0 },
-          { prompt: "Who funded the research?", choices: ["A company", "Several universities", "The government"], answer: 1 },
-          { prompt: "When will the results be published?", choices: ["Next month", "Next year", "Today"], answer: 0 },
-          { prompt: "What did the lab have done before tests?", choices: ["Its equipment checked", "Nothing", "A party"], answer: 0 },
+          { prompt: "T1: What has been developed?", choices: ["A new vaccine", "A new phone", "A car"], answer: 0 },
+          { prompt: "T1: Who funded the research?", choices: ["A company", "Several universities", "The army"], answer: 1 },
+          { prompt: "T1: What did the lab have done before tests?", choices: ["Its equipment checked", "Nothing", "A party"], answer: 0 },
+          { prompt: "T2: What is happening to the data now?", choices: ["It's being analysed", "It's lost", "It's deleted"], answer: 0 },
+          { prompt: "T2: What did they do with the old machine?", choices: ["Had it repaired", "Threw it away", "Sold it"], answer: 0 },
+          { prompt: "T2: When will the results be sent?", choices: ["Tomorrow", "Next year", "Never"], answer: 0 },
         ],
       },
       activities: [],
@@ -74,36 +92,65 @@ export const SCIENCE_B2 = {
         { term: "to discover / to develop", translation: "descubrir / desarrollar" },
         { term: "experiment / data", translation: "experimento / datos" },
         { term: "invention / breakthrough", translation: "invento / gran avance" },
-        { term: "to prove", translation: "probar / demostrar" },
-        { term: "device", translation: "dispositivo" },
+        { term: "to prove / to fund", translation: "demostrar / financiar" },
+        { term: "device / laboratory", translation: "dispositivo / laboratorio" },
       ],
       activities: [
         {
           id: "b2sci-vocab-a1", type: "matching",
-          prompt: "Empareja la palabra con su significado:",
+          prompt: "Empareja (1/2):",
           payload: { pairs: [
             { left: "research", right: "investigacion" },
             { left: "evidence", right: "evidencia" },
             { left: "breakthrough", right: "gran avance" },
+            { left: "data", right: "datos" },
           ] },
         },
         {
-          id: "b2sci-vocab-a2", type: "cloze",
+          id: "b2sci-vocab-a2", type: "matching",
+          prompt: "Empareja (2/2):",
+          payload: { pairs: [
+            { left: "to discover", right: "descubrir" },
+            { left: "to develop", right: "desarrollar" },
+            { left: "to prove", right: "demostrar" },
+            { left: "device", right: "dispositivo" },
+          ] },
+        },
+        {
+          id: "b2sci-vocab-a3", type: "cloze",
           prompt: "Completa: 'They ___ a vaccine.' (desarrollar -> pasado)",
           payload: { answer: "developed" },
           explain: "'To develop' = desarrollar; pasado: developed.",
-        },
-        {
-          id: "b2sci-vocab-a3", type: "multiple_choice",
-          prompt: "Which word means 'demostrar/probar'?",
-          payload: { choices: ["to discover", "to prove", "to fund"], answer: 1 },
-          explain: "'To prove' = probar / demostrar.",
         },
         {
           id: "b2sci-vocab-a4", type: "cloze",
           prompt: "Completa: 'The ___ is clear.' (datos)",
           payload: { answer: "data" },
           explain: "'Data' = datos.",
+        },
+        {
+          id: "b2sci-vocab-a5", type: "cloze",
+          prompt: "Completa: 'The project was ___ by the state.' (financiar -> participio)",
+          payload: { answer: "funded" },
+          explain: "'To fund' = financiar; participio: funded.",
+        },
+        {
+          id: "b2sci-vocab-a6", type: "multiple_choice",
+          prompt: "Which word means 'demostrar/probar'?",
+          payload: { choices: ["to discover", "to prove", "to fund"], answer: 1 },
+          explain: "'To prove' = probar / demostrar.",
+        },
+        {
+          id: "b2sci-vocab-a7", type: "multiple_choice",
+          prompt: "Which word means 'gran avance'?",
+          payload: { choices: ["breakthrough", "device", "evidence"], answer: 0 },
+          explain: "'Breakthrough' = gran avance.",
+        },
+        {
+          id: "b2sci-vocab-a8", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["strong", "There", "evidence", "is"], answer: ["There", "is", "strong", "evidence"] },
+          explain: "'There is strong evidence' = hay evidencia solida.",
         },
       ],
     },
@@ -134,7 +181,7 @@ export const SCIENCE_B2 = {
         },
         {
           id: "b2sci-gram-a2", type: "cloze",
-          prompt: "Completa: 'A vaccine has ___ developed.' (been?)",
+          prompt: "Completa: 'A vaccine has ___ developed.' (auxiliar)",
           payload: { answer: "been" },
           explain: "Present perfect pasivo: has + been + participio.",
         },
@@ -145,10 +192,34 @@ export const SCIENCE_B2 = {
           explain: "Causative: have + objeto + participio (alguien lo hizo por ti).",
         },
         {
-          id: "b2sci-gram-a4", type: "word_bank",
+          id: "b2sci-gram-a4", type: "multiple_choice",
+          prompt: "Which is present perfect passive?",
+          payload: { choices: ["It develops.", "It has been developed.", "It will develop."], answer: 1 },
+          explain: "has been + participio.",
+        },
+        {
+          id: "b2sci-gram-a5", type: "cloze",
+          prompt: "Completa: 'The data is ___ analysed now.' (being?)",
+          payload: { answer: "being" },
+          explain: "Presente continuo pasivo: is being + participio.",
+        },
+        {
+          id: "b2sci-gram-a6", type: "word_bank",
           prompt: "Ordena la frase pasiva:",
           payload: { words: ["was", "The", "funded", "research"], answer: ["The", "research", "was", "funded"] },
-          explain: "Orden: The + research + was + funded.",
+          explain: "The + research + was + funded.",
+        },
+        {
+          id: "b2sci-gram-a7", type: "word_bank",
+          prompt: "Ordena el causative:",
+          payload: { words: ["checked", "We", "our", "had", "equipment"], answer: ["We", "had", "our", "equipment", "checked"] },
+          explain: "We + had + our + equipment + checked.",
+        },
+        {
+          id: "b2sci-gram-a8", type: "cloze",
+          prompt: "Completa: 'The theory was ___ after years of work.' (prove -> participio)",
+          payload: { answer: "proved", alt: ["proven"] },
+          explain: "Pasiva pasado: was + participio (proved).",
         },
       ],
     },
@@ -160,27 +231,47 @@ export const SCIENCE_B2 = {
       phase: "produce",
       skills: ["writing"],
       title: "Writing: describe un avance",
-      intro: "Competencia de ESCRITURA. Construye frases sobre ciencia. Ordena cada frase.",
+      intro: "Competencia de ESCRITURA. Construye frases sobre ciencia, frase por frase.",
       activities: [
         {
           id: "b2sci-write-a1", type: "word_bank",
-          prompt: "Di que una vacuna ha sido desarrollada:",
+          prompt: "1. Di que una vacuna ha sido desarrollada:",
           payload: { words: ["been", "A", "has", "developed", "vaccine"], answer: ["A", "vaccine", "has", "been", "developed"] },
         },
         {
           id: "b2sci-write-a2", type: "word_bank",
-          prompt: "Di que los resultados seran publicados:",
+          prompt: "2. Di que los resultados seran publicados:",
           payload: { words: ["be", "The", "will", "published", "results"], answer: ["The", "results", "will", "be", "published"] },
         },
         {
           id: "b2sci-write-a3", type: "word_bank",
-          prompt: "Usa el causative (revisaron tu equipo):",
+          prompt: "3. Usa el causative (revisaron tu equipo):",
           payload: { words: ["checked", "We", "our", "had", "equipment"], answer: ["We", "had", "our", "equipment", "checked"] },
         },
         {
-          id: "b2sci-write-a4", type: "multiple_choice",
-          prompt: "Which is present perfect passive?",
+          id: "b2sci-write-a4", type: "word_bank",
+          prompt: "4. Di que la investigacion fue financiada:",
+          payload: { words: ["funded", "The", "was", "research"], answer: ["The", "research", "was", "funded"] },
+        },
+        {
+          id: "b2sci-write-a5", type: "word_bank",
+          prompt: "5. Di que los datos estan siendo analizados:",
+          payload: { words: ["analysed", "The", "being", "data", "is"], answer: ["The", "data", "is", "being", "analysed"] },
+        },
+        {
+          id: "b2sci-write-a6", type: "multiple_choice",
+          prompt: "6. Which is present perfect passive?",
           payload: { choices: ["It develops.", "It has been developed.", "It will develop."], answer: 1 },
+        },
+        {
+          id: "b2sci-write-a7", type: "multiple_choice",
+          prompt: "7. Choose the causative:",
+          payload: { choices: ["I cut my hair myself.", "I had my hair cut.", "My hair cut me."], answer: 1 },
+        },
+        {
+          id: "b2sci-write-a8", type: "multiple_choice",
+          prompt: "8. Which word means 'financiar'?",
+          payload: { choices: ["to prove", "to fund", "to discover"], answer: 1 },
         },
       ],
     },
