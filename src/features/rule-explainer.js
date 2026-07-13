@@ -110,7 +110,10 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     caption.textContent = isEs
       ? "Escucha la formula y los ejemplos con atencion."
       : "Listen to the formula and the examples carefully.";
-    const items = [{ text: stripMarkup(grammar.form || grammar.title), lang: robotLang }];
+    const items = [
+      { text: isEs ? "Escucha con atencion." : "Listen carefully.", lang: robotLang },
+      { text: stripMarkup(grammar.form || grammar.title), lang: contentLang },
+    ];
     (grammar.examples || []).forEach((ex) => items.push({ text: stripMarkup(ex), lang: contentLang }));
     cancel = speakSequence(items);
     nextBtn.classList.remove("hidden");
@@ -182,8 +185,10 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
 
   function stepText(i) {
     if (explicit?.parts?.[i]?.fn) return explicit.parts[i].fn;
-    // Generico: relaciona la parte del ejemplo con la parte de la formula.
-    return (isEs ? "Esta parte corresponde a: " : "This part matches: ") + parts[i];
+    // Generico: en ESPANOL limpio (no leemos la formula en ingles con voz espanola).
+    const esOrd = ["la primera", "la segunda", "la tercera", "la cuarta", "la quinta"];
+    if (isEs) return "Esta es " + (esOrd[i] || ("la parte " + (i + 1))) + " parte de la estructura. Fijate como se conecta con la formula de arriba.";
+    return "This is part " + (i + 1) + " of the structure. See how it connects to the formula above.";
   }
 
   function playExample(idx) {
@@ -198,11 +203,12 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
         return;
       }
       highlight(k);
-      const fn = stepText(k);
-      caption.textContent = examples[idx].spans[k] + "  ->  " + fn;
+      // Visual: ejemplo -> parte de la formula (se lee en pantalla).
+      caption.textContent = examples[idx].spans[k] + "  \u2192  " + parts[k];
+      // Hablado: primero el ejemplo (voz inglesa), luego la explicacion (voz del profe).
       cancel = speakSequence([
         { text: examples[idx].spans[k], lang: contentLang },
-        { text: fn, lang: robotLang },
+        { text: stepText(k), lang: robotLang },
       ], null, () => { k++; setTimeout(playStep, 250); });
     }
     // Espera al layout para medir posiciones y trazar bien las lineas.
