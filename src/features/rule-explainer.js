@@ -35,8 +35,9 @@ function splitClauses(text) {
  */
 export function openRuleExplainer(grammar, robotLang = "es-MX") {
   const name = robotName();
-  const isEs = String(robotLang).toLowerCase().startsWith("es");
-  const contentLang = "en-US"; // los ejemplos son en ingles
+  const explainLang = "es-MX"; // la EXPLICACION siempre en espanol (idioma del alumno)
+  const contentLang = "en-US"; // el TEXTO/ejemplos se leen en ingles
+  const isEs = true;           // toda la UI del explicador va en espanol
 
   // Partes de la formula.
   const explicit = grammar.explain;
@@ -111,7 +112,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
       ? "Escucha la formula y los ejemplos con atencion."
       : "Listen to the formula and the examples carefully.";
     const items = [
-      { text: isEs ? "Escucha con atencion." : "Listen carefully.", lang: robotLang },
+      { text: "Escucha con atencion.", lang: explainLang },
       { text: stripMarkup(grammar.form || grammar.title), lang: contentLang },
     ];
     (grammar.examples || []).forEach((ex) => items.push({ text: stripMarkup(ex), lang: contentLang }));
@@ -205,10 +206,10 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
       highlight(k);
       // Visual: ejemplo -> parte de la formula (se lee en pantalla).
       caption.textContent = examples[idx].spans[k] + "  \u2192  " + parts[k];
-      // Hablado: primero el ejemplo (voz inglesa), luego la explicacion (voz del profe).
+      // Hablado: primero el ejemplo (voz inglesa), luego la explicacion (voz espanola).
       cancel = speakSequence([
         { text: examples[idx].spans[k], lang: contentLang },
-        { text: stepText(k), lang: robotLang },
+        { text: stepText(k), lang: explainLang },
       ], null, () => { k++; setTimeout(playStep, 250); });
     }
     // Espera al layout para medir posiciones y trazar bien las lineas.
