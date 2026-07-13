@@ -1,7 +1,6 @@
 /**
  * data/units/a2-last-weekend.js — Unidad tematica "Last weekend" (A2).
- *
- * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA. Listening/Speaking con audio/IA.
+ * Datos PUROS. MODELO DESACOPLADO + CONTENIDO ENRIQUECIDO. Listening/Speaking con audio/IA.
  */
 
 export const A2_LAST_WEEKEND = {
@@ -29,6 +28,8 @@ export const A2_LAST_WEEKEND = {
     { id: "a2lw-8", term: "to come (came)", translation: "venir (vino)", example: "My cousin came home." },
     { id: "a2lw-9", term: "beach", translation: "playa", example: "The beach was beautiful." },
     { id: "a2lw-10", term: "party", translation: "fiesta", example: "There was a party on Saturday." },
+    { id: "a2lw-11", term: "to drink (drank)", translation: "beber (bebio)", example: "We drank lemonade." },
+    { id: "a2lw-12", term: "to give (gave)", translation: "dar (dio)", example: "She gave me a gift." },
   ],
 
   lessons: [
@@ -39,22 +40,39 @@ export const A2_LAST_WEEKEND = {
       phase: "learn",
       skills: ["reading"],
       title: "Reading: un fin de semana ocupado",
-      intro: "Competencia de LECTURA. Lee la historia y comprueba que entendiste.",
+      intro: "Competencia de LECTURA. Lee DOS textos y responde las preguntas de comprension.",
       content: {
         reading:
-          "Last weekend was very busy. On Saturday morning, I went to the beach with my friends. " +
-          "We took a lot of photos and ate ice cream. In the evening, we had a party at Ana's house. " +
-          "I met her cousin, who came from Spain. On Sunday, I bought a new book and saw a great film " +
-          "at the cinema. I didn't study, but I relaxed a lot. It was a perfect weekend!",
+          "TEXT 1 - A busy weekend\n" +
+          "Last weekend was very busy. On Saturday morning, I went to the beach with my friends. We took " +
+          "a lot of photos and ate ice cream. In the evening, we had a party at Ana's house. I met her " +
+          "cousin, who came from Spain. On Sunday, I bought a new book and saw a great film at the cinema. " +
+          "I didn't study, but I relaxed a lot. It was a perfect weekend!\n\n" +
+          "TEXT 2 - Monday chat\n" +
+          "A: How was your weekend? B: Great! I went to a concert. A: Really? Did you like it? B: Yes, I " +
+          "loved it. We drank lemonade and danced all night. A: Did you go alone? B: No, my sister came " +
+          "too. She gave me a ticket for my birthday. A: How nice!",
+        glossary: [
+          { term: "went / took / ate", translation: "fui / tome / comi" },
+          { term: "had / met / came", translation: "tuve / conoci / vino" },
+          { term: "bought / saw", translation: "compre / vi" },
+          { term: "drank / gave", translation: "bebi / dio" },
+          { term: "didn't study", translation: "no estudie" },
+          { term: "How was...?", translation: "que tal estuvo...?" },
+          { term: "Did you...?", translation: "acaso...?" },
+          { term: "a perfect weekend", translation: "un fin de semana perfecto" },
+        ],
         keyPhrases: [
           "Ordena los eventos: sabado manana, sabado noche, domingo.",
-          "Fijate en los verbos irregulares en pasado.",
+          "Fijate en los verbos irregulares en pasado (went, ate, bought...).",
         ],
         check: [
-          { prompt: "Where did the person go on Saturday?", choices: ["The office", "The beach", "The gym"], answer: 1 },
-          { prompt: "Did the person study on Sunday?", choices: ["Yes", "No", "Only math"], answer: 1 },
-          { prompt: "Where was the party?", choices: ["At Ana's house", "At the beach", "At the cinema"], answer: 0 },
-          { prompt: "Where did the cousin come from?", choices: ["Italy", "Spain", "France"], answer: 1 },
+          { prompt: "T1: Where did the person go on Saturday?", choices: ["The office", "The beach", "The gym"], answer: 1 },
+          { prompt: "T1: Did the person study on Sunday?", choices: ["Yes", "No", "Only math"], answer: 1 },
+          { prompt: "T1: Where did the cousin come from?", choices: ["Italy", "Spain", "France"], answer: 1 },
+          { prompt: "T2: Where did B go?", choices: ["A concert", "The beach", "A museum"], answer: 0 },
+          { prompt: "T2: Who came with B?", choices: ["A friend", "The sister", "Nobody"], answer: 1 },
+          { prompt: "T2: What did the sister give B?", choices: ["A book", "A ticket", "A photo"], answer: 1 },
         ],
       },
       activities: [],
@@ -75,23 +93,28 @@ export const A2_LAST_WEEKEND = {
         { term: "eat / ate", translation: "comer / comio" },
         { term: "see / saw", translation: "ver / vio" },
         { term: "buy / bought", translation: "comprar / compro" },
-        { term: "meet / met", translation: "conocer / conocio" },
+        { term: "drink / drank", translation: "beber / bebio" },
       ],
       activities: [
         {
           id: "a2lw-vocab-a1", type: "matching",
-          prompt: "Empareja el verbo con su pasado irregular:",
+          prompt: "Empareja verbo y pasado (1/2):",
           payload: { pairs: [
             { left: "go", right: "went" },
             { left: "have", right: "had" },
             { left: "see", right: "saw" },
+            { left: "eat", right: "ate" },
           ] },
         },
         {
-          id: "a2lw-vocab-a2", type: "multiple_choice",
-          prompt: "Which is the past of 'buy'?",
-          payload: { choices: ["buyed", "bought", "buys"], answer: 1 },
-          explain: "'buy' -> 'bought' (irregular).",
+          id: "a2lw-vocab-a2", type: "matching",
+          prompt: "Empareja (2/2):",
+          payload: { pairs: [
+            { left: "buy", right: "bought" },
+            { left: "take", right: "took" },
+            { left: "drink", right: "drank" },
+            { left: "give", right: "gave" },
+          ] },
         },
         {
           id: "a2lw-vocab-a3", type: "cloze",
@@ -104,6 +127,30 @@ export const A2_LAST_WEEKEND = {
           prompt: "Completa: 'He ___ many photos.' (tomar -> pasado)",
           payload: { answer: "took" },
           explain: "'take' -> 'took'.",
+        },
+        {
+          id: "a2lw-vocab-a5", type: "cloze",
+          prompt: "Completa: 'She ___ me a gift.' (dar -> pasado)",
+          payload: { answer: "gave" },
+          explain: "'give' -> 'gave'.",
+        },
+        {
+          id: "a2lw-vocab-a6", type: "multiple_choice",
+          prompt: "Which is the past of 'buy'?",
+          payload: { choices: ["buyed", "bought", "buys"], answer: 1 },
+          explain: "'buy' -> 'bought' (irregular).",
+        },
+        {
+          id: "a2lw-vocab-a7", type: "multiple_choice",
+          prompt: "Which is the past of 'drink'?",
+          payload: { choices: ["drinked", "drank", "drunk"], answer: 1 },
+          explain: "'drink' -> 'drank' (pasado simple).",
+        },
+        {
+          id: "a2lw-vocab-a8", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["a", "We", "time", "had", "great"], answer: ["We", "had", "a", "great", "time"] },
+          explain: "'had a great time' = la pasamos genial.",
         },
       ],
     },
@@ -123,6 +170,7 @@ export const A2_LAST_WEEKEND = {
         mistakes: [
           { wrong: "I didn't went home.", right: "I didn't go home." },
           { wrong: "Did you saw it?", right: "Did you see it?" },
+          { wrong: "She no ate.", right: "She didn't eat." },
         ],
       },
       activities: [
@@ -133,22 +181,46 @@ export const A2_LAST_WEEKEND = {
           explain: "'go' -> 'went'.",
         },
         {
-          id: "a2lw-gram-a2", type: "multiple_choice",
+          id: "a2lw-gram-a2", type: "cloze",
+          prompt: "Completa (negativo): 'She ___ buy a phone.' (didn't?)",
+          payload: { answer: "didn't", alt: ["did not"] },
+          explain: "Negativo: didn't + verbo base.",
+        },
+        {
+          id: "a2lw-gram-a3", type: "cloze",
+          prompt: "Completa (pregunta): '___ you go home?' (Did?)",
+          payload: { answer: "Did" },
+          explain: "Pregunta: Did + sujeto + base.",
+        },
+        {
+          id: "a2lw-gram-a4", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
           payload: { choices: ["She didn't bought a phone.", "She didn't buy a phone.", "She don't buy a phone."], answer: 1 },
           explain: "Con 'didn't' el verbo va en base: 'didn't buy'.",
         },
         {
-          id: "a2lw-gram-a3", type: "multiple_choice",
+          id: "a2lw-gram-a5", type: "multiple_choice",
           prompt: "Choose the correct question:",
           payload: { choices: ["Did you went home?", "Did you go home?", "Do you went home?"], answer: 1 },
           explain: "Con 'Did', el verbo va en base.",
         },
         {
-          id: "a2lw-gram-a4", type: "word_bank",
+          id: "a2lw-gram-a6", type: "word_bank",
           prompt: "Ordena la pregunta:",
           payload: { words: ["did", "What", "do?", "you"], answer: ["What", "did", "you", "do?"] },
           explain: "Orden: What + did + you + do?",
+        },
+        {
+          id: "a2lw-gram-a7", type: "word_bank",
+          prompt: "Ordena la negacion:",
+          payload: { words: ["study", "I", "didn't"], answer: ["I", "didn't", "study"] },
+          explain: "Orden: I + didn't + study.",
+        },
+        {
+          id: "a2lw-gram-a8", type: "cloze",
+          prompt: "Completa: 'They ___ to a concert.' (ir -> pasado)",
+          payload: { answer: "went" },
+          explain: "'go' -> 'went' (irregular).",
         },
       ],
     },
@@ -160,27 +232,47 @@ export const A2_LAST_WEEKEND = {
       phase: "produce",
       skills: ["writing"],
       title: "Writing: cuenta tu finde",
-      intro: "Competencia de ESCRITURA. Construye frases sobre tu fin de semana. Ordena cada frase.",
+      intro: "Competencia de ESCRITURA. Construye la historia de tu fin de semana, frase por frase.",
       activities: [
         {
           id: "a2lw-write-a1", type: "word_bank",
-          prompt: "Di que fuiste a la playa:",
+          prompt: "1. Di que fuiste a la playa:",
           payload: { words: ["the", "I", "to", "went", "beach"], answer: ["I", "went", "to", "the", "beach"] },
         },
         {
           id: "a2lw-write-a2", type: "word_bank",
-          prompt: "Di que la pasaste bien:",
+          prompt: "2. Di que la pasaste bien:",
           payload: { words: ["a", "I", "time", "had", "great"], answer: ["I", "had", "a", "great", "time"] },
         },
         {
           id: "a2lw-write-a3", type: "word_bank",
-          prompt: "Di que no estudiaste:",
+          prompt: "3. Di que viste una buena pelicula:",
+          payload: { words: ["a", "I", "film", "saw", "good"], answer: ["I", "saw", "a", "good", "film"] },
+        },
+        {
+          id: "a2lw-write-a4", type: "word_bank",
+          prompt: "4. Di que no estudiaste:",
           payload: { words: ["study", "I", "didn't"], answer: ["I", "didn't", "study"] },
         },
         {
-          id: "a2lw-write-a4", type: "multiple_choice",
-          prompt: "Which is the past of 'meet'?",
+          id: "a2lw-write-a5", type: "word_bank",
+          prompt: "5. Pregunta que hizo tu amigo:",
+          payload: { words: ["did", "What", "do?", "you"], answer: ["What", "did", "you", "do?"] },
+        },
+        {
+          id: "a2lw-write-a6", type: "multiple_choice",
+          prompt: "6. Which is the past of 'meet'?",
           payload: { choices: ["meeted", "met", "meets"], answer: 1 },
+        },
+        {
+          id: "a2lw-write-a7", type: "multiple_choice",
+          prompt: "7. Choose the correct one:",
+          payload: { choices: ["Did you had fun?", "Did you have fun?", "Do you had fun?"], answer: 1 },
+        },
+        {
+          id: "a2lw-write-a8", type: "multiple_choice",
+          prompt: "8. 'It was a perfect weekend' is in the...",
+          payload: { choices: ["present", "past", "future"], answer: 1 },
         },
       ],
     },
