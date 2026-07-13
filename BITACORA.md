@@ -153,6 +153,11 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       lectura/gramatica/glosario tambien en lecciones de practica (helpers DRY).
       Convencion de ids por unidad: prefijo corto por tema. Camino A1->C1 CERRADO.
       Falta a futuro: C2. SW v0.39.0.
+- [~] CONTENIDO ENRIQUECIDO (peticion del usuario 2026-07): cada unidad pasa de
+      ~16 a ~30 actividades, con 2 lecturas + 6 preguntas, 12 vocab + 8 ejercicios,
+      gramatica ampliada + 8, y escritura guiada de 8 pasos. Estandar: work-career-b1.js.
+      Progreso enriquecido: A1 8/8, A2 8/8, B1 12/12. Falta enriquecer B2, C1, y
+      construir+enriquecer C2 (3/8). SW v0.51.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
