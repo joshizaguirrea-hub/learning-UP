@@ -49,33 +49,97 @@ function pickVoice(lang) {
   return pool.find((v) => NICE.test(v.name)) || pool[0];
 }
 
+// Palabras clave para detectar idioma en textos MIXTOS (es/en).
+const ES_WORDS = new Set([
+  "presente", "pasado", "futuro", "participio", "gerundio", "infinitivo", "agente",
+  "opcional", "verbo", "verbos", "sujeto", "complemento", "objeto", "regla", "reglas",
+  "voz", "pasiva", "activa", "ejemplo", "ejemplos", "femenino", "masculino", "singular",
+  "plural", "afirmativo", "negativo", "pregunta", "respuesta", "sustantivo", "adjetivo",
+  "adverbio", "articulo", "pronombre", "condicional", "subjuntivo", "imperativo", "tiempo",
+  "con", "para", "por", "una", "uno", "unos", "unas", "del", "las", "los", "que", "cuando",
+  "como", "mas", "pero", "tambien", "ser", "estar", "hacer", "cosa", "cosas", "forma",
+]);
+const EN_WORDS = new Set([
+  "is", "are", "was", "were", "be", "been", "being", "am", "will", "would", "shall",
+  "can", "could", "do", "does", "did", "has", "have", "had", "by", "of", "the", "to",
+  "and", "or", "not", "going", "get", "got", "verb", "past", "present", "future",
+  "subject", "object", "with", "for", "from", "they", "you", "he", "she", "it", "we",
+]);
+
+/** Idioma de una palabra: 'es' | 'en' | null (ambiguo, se hereda). */
+function wordLang(word) {
+  if (/[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC\u00BF\u00A1]/i.test(word)) return "es";
+  const w = word.toLowerCase().replace(/[^a-z\u00E0-\u00FF]/gi, "");
+  if (!w) return null;
+  if (ES_WORDS.has(w)) return "es";
+  if (EN_WORDS.has(w)) return "en";
+  if (/(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa)$/.test(w)) return "es";
+  return null;
+}
+
+/** Agrupa un texto en trozos consecutivos del mismo idioma. */
+function groupByLang(text, base) {
+  const tokens = String(text).split(/\s+/).filter(Boolean);
+  const chunks = [];
+  let prev = base;
+  for (const tok of tokens) {
+    const lang = wordLang(tok) || prev;
+    prev = lang;
+    const last = chunks[chunks.length - 1];
+    if (last && last.lang === lang) last.text += " " + tok;
+    else chunks.push({ lang, text: tok });
+  }
+  return chunks.length ? chunks : [{ lang: base, text: String(text) }];
+}
+
 /**
- * Pronuncia un texto. Corta cualquier locucion en curso primero.
+ * Pronuncia un texto que puede MEZCLAR espanol e ingles. Detecta el idioma por
+ * palabra y usa voz latina para el espanol y voz US/UK para el ingles, con
+ * pausas en "/" y ".". Corta cualquier locucion en curso primero.
  * @param {string} text
- * @param {string} [lang] BCP-47, ej. 'en-US' o 'es-MX'
- * @param {object} [opts] { rate, pitch }
+ * @param {string} [lang] idioma base para palabras ambiguas ('es-MX' | 'en-US')
+ * @param {object} [opts] { rate, pitch, gap }
  */
 export function speak(text, lang = "en-US", opts = {}) {
   if (!isSpeechSupported() || !text) return;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const v = pickVoice(lang);
   const rate = opts.rate ?? 0.98;
   const pitch = opts.pitch ?? 1.0;
-  const gap = opts.gap ?? 900; // pausa (ms) entre alternativas separadas por "/"
+  const gap = opts.gap ?? 900; // pausa larga (ms) entre alternativas "/"
+  const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
-  // "are produced / are polluted" -> se dice una, pausa ~1s, luego la otra.
-  const parts = String(text).split(/\s*\/\s*/).map((s) => s.trim()).filter(Boolean);
+  // Normaliza simbolos que suenan raro; "\u00B7" separa como "/" (pausa).
+  const norm = String(text)
+    .replace(/\u00B7/g, " / ")
+    .replace(/[+()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const parts = norm.split(/\s*\/\s*/).map((s) => s.trim()).filter(Boolean);
 
+  // Cada parte -> chunks agrupados por idioma; cola de locuciones.
+  const queue = [];
+  parts.forEach((part, pi) => {
+    const chunks = groupByLang(part, base);
+    chunks.forEach((ch, ci) => {
+      const lastInPart = ci === chunks.length - 1;
+      queue.push({ text: ch.text, lang: ch.lang, gapAfter: lastInPart ? (pi < parts.length - 1 ? gap : 0) : 160 });
+    });
+  });
+
+  const esVoice = pickVoice("es-MX");
+  const enVoice = pickVoice("en-US");
   let i = 0;
   function sayNext() {
-    if (i >= parts.length) return;
-    const u = new SpeechSynthesisUtterance(parts[i]);
-    u.lang = v?.lang || lang;
+    if (i >= queue.length) return;
+    const item = queue[i];
+    const u = new SpeechSynthesisUtterance(item.text);
+    const v = item.lang === "es" ? esVoice : enVoice;
+    u.lang = v?.lang || (item.lang === "es" ? "es-MX" : "en-US");
     u.rate = rate;
     u.pitch = pitch;
     if (v) u.voice = v;
-    u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
+    u.onend = () => { i++; if (i < queue.length) setTimeout(sayNext, item.gapAfter); };
     synth.speak(u);
   }
   sayNext();
