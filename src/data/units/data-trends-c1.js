@@ -216,7 +216,7 @@ export const DATA_TRENDS_C1 = {
         {
           id: "c1dt-gram-a7", type: "word_bank",
           prompt: "Ordena la frase:",
-          payload: { words: ["the", "The", "invested,", "more", "we", "grew", "the", "profits", "more"], answer: ["The", "more", "we", "invested,", "the", "more", "profits", "grew"] },
+          payload: { words: ["the", "The", "invested,", "more", "we", "grew", "profits", "more"], answer: ["The", "more", "we", "invested,", "the", "more", "profits", "grew"] },
           explain: "The + more + we + invested, + the + more + profits + grew.",
         },
         {
