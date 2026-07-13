@@ -59,13 +59,26 @@ export function speak(text, lang = "en-US", opts = {}) {
   if (!isSpeechSupported() || !text) return;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(String(text));
   const v = pickVoice(lang);
-  u.lang = v?.lang || lang;
-  u.rate = opts.rate ?? 0.98;
-  u.pitch = opts.pitch ?? 1.0;
-  if (v) u.voice = v;
-  synth.speak(u);
+  const rate = opts.rate ?? 0.98;
+  const pitch = opts.pitch ?? 1.0;
+  const gap = opts.gap ?? 900; // pausa (ms) entre alternativas separadas por "/"
+
+  // "are produced / are polluted" -> se dice una, pausa ~1s, luego la otra.
+  const parts = String(text).split(/\s*\/\s*/).map((s) => s.trim()).filter(Boolean);
+
+  let i = 0;
+  function sayNext() {
+    if (i >= parts.length) return;
+    const u = new SpeechSynthesisUtterance(parts[i]);
+    u.lang = v?.lang || lang;
+    u.rate = rate;
+    u.pitch = pitch;
+    if (v) u.voice = v;
+    u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
+    synth.speak(u);
+  }
+  sayNext();
 }
 
 /** Voz del Profe Robo: mas aguda y alegre. Idioma segun se le pase. */
