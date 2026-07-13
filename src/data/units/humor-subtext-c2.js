@@ -167,6 +167,7 @@ export const HUMOR_SUBTEXT_C2 = {
         title: "Understatement & litotes",
         form: "litotes: not + adjetivo negativo = positivo suave (not bad = good) · understatement: minimizar (a bit tired)",
         examples: ["It's not bad = It's quite good.", "She's not unkind = She's kind.", "A slight problem = a big problem."],
+        explain: { tr: ["No est\u00e1 mal = Est\u00e1 bastante bien.", "Ella no es descort\u00e9s = Es amable.", "Un peque\u00f1o problema = un gran problema."] },
         mistakes: [
           { wrong: "It's not bad meaning it's terrible.", right: "'Not bad' actually means 'quite good'." },
         ],
