@@ -1,8 +1,6 @@
 /**
  * data/units/travel-plans-b1.js — Unidad tematica "Travel & Plans" (B1).
- *
- * Datos PUROS. MODELO DESACOPLADO POR COMPETENCIA (ver work-career-b1.js): cada
- * leccion entrena UNA competencia con contenido UNICO. Listening/Speaking con audio/IA.
+ * Datos PUROS. MODELO DESACOPLADO + CONTENIDO ENRIQUECIDO. Listening/Speaking con audio/IA.
  */
 
 export const TRAVEL_PLANS_B1 = {
@@ -24,12 +22,14 @@ export const TRAVEL_PLANS_B1 = {
     { id: "tp-2", term: "to book", translation: "reservar", example: "I want to book a room." },
     { id: "tp-3", term: "luggage", translation: "equipaje", example: "My luggage is very heavy." },
     { id: "tp-4", term: "check-in", translation: "registro / facturacion", example: "Check-in is at 3 p.m." },
-    { id: "tp-5", term: "round trip", translation: "viaje redondo / ida y vuelta", example: "A round trip is cheaper." },
+    { id: "tp-5", term: "round trip", translation: "ida y vuelta", example: "A round trip is cheaper." },
     { id: "tp-6", term: "to depart", translation: "salir / partir", example: "The train departs on time." },
     { id: "tp-7", term: "delay", translation: "retraso", example: "There was a two-hour delay." },
     { id: "tp-8", term: "boarding pass", translation: "pase de abordar", example: "Show your boarding pass here." },
-    { id: "tp-9", term: "sightseeing", translation: "turismo / pasear viendo lugares", example: "We went sightseeing all day." },
+    { id: "tp-9", term: "sightseeing", translation: "turismo", example: "We went sightseeing all day." },
     { id: "tp-10", term: "to arrive", translation: "llegar", example: "We arrive tomorrow morning." },
+    { id: "tp-11", term: "reservation", translation: "reservacion", example: "I have a reservation for two." },
+    { id: "tp-12", term: "destination", translation: "destino", example: "Our destination is Rome." },
   ],
 
   lessons: [
@@ -40,25 +40,40 @@ export const TRAVEL_PLANS_B1 = {
       phase: "learn",
       skills: ["reading"],
       title: "Reading: planear un viaje",
-      intro:
-        "Competencia de LECTURA. Lee la historia de Sofia y comprueba que entendiste el texto.",
+      intro: "Competencia de LECTURA. Lee DOS textos y responde las preguntas de comprension.",
       content: {
         reading:
-          "Sofia is planning a trip to Canada. She is going to book a round trip flight next week. " +
-          "Her flight departs on Friday morning, so she will arrive in Toronto in the afternoon. " +
-          "She only takes one small piece of luggage. At the airport she gets her boarding pass and " +
-          "waits for check-in. She hopes there is no delay. In Toronto she is going to do a lot of " +
-          "sightseeing and visit her cousin.",
+          "TEXT 1 - Sofia's trip\n" +
+          "Sofia is planning a trip to Canada. She is going to book a round trip flight next week. Her " +
+          "flight departs on Friday morning, so she will arrive in Toronto in the afternoon. She only " +
+          "takes one small piece of luggage. At the airport she gets her boarding pass and waits for " +
+          "check-in. She hopes there is no delay. In Toronto she is going to do a lot of sightseeing and " +
+          "visit her cousin.\n\n" +
+          "TEXT 2 - Booking a hotel\n" +
+          "A: Good morning. I'd like to book a room, please. B: Of course. For how many nights? A: Three " +
+          "nights, from the 5th. B: A single or a double room? A: A double, please. B: Perfect, I have a " +
+          "reservation for you. Check-in is at 3 p.m. A: Great, thank you!",
+        glossary: [
+          { term: "going to book", translation: "va a reservar (plan)" },
+          { term: "will arrive", translation: "llegara" },
+          { term: "boarding pass / check-in", translation: "pase de abordar / registro" },
+          { term: "delay / round trip", translation: "retraso / ida y vuelta" },
+          { term: "I'd like to book", translation: "quisiera reservar" },
+          { term: "reservation", translation: "reservacion" },
+          { term: "single / double room", translation: "habitacion individual / doble" },
+          { term: "destination", translation: "destino" },
+        ],
         keyPhrases: [
-          "Skim primero: de que trata el texto en general?",
-          "Localiza datos concretos: destino, dia del vuelo, hora de llegada.",
-          "Deduce por contexto palabras nuevas (boarding pass, check-in).",
+          "Distingue planes (going to) de predicciones (will).",
+          "Fijate como se reserva un hotel en el Texto 2.",
         ],
         check: [
-          { prompt: "Where is Sofia going?", choices: ["Canada", "Mexico", "Spain"], answer: 0 },
-          { prompt: "When does her flight depart?", choices: ["Friday morning", "Sunday night", "Monday"], answer: 0 },
-          { prompt: "How much luggage does she take?", choices: ["Three big bags", "One small piece", "None"], answer: 1 },
-          { prompt: "What will she do in Toronto?", choices: ["Work", "Sightseeing and visit her cousin", "Study"], answer: 1 },
+          { prompt: "T1: Where is Sofia going?", choices: ["Canada", "Mexico", "Spain"], answer: 0 },
+          { prompt: "T1: When does her flight depart?", choices: ["Friday morning", "Sunday night", "Monday"], answer: 0 },
+          { prompt: "T1: What will she do in Toronto?", choices: ["Work", "Sightseeing and visit her cousin", "Study"], answer: 1 },
+          { prompt: "T2: What does A want to book?", choices: ["A flight", "A room", "A car"], answer: 1 },
+          { prompt: "T2: For how many nights?", choices: ["Two", "Three", "Five"], answer: 1 },
+          { prompt: "T2: What time is check-in?", choices: ["1 p.m.", "3 p.m.", "5 p.m."], answer: 1 },
         ],
       },
       activities: [],
@@ -71,23 +86,20 @@ export const TRAVEL_PLANS_B1 = {
       phase: "practice",
       skills: ["vocabulary"],
       title: "Vocabulary: palabras de viaje",
-      intro:
-        "Competencia de VOCABULARIO. Estudia el glosario y practica. Al terminar entran a tu SRS.",
+      intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
       teachesVocab: true,
       glossary: [
-        { term: "to book", translation: "reservar" },
-        { term: "round trip", translation: "ida y vuelta" },
-        { term: "flight", translation: "vuelo" },
-        { term: "to depart", translation: "salir/partir" },
-        { term: "luggage", translation: "equipaje" },
-        { term: "boarding pass", translation: "pase de abordar" },
-        { term: "delay", translation: "retraso" },
-        { term: "sightseeing", translation: "turismo" },
+        { term: "flight / to depart", translation: "vuelo / salir" },
+        { term: "to book / reservation", translation: "reservar / reservacion" },
+        { term: "luggage / boarding pass", translation: "equipaje / pase de abordar" },
+        { term: "check-in / delay", translation: "registro / retraso" },
+        { term: "round trip / destination", translation: "ida y vuelta / destino" },
+        { term: "sightseeing / to arrive", translation: "turismo / llegar" },
       ],
       activities: [
         {
           id: "tp-vocab-a1", type: "matching",
-          prompt: "Empareja palabra y significado:",
+          prompt: "Empareja (1/2):",
           payload: { pairs: [
             { left: "flight", right: "vuelo" },
             { left: "delay", right: "retraso" },
@@ -96,22 +108,50 @@ export const TRAVEL_PLANS_B1 = {
           ] },
         },
         {
-          id: "tp-vocab-a2", type: "cloze",
-          prompt: "Completa: 'I want to ___ a hotel room.' (reservar)",
-          payload: { answer: "book" },
-          explain: "'To book' = reservar (hotel, vuelo, mesa...).",
+          id: "tp-vocab-a2", type: "matching",
+          prompt: "Empareja (2/2):",
+          payload: { pairs: [
+            { left: "boarding pass", right: "pase de abordar" },
+            { left: "reservation", right: "reservacion" },
+            { left: "destination", right: "destino" },
+            { left: "sightseeing", right: "turismo" },
+          ] },
         },
         {
           id: "tp-vocab-a3", type: "cloze",
+          prompt: "Completa: 'I want to ___ a hotel room.' (reservar)",
+          payload: { answer: "book" },
+          explain: "'To book' = reservar.",
+        },
+        {
+          id: "tp-vocab-a4", type: "cloze",
           prompt: "Completa: 'There was a two-hour ___.' (retraso)",
           payload: { answer: "delay" },
           explain: "'Delay' = retraso.",
         },
         {
-          id: "tp-vocab-a4", type: "multiple_choice",
+          id: "tp-vocab-a5", type: "cloze",
+          prompt: "Completa: 'Our ___ is Rome.' (destino)",
+          payload: { answer: "destination" },
+          explain: "'Destination' = destino.",
+        },
+        {
+          id: "tp-vocab-a6", type: "multiple_choice",
           prompt: "Which word means 'ida y vuelta'?",
           payload: { choices: ["boarding pass", "round trip", "check-in"], answer: 1 },
           explain: "'Round trip' = viaje de ida y vuelta.",
+        },
+        {
+          id: "tp-vocab-a7", type: "multiple_choice",
+          prompt: "You show this to board a plane:",
+          payload: { choices: ["boarding pass", "luggage", "delay"], answer: 0 },
+          explain: "'Boarding pass' = pase de abordar.",
+        },
+        {
+          id: "tp-vocab-a8", type: "word_bank",
+          prompt: "Ordena la peticion:",
+          payload: { words: ["a", "book", "to", "I'd", "room", "like"], answer: ["I'd", "like", "to", "book", "a", "room"] },
+          explain: "I'd + like + to + book + a + room.",
         },
       ],
     },
@@ -123,18 +163,14 @@ export const TRAVEL_PLANS_B1 = {
       phase: "practice",
       skills: ["grammar"],
       title: "Grammar: going to vs will",
-      intro:
-        "Competencia de GRAMATICA. Aprende la diferencia entre 'going to' y 'will' y practicala.",
+      intro: "Competencia de GRAMATICA. Aprende la diferencia entre 'going to' y 'will'.",
       grammar: {
         title: "Futuro: going to vs will",
-        form: "going to = plan decidido  |  will = prediccion o decision del momento",
-        examples: [
-          "I'm going to visit Canada. (ya lo decidi)",
-          "It's cold, I'll take a jacket. (decision ahora)",
-          "I think it will rain tomorrow. (prediccion)",
-        ],
+        form: "going to = plan decidido · will = prediccion o decision del momento",
+        examples: ["I'm going to visit Canada. (ya lo decidi)", "It's cold, I'll take a jacket. (ahora)", "I think it will rain. (prediccion)"],
         mistakes: [
           { wrong: "I will visit Canada, I booked it.", right: "I'm going to visit Canada, I booked it." },
+          { wrong: "I'm going to studying.", right: "I'm going to study." },
         ],
       },
       activities: [
@@ -151,18 +187,44 @@ export const TRAVEL_PLANS_B1 = {
           explain: "Reaccionas al frio ahora = decision del momento = 'will'.",
         },
         {
-          id: "tp-gram-a3", type: "word_bank",
-          prompt: "Ordena la frase (plan de viaje):",
-          payload: { words: ["going", "I'm", "to", "Canada", "visit"], answer: ["I'm", "going", "to", "visit", "Canada"] },
+          id: "tp-gram-a3", type: "cloze",
+          prompt: "Completa: 'The plane will ___ at 9 a.m.' (partir, base)",
+          payload: { answer: "depart", alt: ["leave"] },
+          explain: "will + verbo base: 'will depart'.",
         },
         {
-          id: "tp-gram-a4", type: "multiple_choice",
+          id: "tp-gram-a4", type: "cloze",
+          prompt: "Completa: 'She is ___ to travel next week.' (going/go)",
+          payload: { answer: "going" },
+          explain: "be + going to + base.",
+        },
+        {
+          id: "tp-gram-a5", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
           payload: { choices: [
             "What time the train departs?",
             "What time does the train depart?",
             "What time do the train departs?",
           ], answer: 1 },
+          explain: "Pregunta present simple: does + sujeto + base.",
+        },
+        {
+          id: "tp-gram-a6", type: "word_bank",
+          prompt: "Ordena el plan de viaje:",
+          payload: { words: ["going", "I'm", "to", "Canada", "visit"], answer: ["I'm", "going", "to", "visit", "Canada"] },
+          explain: "I'm + going to + visit + Canada.",
+        },
+        {
+          id: "tp-gram-a7", type: "word_bank",
+          prompt: "Ordena la prediccion:",
+          payload: { words: ["rain", "It", "will", "tomorrow"], answer: ["It", "will", "rain", "tomorrow"] },
+          explain: "It + will + rain + tomorrow.",
+        },
+        {
+          id: "tp-gram-a8", type: "cloze",
+          prompt: "Completa (oferta): 'That bag is heavy. I ___ carry it for you.' (will/'ll)",
+          payload: { answer: "will", alt: ["'ll"] },
+          explain: "Oferta del momento = 'will'.",
         },
       ],
     },
@@ -174,28 +236,47 @@ export const TRAVEL_PLANS_B1 = {
       phase: "produce",
       skills: ["writing"],
       title: "Writing: correo de reserva",
-      intro:
-        "Competencia de ESCRITURA. Tarea real: construye las frases de un correo para reservar un hotel.",
+      intro: "Competencia de ESCRITURA. Construye un correo para reservar un hotel, frase por frase.",
       activities: [
         {
           id: "tp-write-a1", type: "word_bank",
-          prompt: "Saludo formal:",
+          prompt: "1. Saludo formal:",
           payload: { words: ["Sir", "Madam", "or", "Dear"], answer: ["Dear", "Sir", "or", "Madam"] },
         },
         {
           id: "tp-write-a2", type: "word_bank",
-          prompt: "Di lo que quieres:",
+          prompt: "2. Di lo que quieres:",
           payload: { words: ["to", "a", "room", "I'd", "book", "like"], answer: ["I'd", "like", "to", "book", "a", "room"] },
         },
         {
           id: "tp-write-a3", type: "word_bank",
-          prompt: "Da las fechas:",
+          prompt: "3. Da las fechas:",
           payload: { words: ["from", "the", "5th", "8th", "to", "the"], answer: ["from", "the", "5th", "to", "the", "8th"] },
         },
         {
-          id: "tp-write-a4", type: "multiple_choice",
-          prompt: "Best closing:",
+          id: "tp-write-a4", type: "word_bank",
+          prompt: "4. Pregunta por el registro:",
+          payload: { words: ["is", "What", "check-in?", "time"], answer: ["What", "time", "is", "check-in?"] },
+        },
+        {
+          id: "tp-write-a5", type: "word_bank",
+          prompt: "5. Habla de tu plan de turismo:",
+          payload: { words: ["sightseeing", "I'm", "to", "going", "do"], answer: ["I'm", "going", "to", "do", "sightseeing"] },
+        },
+        {
+          id: "tp-write-a6", type: "multiple_choice",
+          prompt: "6. Best closing:",
           payload: { choices: ["Cheers!", "I look forward to your reply.", "Bye!"], answer: 1 },
+        },
+        {
+          id: "tp-write-a7", type: "multiple_choice",
+          prompt: "7. Which expresses a decided plan?",
+          payload: { choices: ["I'll maybe go.", "I'm going to travel in July.", "I travel now."], answer: 1 },
+        },
+        {
+          id: "tp-write-a8", type: "multiple_choice",
+          prompt: "8. Which word means 'reservar'?",
+          payload: { choices: ["to depart", "to book", "to arrive"], answer: 1 },
         },
       ],
     },
