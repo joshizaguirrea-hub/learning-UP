@@ -25,28 +25,47 @@ if (isSpeechSupported()) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-// Voces "buenas" suelen tener estas marcas en el nombre (mas naturales).
-const NICE = /google|natural|premium|neural|enhanced|siri|zira|aria|sabina|paulina|helena/i;
+// Voces "buenas" (naturales/neurales) suelen tener estas marcas en el nombre.
+const NICE = /google|natural|premium|neural|enhanced|online|siri|wavenet|dalia|jorge|paulina|helena|sabina|aria|jenny|guy/i;
+// Voces ROBOTICAS conocidas (evitarlas si hay algo mejor).
+const ROBOTIC = /microsoft (sabina|raul|helena|laura|pablo) desktop|espeak|pico/i;
 // Preferencia de region por idioma (primero = mejor).
 const REGION_PREF = {
   es: ["es-mx", "es-us", "es-la", "es-419", "es-es", "es-co", "es-ar", "es"],
   en: ["en-us", "en-gb", "en-au", "en-ca", "en"],
 };
 
-/** Elige la mejor voz para el idioma dado (ej. 'es-MX' o 'en-US'). */
+/**
+ * Elige la MEJOR voz para el idioma (ej. 'es-MX'), priorizando fuerte las voces
+ * naturales/neurales sobre las roboticas.
+ */
 function pickVoice(lang) {
   const base = lang.slice(0, 2).toLowerCase();
   const pool = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith(base));
   if (!pool.length) return null;
   const prefs = REGION_PREF[base] || [base];
-  // 1) region preferida + nombre "bonito"  2) region preferida  3) nombre bonito  4) cualquiera.
-  for (const region of prefs) {
-    const nice = pool.find((v) => v.lang.toLowerCase().startsWith(region) && NICE.test(v.name));
-    if (nice) return nice;
-    const any = pool.find((v) => v.lang.toLowerCase().startsWith(region));
-    if (any) return any;
+  const inRegion = (v, r) => v.lang.toLowerCase().startsWith(r);
+  const nice = (v) => NICE.test(v.name) && !ROBOTIC.test(v.name);
+
+  // 1) Neural/natural en la region preferida (en orden).
+  for (const r of prefs) {
+    const hit = pool.find((v) => inRegion(v, r) && nice(v));
+    if (hit) return hit;
   }
-  return pool.find((v) => NICE.test(v.name)) || pool[0];
+  // 2) Cualquier voz neural/natural del idioma (aunque sea otra region).
+  const anyNice = pool.find(nice);
+  if (anyNice) return anyNice;
+  // 3) Voz NO robotica en la region preferida.
+  for (const r of prefs) {
+    const hit = pool.find((v) => inRegion(v, r) && !ROBOTIC.test(v.name));
+    if (hit) return hit;
+  }
+  // 4) Region preferida, lo que haya. 5) cualquiera.
+  for (const r of prefs) {
+    const hit = pool.find((v) => inRegion(v, r));
+    if (hit) return hit;
+  }
+  return pool[0];
 }
 
 // Palabras clave para detectar idioma en textos MIXTOS (es/en).
@@ -92,9 +111,9 @@ export function speak(text, lang = "en-US", opts = {}) {
   if (!isSpeechSupported() || !text) return;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const rate = opts.rate ?? 0.9;
+  const rate = opts.rate ?? 0.96;
   const pitch = opts.pitch ?? 1.0;
-  const gap = opts.gap ?? 950; // pausa larga (ms) entre alternativas "/"
+  const gap = opts.gap ?? 750; // pausa larga (ms) entre alternativas "/"
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
@@ -159,10 +178,10 @@ export function speakSequence(items, onEach, onDone) {
     const v = pickVoice(base);
     const u = new SpeechSynthesisUtterance(String(it.text));
     u.lang = v?.lang || base;
-    u.rate = opts.rate ?? 0.92;
+    u.rate = opts.rate ?? 0.98;
     u.pitch = opts.pitch ?? 1.05;
     if (v) u.voice = v;
-    u.onend = () => { i++; if (!cancelled) setTimeout(next, it.gapAfter ?? 350); };
+    u.onend = () => { i++; if (!cancelled) setTimeout(next, it.gapAfter ?? 220); };
     synth.speak(u);
   }
   next();

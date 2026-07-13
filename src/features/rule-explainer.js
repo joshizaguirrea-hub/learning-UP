@@ -71,7 +71,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
   const stage = el("div", { class: "relative mt-6 rounded-2xl bg-slate-950/40 border border-white/10 p-5 sm:p-8 space-y-10 overflow-hidden" },
     svg, chipsRow, exampleRow);
 
-  const caption = el("p", { class: "mt-4 text-center text-slate-300 min-h-[2.5rem] text-sm sm:text-base" });
+  const caption = el("p", { class: "mt-4 text-center text-slate-300 min-h-[4rem] text-sm sm:text-base" });
 
   const exCounter = el("span", { class: "text-xs text-slate-500" });
   const replayBtn = el("button", {
@@ -204,8 +204,11 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
         return;
       }
       highlight(k);
-      // Visual: ejemplo -> parte de la formula (se lee en pantalla).
-      caption.textContent = examples[idx].spans[k] + "  \u2192  " + parts[k];
+      // Visual (POP explicativo): la explicacion en ESPANOL grande + el mapeo chico.
+      caption.replaceChildren(
+        el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
+        el("span", { class: "block mt-1.5 text-xs text-slate-400" }, examples[idx].spans[k] + "  \u2192  " + parts[k])
+      );
       // Hablado: primero el ejemplo (voz inglesa), luego la explicacion (voz espanola).
       cancel = speakSequence([
         { text: examples[idx].spans[k], lang: contentLang },
