@@ -8,6 +8,7 @@ import { updateDisplayName, logout, currentUser } from "../services/auth.js";
 import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
   getHighContrast, setHighContrast, getAutoplay, setAutoplay } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
+import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -92,15 +93,25 @@ export function renderSettings(container, user) {
 
   const toolsCard = el("section", { class: PANEL + " mt-6" },
     el("h2", { class: "font-bold text-lg" }, "Herramientas"),
-    el("p", { class: "text-sm text-slate-400 mt-1" }, "Revisa que tan robusto y completo es el contenido del curso."),
     el("button", {
       class: "mt-4 " + PRIMARY,
       onclick: () => go("/calidad"),
     }, "Ver reporte de calidad"));
 
+  const robotCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Tu profesor robot"),
+    el("p", { class: "text-sm text-slate-400 mt-1" }, "Personaliza el avatar y el nombre de tu profe de clase."),
+    el("div", { class: "mt-4 flex items-center gap-3" },
+      robotAvatar("md"),
+      el("p", { class: "font-semibold text-slate-100" }, robotName())),
+    el("button", {
+      class: "mt-4 " + PRIMARY,
+      onclick: () => openRobotSetup(() => renderSettings(container, user)),
+    }, "Cambiar mi robot"));
+
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, sizeCard, a11yCard, accentCard, toolsCard, sessionCard));
+    nameCard, robotCard, sizeCard, a11yCard, accentCard, toolsCard, sessionCard));
   focusMainHeading(container);
 }
 
