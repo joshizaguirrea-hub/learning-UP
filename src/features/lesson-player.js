@@ -18,6 +18,7 @@ import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
+import { robotBubble, robotHelpButton, openRobotHint, robotAvatar } from "../ui/robot.js";
 
 const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 min-h-[70vh] flex flex-col";
 const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl " +
@@ -36,6 +37,8 @@ export async function renderLessonPlayer(container, params, user) {
   const { unit, lesson } = found;
   const steps = buildSteps(unit, lesson);
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
+  // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.
+  const unitGrammar = unit.lessons.find((l) => l.grammar)?.grammar || null;
 
   const state = { idx: 0, correct: 0, checked: new Set() };
 
@@ -68,11 +71,13 @@ export async function renderLessonPlayer(container, params, user) {
   // ---- Paso: intro / bienvenida a la clase --------------------------------
   function introStep() {
     const body = el("div", { class: "text-center" },
-      el("div", { class: "text-5xl" }, "\uD83D\uDCD8"),
+      el("div", { class: "flex justify-center" }, robotAvatar("lg")),
       el("span", { class: "inline-block mt-3 text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300" }, unit.level + " - " + unit.title),
       el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, lesson.title),
-      lesson.intro ? el("p", { class: "mt-3 text-slate-300" }, lesson.intro) : null,
-      el("div", { class: "mt-6 text-left " + BOX },
+      el("div", { class: "mt-4 text-left" },
+        robotBubble("Hola! Soy tu Profe Robo. Hoy vamos a aprender esto paso a paso. Primero la clase, luego practicamos. Tu puedes!")),
+      lesson.intro ? el("p", { class: "mt-4 text-slate-300" }, lesson.intro) : null,
+      el("div", { class: "mt-4 text-left " + BOX },
         el("p", { class: "text-sm font-semibold text-slate-200" }, "En esta clase vas a:"),
         el("ul", { class: "mt-2 space-y-1" },
           ...unit.cando.slice(0, 4).map((c) =>
@@ -84,7 +89,9 @@ export async function renderLessonPlayer(container, params, user) {
 
   // ---- Paso: clase (reglas / lectura / glosario / nota) -------------------
   function teachStep(step) {
-    const body = el("div", {}, step.node);
+    const body = el("div", {},
+      step.robot ? robotBubble(step.robot) : null,
+      el("div", { class: "mt-4" }, step.node));
     const footer = el("button", { class: PRIMARY, onclick: next }, step.last ? "Ir a practicar" : "Continuar");
     return { body, footer };
   }
@@ -94,9 +101,10 @@ export async function renderLessonPlayer(container, params, user) {
     const act = step.act;
     const idxNum = step.number;
     const { node, getResponse } = renderActivity(act, idxNum);
-    const heading = el("p", { class: "text-xs uppercase tracking-wide text-slate-400" },
-      "Practica " + idxNum + " de " + activityTotal);
-    const body = el("div", {}, heading, el("div", { class: "mt-3" }, node));
+    const headRow = el("div", { class: "flex items-center justify-between gap-3" },
+      el("p", { class: "text-xs uppercase tracking-wide text-slate-400" }, "Practica " + idxNum + " de " + activityTotal),
+      robotHelpButton(() => openRobotHint(unitGrammar, act)));
+    const body = el("div", {}, headRow, el("div", { class: "mt-4" }, node));
     const footerHost = el("div", {});
 
     const checkBtn = el("button", {
@@ -209,17 +217,17 @@ function buildSteps(unit, lesson) {
 
   const teach = [];
   const reading = c.reading || lesson.passage;
-  if (reading) teach.push(readingSection(reading));
+  if (reading) teach.push({ node: readingSection(reading), robot: "Leamos juntos. Fijate en las frases clave del texto." });
   const grammar = c.grammar || lesson.grammar;
-  if (grammar) teach.push(grammarBox(grammar));
+  if (grammar) teach.push({ node: grammarBox(grammar), robot: "Estas son las reglas de hoy: tu superpoder. Leelas con calma." });
   const glossary = c.glossary || lesson.glossary;
-  if (glossary?.length) teach.push(glossarySection(glossary));
-  if (c.keyPhrases?.length) teach.push(keyPhrasesSection(c.keyPhrases));
+  if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: "Estas palabras te van a servir mucho. Toca el altavoz para oirlas." });
+  if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: "Frases utiles para sonar mas natural." });
   const note = c.note || lesson.note;
-  if (note) teach.push(noteSection(note));
-  if (lesson.dialogue?.length) teach.push(dialogueSection(lesson.dialogue));
+  if (note) teach.push({ node: noteSection(note), robot: "Ojo con esta nota: es el detalle que marca la diferencia." });
+  if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue), robot: "Escucha el dialogo e imita la entonacion." });
 
-  teach.forEach((node, i) => steps.push({ kind: "teach", node, last: i === teach.length - 1 }));
+  teach.forEach((t, i) => steps.push({ kind: "teach", node: t.node, robot: t.robot, last: i === teach.length - 1 }));
 
   // Actividades: primero las de comprension de la lectura, luego las practicas.
   const acts = [];
