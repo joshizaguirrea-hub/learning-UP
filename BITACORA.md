@@ -158,6 +158,11 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       gramatica ampliada + 8, y escritura guiada de 8 pasos. Estandar: work-career-b1.js.
       Progreso enriquecido: A1 8/8, A2 8/8, B1 12/12. Falta enriquecer B2, C1, y
       construir+enriquecer C2 (3/8). SW v0.51.0.
+- [x] ARBOL CEFR CERRADO Y ENRIQUECIDO (2026-07): 56 unidades (A1 8, A2 8, B1 12,
+      B2 10, C1 10, C2 8), TODAS enriquecidas a ~30 actividades y sin errores en el
+      auditor. C2 nuevas: Critical analysis (do enfatico), Professional communication,
+      Culture/humor & subtext (understatement), Debate mastery (concesion+refutacion),
+      Capstone (repaso integrador). Curriculo A1->C2 100% completo y rico. SW v0.59.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
 
