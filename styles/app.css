@@ -11,7 +11,36 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-family: "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+
+/* Titulos con una fuente redondeada y divertida (Fredoka). */
+h1, h2, h3, .font-display,
+.font-extrabold, .font-bold {
+  font-family: "Fredoka", "Nunito", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * RESALTADO DE APRENDIZAJE
+ *   .hl-verb  -> los VERBOS que se aprenden (verde)
+ *   .hl-focus -> el FOCO / punto clave de la leccion (morado, subrayado)
+ * Se generan desde el marcado *verbo* y **foco** (ver ui/richtext.js).
+ * ------------------------------------------------------------------------- */
+.hl-verb {
+  color: #34d399;
+  font-weight: 700;
+}
+.hl-focus {
+  color: #c4b5fd;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: #a78bfa;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 2px;
+}
+html[data-contrast="high"] .hl-verb { color: #6ee7b7 !important; }
+html[data-contrast="high"] .hl-focus { color: #ddd6fe !important; }
 
 /* Modo alto contraste: aclara textos apagados y refuerza bordes/enlaces. */
 html[data-contrast="high"] .text-slate-500,
