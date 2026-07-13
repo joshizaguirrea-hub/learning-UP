@@ -22,12 +22,15 @@ import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButt
 import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText, stripMarkup } from "../ui/richtext.js";
 
-const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 min-h-[70vh] flex flex-col";
+const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
+  "rounded-3xl p-6 sm:p-8 min-h-[68vh] flex flex-col";
 const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl " +
-  "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400 w-full text-center";
+  "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400 w-full text-center " +
+  "shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]";
 const OK_BTN = "bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold px-5 py-3 rounded-xl " +
-  "hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-400 w-full text-center";
-const BOX = "bg-slate-800/60 rounded-lg p-4";
+  "hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-400 w-full text-center " +
+  "shadow-lg shadow-emerald-900/40 transition active:scale-[0.98]";
+const BOX = "bg-white/5 border border-white/5 rounded-xl p-4";
 
 export async function renderLessonPlayer(container, params, user) {
   const found = findLesson(params.id);
@@ -251,10 +254,13 @@ function buildSteps(unit, lesson) {
 // ---------------------------------------------------------------------------
 function topBar(unit, pct) {
   return el("div", { class: "flex items-center gap-3" },
-    el("a", { href: "#/unidad/" + unit.id, class: "text-slate-400 hover:text-slate-200 text-xl leading-none", "aria-label": "Salir de la leccion" }, "\u2715"),
-    el("div", { class: "flex-1 bg-slate-800 rounded-full h-3", role: "progressbar",
+    el("a", { href: "#/unidad/" + unit.id,
+      class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white text-lg leading-none shrink-0",
+      "aria-label": "Salir de la leccion" }, "\u2715"),
+    el("div", { class: "flex-1 bg-white/10 rounded-full h-3.5 overflow-hidden", role: "progressbar",
       "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
-      el("div", { class: "bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-500", style: "width:" + pct + "%" })));
+      el("div", { class: "progress-glow bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 h-full rounded-full transition-all duration-500", style: "width:" + pct + "%" })),
+    el("span", { class: "text-xs font-bold text-emerald-300 tabular-nums w-9 text-right shrink-0" }, pct + "%"));
 }
 
 // ---------------------------------------------------------------------------
@@ -366,11 +372,12 @@ function mcActivity(act, idx, title) {
   const opts = act.payload.choices.map((text, ci) => {
     const btn = el("button", {
       type: "button",
-      class: "block w-full text-left px-4 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-200 mt-2",
+      class: "block w-full text-left px-4 py-3.5 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 " +
+        "text-slate-200 mt-2.5 transition active:scale-[0.99]",
       onclick: () => {
         selected = ci;
-        [...btn.parentNode.children].forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/20"));
-        btn.classList.add("border-indigo-400", "bg-indigo-500/20");
+        [...btn.parentNode.children].forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/25"));
+        btn.classList.add("border-indigo-400", "bg-indigo-500/25");
       },
     }, text);
     return btn;
@@ -387,12 +394,12 @@ function clozeActivity(act, title) {
 
 function wordBankActivity(act, title) {
   const chosen = [];
-  const answerArea = el("div", { class: "mt-3 min-h-[3rem] flex flex-wrap gap-2 bg-slate-800/60 rounded-xl p-3 border border-dashed border-slate-600" });
+  const answerArea = el("div", { class: "mt-3 min-h-[3rem] flex flex-wrap gap-2 bg-white/5 rounded-2xl p-3 border border-dashed border-white/20" });
   const bank = el("div", { class: "mt-3 flex flex-wrap gap-2" });
 
   function redraw() {
     answerArea.replaceChildren(...chosen.map((w, i) =>
-      el("button", { type: "button", class: "px-3 py-1.5 bg-indigo-500/30 text-indigo-100 rounded-lg",
+      el("button", { type: "button", class: "px-3 py-1.5 bg-indigo-500/30 text-indigo-100 rounded-lg transition active:scale-95 hover:bg-indigo-500/40",
         onclick: () => { chosen.splice(i, 1); restoreBank(); redraw(); } }, w)));
   }
   function restoreBank() {
@@ -406,7 +413,7 @@ function wordBankActivity(act, title) {
   const shuffled = [...act.payload.words].sort(() => Math.random() - 0.5);
   shuffled.forEach((w) => {
     const btn = el("button", { type: "button",
-      class: "px-3 py-1.5 border border-slate-600 rounded-lg text-slate-200 hover:bg-slate-800",
+      class: "px-3 py-1.5 border border-white/15 bg-white/5 rounded-lg text-slate-200 hover:bg-white/10 transition active:scale-95",
       onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); } }, w);
     bank.append(btn);
   });
