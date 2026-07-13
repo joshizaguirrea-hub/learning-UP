@@ -17,6 +17,27 @@ export function robotName() {
   return getRobot().name;
 }
 
+// Frases cortas de reaccion (bilingues) para acierto/error.
+const REACT = {
+  ok: {
+    es: ["Muy bien!", "Excelente!", "Eso es!", "Vas genial!", "Lo lograste!", "Perfecto!"],
+    en: ["Great job!", "Awesome!", "That's it!", "Well done!", "Perfect!", "Nailed it!"],
+  },
+  no: {
+    es: ["Casi! Tu puedes.", "No pasa nada, sigue.", "Buen intento!", "Ya casi, animo!"],
+    en: ["Almost! Keep going.", "No worries, try again.", "Nice try!", "You've got this!"],
+  },
+};
+
+/** El profe reacciona con voz al acierto/error (frase corta al azar). */
+export function robotReact(ok, lang = "es-MX") {
+  const l = lang.startsWith("es") ? "es" : "en";
+  const pool = REACT[ok ? "ok" : "no"][l];
+  const phrase = pool[(Math.random() * pool.length) | 0];
+  // Pequeno retraso para no encimar el "ding".
+  setTimeout(() => speakRobot(phrase, lang), 220);
+}
+
 /** Avatar del robot elegido por el alumno. size: sm | md | lg. */
 export function robotAvatar(size = "md") {
   return avatarNode(getRobot().avatar, size);
