@@ -4,7 +4,7 @@
  * Cache-first para el "app shell". La version se sincroniza con VERSION via
  * tools/stamp_version.py (ADR-002): NO editar CACHE a mano en cada release.
  */
-const CACHE = "linguapath-v0.46.0";
+const CACHE = "linguapath-v0.47.0";
 
 const SHELL = [
   "./",
