@@ -1,26 +1,30 @@
 /**
- * features/lesson-player.js — Reproduce una leccion del curso (ciclo PPP).
+ * features/lesson-player.js — Reproductor de leccion estilo "clase" (paso a paso).
  *
- * Capa de feature: pinta la teoria + las actividades y las califica con
- * core/activities. Enriquecido con feedback POR PREGUNTA (el "porque"), fase
- * Aprende con recuadro de gramatica y chequeo de comprension. Tema oscuro.
+ * Capa de feature. Flujo tipo Duolingo PERO con nuestra ventaja: primero la
+ * CLASE (reglas/normas de lo que se va a aprender) y luego las practicas, una
+ * por una, con barra de progreso arriba, feedback inmediato con sonido y una
+ * pantalla final de logros que aparecen "uno tras otro". Tema oscuro.
+ *
+ * Pasos = [intro] + [pasos de clase] + [una actividad por paso] + [final].
  */
 import { findLesson } from "../data/units/index.js";
-import { grade, gradeAll } from "../core/activities.js";
+import { grade } from "../core/activities.js";
 import { completeLesson } from "../services/course.js";
 import { ensureCards } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
-import { ICONS } from "../ui/icons.js";
 import { speakButton } from "../ui/speech.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
+import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
 
-const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8";
-const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-2.5 rounded-lg " +
-  "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
+const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 min-h-[70vh] flex flex-col";
+const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl " +
+  "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400 w-full text-center";
+const OK_BTN = "bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold px-5 py-3 rounded-xl " +
+  "hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-400 w-full text-center";
 const BOX = "bg-slate-800/60 rounded-lg p-4";
-const PHASE_LABEL = { learn: "Aprende", present: "Presentacion", practice: "Practica", produce: "Produccion" };
 
 export async function renderLessonPlayer(container, params, user) {
   const found = findLesson(params.id);
@@ -30,70 +34,106 @@ export async function renderLessonPlayer(container, params, user) {
     return;
   }
   const { unit, lesson } = found;
+  const steps = buildSteps(unit, lesson);
+  const activityTotal = steps.filter((s) => s.kind === "activity").length;
 
-  if (lesson.phase === "learn" || (lesson.content && lesson.activities.length === 0)) {
-    return renderLearn(container, unit, lesson, user);
-  }
-  return renderPractice(container, unit, lesson, user);
-}
+  const state = { idx: 0, correct: 0, checked: new Set() };
 
-// ---------------------------------------------------------------------------
-// Fases PRACTICA / PRODUCCION: actividades con feedback por pregunta.
-// ---------------------------------------------------------------------------
-function renderPractice(container, unit, lesson, user) {
-  const header = el("div", {},
-    backLink(unit),
-    el("div", { class: "flex items-center gap-2 mt-3" },
-      phaseBadge(lesson.phase),
-      el("h1", { class: "text-2xl font-bold" }, lesson.title)));
+  renderStep();
 
-  const theory = el("section", { class: "mt-4" },
-    lesson.intro ? el("p", { class: "text-slate-300" }, lesson.intro) : null,
-    lesson.passage ? readingSection(lesson.passage) : null,
-    lesson.grammar ? grammarBox(lesson.grammar) : null,
-    lesson.glossary?.length ? glossarySection(lesson.glossary) : null,
-    lesson.note ? noteSection(lesson.note) : null,
-    lesson.dialogue
-      ? el("ul", { class: "mt-4 space-y-1 " + BOX + " text-slate-300 text-sm" },
-          ...lesson.dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
-            speakButton(line.replace(/^[A-Z]:\s*/, "")), el("span", {}, line))))
-      : null);
+  // -------------------------------------------------------------------------
+  function renderStep() {
+    if (state.idx >= steps.length) return renderComplete();
+    const step = steps[state.idx];
+    const pct = Math.round((state.idx / steps.length) * 100);
 
-  showForm();
+    let body, footer;
+    if (step.kind === "intro") {
+      ({ body, footer } = introStep());
+    } else if (step.kind === "teach") {
+      ({ body, footer } = teachStep(step));
+    } else {
+      ({ body, footer } = activityStep(step));
+    }
 
-  function showForm() {
-    const readers = [];
-    const nodes = lesson.activities.map((act, i) => {
-      const { node, getResponse } = renderActivity(act, i);
-      readers.push(getResponse);
-      return node;
-    });
-
-    const submit = el("button", {
-      class: "mt-6 " + PRIMARY,
-      onclick: () => {
-        const responses = readers.map((r) => r());
-        if (responses.some((r) => r == null || r === "" || (Array.isArray(r) && r.length === 0))) {
-          announce("Responde todas las preguntas.");
-        }
-        showReview(responses);
-      },
-    }, "Revisar respuestas");
-
-    mount(container, el("div", { class: CARD }, header, theory,
-      el("section", { class: "mt-6 space-y-6" }, ...nodes), submit));
+    mount(container, el("div", { class: CARD },
+      topBar(unit, pct),
+      el("div", { class: "flex-1 mt-6" }, body),
+      el("div", { class: "mt-6" }, footer)));
     focusMainHeading(container);
   }
 
-  async function showReview(responses) {
-    const score = gradeAll(lesson.activities, responses);
-    const reviewNodes = lesson.activities.map((act, i) => reviewNode(act, responses[i], i));
+  function next() { state.idx++; renderStep(); }
+
+  // ---- Paso: intro / bienvenida a la clase --------------------------------
+  function introStep() {
+    const body = el("div", { class: "text-center" },
+      el("div", { class: "text-5xl" }, "\uD83D\uDCD8"),
+      el("span", { class: "inline-block mt-3 text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300" }, unit.level + " - " + unit.title),
+      el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, lesson.title),
+      lesson.intro ? el("p", { class: "mt-3 text-slate-300" }, lesson.intro) : null,
+      el("div", { class: "mt-6 text-left " + BOX },
+        el("p", { class: "text-sm font-semibold text-slate-200" }, "En esta clase vas a:"),
+        el("ul", { class: "mt-2 space-y-1" },
+          ...unit.cando.slice(0, 4).map((c) =>
+            el("li", { class: "flex gap-2 text-sm text-slate-300" },
+              el("span", { class: "text-emerald-400" }, "+"), c)))));
+    const footer = el("button", { class: PRIMARY, onclick: next }, "Empezar la clase");
+    return { body, footer };
+  }
+
+  // ---- Paso: clase (reglas / lectura / glosario / nota) -------------------
+  function teachStep(step) {
+    const body = el("div", {}, step.node);
+    const footer = el("button", { class: PRIMARY, onclick: next }, step.last ? "Ir a practicar" : "Continuar");
+    return { body, footer };
+  }
+
+  // ---- Paso: una actividad con feedback inmediato -------------------------
+  function activityStep(step) {
+    const act = step.act;
+    const idxNum = step.number;
+    const { node, getResponse } = renderActivity(act, idxNum);
+    const heading = el("p", { class: "text-xs uppercase tracking-wide text-slate-400" },
+      "Practica " + idxNum + " de " + activityTotal);
+    const body = el("div", {}, heading, el("div", { class: "mt-3" }, node));
+    const footerHost = el("div", {});
+
+    const checkBtn = el("button", {
+      class: PRIMARY,
+      onclick: () => {
+        const response = getResponse();
+        if (response == null || response === "" || (Array.isArray(response) && response.length === 0)) {
+          announce("Responde primero.");
+          return;
+        }
+        const ok = grade(act, response);
+        if (ok && !state.checked.has(idxNum)) { state.correct++; }
+        state.checked.add(idxNum);
+        lockNode(node);
+        ok ? playCorrect() : playWrong();
+        body.append(feedbackBanner(ok, act));
+        mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
+          state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
+        announce(ok ? "Correcto" : "Incorrecto");
+      },
+    }, "Comprobar");
+
+    mount(footerHost, checkBtn);
+    return { body, footer: footerHost };
+  }
+
+  // ---- Pantalla final: logros que aparecen uno tras otro ------------------
+  async function renderComplete() {
+    const total = activityTotal;
+    const ratio = total === 0 ? 1 : state.correct / total;
+    const passed = ratio >= 0.6;
+    const xp = 10 + state.correct * 5;
 
     let saveError = null;
-    if (score.passed) {
-      const saved = await completeLesson(user.id, lesson.id, Math.round(score.ratio * 100));
+    if (passed) {
+      const saved = await completeLesson(user.id, lesson.id, Math.round(ratio * 100));
       if (!saved.ok) saveError = saved.error;
-      // Efectos secundarios (SRS + racha) NO deben tumbar el completado.
       try {
         if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
         await recordActivity(user.id);
@@ -102,37 +142,118 @@ function renderPractice(container, unit, lesson, user) {
       }
     }
 
-    const banner = saveError
-      ? feedback(false, "No se pudo guardar tu progreso: " + saveError + ". Revisa tu conexion e intenta de nuevo.")
-      : feedback(score.passed,
-          score.passed
-            ? `Muy bien! ${score.correct}/${score.total} correctas. Leccion completada.`
-            : `Tuviste ${score.correct}/${score.total}. Necesitas 60%. Repasa las explicaciones e intenta otra vez.`);
+    if (!passed) {
+      mount(container, el("div", { class: CARD },
+        topBar(unit, 100),
+        el("div", { class: "flex-1 mt-6 text-center" },
+          el("div", { class: "text-5xl" }, "\uD83D\uDCAA"),
+          el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, "Casi lo logras"),
+          el("p", { class: "mt-2 text-slate-300" },
+            "Tuviste " + state.correct + "/" + total + ". Necesitas 60%. Repasa la clase e intenta de nuevo."),
+          feedback(false, "No pasa nada: equivocarse es parte de aprender.")),
+        el("div", { class: "mt-6" },
+          el("button", { class: PRIMARY, onclick: () => { state.idx = 0; state.correct = 0; state.checked = new Set(); renderStep(); } }, "Reintentar la leccion"))));
+      focusMainHeading(container);
+      return;
+    }
 
-    const action = (score.passed && !saveError)
-      ? el("button", { class: "mt-6 " + PRIMARY, onclick: () => go(`/unidad/${unit.id}`) }, "Volver a la unidad")
-      : el("button", { class: "mt-6 " + PRIMARY, onclick: showForm }, "Reintentar");
+    // Aprobado: construimos los logros y los revelamos escalonadamente.
+    const achievements = [];
+    achievements.push({ icon: "\u2B50", text: "+" + xp + " puntos de experiencia" });
+    achievements.push({ icon: "\u2705", text: "Leccion completada: " + lesson.title });
+    achievements.push({ icon: "\uD83C\uDFAF", text: state.correct + "/" + total + " respuestas correctas" });
+    if (lesson.teachesVocab) achievements.push({ icon: "\uD83D\uDCDA", text: "Vocabulario anadido a tu repaso (SRS)" });
+    achievements.push({ icon: "\uD83D\uDD25", text: "Racha del dia +1" });
+    if (saveError) achievements.push({ icon: "\u26A0\uFE0F", text: "Aviso: no se guardo en la nube (" + saveError + ")" });
 
-    mount(container, el("div", { class: CARD }, header, theory,
-      el("section", { class: "mt-6 space-y-3" }, ...reviewNodes), banner, action));
+    const list = el("div", { class: "mt-6 space-y-3" });
+    const body = el("div", { class: "flex-1 mt-4 text-center" },
+      el("div", { class: "text-6xl" }, "\uD83C\uDF89"),
+      el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, "Clase completada!"),
+      el("p", { class: "mt-1 text-slate-400 text-sm" }, "Bien hecho. Esto ganaste:"),
+      list);
+
+    mount(container, el("div", { class: CARD },
+      topBar(unit, 100),
+      body,
+      el("div", { class: "mt-6" },
+        el("button", { class: OK_BTN, onclick: () => go("/unidad/" + unit.id) }, "Volver a la unidad"))));
     focusMainHeading(container);
-    announce(score.passed ? "Leccion completada." : "Revisa las explicaciones.");
+    playFanfare();
+
+    // Revelacion escalonada con sonidito por cada logro.
+    achievements.forEach((a, i) => {
+      const item = el("div", {
+        class: "flex items-center gap-3 " + BOX + " text-left",
+        style: "opacity:0; transform: translateY(10px); transition: all .35s ease;",
+      },
+        el("span", { class: "text-2xl" }, a.icon),
+        el("span", { class: "text-slate-200 font-medium" }, a.text));
+      list.append(item);
+      setTimeout(() => {
+        item.style.opacity = "1";
+        item.style.transform = "translateY(0)";
+        playAchievement(i);
+      }, 500 + i * 650);
+    });
+    announce("Clase completada. Ganaste " + xp + " puntos.");
   }
 }
 
-/** Tarjeta de revision de una actividad: correcto/incorrecto + solucion + porque. */
-function reviewNode(act, response, i) {
-  const ok = grade(act, response);
+// ---------------------------------------------------------------------------
+// Construccion de pasos a partir de la leccion (clase + practicas).
+// ---------------------------------------------------------------------------
+function buildSteps(unit, lesson) {
+  const steps = [{ kind: "intro" }];
+  const c = lesson.content || {};
+
+  const teach = [];
+  const reading = c.reading || lesson.passage;
+  if (reading) teach.push(readingSection(reading));
+  const grammar = c.grammar || lesson.grammar;
+  if (grammar) teach.push(grammarBox(grammar));
+  const glossary = c.glossary || lesson.glossary;
+  if (glossary?.length) teach.push(glossarySection(glossary));
+  if (c.keyPhrases?.length) teach.push(keyPhrasesSection(c.keyPhrases));
+  const note = c.note || lesson.note;
+  if (note) teach.push(noteSection(note));
+  if (lesson.dialogue?.length) teach.push(dialogueSection(lesson.dialogue));
+
+  teach.forEach((node, i) => steps.push({ kind: "teach", node, last: i === teach.length - 1 }));
+
+  // Actividades: primero las de comprension de la lectura, luego las practicas.
+  const acts = [];
+  (c.check || []).forEach((q) =>
+    acts.push({ type: "multiple_choice", prompt: q.prompt, payload: { choices: q.choices, answer: q.answer } }));
+  (lesson.activities || []).forEach((a) => acts.push(a));
+
+  acts.forEach((act, i) => steps.push({ kind: "activity", act, number: i + 1 }));
+  return steps;
+}
+
+// ---------------------------------------------------------------------------
+// Barra superior: cerrar (X) + barra de progreso que se va llenando.
+// ---------------------------------------------------------------------------
+function topBar(unit, pct) {
+  return el("div", { class: "flex items-center gap-3" },
+    el("a", { href: "#/unidad/" + unit.id, class: "text-slate-400 hover:text-slate-200 text-xl leading-none", "aria-label": "Salir de la leccion" }, "\u2715"),
+    el("div", { class: "flex-1 bg-slate-800 rounded-full h-3", role: "progressbar",
+      "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
+      el("div", { class: "bg-gradient-to-r from-emerald-400 to-teal-400 h-3 rounded-full transition-all duration-500", style: "width:" + pct + "%" })));
+}
+
+// ---------------------------------------------------------------------------
+// Feedback inmediato por actividad (banner tipo Duolingo).
+// ---------------------------------------------------------------------------
+function feedbackBanner(ok, act) {
   return el("div", {
-    class: "rounded-lg p-4 border " +
-      (ok ? "border-emerald-700/60 bg-emerald-900/20" : "border-red-800/60 bg-red-900/20"),
+    class: "mt-4 rounded-xl p-4 border " +
+      (ok ? "border-emerald-600/60 bg-emerald-900/25" : "border-red-700/60 bg-red-900/25"),
   },
-    el("div", { class: "flex items-start gap-2" },
-      el("span", { class: "mt-0.5 w-5 h-5 shrink-0 " + (ok ? "text-emerald-400" : "text-red-400"), html: ok ? ICONS.check : ICONS.lock }),
-      el("p", { class: "font-medium text-slate-200" }, `${i + 1}. ${act.prompt}`)),
-    !ok ? el("p", { class: "mt-2 text-sm text-slate-400" }, "Tu respuesta: " + userAnswerText(act, response)) : null,
-    el("p", { class: "mt-1 text-sm " + (ok ? "text-emerald-300" : "text-emerald-300") }, "Correcto: " + correctAnswerText(act)),
-    act.explain ? el("p", { class: "mt-2 text-sm text-slate-300 " + BOX }, "Por que: " + act.explain) : null);
+    el("p", { class: "font-bold " + (ok ? "text-emerald-300" : "text-red-300") },
+      ok ? "\u2714 Correcto!" : "\u2716 No exactamente"),
+    !ok ? el("p", { class: "mt-1 text-sm text-slate-200" }, "Respuesta: " + correctAnswerText(act)) : null,
+    act.explain ? el("p", { class: "mt-2 text-sm text-slate-300" }, "Por que: " + act.explain) : null);
 }
 
 function correctAnswerText(act) {
@@ -141,106 +262,67 @@ function correctAnswerText(act) {
     case "multiple_choice": return p.choices[p.answer];
     case "cloze": return p.answer;
     case "word_bank": return p.answer.join(" ");
-    case "matching": return p.pairs.map((x) => `${x.left} = ${x.right}`).join(" | ");
+    case "matching": return p.pairs.map((x) => x.left + " = " + x.right).join(" | ");
     default: return "";
   }
 }
 
-function userAnswerText(act, r) {
-  const p = act.payload;
-  switch (act.type) {
-    case "multiple_choice": return r == null ? "(sin responder)" : p.choices[r];
-    case "cloze": return r ? `"${r}"` : "(vacio)";
-    case "word_bank": return r && r.length ? r.join(" ") : "(vacio)";
-    case "matching": return p.pairs.map((x, i) => `${x.left} = ${(r && r[i]) || "?"}`).join(" | ");
-    default: return "";
-  }
+/** Desactiva todos los controles dentro de un nodo (bloquea tras comprobar). */
+function lockNode(node) {
+  node.querySelectorAll("input, button, select").forEach((c) => { c.disabled = true; });
+  node.classList.add("opacity-90");
 }
 
 // ---------------------------------------------------------------------------
-// Fase APRENDE: lectura + gramatica + glosario + frases + nota + comprension.
-// ---------------------------------------------------------------------------
-async function renderLearn(container, unit, lesson, user) {
-  const c = lesson.content || {};
-  const done = el("div");
-
-  const finishBtn = el("button", {
-    class: "mt-6 " + PRIMARY,
-    onclick: async () => {
-      const saved = await completeLesson(user.id, lesson.id, 100);
-      if (!saved.ok) {
-        mount(done, feedback(false, "No se pudo guardar tu progreso: " + saved.error + ". Revisa tu conexion e intenta de nuevo."));
-        return;
-      }
-      try {
-        if (lesson.teachesVocab) await ensureCards(user.id, unit.vocab);
-        await recordActivity(user.id);
-      } catch (e) {
-        console.error("[leccion] efecto secundario fallo:", e);
-      }
-      mount(done, el("div", {},
-        feedback(true, "Listo! Ya estudiaste el material." +
-          (lesson.teachesVocab ? " Agregamos el vocabulario a tu repaso diario (SRS)." : "")),
-        el("button", { class: "mt-4 " + PRIMARY, onclick: () => go(`/unidad/${unit.id}`) }, "Continuar a practicar")));
-      announce("Material completado.");
-    },
-  }, "Ya lo estudie");
-
-  mount(container, el("div", { class: CARD },
-    backLink(unit),
-    el("div", { class: "flex items-center gap-2 mt-3" }, phaseBadge("learn"),
-      el("h1", { class: "text-2xl font-bold" }, lesson.title)),
-    lesson.intro ? el("p", { class: "mt-3 text-slate-400 text-sm" }, lesson.intro) : null,
-
-    c.reading ? readingSection(c.reading) : null,
-
-    c.grammar ? grammarBox(c.grammar) : null,
-
-    c.glossary?.length ? glossarySection(c.glossary) : null,
-
-    c.keyPhrases?.length ? section("Frases clave",
-      el("ul", { class: "space-y-1 text-slate-300" },
-        ...c.keyPhrases.map((p) => el("li", { class: "text-sm flex items-center gap-2" }, speakButton(p), "- " + p)))) : null,
-
-    c.note ? noteSection(c.note) : null,
-
-    c.check?.length ? comprehension(c.check) : null,
-
-    finishBtn, done));
-  focusMainHeading(container);
-}
-
-// ---------------------------------------------------------------------------
-// Bloques de ensenanza reutilizables (lectura / glosario / nota / gramatica).
+// Bloques de ensenanza (la CLASE).
 // ---------------------------------------------------------------------------
 function readingSection(text) {
-  return el("section", { class: "mt-6" },
+  const paras = String(text).split(/\n\n+/);
+  return el("section", {},
     el("div", { class: "flex items-center gap-2" },
-      el("h2", { class: "font-bold text-slate-100" }, "Lectura"),
-      speakButton(text)),
-    el("div", { class: "mt-2" }, el("p", { class: "text-slate-200 leading-relaxed " + BOX }, text)));
+      el("h2", { class: "font-bold text-lg text-slate-100" }, "Lectura"),
+      speakButton(String(text).replace(/\n+/g, " "))),
+    el("div", { class: "mt-3 space-y-3" },
+      ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, p))));
 }
 
 function glossarySection(glossary) {
-  return section("Glosario",
-    el("div", {}, ...glossary.map((g) =>
+  return el("section", {},
+    el("h2", { class: "font-bold text-lg text-slate-100" }, "Glosario"),
+    el("div", { class: "mt-3" }, ...glossary.map((g) =>
       el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
         el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, g.term, speakButton(g.term)),
         el("span", { class: "text-slate-400 text-right" }, g.translation)))));
 }
 
+function keyPhrasesSection(phrases) {
+  return el("section", {},
+    el("h2", { class: "font-bold text-lg text-slate-100" }, "Frases clave"),
+    el("ul", { class: "mt-3 space-y-2" },
+      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(p), p))));
+}
+
 function noteSection(note) {
-  return el("section", { class: "mt-6 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
+  return el("section", { class: "bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
     el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
     el("p", { class: "mt-1 text-sm text-amber-200" }, note));
 }
 
+function dialogueSection(dialogue) {
+  return el("section", {},
+    el("h2", { class: "font-bold text-lg text-slate-100" }, "Dialogo"),
+    el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
+      ...dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
+        speakButton(line.replace(/^[A-Z]:\s*/, "")), el("span", {}, line)))));
+}
+
 function grammarBox(g) {
-  return el("section", { class: "mt-6 border border-indigo-500/30 bg-indigo-500/10 rounded-lg p-4" },
-    el("h2", { class: "font-bold text-indigo-300" }, "Gramatica: " + g.title),
-    g.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-200 bg-slate-900/60 rounded px-3 py-2" }, g.form) : null,
+  return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-lg p-4" },
+    el("p", { class: "text-xs uppercase tracking-wide text-indigo-300/80" }, "Las reglas"),
+    el("h2", { class: "font-bold text-lg text-indigo-200 mt-0.5" }, g.title),
+    g.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, g.form) : null,
     g.examples?.length ? el("ul", { class: "mt-3 space-y-1" },
-      ...g.examples.map((ex) => el("li", { class: "text-sm text-slate-200" }, "- " + ex))) : null,
+      ...g.examples.map((ex) => el("li", { class: "text-sm text-slate-200 flex items-center gap-2" }, speakButton(ex), "- " + ex))) : null,
     g.mistakes?.length ? el("div", { class: "mt-3" },
       el("p", { class: "text-xs font-semibold text-slate-400 uppercase tracking-wide" }, "Errores comunes"),
       el("ul", { class: "mt-1 space-y-1" }, ...g.mistakes.map((m) =>
@@ -250,35 +332,11 @@ function grammarBox(g) {
           el("span", { class: "text-emerald-400" }, m.right))))) : null);
 }
 
-/** Chequeo de comprension: preguntas de la lectura con feedback inmediato. */
-function comprehension(questions) {
-  const items = questions.map((q, qi) => {
-    const opts = q.choices.map((text, ci) =>
-      el("button", {
-        type: "button",
-        class: "block w-full text-left px-3 py-2 rounded-md border border-slate-700 hover:bg-slate-800 text-slate-200 mt-1",
-        onclick: (e) => {
-          const correct = ci === q.answer;
-          e.currentTarget.classList.remove("border-slate-700", "hover:bg-slate-800");
-          e.currentTarget.classList.add(correct ? "border-emerald-500" : "border-red-500",
-            correct ? "bg-emerald-900/30" : "bg-red-900/30");
-        },
-      }, text));
-    return el("div", { class: "mt-3" },
-      el("p", { class: "text-sm font-medium text-slate-200" }, `${qi + 1}. ${q.prompt}`),
-      el("div", { class: "mt-1" }, ...opts));
-  });
-  return el("section", { class: "mt-6 " + BOX },
-    el("h2", { class: "font-bold text-slate-100" }, "Comprueba que entendiste"),
-    el("p", { class: "text-xs text-slate-400 mt-0.5" }, "Toca una opcion para ver si es correcta."),
-    ...items);
-}
-
 // ---------------------------------------------------------------------------
 // Renderizadores de actividad. Cada uno devuelve { node, getResponse }.
 // ---------------------------------------------------------------------------
 function renderActivity(act, idx) {
-  const title = el("legend", { class: "font-medium text-slate-200" }, `${idx + 1}. ${act.prompt}`);
+  const title = el("legend", { class: "font-medium text-slate-100 text-lg" }, act.prompt);
   switch (act.type) {
     case "multiple_choice": return mcActivity(act, idx, title);
     case "cloze": return clozeActivity(act, title);
@@ -291,68 +349,71 @@ function renderActivity(act, idx) {
 function mcActivity(act, idx, title) {
   let selected = null;
   const opts = act.payload.choices.map((text, ci) => {
-    const id = `a${idx}-c${ci}`;
-    return el("label", { for: id, class: "flex items-center px-3 py-2 rounded-md border border-slate-700 hover:bg-slate-800 cursor-pointer text-slate-200" },
-      el("input", { type: "radio", name: `a${idx}`, id, class: "mr-2 accent-indigo-500", onchange: () => { selected = ci; } }), text);
+    const btn = el("button", {
+      type: "button",
+      class: "block w-full text-left px-4 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-200 mt-2",
+      onclick: () => {
+        selected = ci;
+        [...btn.parentNode.children].forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/20"));
+        btn.classList.add("border-indigo-400", "bg-indigo-500/20");
+      },
+    }, text);
+    return btn;
   });
-  return { node: el("fieldset", {}, title, el("div", { class: "mt-2 space-y-2" }, ...opts)), getResponse: () => selected };
+  return { node: el("fieldset", {}, title, el("div", { class: "mt-2" }, ...opts)), getResponse: () => selected };
 }
 
 function clozeActivity(act, title) {
   const input = el("input", { type: "text",
-    class: "mt-2 w-full rounded-md bg-slate-800 border border-slate-700 px-3 py-2 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
+    class: "mt-3 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
     placeholder: "Escribe tu respuesta" });
   return { node: el("fieldset", {}, title, input), getResponse: () => input.value };
 }
 
 function wordBankActivity(act, title) {
   const chosen = [];
-  const answerArea = el("div", { class: "mt-2 min-h-[2.5rem] flex flex-wrap gap-2 bg-slate-800/60 rounded-md p-2 border border-dashed border-slate-600" });
-  const bank = el("div", { class: "mt-2 flex flex-wrap gap-2" });
+  const answerArea = el("div", { class: "mt-3 min-h-[3rem] flex flex-wrap gap-2 bg-slate-800/60 rounded-xl p-3 border border-dashed border-slate-600" });
+  const bank = el("div", { class: "mt-3 flex flex-wrap gap-2" });
 
   function redraw() {
-    answerArea.replaceChildren(...chosen.map((w) => el("span", { class: "px-2 py-1 bg-indigo-500/30 text-indigo-200 rounded" }, w)));
+    answerArea.replaceChildren(...chosen.map((w, i) =>
+      el("button", { type: "button", class: "px-3 py-1.5 bg-indigo-500/30 text-indigo-100 rounded-lg",
+        onclick: () => { chosen.splice(i, 1); restoreBank(); redraw(); } }, w)));
+  }
+  function restoreBank() {
+    [...bank.children].forEach((b) => {
+      const stillUsed = chosen.filter((w) => w === b.textContent).length;
+      const totalSame = [...bank.children].filter((x) => x.textContent === b.textContent).indexOf(b);
+      b.disabled = totalSame < stillUsed;
+      b.classList.toggle("opacity-40", b.disabled);
+    });
   }
   const shuffled = [...act.payload.words].sort(() => Math.random() - 0.5);
   shuffled.forEach((w) => {
     const btn = el("button", { type: "button",
-      class: "px-3 py-1 border border-slate-700 rounded text-slate-200 hover:bg-slate-800",
-      onclick: () => { chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); } }, w);
+      class: "px-3 py-1.5 border border-slate-600 rounded-lg text-slate-200 hover:bg-slate-800",
+      onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); } }, w);
     bank.append(btn);
   });
-  const clear = el("button", { type: "button", class: "mt-2 text-sm text-indigo-400 underline",
-    onclick: () => { chosen.length = 0; redraw(); [...bank.children].forEach((b) => { b.disabled = false; b.classList.remove("opacity-40"); }); } }, "Limpiar");
 
-  return { node: el("fieldset", {}, title, answerArea, bank, clear), getResponse: () => [...chosen] };
+  return { node: el("fieldset", {}, title, answerArea, bank), getResponse: () => [...chosen] };
 }
 
 function matchingActivity(act, title) {
   const rights = act.payload.pairs.map((p) => p.right).sort(() => Math.random() - 0.5);
   const selects = [];
   const rows = act.payload.pairs.map((p, i) => {
-    const sel = el("select", { class: "rounded-md bg-slate-800 border border-slate-700 text-slate-100 px-2 py-1.5 focus:outline focus:outline-2 focus:outline-indigo-500" },
+    const sel = el("select", { class: "rounded-lg bg-slate-800 border border-slate-700 text-slate-100 px-2 py-2 focus:outline focus:outline-2 focus:outline-indigo-500 flex-1" },
       el("option", { value: "" }, "Elige..."),
       ...rights.map((r) => el("option", { value: r }, r)));
     selects[i] = sel;
-    return el("div", { class: "flex items-center gap-3 mt-2" },
-      el("span", { class: "font-medium w-32 text-slate-200" }, p.left), el("span", { class: "text-slate-500" }, "->"), sel);
+    return el("div", { class: "flex items-center gap-3 mt-3" },
+      el("span", { class: "font-medium w-32 text-slate-100" }, p.left), el("span", { class: "text-slate-500" }, "->"), sel);
   });
   return { node: el("fieldset", {}, title, ...rows), getResponse: () => selects.map((s) => s.value) };
 }
 
 // ---------------------------------------------------------------------------
-// Helpers de UI compartidos.
-// ---------------------------------------------------------------------------
-function backLink(unit) {
-  return el("a", { href: `#/unidad/${unit.id}`, class: "text-sm text-indigo-400 hover:text-indigo-300" }, "< Volver a la unidad");
-}
-function phaseBadge(phase) {
-  const cls = phase === "learn" ? "bg-sky-500/20 text-sky-300" : "bg-indigo-500/20 text-indigo-300";
-  return el("span", { class: `text-xs px-2 py-0.5 rounded-full ${cls}` }, PHASE_LABEL[phase] || "");
-}
-function section(title, body) {
-  return el("section", { class: "mt-6" }, el("h2", { class: "font-bold text-slate-100" }, title), el("div", { class: "mt-2" }, body));
-}
 function feedback(ok, msg) {
   return el("div", { role: "alert",
     class: "mt-4 text-sm rounded-md px-3 py-2 " +
