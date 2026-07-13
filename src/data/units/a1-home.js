@@ -167,6 +167,7 @@ export const A1_HOME = {
         title: "there is / there are + preposiciones",
         form: "There is + singular · There are + plural · on / under / next to / in",
         examples: ["There is a bed in the room.", "There are two windows.", "The book is on the table."],
+        explain: { tr: ["Hay una cama en el cuarto.", "Hay dos ventanas.", "El libro est\u00e1 sobre la mesa."] },
         mistakes: [
           { wrong: "There is two chairs.", right: "There are two chairs." },
           { wrong: "There are a table.", right: "There is a table." },

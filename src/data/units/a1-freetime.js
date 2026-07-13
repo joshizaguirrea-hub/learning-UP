@@ -167,6 +167,7 @@ export const A1_FREETIME = {
         title: "like + -ing / can",
         form: "like/love/hate + verbo-ing · can / can't + verbo base",
         examples: ["I love reading.", "She can play the guitar.", "He can't dance.", "They like dancing."],
+        explain: { tr: ["Me encanta leer.", "Ella sabe tocar la guitarra.", "\u00c9l no sabe bailar.", "A ellos les gusta bailar."] },
         mistakes: [
           { wrong: "I like read.", right: "I like reading." },
           { wrong: "She can to swim.", right: "She can swim." },

@@ -196,6 +196,7 @@ export const A1_HELLO = {
         },
         form: "I *am* / you *are* / he-she-it *is* / we-they *are*",
         examples: ["I am a student.", "She is from Canada.", "We are friends.", "They are teachers."],
+        explain: { tr: ["Yo soy estudiante.", "Ella es de Canad\u00e1.", "Nosotros somos amigos.", "Ellos son profesores."] },
         mistakes: [
           { wrong: "I is from Mexico.", right: "I am from Mexico." },
           { wrong: "He are a teacher.", right: "He is a teacher." },

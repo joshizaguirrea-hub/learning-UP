@@ -167,6 +167,7 @@ export const A1_SHOPPING = {
         title: "this / that / these / those + How much",
         form: "singular: this (cerca) / that (lejos) · plural: these / those · How much is/are...?",
         examples: ["This shirt is nice.", "Those shoes are expensive.", "How much is this?", "How much are these?"],
+        explain: { tr: ["Esta camisa es bonita.", "Esos zapatos son caros.", "\u00bfCu\u00e1nto cuesta esto?", "\u00bfCu\u00e1nto cuestan estos?"] },
         mistakes: [
           { wrong: "How much are this shirt?", right: "How much is this shirt?" },
           { wrong: "This shoes are cheap.", right: "These shoes are cheap." },
