@@ -130,7 +130,9 @@ export function grammarBox(g) {
     g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
 
     g.form ? el("div", { class: "mt-4" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Formula"),
+      el("div", { class: "flex items-center gap-2 mb-1" },
+        el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400" }, "Formula"),
+        speakButton(stripMarkup(g.form))),
       el("p", { class: "font-mono text-sm text-indigo-100 bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2" }, richText(g.form))) : null,
 
     g.table?.headers?.length ? el("div", { class: "mt-4" },
