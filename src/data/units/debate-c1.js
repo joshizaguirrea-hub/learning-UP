@@ -167,6 +167,7 @@ export const DEBATE_C1 = {
         title: "Hedging / cautious language",
         form: "tend to + base · it seems/appears that... · may/might/could + base · perhaps",
         examples: ["Prices tend to rise.", "It seems that he is right.", "This may be a problem."],
+        explain: { tr: ["Los precios tienden a subir.", "Parece que \u00e9l tiene raz\u00f3n.", "Esto podr\u00eda ser un problema."] },
         mistakes: [
           { wrong: "Prices tend rise.", right: "Prices tend to rise." },
           { wrong: "It seems he is right that.", right: "It seems that he is right." },

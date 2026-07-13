@@ -167,6 +167,7 @@ export const GLOBAL_ISSUES_C1 = {
         title: "The subjunctive",
         form: "suggest/demand/insist/recommend + that + sujeto + verbo BASE (be, tackle, go...)",
         examples: ["I suggest that he be present.", "They demand that aid be sent.", "It is essential that she attend."],
+        explain: { tr: ["Sugiero que \u00e9l est\u00e9 presente.", "Exigen que se env\u00ede ayuda.", "Es esencial que ella asista."] },
         mistakes: [
           { wrong: "I suggest that he is present.", right: "I suggest that he be present." },
           { wrong: "They demand that aid is sent.", right: "They demand that aid be sent." },

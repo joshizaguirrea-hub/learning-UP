@@ -167,6 +167,7 @@ export const CULTURE_IDENTITY_C1 = {
         title: "Ellipsis & substitution",
         form: "so/neither + auxiliar + sujeto · do/one como sustitutos · respuestas cortas (Yes, I do)",
         examples: ["I love it, and so does she.", "I don't, and neither does he.", "Do you? Yes, I do."],
+        explain: { tr: ["Me encanta, y a ella tambi\u00e9n.", "Yo no, y \u00e9l tampoco.", "\u00bfT\u00fa s\u00ed? S\u00ed, yo s\u00ed."] },
         mistakes: [
           { wrong: "I love it, and so she loves.", right: "I love it, and so does she." },
           { wrong: "I can't, and neither he can.", right: "I can't, and neither can he." },

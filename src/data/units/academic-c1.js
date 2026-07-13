@@ -168,6 +168,7 @@ export const ACADEMIC_C1 = {
         title: "Inversion (enfasis)",
         form: "adverbio negativo + auxiliar + sujeto + verbo: Never have I..., Not only did he...",
         examples: ["Never have I seen such a thing.", "Not only did she win, but she also broke a record.", "Rarely do we see this."],
+        explain: { tr: ["Nunca he visto algo as\u00ed.", "No solo gan\u00f3, sino que tambi\u00e9n rompi\u00f3 un r\u00e9cord.", "Rara vez vemos esto."] },
         mistakes: [
           { wrong: "Never I have seen it.", right: "Never have I seen it." },
           { wrong: "Not only she won.", right: "Not only did she win." },

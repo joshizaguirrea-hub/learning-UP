@@ -167,6 +167,7 @@ export const LITERATURE_C1 = {
         title: "Relative clauses with quantifiers / prepositions",
         form: "quantifier + of + which/whom: most of whom, some of which · prep + which/whom: in which, to whom",
         examples: ["The students, most of whom passed, celebrated.", "The house in which she lived is old.", "The person to whom I spoke."],
+        explain: { tr: ["Los estudiantes, la mayor\u00eda de los cuales aprob\u00f3, celebraron.", "La casa en la que vivi\u00f3 es antigua.", "La persona con quien habl\u00e9."] },
         mistakes: [
           { wrong: "The students, most of them passed, celebrated.", right: "The students, most of whom passed, celebrated." },
           { wrong: "The house which she lived in it is old.", right: "The house in which she lived is old." },

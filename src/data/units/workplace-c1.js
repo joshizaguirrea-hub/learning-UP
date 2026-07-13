@@ -168,6 +168,7 @@ export const WORKPLACE_C1 = {
         title: "Advanced discourse markers",
         form: "contraste: whereas / nevertheless · causa: consequently · adicion: moreover · aclaracion: in other words",
         examples: ["Whereas he agrees, she doesn't.", "It rained; nevertheless, we went.", "Consequently, sales rose."],
+        explain: { tr: ["Mientras que \u00e9l est\u00e1 de acuerdo, ella no.", "Llovi\u00f3; sin embargo, fuimos.", "En consecuencia, las ventas subieron."] },
         mistakes: [
           { wrong: "Whereas he agrees but she doesn't.", right: "Whereas he agrees, she doesn't." },
           { wrong: "Nevertheless of the rain, we went.", right: "Nevertheless, we went despite the rain." },
