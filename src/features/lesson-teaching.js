@@ -9,6 +9,8 @@
 import { el } from "../ui/dom.js";
 import { speakButton } from "../ui/speech.js";
 import { richText, stripMarkup } from "../ui/richtext.js";
+import { robotName } from "../ui/robot.js";
+import { openRuleExplainer } from "./rule-explainer.js";
 
 const BOX = "bg-white/5 border border-white/5 rounded-xl p-4";
 const H2 = "font-bold text-lg text-slate-100 flex items-center gap-2";
@@ -119,13 +121,19 @@ export function grammarChart(chart) {
  * Caja de gramatica REDISENADA: encabezado, cuadro visual, formula, tabla
  * comparativa, ejemplos (con audio) y errores comunes (antes/despues).
  */
-export function grammarBox(g) {
+export function grammarBox(g, robotLang = "es-MX") {
   return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-2xl p-5" },
     el("div", { class: "flex items-center gap-2" },
       chip("\u2728"),
       el("div", {},
         el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/80" }, "Las reglas"),
         el("h2", { class: "font-bold text-lg text-indigo-100 leading-tight" }, g.title))),
+
+    (g.form || g.examples?.length) ? el("button", {
+      class: "mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 " +
+        "text-white font-semibold px-4 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]",
+      onclick: () => openRuleExplainer(g, robotLang),
+    }, el("span", { class: "text-lg" }, "\uD83E\uDD16"), "Yo, " + robotName() + ", te explico la regla") : null,
 
     g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
 

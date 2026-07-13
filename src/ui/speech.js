@@ -137,6 +137,39 @@ export function speakRobot(text, lang = "es-MX") {
 }
 
 /**
+ * Habla una SECUENCIA de frases, cada una con su idioma/voz, una tras otra.
+ * @param {Array<{text, lang, opts?}>} items
+ * @param {function} [onEach] callback(index) justo antes de decir cada item
+ * @param {function} [onDone] callback al terminar todo
+ * @returns {function} cancel() para detener la secuencia
+ */
+export function speakSequence(items, onEach, onDone) {
+  if (!isSpeechSupported()) { onDone?.(); return () => {}; }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  let i = 0;
+  let cancelled = false;
+  function next() {
+    if (cancelled) return;
+    if (i >= items.length) { onDone?.(); return; }
+    const it = items[i];
+    onEach?.(i);
+    const opts = it.opts || {};
+    const base = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es-MX" : "en-US";
+    const v = pickVoice(base);
+    const u = new SpeechSynthesisUtterance(String(it.text));
+    u.lang = v?.lang || base;
+    u.rate = opts.rate ?? 0.92;
+    u.pitch = opts.pitch ?? 1.05;
+    if (v) u.voice = v;
+    u.onend = () => { i++; if (!cancelled) setTimeout(next, it.gapAfter ?? 350); };
+    synth.speak(u);
+  }
+  next();
+  return () => { cancelled = true; synth.cancel(); };
+}
+
+/**
  * Crea un boton de altavoz que pronuncia `text`. Devuelve null si no hay soporte.
  * Uso: speakButton("hello") (ingles por defecto, para el contenido).
  */

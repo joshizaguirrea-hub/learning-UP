@@ -166,6 +166,12 @@ export const MONEY_B1 = {
       grammar: {
         title: "Second conditional",
         form: "If + past simple, subject + would + verbo base",
+        explain: {
+          parts: [
+            { label: "If + past simple", fn: "Esta es la condicion imaginaria. Fijate: usa pasado simple (had, won, were), aunque hablemos del presente o el futuro. Es una situacion que NO es real." },
+            { label: "subject + would + verbo base", fn: "Este es el resultado hipotetico. Se forma con would mas el verbo en su forma base, sin conjugar. Es lo que pasaria SI la condicion fuera verdad." },
+          ],
+        },
         examples: ["If I had money, I would travel.", "If I won, I wouldn't stop working.", "If I were you, I'd buy it."],
         mistakes: [
           { wrong: "If I would have money, I travel.", right: "If I had money, I would travel." },
