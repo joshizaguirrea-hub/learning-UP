@@ -13,14 +13,15 @@ import { grade } from "../core/activities.js";
 import { completeLesson } from "../services/course.js";
 import { ensureCards } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
-import { speakButton } from "../ui/speech.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
-import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup } from "../ui/robot.js";
+import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
-import { richText, stripMarkup } from "../ui/richtext.js";
+import { richText } from "../ui/richtext.js";
+import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
+import { confettiBurst } from "../ui/confetti.js";
 
 const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
   "rounded-3xl p-6 sm:p-8 min-h-[68vh] flex flex-col";
@@ -47,7 +48,7 @@ export async function renderLessonPlayer(container, params, user) {
   // Voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
   const robotLang = (unit.level === "A1" || unit.level === "A2") ? "es-MX" : "en-US";
 
-  const state = { idx: 0, correct: 0, checked: new Set() };
+  const state = { idx: 0, correct: 0, checked: new Set(), streak: 0, bestStreak: 0, hearts: 3 };
 
   // Primera vez: que el alumno elija avatar y nombre para su robot.
   renderStep();
@@ -69,7 +70,7 @@ export async function renderLessonPlayer(container, params, user) {
     }
 
     mount(container, el("div", { class: CARD },
-      topBar(unit, pct),
+      topBar(unit, pct, state),
       el("div", { class: "flex-1 mt-6" }, body),
       el("div", { class: "mt-6" }, footer)));
     focusMainHeading(container);
@@ -126,10 +127,28 @@ export async function renderLessonPlayer(container, params, user) {
           return;
         }
         const ok = grade(act, response);
-        if (ok && !state.checked.has(idxNum)) { state.correct++; }
+        const firstTime = !state.checked.has(idxNum);
+        if (ok && firstTime) state.correct++;
+        // Racha y corazones (solo cuenta el primer intento de cada ejercicio).
+        if (firstTime) {
+          if (ok) {
+            state.streak++;
+            state.bestStreak = Math.max(state.bestStreak, state.streak);
+            if (state.streak >= 2) showCombo(body, state.streak);
+          } else {
+            state.streak = 0;
+            state.hearts = Math.max(0, state.hearts - 1);
+          }
+        }
         state.checked.add(idxNum);
         lockNode(node);
         ok ? playCorrect() : playWrong();
+        robotReact(ok, robotLang);
+        // Refresca la barra superior (corazones/racha) sin re-render del ejercicio.
+        const card = container.firstElementChild;
+        if (card && card.firstElementChild) {
+          card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state), card.firstElementChild);
+        }
         body.append(feedbackBanner(ok, act));
         mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
           state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
@@ -162,7 +181,7 @@ export async function renderLessonPlayer(container, params, user) {
 
     if (!passed) {
       mount(container, el("div", { class: CARD },
-        topBar(unit, 100),
+        topBar(unit, 100, state),
         el("div", { class: "flex-1 mt-6 text-center" },
           el("div", { class: "text-5xl" }, "\uD83D\uDCAA"),
           el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, "Casi lo logras"),
@@ -170,16 +189,23 @@ export async function renderLessonPlayer(container, params, user) {
             "Tuviste " + state.correct + "/" + total + ". Necesitas 60%. Repasa la clase e intenta de nuevo."),
           feedback(false, "No pasa nada: equivocarse es parte de aprender.")),
         el("div", { class: "mt-6" },
-          el("button", { class: PRIMARY, onclick: () => { state.idx = 0; state.correct = 0; state.checked = new Set(); renderStep(); } }, "Reintentar la leccion"))));
+          el("button", { class: PRIMARY, onclick: () => { state.idx = 0; state.correct = 0; state.checked = new Set(); state.streak = 0; state.bestStreak = 0; state.hearts = 3; renderStep(); } }, "Reintentar la leccion"))));
       focusMainHeading(container);
       return;
     }
 
     // Aprobado: construimos los logros y los revelamos escalonadamente.
+    const heartBonus = state.hearts * 5;
+    const streakBonus = state.bestStreak >= 3 ? 10 : 0;
+    const totalXp = xp + heartBonus + streakBonus;
+
     const achievements = [];
-    achievements.push({ icon: "\u2B50", text: "+" + xp + " puntos de experiencia" });
+    achievements.push({ icon: "\u2B50", text: "+" + totalXp + " puntos de experiencia" });
     achievements.push({ icon: "\u2705", text: "Leccion completada: " + lesson.title });
     achievements.push({ icon: "\uD83C\uDFAF", text: state.correct + "/" + total + " respuestas correctas" });
+    if (state.bestStreak >= 3) achievements.push({ icon: "\uD83D\uDD25", text: "Mejor combo: x" + state.bestStreak + " (+" + streakBonus + " XP)" });
+    if (state.hearts === 3) achievements.push({ icon: "\uD83D\uDC96", text: "Sin errores! Vidas intactas (+" + heartBonus + " XP)" });
+    else if (state.hearts > 0) achievements.push({ icon: "\u2764\uFE0F", text: state.hearts + " vidas restantes (+" + heartBonus + " XP)" });
     if (lesson.teachesVocab) achievements.push({ icon: "\uD83D\uDCDA", text: "Vocabulario anadido a tu repaso (SRS)" });
     achievements.push({ icon: "\uD83D\uDD25", text: "Racha del dia +1" });
     if (saveError) achievements.push({ icon: "\u26A0\uFE0F", text: "Aviso: no se guardo en la nube (" + saveError + ")" });
@@ -192,12 +218,13 @@ export async function renderLessonPlayer(container, params, user) {
       list);
 
     mount(container, el("div", { class: CARD },
-      topBar(unit, 100),
+      topBar(unit, 100, state),
       body,
       el("div", { class: "mt-6" },
         el("button", { class: OK_BTN, onclick: () => go("/unidad/" + unit.id) }, "Volver a la unidad"))));
     focusMainHeading(container);
     playFanfare();
+    confettiBurst();
 
     // Revelacion escalonada con sonidito por cada logro.
     achievements.forEach((a, i) => {
@@ -214,7 +241,7 @@ export async function renderLessonPlayer(container, params, user) {
         playAchievement(i);
       }, 500 + i * 650);
     });
-    announce("Clase completada. Ganaste " + xp + " puntos.");
+    announce("Clase completada. Ganaste " + totalXp + " puntos.");
   }
 }
 
@@ -252,15 +279,36 @@ function buildSteps(unit, lesson) {
 // ---------------------------------------------------------------------------
 // Barra superior: cerrar (X) + barra de progreso que se va llenando.
 // ---------------------------------------------------------------------------
-function topBar(unit, pct) {
-  return el("div", { class: "flex items-center gap-3" },
-    el("a", { href: "#/unidad/" + unit.id,
-      class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white text-lg leading-none shrink-0",
-      "aria-label": "Salir de la leccion" }, "\u2715"),
-    el("div", { class: "flex-1 bg-white/10 rounded-full h-3.5 overflow-hidden", role: "progressbar",
-      "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
-      el("div", { class: "progress-glow bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 h-full rounded-full transition-all duration-500", style: "width:" + pct + "%" })),
-    el("span", { class: "text-xs font-bold text-emerald-300 tabular-nums w-9 text-right shrink-0" }, pct + "%"));
+// Badge flotante de combo (racha) durante la practica.
+function showCombo(host, streak) {
+  host.style.position = host.style.position || "relative";
+  const badge = el("div", {
+    class: "combo-badge pointer-events-none absolute left-1/2 top-1 z-20 " +
+      "bg-amber-400 text-slate-900 font-extrabold px-4 py-2 rounded-full shadow-lg",
+  }, "\uD83D\uDD25 Combo x" + streak + "!");
+  host.append(badge);
+  setTimeout(() => badge.remove(), 1400);
+}
+
+function topBar(unit, pct, state) {
+  const hearts = el("div", { class: "flex items-center gap-1 shrink-0", "aria-label": "Vidas: " + state.hearts + " de 3" },
+    ...[0, 1, 2].map((i) => el("span", {
+      class: "text-base leading-none transition " + (i < state.hearts ? "" : "opacity-25 grayscale"),
+      "aria-hidden": "true",
+    }, "\u2764\uFE0F")));
+  const streakPill = state.streak >= 2
+    ? el("span", { class: "text-xs font-bold text-amber-300 flex items-center gap-1" }, "\uD83D\uDD25 ", "x" + state.streak)
+    : null;
+  return el("div", {},
+    el("div", { class: "flex items-center gap-3" },
+      el("a", { href: "#/unidad/" + unit.id,
+        class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white text-lg leading-none shrink-0",
+        "aria-label": "Salir de la leccion" }, "\u2715"),
+      el("div", { class: "flex-1 bg-white/10 rounded-full h-3.5 overflow-hidden", role: "progressbar",
+        "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
+        el("div", { class: "progress-glow bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 h-full rounded-full transition-all duration-500", style: "width:" + pct + "%" })),
+      el("span", { class: "text-xs font-bold text-emerald-300 tabular-nums w-9 text-right shrink-0" }, pct + "%")),
+    el("div", { class: "flex items-center justify-between gap-2 mt-2 h-5" }, streakPill || el("span", {}), hearts));
 }
 
 // ---------------------------------------------------------------------------
@@ -295,63 +343,8 @@ function lockNode(node) {
 }
 
 // ---------------------------------------------------------------------------
-// Bloques de ensenanza (la CLASE).
+// Bloques de ensenanza (la CLASE) viven en features/lesson-teaching.js.
 // ---------------------------------------------------------------------------
-function readingSection(text) {
-  const paras = String(text).split(/\n\n+/);
-  return el("section", {},
-    el("div", { class: "flex items-center gap-2" },
-      el("h2", { class: "font-bold text-lg text-slate-100" }, "Lectura"),
-      speakButton(stripMarkup(String(text).replace(/\n+/g, " ")))),
-    el("div", { class: "mt-3 space-y-3" },
-      ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, richText(p)))));
-}
-
-function glossarySection(glossary) {
-  return el("section", {},
-    el("h2", { class: "font-bold text-lg text-slate-100" }, "Glosario"),
-    el("div", { class: "mt-3" }, ...glossary.map((g) =>
-      el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
-        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, richText(g.term), speakButton(stripMarkup(g.term))),
-        el("span", { class: "text-slate-400 text-right" }, g.translation)))));
-}
-
-function keyPhrasesSection(phrases) {
-  return el("section", {},
-    el("h2", { class: "font-bold text-lg text-slate-100" }, "Frases clave"),
-    el("ul", { class: "mt-3 space-y-2" },
-      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(stripMarkup(p)), richText(p)))));
-}
-
-function noteSection(note) {
-  return el("section", { class: "bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
-    el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
-    el("p", { class: "mt-1 text-sm text-amber-200" }, richText(note)));
-}
-
-function dialogueSection(dialogue) {
-  return el("section", {},
-    el("h2", { class: "font-bold text-lg text-slate-100" }, "Dialogo"),
-    el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
-      ...dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
-        speakButton(stripMarkup(line.replace(/^[A-Z]:\s*/, ""))), el("span", {}, richText(line))))));
-}
-
-function grammarBox(g) {
-  return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-lg p-4" },
-    el("p", { class: "text-xs uppercase tracking-wide text-indigo-300/80" }, "Las reglas"),
-    el("h2", { class: "font-bold text-lg text-indigo-200 mt-0.5" }, g.title),
-    g.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, richText(g.form)) : null,
-    g.examples?.length ? el("ul", { class: "mt-3 space-y-1" },
-      ...g.examples.map((ex) => el("li", { class: "text-sm text-slate-200 flex items-center gap-2" }, speakButton(stripMarkup(ex)), "- ", richText(ex)))) : null,
-    g.mistakes?.length ? el("div", { class: "mt-3" },
-      el("p", { class: "text-xs font-semibold text-slate-400 uppercase tracking-wide" }, "Errores comunes"),
-      el("ul", { class: "mt-1 space-y-1" }, ...g.mistakes.map((m) =>
-        el("li", { class: "text-sm" },
-          el("span", { class: "text-red-400 line-through" }, m.wrong),
-          el("span", { class: "text-slate-500" }, "  ->  "),
-          el("span", { class: "text-emerald-400" }, m.right))))) : null);
-}
 
 // ---------------------------------------------------------------------------
 // Renderizadores de actividad. Cada uno devuelve { node, getResponse }.

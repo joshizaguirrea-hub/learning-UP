@@ -129,9 +129,18 @@ body.lesson-mode::after {
 /* Barra de progreso con glow alegre. */
 .progress-glow { box-shadow: 0 0 12px rgba(45, 212, 191, 0.75); }
 
+/* Badge de combo (racha) que aparece, sube y se desvanece. */
+@keyframes comboPop {
+  0%   { opacity: 0; transform: translate(-50%, 12px) scale(0.7); }
+  20%  { opacity: 1; transform: translate(-50%, 0) scale(1.12); }
+  40%  { transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -26px) scale(1); }
+}
+.combo-badge { transform: translate(-50%, 0); animation: comboPop 1.4s ease forwards; }
+
 /* Respeta a quien prefiere menos movimiento (accesibilidad WCAG 2.2). */
 @media (prefers-reduced-motion: reduce) {
-  .step-enter, .robot-float, .robot-pop,
+  .step-enter, .robot-float, .robot-pop, .combo-badge,
   body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
 }
 

@@ -186,6 +186,14 @@ export const WORK_CAREER_B1 = {
       grammar: {
         title: "in charge of / responsible for + have experience",
         form: "*be* + **in charge of** / **responsible for** + (noun | -ing) - *have* + **X years of experience** (in/with)",
+        table: {
+          headers: ["Estructura", "Cuando se usa", "Ejemplo"],
+          rows: [
+            ["*be* **in charge of**", "liderar o dirigir algo/alguien", "I'm **in charge of** the team."],
+            ["*be* **responsible for**", "encargarse de una tarea o area", "She's **responsible for** sales."],
+            ["*have* + **experience**", "tiempo haciendo algo", "I *have* 5 years of **experience**."],
+          ],
+        },
         examples: [
           "I'm **in charge of** the sales team.",
           "She *is* **responsible for** hiring new staff.",
