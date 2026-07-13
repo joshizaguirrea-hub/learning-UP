@@ -59,47 +59,33 @@ const ES_WORDS = new Set([
   "con", "para", "por", "una", "uno", "unos", "unas", "del", "las", "los", "que", "cuando",
   "como", "mas", "pero", "tambien", "ser", "estar", "hacer", "cosa", "cosas", "forma",
 ]);
-const EN_WORDS = new Set([
-  "is", "are", "was", "were", "be", "been", "being", "am", "will", "would", "shall",
-  "can", "could", "do", "does", "did", "has", "have", "had", "by", "of", "the", "to",
-  "and", "or", "not", "going", "get", "got", "verb", "past", "present", "future",
-  "subject", "object", "with", "for", "from", "they", "you", "he", "she", "it", "we",
-  "that", "this", "these", "those", "who", "which", "what", "where", "when", "why",
-  "how", "whose", "whom", "there", "here", "my", "your", "his", "her", "our", "their",
-]);
 
-/** Idioma de una palabra: 'es' | 'en' | null (ambiguo, se hereda). */
-function wordLang(word) {
-  if (/[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC\u00BF\u00A1]/i.test(word)) return "es";
-  const w = word.toLowerCase().replace(/[^a-z\u00E0-\u00FF]/gi, "");
-  if (!w) return null;
-  if (ES_WORDS.has(w)) return "es";
-  if (EN_WORDS.has(w)) return "en";
-  if (/(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa)$/.test(w)) return "es";
-  return null;
-}
-
-/** Agrupa un texto en trozos consecutivos del mismo idioma. */
-function groupByLang(text, base) {
-  const tokens = String(text).split(/\s+/).filter(Boolean);
-  const chunks = [];
-  let prev = base;
-  for (const tok of tokens) {
-    const lang = wordLang(tok) || prev;
-    prev = lang;
-    const last = chunks[chunks.length - 1];
-    if (last && last.lang === lang) last.text += " " + tok;
-    else chunks.push({ lang, text: tok });
+/**
+ * Detecta el idioma DOMINANTE de un texto (por conteo de palabras es/en).
+ * Devuelve 'es' o 'en'. Si empata o no hay pistas, usa `base`.
+ */
+function detectLang(text, base) {
+  let es = 0;
+  let en = 0;
+  for (const raw of String(text).toLowerCase().split(/\s+/)) {
+    const w = raw.replace(/[^a-z\u00E0-\u00FF]/gi, "");
+    if (!w) continue;
+    if (/[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC]/.test(raw) || ES_WORDS.has(w) ||
+        /(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa)$/.test(w)) es++;
   }
-  return chunks.length ? chunks : [{ lang: base, text: String(text) }];
+  // Heuristica simple: cuenta acentos/palabras es; el resto pesa hacia en.
+  const words = String(text).split(/\s+/).filter(Boolean).length;
+  en = words - es;
+  if (es === en) return base;
+  return es > en ? "es" : "en";
 }
 
 /**
- * Pronuncia un texto que puede MEZCLAR espanol e ingles. Detecta el idioma por
- * palabra y usa voz latina para el espanol y voz US/UK para el ingles, con
- * pausas en "/" y ".". Corta cualquier locucion en curso primero.
+ * Pronuncia un texto con UNA sola voz (natural, sin cambios de acento a media
+ * frase). Elige la voz por el idioma dominante del texto (o `lang` si empata) y
+ * agrega pausas naturales en "/", "." y ",". Corta lo que este sonando.
  * @param {string} text
- * @param {string} [lang] idioma base para palabras ambiguas ('es-MX' | 'en-US')
+ * @param {string} [lang] idioma base ('es-MX' | 'en-US')
  * @param {object} [opts] { rate, pitch, gap }
  */
 export function speak(text, lang = "en-US", opts = {}) {
@@ -114,7 +100,7 @@ export function speak(text, lang = "en-US", opts = {}) {
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
   //   "=" -> pausa breve (coma)     "who = personas" => "who, personas"
   //   "\u00B7" y flechas -> pausa larga (separan ideas)
-  //   "+ ( ) * _ :" -> se omiten (no se pronuncian)
+  //   "+ ( ) * _ :" -> se omiten o se vuelven pausa.
   const norm = String(text)
     .replace(/\s*=\s*/g, ", ")
     .replace(/\u00B7/g, " / ")
@@ -125,30 +111,21 @@ export function speak(text, lang = "en-US", opts = {}) {
     .replace(/\s+/g, " ")
     .trim();
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
+  if (!parts.length) return;
 
-  // Cada parte -> chunks agrupados por idioma; cola de locuciones.
-  const queue = [];
-  parts.forEach((part, pi) => {
-    const chunks = groupByLang(part, base);
-    chunks.forEach((ch, ci) => {
-      const lastInPart = ci === chunks.length - 1;
-      queue.push({ text: ch.text, lang: ch.lang, gapAfter: lastInPart ? (pi < parts.length - 1 ? gap : 0) : 160 });
-    });
-  });
+  // UNA sola voz para todo (la del idioma dominante) => nada de Spanglish saltarin.
+  const useLang = detectLang(norm, base);
+  const v = pickVoice(useLang === "es" ? "es-MX" : "en-US");
 
-  const esVoice = pickVoice("es-MX");
-  const enVoice = pickVoice("en-US");
   let i = 0;
   function sayNext() {
-    if (i >= queue.length) return;
-    const item = queue[i];
-    const u = new SpeechSynthesisUtterance(item.text);
-    const v = item.lang === "es" ? esVoice : enVoice;
-    u.lang = v?.lang || (item.lang === "es" ? "es-MX" : "en-US");
+    if (i >= parts.length) return;
+    const u = new SpeechSynthesisUtterance(parts[i]);
+    u.lang = v?.lang || (useLang === "es" ? "es-MX" : "en-US");
     u.rate = rate;
     u.pitch = pitch;
     if (v) u.voice = v;
-    u.onend = () => { i++; if (i < queue.length) setTimeout(sayNext, item.gapAfter); };
+    u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
     synth.speak(u);
   }
   sayNext();
