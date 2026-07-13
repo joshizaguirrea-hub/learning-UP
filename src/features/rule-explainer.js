@@ -46,8 +46,9 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     : splitClauses(grammar.form || grammar.title || "");
 
   // Ejemplos utiles: solo los que se pueden mapear (mismo numero de clausulas).
+  const trs = explicit?.tr || [];
   const examples = (grammar.examples || [])
-    .map((ex) => ({ text: stripMarkup(ex), spans: splitClauses(ex) }))
+    .map((ex, i) => ({ text: stripMarkup(ex), spans: splitClauses(ex), tr: trs[i] ? stripMarkup(trs[i]) : "" }))
     .filter((e) => e.spans.length === parts.length && parts.length >= 1);
 
   let cancel = () => {};
@@ -192,31 +193,45 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     return "This is part " + (i + 1) + " of the structure. See how it connects to the formula above.";
   }
 
+  // Tonos de voz: ejemplo en ingles CLARO; explicacion en espanol DINAMICA y alegre.
+  const EX_OPTS = { rate: 1.0, pitch: 1.0 };
+  const FUN_OPTS = { rate: 1.12, pitch: 1.18 };
+
   function playExample(idx) {
     renderExample(idx);
-    caption.textContent = "";
-    let k = 0;
-    function playStep() {
-      if (k >= parts.length) {
-        caption.textContent = isEs ? "\u00a1Eso es! As\u00ed funciona la regla." : "That's it! That's how the rule works.";
-        replayBtn.classList.remove("hidden");
-        if (examples.length > 1) nextBtn.classList.remove("hidden");
-        return;
+    const ex = examples[idx];
+    // 1) Intro: muestra el ejemplo COMPLETO y dice su significado (unico por ejemplo).
+    spanEls.forEach((s) => s.classList.remove("opacity-40"));
+    caption.replaceChildren(
+      el("span", { class: "block text-slate-100 leading-snug" }, ex.text),
+      ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {})
+    );
+    const intro = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
+    if (ex.tr) intro.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
+
+    cancel = speakSequence(intro, null, () => {
+      // 2) Desglose parte por parte.
+      let k = 0;
+      function playStep() {
+        if (k >= parts.length) {
+          caption.replaceChildren(el("span", { class: "text-emerald-300 font-semibold" },
+            "\u00a1Eso es! Ya viste c\u00f3mo se arma."));
+          replayBtn.classList.remove("hidden");
+          if (examples.length > 1) nextBtn.classList.remove("hidden");
+          return;
+        }
+        highlight(k);
+        caption.replaceChildren(
+          el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
+          el("span", { class: "block mt-1.5 text-xs text-slate-400" }, examples[idx].spans[k] + "  \u2192  " + parts[k])
+        );
+        cancel = speakSequence([
+          { text: examples[idx].spans[k], lang: contentLang, opts: EX_OPTS },
+          { text: stepText(k), lang: explainLang, opts: FUN_OPTS },
+        ], null, () => { k++; setTimeout(playStep, 200); });
       }
-      highlight(k);
-      // Visual (POP explicativo): la explicacion en ESPANOL grande + el mapeo chico.
-      caption.replaceChildren(
-        el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
-        el("span", { class: "block mt-1.5 text-xs text-slate-400" }, examples[idx].spans[k] + "  \u2192  " + parts[k])
-      );
-      // Hablado: primero el ejemplo (voz inglesa), luego la explicacion (voz espanola).
-      cancel = speakSequence([
-        { text: examples[idx].spans[k], lang: contentLang },
-        { text: stepText(k), lang: explainLang },
-      ], null, () => { k++; setTimeout(playStep, 250); });
-    }
-    // Espera al layout para medir posiciones y trazar bien las lineas.
-    requestAnimationFrame(() => requestAnimationFrame(playStep));
+      requestAnimationFrame(() => requestAnimationFrame(playStep));
+    });
   }
 
   playExample(0);

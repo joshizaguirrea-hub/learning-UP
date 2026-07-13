@@ -167,6 +167,11 @@ export const MONEY_B1 = {
         title: "Second conditional",
         form: "If + past simple, subject + would + verbo base",
         explain: {
+          tr: [
+            "Si tuviera dinero, viajar\u00eda.",
+            "Si ganara, no dejar\u00eda de trabajar.",
+            "Si yo fuera t\u00fa, lo comprar\u00eda.",
+          ],
           parts: [
             { label: "If + past simple", fn: "La condici\u00f3n: la situaci\u00f3n que imaginamos. El verbo va en pasado, aunque hablemos del presente o del futuro. No es algo real, solo lo suponemos." },
             { label: "subject + would + verbo base", fn: "El resultado: lo que pasar\u00eda si esa condici\u00f3n se cumpliera. Es la consecuencia imaginaria, la que solo ocurrir\u00eda en ese caso." },
