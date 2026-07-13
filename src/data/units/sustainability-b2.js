@@ -168,6 +168,7 @@ export const SUSTAINABILITY_B2 = {
         title: "Future perfect & future continuous",
         form: "perfect: will have + participio (terminado antes de X) · continuous: will be + -ing (en progreso)",
         examples: ["By 2050, we will have changed.", "Next year I will be living abroad."],
+        explain: { tr: ["Para 2050, habremos cambiado.", "El pr\u00f3ximo a\u00f1o estar\u00e9 viviendo en el extranjero."] },
         mistakes: [
           { wrong: "By 2050 we will changed.", right: "By 2050 we will have changed." },
           { wrong: "Tomorrow I will be work.", right: "Tomorrow I will be working." },

@@ -168,6 +168,7 @@ export const ARTS_B2 = {
         title: "Non-defining relative clauses",
         form: "informacion EXTRA entre comas: ..., who/which/whose ..., ...",
         examples: ["Frida Kahlo, who was a painter, ...", "The film, which won an award, ...", "The director, whose work is famous, ..."],
+        explain: { tr: ["Frida Kahlo, quien fue pintora, ...", "La pel\u00edcula, que gan\u00f3 un premio, ...", "El director, cuya obra es famosa, ..."] },
         mistakes: [
           { wrong: "Frida Kahlo, that was a painter, ...", right: "Frida Kahlo, who was a painter, ..." },
           { wrong: "The film which won an award was great (no commas for extra info).", right: "The film, which won an award, was great." },

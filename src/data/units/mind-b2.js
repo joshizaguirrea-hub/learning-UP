@@ -167,6 +167,7 @@ export const MIND_B2 = {
         title: "wish / if only",
         form: "deseo presente: wish + past · arrepentimiento pasado: wish + had + participio",
         examples: ["I wish I were taller.", "I wish I had studied.", "If only I knew the answer."],
+        explain: { tr: ["Ojal\u00e1 fuera m\u00e1s alto.", "Ojal\u00e1 hubiera estudiado.", "Si tan solo supiera la respuesta."] },
         mistakes: [
           { wrong: "I wish I am taller.", right: "I wish I were taller." },
           { wrong: "I wish I studied more (past regret).", right: "I wish I had studied more." },

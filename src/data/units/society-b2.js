@@ -168,6 +168,7 @@ export const SOCIETY_B2 = {
         title: "Third conditional",
         form: "If + had + participio, ... would have + participio",
         examples: ["If they hadn't protested, laws wouldn't have changed.", "If I had studied, I would have passed."],
+        explain: { tr: ["Si no hubieran protestado, las leyes no habr\u00edan cambiado.", "Si hubiera estudiado, habr\u00eda aprobado."] },
         mistakes: [
           { wrong: "If I would have studied, I passed.", right: "If I had studied, I would have passed." },
           { wrong: "If I studied, I would have passed.", right: "If I had studied, I would have passed." },

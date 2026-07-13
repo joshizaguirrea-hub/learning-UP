@@ -167,6 +167,7 @@ export const MEDIA_INFLUENCE_B2 = {
         title: "Modal perfects (past)",
         form: "should have + part (critica) · must have + part (deduccion) · could have + part (posibilidad)",
         examples: ["You should have checked.", "She must have known.", "It could have been worse."],
+        explain: { tr: ["Deber\u00edas haber revisado.", "Ella debi\u00f3 haberlo sabido.", "Pudo haber sido peor."] },
         mistakes: [
           { wrong: "You should checked it.", right: "You should have checked it." },
           { wrong: "She must knew.", right: "She must have known." },

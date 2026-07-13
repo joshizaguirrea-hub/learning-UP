@@ -167,6 +167,7 @@ export const ETHICS_B2 = {
         title: "Mixed conditionals",
         form: "pasado -> presente: If + had + participio, ... would + base (ahora)",
         examples: ["If I had studied medicine, I would be a doctor now.", "If she hadn't left, she would be here today."],
+        explain: { tr: ["Si hubiera estudiado medicina, ahora ser\u00eda doctor.", "Si ella no se hubiera ido, hoy estar\u00eda aqu\u00ed."] },
         mistakes: [
           { wrong: "If I had studied, I would have be a doctor now.", right: "If I had studied, I would be a doctor now." },
           { wrong: "If I studied, I would be a doctor now (past cause).", right: "If I had studied, I would be a doctor now." },
