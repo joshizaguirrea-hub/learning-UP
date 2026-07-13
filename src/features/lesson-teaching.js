@@ -74,9 +74,50 @@ function grammarTable(table) {
             }, richText(cell))))))));
 }
 
+// Paleta de temas para el cuadro visual de conjugacion (grammarChart).
+const CHART_THEME = {
+  green:  { border: "border-emerald-400/40", top: "bg-emerald-400/10", bottom: "bg-emerald-500/25", bottomAlt: "bg-emerald-500/40", text: "text-emerald-50" },
+  amber:  { border: "border-amber-400/40",   top: "bg-amber-400/10",   bottom: "bg-amber-500/30",   bottomAlt: "bg-orange-500/50",  text: "text-amber-50" },
+  sky:    { border: "border-sky-400/40",     top: "bg-sky-400/10",     bottom: "bg-sky-500/30",     bottomAlt: "bg-sky-500/50",    text: "text-sky-50" },
+  violet: { border: "border-violet-400/40",  top: "bg-violet-400/10",  bottom: "bg-violet-500/30",  bottomAlt: "bg-fuchsia-500/45", text: "text-violet-50" },
+  rose:   { border: "border-rose-400/40",    top: "bg-rose-400/10",    bottom: "bg-rose-500/30",    bottomAlt: "bg-rose-500/50",   text: "text-rose-50" },
+  indigo: { border: "border-indigo-400/40",  top: "bg-indigo-400/10",  bottom: "bg-indigo-500/30",  bottomAlt: "bg-indigo-500/50", text: "text-indigo-50" },
+};
+
+/** Un segmento (una forma verbal + sus sujetos) dentro de un tiempo. */
+function chartSegment(theme, form, subjects, i) {
+  return el("div", { class: "flex-1 min-w-0 flex flex-col " + (i > 0 ? "border-l border-black/25" : "") },
+    el("div", { class: "px-2 py-2 flex justify-center " + theme.top },
+      el("span", { class: "bg-white text-slate-900 font-extrabold text-sm rounded px-2 py-0.5 whitespace-nowrap shadow-sm" }, form)),
+    el("div", { class: "px-2 py-1.5 text-center text-[11px] font-semibold leading-snug " + (i % 2 ? theme.bottomAlt : theme.bottom) + " " + theme.text }, subjects));
+}
+
+/** Un tiempo verbal (ej. PASADO) con su fila de segmentos coloreados. */
+function chartGroup(group) {
+  const theme = CHART_THEME[group.color] || CHART_THEME.indigo;
+  return el("div", {},
+    el("p", { class: "text-center text-[11px] font-extrabold tracking-[0.2em] text-slate-400 mb-1" }, group.label),
+    el("div", { class: "flex rounded-xl overflow-hidden border " + theme.border },
+      ...group.forms.map((f, i) => chartSegment(theme, f.form, f.subjects, i))));
+}
+
 /**
- * Caja de gramatica REDISENADA: encabezado, formula, tabla comparativa,
- * ejemplos (tarjetas con audio) y errores comunes (antes/despues).
+ * Cuadro VISUAL de conjugacion (estilo poster educativo):
+ *   { title, maps?, groups: [{ label, color, forms: [{form, subjects}] }] }
+ * Ideal para verbos y tiempos (BE, going to vs will, etc.).
+ */
+export function grammarChart(chart) {
+  return el("div", { class: "mt-2" },
+    el("div", { class: "text-center mb-3 flex items-center justify-center gap-2 flex-wrap" },
+      el("span", { class: "text-2xl font-extrabold text-slate-100" }, chart.title),
+      chart.maps ? el("span", { class: "text-red-500 text-xl" }, "\u25B6") : null,
+      chart.maps ? el("span", { class: "text-2xl font-extrabold text-slate-100" }, chart.maps) : null),
+    el("div", { class: "space-y-4" }, ...chart.groups.map(chartGroup)));
+}
+
+/**
+ * Caja de gramatica REDISENADA: encabezado, cuadro visual, formula, tabla
+ * comparativa, ejemplos (con audio) y errores comunes (antes/despues).
  */
 export function grammarBox(g) {
   return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-2xl p-5" },
@@ -85,6 +126,8 @@ export function grammarBox(g) {
       el("div", {},
         el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/80" }, "Las reglas"),
         el("h2", { class: "font-bold text-lg text-indigo-100 leading-tight" }, g.title))),
+
+    g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
 
     g.form ? el("div", { class: "mt-4" },
       el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Formula"),

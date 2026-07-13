@@ -167,7 +167,34 @@ export const A1_HELLO = {
       intro: "Competencia de GRAMATICA. Aprende el verbo 'to be' y practicalo con varios ejercicios.",
       grammar: {
         title: "El verbo 'to be' (presente)",
-        form: "I am / you are / he-she-it is / we-they are",
+        chart: {
+          title: "BE",
+          maps: "SER o ESTAR",
+          groups: [
+            {
+              label: "PASADO", color: "green",
+              forms: [
+                { form: "WAS", subjects: "I, She, He, It" },
+                { form: "WERE", subjects: "You, We, They" },
+              ],
+            },
+            {
+              label: "PRESENTE", color: "amber",
+              forms: [
+                { form: "AM", subjects: "I" },
+                { form: "IS", subjects: "He, She, It" },
+                { form: "ARE", subjects: "You, We, They" },
+              ],
+            },
+            {
+              label: "FUTURO", color: "sky",
+              forms: [
+                { form: "WILL BE", subjects: "I, you, he, she, it, we, they" },
+              ],
+            },
+          ],
+        },
+        form: "I *am* / you *are* / he-she-it *is* / we-they *are*",
         examples: ["I am a student.", "She is from Canada.", "We are friends.", "They are teachers."],
         mistakes: [
           { wrong: "I is from Mexico.", right: "I am from Mexico." },
