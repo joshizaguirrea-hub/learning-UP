@@ -167,6 +167,7 @@ export const A2_HEALTH = {
         title: "should / must / have to",
         form: "sujeto + should/must + base · sujeto + have/has to + base · negativo: shouldn't",
         examples: ["You should rest.", "You must take the medicine.", "She has to sleep well.", "You shouldn't work."],
+        explain: { tr: ["Deber\u00edas descansar.", "Debes tomar la medicina.", "Ella tiene que dormir bien.", "No deber\u00edas trabajar."] },
         mistakes: [
           { wrong: "You should to rest.", right: "You should rest." },
           { wrong: "He have to sleep.", right: "He has to sleep." },

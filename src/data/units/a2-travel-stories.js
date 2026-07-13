@@ -167,6 +167,7 @@ export const A2_TRAVEL_STORIES = {
         title: "Past continuous vs past simple",
         form: "was/were + verbo-ing (fondo) + when + past simple (accion breve)",
         examples: ["I was reading when you called.", "While we were waiting, it rained.", "They were walking when it started."],
+        explain: { tr: ["Estaba leyendo cuando llamaste.", "Mientras esper\u00e1bamos, llovi\u00f3.", "Estaban caminando cuando empez\u00f3."] },
         mistakes: [
           { wrong: "I was call you.", right: "I was calling you." },
           { wrong: "While I waiting.", right: "While I was waiting." },

@@ -167,6 +167,7 @@ export const A2_COMPARISONS = {
         title: "Comparativo y superlativo",
         form: "corto: adj+er ... than / the adj+est · largo: more adj than / the most adj · irregular: good/better/best",
         examples: ["The train is faster than the bus.", "It's the most popular beach.", "This is the best cafe."],
+        explain: { tr: ["El tren es m\u00e1s r\u00e1pido que el autob\u00fas.", "Es la playa m\u00e1s popular.", "Este es el mejor caf\u00e9."] },
         mistakes: [
           { wrong: "It's more bigger.", right: "It's bigger." },
           { wrong: "She is the most tall.", right: "She is the tallest." },

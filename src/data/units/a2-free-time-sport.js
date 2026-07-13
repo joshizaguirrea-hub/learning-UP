@@ -167,6 +167,7 @@ export const A2_FREE_TIME_SPORT = {
         title: "Primer condicional / adverbios de modo",
         form: "If + present simple, subject + will + base · adjetivo + ly = adverbio (good -> well)",
         examples: ["If we train, we will win.", "She sings beautifully.", "He runs quickly."],
+        explain: { tr: ["Si entrenamos, ganaremos.", "Ella canta hermosamente.", "\u00c9l corre r\u00e1pidamente."] },
         mistakes: [
           { wrong: "If we will train, we win.", right: "If we train, we will win." },
           { wrong: "He plays good.", right: "He plays well." },

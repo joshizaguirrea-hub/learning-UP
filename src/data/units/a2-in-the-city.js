@@ -166,6 +166,7 @@ export const A2_IN_THE_CITY = {
         title: "Imperativos para direcciones",
         form: "verbo base (+ complemento): Turn left. Go straight. Cross the street. Take the first exit.",
         examples: ["Turn right at the bank.", "Go straight ahead.", "Cross the square.", "Take the second street."],
+        explain: { tr: ["Gira a la derecha en el banco.", "Sigue derecho.", "Cruza la plaza.", "Toma la segunda calle."] },
         mistakes: [
           { wrong: "You turn to left.", right: "Turn left." },
           { wrong: "Go to straight.", right: "Go straight." },
