@@ -9,8 +9,10 @@
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { speakButton, speakRobot } from "./speech.js";
+import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg } from "./avatars.js";
 import { getRobot, setRobot } from "./robot-prefs.js";
+import { line } from "./robot-lines.js";
 
 /** Nombre actual del robot. */
 export function robotName() {
@@ -87,14 +89,10 @@ export function robotHelpButton(onClick) {
   }, el("span", { class: "w-6 h-6 inline-block", html: avatarSvg(getRobot().avatar) }), "Ayuda de " + getRobot().name);
 }
 
-/** Pista segun el tipo de ejercicio (nudge, NO la respuesta). */
-function typeTip(type) {
-  return {
-    multiple_choice: "Lee todas las opciones y descarta las que rompen la regla.",
-    cloze: "Piensa que palabra encaja: fijate en el sujeto y el tiempo verbal.",
-    word_bank: "Arma la frase en orden: normalmente sujeto + verbo + complemento.",
-    matching: "Empareja lo que ya conoces primero; lo demas sale por descarte.",
-  }[type] || "Vuelve a leer la pregunta con calma; la pista esta en la regla.";
+/** Pista segun el tipo de ejercicio (nudge bilingue, NO la respuesta). */
+function typeTip(type, lang) {
+  const key = { multiple_choice: "tip_multiple_choice", cloze: "tip_cloze", word_bank: "tip_word_bank", matching: "tip_matching" }[type] || "tip_default";
+  return line(key, lang);
 }
 
 /**
@@ -106,7 +104,7 @@ function typeTip(type) {
 export function openRobotHint(grammar, act, lang = "es-MX") {
   const name = getRobot().name;
   const close = () => overlay.remove();
-  const intro = "Tranqui, esto se puede. Repasemos juntos y lo resuelves.";
+  const intro = line("hintIntro", lang);
 
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl",
@@ -117,21 +115,21 @@ export function openRobotHint(grammar, act, lang = "es-MX") {
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, name),
         el("p", { class: "text-xs text-slate-400" }, "Tu profesor de bolsillo")),
-      robotSpeakBtn(intro + " " + (grammar ? "Recuerda: " + grammar.title + ". " + (grammar.form || "") : typeTip(act.type)), lang)),
+      robotSpeakBtn(intro + " " + (grammar ? line("remember", lang) + " " + stripMarkup(grammar.title) + ". " + stripMarkup(grammar.form || "") : typeTip(act.type, lang)), lang)),
 
     el("p", { class: "mt-4 text-slate-200" }, intro),
 
     grammar ? el("div", { class: "mt-4 border border-indigo-500/30 bg-indigo-500/10 rounded-xl p-4" },
       el("p", { class: "text-xs uppercase tracking-wide text-indigo-300/80" }, "Recuerda la regla"),
       el("p", { class: "font-bold text-indigo-200 mt-0.5" }, grammar.title),
-      grammar.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, grammar.form) : null,
+      grammar.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, richText(grammar.form)) : null,
       grammar.examples?.length
-        ? el("p", { class: "mt-2 text-sm text-slate-200 flex items-center gap-2" }, speakButton(grammar.examples[0]), "Ej: " + grammar.examples[0])
+        ? el("p", { class: "mt-2 text-sm text-slate-200 flex items-center gap-2" }, speakButton(stripMarkup(grammar.examples[0])), "Ej: ", richText(grammar.examples[0]))
         : null) : null,
 
     el("div", { class: "mt-4 flex items-start gap-2 text-sm text-slate-300" },
       el("span", { class: "text-lg" }, "\uD83D\uDCA1"),
-      el("p", {}, typeTip(act.type))),
+      el("p", {}, typeTip(act.type, lang))),
 
     el("button", {
       class: "mt-5 w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",

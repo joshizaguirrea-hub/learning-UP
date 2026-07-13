@@ -22,6 +22,7 @@ import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText } from "../ui/richtext.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
 import { confettiBurst } from "../ui/confetti.js";
+import { line } from "../ui/robot-lines.js";
 
 const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
   "rounded-3xl p-6 sm:p-8 min-h-[68vh] flex flex-col";
@@ -41,12 +42,12 @@ export async function renderLessonPlayer(container, params, user) {
     return;
   }
   const { unit, lesson } = found;
-  const steps = buildSteps(unit, lesson);
+  // Idioma/voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
+  const robotLang = (unit.level === "A1" || unit.level === "A2") ? "es-MX" : "en-US";
+  const steps = buildSteps(unit, lesson, robotLang);
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
   // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.
   const unitGrammar = unit.lessons.find((l) => l.grammar)?.grammar || null;
-  // Voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
-  const robotLang = (unit.level === "A1" || unit.level === "A2") ? "es-MX" : "en-US";
 
   const state = { idx: 0, correct: 0, checked: new Set(), streak: 0, bestStreak: 0, hearts: 3 };
 
@@ -85,7 +86,7 @@ export async function renderLessonPlayer(container, params, user) {
       el("span", { class: "inline-block mt-3 text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300" }, unit.level + " - " + unit.title),
       el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, lesson.title),
       el("div", { class: "mt-4 text-left" },
-        robotBubble("Hola, soy " + robotName() + "! Vamos a aprender esto paso a paso. Primero la clase y luego practicamos. Tu puedes!", { lang: robotLang })),
+        robotBubble(line("greeting", robotLang, { name: robotName() }), { lang: robotLang })),
       lesson.intro ? el("p", { class: "mt-4 text-slate-300" }, lesson.intro) : null,
       el("div", { class: "mt-4 text-left " + BOX },
         el("p", { class: "text-sm font-semibold text-slate-200" }, "En esta clase vas a:"),
@@ -248,21 +249,21 @@ export async function renderLessonPlayer(container, params, user) {
 // ---------------------------------------------------------------------------
 // Construccion de pasos a partir de la leccion (clase + practicas).
 // ---------------------------------------------------------------------------
-function buildSteps(unit, lesson) {
+function buildSteps(unit, lesson, robotLang = "es-MX") {
   const steps = [{ kind: "intro" }];
   const c = lesson.content || {};
 
   const teach = [];
   const reading = c.reading || lesson.passage;
-  if (reading) teach.push({ node: readingSection(reading), robot: "Leamos juntos. Fijate en las frases clave del texto." });
+  if (reading) teach.push({ node: readingSection(reading), robot: line("reading", robotLang) });
   const grammar = c.grammar || lesson.grammar;
-  if (grammar) teach.push({ node: grammarBox(grammar), robot: "Estas son las reglas de hoy: tu superpoder. Leelas con calma." });
+  if (grammar) teach.push({ node: grammarBox(grammar), robot: line("grammar", robotLang) });
   const glossary = c.glossary || lesson.glossary;
-  if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: "Estas palabras te van a servir mucho. Toca el altavoz para oirlas." });
-  if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: "Frases utiles para sonar mas natural." });
+  if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: line("glossary", robotLang) });
+  if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: line("keyPhrases", robotLang) });
   const note = c.note || lesson.note;
-  if (note) teach.push({ node: noteSection(note), robot: "Ojo con esta nota: es el detalle que marca la diferencia." });
-  if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue), robot: "Escucha el dialogo e imita la entonacion." });
+  if (note) teach.push({ node: noteSection(note), robot: line("note", robotLang) });
+  if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue), robot: line("dialogue", robotLang) });
 
   teach.forEach((t, i) => steps.push({ kind: "teach", node: t.node, robot: t.robot, last: i === teach.length - 1 }));
 
