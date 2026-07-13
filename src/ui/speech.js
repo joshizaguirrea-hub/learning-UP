@@ -1,9 +1,10 @@
 /**
  * ui/speech.js — Texto a voz (TTS) con la Web Speech API del navegador.
  *
- * GRATIS y sin servidor: usa window.speechSynthesis. Pronuncia texto en el
- * idioma indicado (por defecto ingles). Si el navegador no lo soporta, los
- * botones simplemente no se muestran (degradacion elegante).
+ * GRATIS y sin servidor: usa window.speechSynthesis. Elige la MEJOR voz nativa
+ * disponible por idioma (ingles real para el contenido; espanol nativo para las
+ * indicaciones del profe). Si el navegador no lo soporta, los botones no se
+ * muestran (degradacion elegante).
  */
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
@@ -24,33 +25,57 @@ if (isSpeechSupported()) {
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
 
-/** Elige una voz para el idioma dado (ej. 'en'). */
+// Voces "buenas" suelen tener estas marcas en el nombre (mas naturales).
+const NICE = /google|natural|premium|neural|enhanced|siri|zira|aria|sabina|paulina|helena/i;
+// Preferencia de region por idioma (primero = mejor).
+const REGION_PREF = {
+  es: ["es-mx", "es-us", "es-la", "es-419", "es-es", "es-co", "es-ar", "es"],
+  en: ["en-us", "en-gb", "en-au", "en-ca", "en"],
+};
+
+/** Elige la mejor voz para el idioma dado (ej. 'es-MX' o 'en-US'). */
 function pickVoice(lang) {
   const base = lang.slice(0, 2).toLowerCase();
-  return voices.find((v) => v.lang && v.lang.toLowerCase().startsWith(base)) || null;
+  const pool = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith(base));
+  if (!pool.length) return null;
+  const prefs = REGION_PREF[base] || [base];
+  // 1) region preferida + nombre "bonito"  2) region preferida  3) nombre bonito  4) cualquiera.
+  for (const region of prefs) {
+    const nice = pool.find((v) => v.lang.toLowerCase().startsWith(region) && NICE.test(v.name));
+    if (nice) return nice;
+    const any = pool.find((v) => v.lang.toLowerCase().startsWith(region));
+    if (any) return any;
+  }
+  return pool.find((v) => NICE.test(v.name)) || pool[0];
 }
 
 /**
  * Pronuncia un texto. Corta cualquier locucion en curso primero.
  * @param {string} text
- * @param {string} [lang] BCP-47, ej. 'en-US'
- * @param {number} [rate] velocidad (0.5-1.5)
+ * @param {string} [lang] BCP-47, ej. 'en-US' o 'es-MX'
+ * @param {object} [opts] { rate, pitch }
  */
-export function speak(text, lang = "en-US", rate = 0.95) {
+export function speak(text, lang = "en-US", opts = {}) {
   if (!isSpeechSupported() || !text) return;
   const synth = window.speechSynthesis;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(String(text));
-  u.lang = lang;
-  u.rate = rate;
   const v = pickVoice(lang);
+  u.lang = v?.lang || lang;
+  u.rate = opts.rate ?? 0.98;
+  u.pitch = opts.pitch ?? 1.0;
   if (v) u.voice = v;
   synth.speak(u);
 }
 
+/** Voz del Profe Robo: mas aguda y alegre. Idioma segun se le pase. */
+export function speakRobot(text, lang = "es-MX") {
+  speak(text, lang, { rate: 1.06, pitch: 1.2 });
+}
+
 /**
- * Crea un boton de altavoz que pronuncia `text`. Devuelve null si no hay soporte
- * (asi el llamador no pinta nada). Uso: speakButton("hello").
+ * Crea un boton de altavoz que pronuncia `text`. Devuelve null si no hay soporte.
+ * Uso: speakButton("hello") (ingles por defecto, para el contenido).
  */
 export function speakButton(text, { lang = "en-US", cls = "" } = {}) {
   if (!isSpeechSupported()) return null;

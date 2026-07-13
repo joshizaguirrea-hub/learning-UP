@@ -18,7 +18,8 @@ import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
-import { robotBubble, robotHelpButton, openRobotHint, robotAvatar } from "../ui/robot.js";
+import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup } from "../ui/robot.js";
+import { isRobotConfigured } from "../ui/robot-prefs.js";
 
 const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 min-h-[70vh] flex flex-col";
 const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl " +
@@ -39,10 +40,14 @@ export async function renderLessonPlayer(container, params, user) {
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
   // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.
   const unitGrammar = unit.lessons.find((l) => l.grammar)?.grammar || null;
+  // Voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
+  const robotLang = (unit.level === "A1" || unit.level === "A2") ? "es-MX" : "en-US";
 
   const state = { idx: 0, correct: 0, checked: new Set() };
 
+  // Primera vez: que el alumno elija avatar y nombre para su robot.
   renderStep();
+  if (!isRobotConfigured()) openRobotSetup(() => renderStep());
 
   // -------------------------------------------------------------------------
   function renderStep() {
@@ -75,7 +80,7 @@ export async function renderLessonPlayer(container, params, user) {
       el("span", { class: "inline-block mt-3 text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300" }, unit.level + " - " + unit.title),
       el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, lesson.title),
       el("div", { class: "mt-4 text-left" },
-        robotBubble("Hola! Soy tu Profe Robo. Hoy vamos a aprender esto paso a paso. Primero la clase, luego practicamos. Tu puedes!")),
+        robotBubble("Hola, soy " + robotName() + "! Vamos a aprender esto paso a paso. Primero la clase y luego practicamos. Tu puedes!", { lang: robotLang })),
       lesson.intro ? el("p", { class: "mt-4 text-slate-300" }, lesson.intro) : null,
       el("div", { class: "mt-4 text-left " + BOX },
         el("p", { class: "text-sm font-semibold text-slate-200" }, "En esta clase vas a:"),
@@ -90,7 +95,8 @@ export async function renderLessonPlayer(container, params, user) {
   // ---- Paso: clase (reglas / lectura / glosario / nota) -------------------
   function teachStep(step) {
     const body = el("div", {},
-      step.robot ? robotBubble(step.robot) : null,
+      step.robot ? robotBubble(step.robot, { lang: robotLang }) : null,
+      step.robot ? robotReadButton(step.robot, robotLang) : null,
       el("div", { class: "mt-4" }, step.node));
     const footer = el("button", { class: PRIMARY, onclick: next }, step.last ? "Ir a practicar" : "Continuar");
     return { body, footer };
@@ -103,7 +109,7 @@ export async function renderLessonPlayer(container, params, user) {
     const { node, getResponse } = renderActivity(act, idxNum);
     const headRow = el("div", { class: "flex items-center justify-between gap-3" },
       el("p", { class: "text-xs uppercase tracking-wide text-slate-400" }, "Practica " + idxNum + " de " + activityTotal),
-      robotHelpButton(() => openRobotHint(unitGrammar, act)));
+      robotHelpButton(() => openRobotHint(unitGrammar, act, robotLang)));
     const body = el("div", {}, headRow, el("div", { class: "mt-4" }, node));
     const footerHost = el("div", {});
 
