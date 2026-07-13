@@ -109,13 +109,20 @@ export function speak(text, lang = "en-US", opts = {}) {
   const gap = opts.gap ?? 900; // pausa larga (ms) entre alternativas "/"
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
-  // Normaliza simbolos que suenan raro; "\u00B7" separa como "/" (pausa).
+  // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
+  //   "=" -> pausa breve (coma)     "who = personas" => "who, personas"
+  //   "\u00B7" y flechas -> pausa larga (separan ideas)
+  //   "+ ( ) * _ :" -> se omiten (no se pronuncian)
   const norm = String(text)
+    .replace(/\s*=\s*/g, ", ")
     .replace(/\u00B7/g, " / ")
-    .replace(/[+()]/g, " ")
+    .replace(/\s*(?:->|\u2192|\u21D2)\s*/g, " / ")
+    .replace(/[+*_()\[\]{}|]/g, " ")
+    .replace(/\s*:\s*/g, ", ")
+    .replace(/\s+([,.])/g, "$1")
     .replace(/\s+/g, " ")
     .trim();
-  const parts = norm.split(/\s*\/\s*/).map((s) => s.trim()).filter(Boolean);
+  const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
 
   // Cada parte -> chunks agrupados por idioma; cola de locuciones.
   const queue = [];
