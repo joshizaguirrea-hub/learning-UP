@@ -167,6 +167,7 @@ export const PROFESSIONAL_COMM_C2 = {
         title: "Diplomatic / formal requests",
         form: "I would appreciate it if you could + base · Would you mind + -ing · I was wondering if you could + base",
         examples: ["I would appreciate it if you could reply.", "Would you mind sending it?", "I was wondering if you could help."],
+        explain: { tr: ["Le agradecer\u00eda si pudiera responder.", "\u00bfLe importar\u00eda enviarlo?", "Me preguntaba si podr\u00eda ayudar."] },
         mistakes: [
           { wrong: "I would appreciate if you can reply.", right: "I would appreciate it if you could reply." },
           { wrong: "Would you mind to send it?", right: "Would you mind sending it?" },

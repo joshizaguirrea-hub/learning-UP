@@ -167,6 +167,7 @@ export const REGISTER_C2 = {
         title: "Fronting (marked word order)",
         form: "elemento inusual al inicio (+ inversion si es negativo/adverbial)",
         examples: ["So beautiful was the view that we stayed.", "Down came the rain.", "Little did they know."],
+        explain: { tr: ["Tan hermosa era la vista que nos quedamos.", "Cay\u00f3 la lluvia.", "Poco sab\u00edan."] },
         mistakes: [
           { wrong: "So the view was beautiful that we stayed.", right: "So beautiful was the view that we stayed." },
           { wrong: "Little they knew.", right: "Little did they know." },

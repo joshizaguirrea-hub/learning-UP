@@ -167,6 +167,7 @@ export const DEBATE_MASTERY_C2 = {
         title: "Concession + rebuttal connectors",
         form: "concesion: Admittedly / Granted / It is true that... · giro/refutacion: That said / Nonetheless / However",
         examples: ["Granted, it's costly. That said, it saves time.", "Admittedly, I was late. Nonetheless, I finished."],
+        explain: { tr: ["De acuerdo, es costoso. Dicho esto, ahorra tiempo.", "Es cierto, llegu\u00e9 tarde. No obstante, termin\u00e9."] },
         mistakes: [
           { wrong: "Granted but it's costly.", right: "Granted, it's costly, but it saves time." },
           { wrong: "Nonetheless of that, I object.", right: "Nonetheless, I object." },

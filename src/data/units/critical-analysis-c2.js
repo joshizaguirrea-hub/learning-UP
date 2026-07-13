@@ -167,6 +167,7 @@ export const CRITICAL_ANALYSIS_C2 = {
         title: "Emphatic do / does / did",
         form: "do/does/did + verbo base (para enfatizar o contrastar): I do agree. She does know. He did call.",
         examples: ["I do like it (a pesar de todo).", "She does know the answer.", "He did call, I promise."],
+        explain: { tr: ["S\u00ed que me gusta (a pesar de todo).", "Ella s\u00ed sabe la respuesta.", "\u00c9l s\u00ed llam\u00f3, lo prometo."] },
         mistakes: [
           { wrong: "I do liked it.", right: "I did like it." },
           { wrong: "She does knows it.", right: "She does know it." },

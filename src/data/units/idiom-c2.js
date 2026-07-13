@@ -168,6 +168,7 @@ export const IDIOM_C2 = {
         title: "Phrasal verbs (separables / inseparables)",
         form: "separable: turn it off · inseparable: look after him · con pronombre va en medio (separables)",
         examples: ["Turn the light off. / Turn it off.", "I look after my sister. / I look after her."],
+        explain: { tr: ["Apaga la luz. / Ap\u00e1gala.", "Cuido a mi hermana. / La cuido."] },
         mistakes: [
           { wrong: "Turn off it.", right: "Turn it off." },
           { wrong: "I look my sister after.", right: "I look after my sister." },

@@ -167,6 +167,7 @@ export const CAPSTONE_C2 = {
         title: "C2 review (inversion, cleft, passive, concessive)",
         form: "inversion: Never have I... · cleft: What I need is... · pasiva: has been mastered · concesiva: However hard...",
         examples: ["Never have I felt so ready.", "What matters is confidence.", "The skills have been mastered.", "However hard it is, I'll try."],
+        explain: { tr: ["Nunca me he sentido tan preparado.", "Lo que importa es la confianza.", "Las habilidades se han dominado.", "Por muy dif\u00edcil que sea, lo intentar\u00e9."] },
         mistakes: [
           { wrong: "Never I have felt ready.", right: "Never have I felt ready." },
           { wrong: "However it is hard, I'll try.", right: "However hard it is, I'll try." },
