@@ -38,6 +38,9 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
   const explainLang = "es-MX"; // la EXPLICACION siempre en espanol (idioma del alumno)
   const contentLang = "en-US"; // el TEXTO/ejemplos se leen en ingles
   const isEs = true;           // toda la UI del explicador va en espanol
+  // Tonos: ejemplo en ingles CLARO; explicacion en espanol DINAMICA y alegre.
+  const EX_OPTS = { rate: 1.0, pitch: 1.0 };
+  const FUN_OPTS = { rate: 1.12, pitch: 1.18 };
 
   // Partes de la formula.
   const explicit = grammar.explain;
@@ -45,8 +48,10 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     ? explicit.parts.map((p) => stripMarkup(p.label))
     : splitClauses(grammar.form || grammar.title || "");
 
-  // Ejemplos utiles: solo los que se pueden mapear (mismo numero de clausulas).
+  // Ejemplos con su traduccion (si existe). `examples` = los que mapean por partes.
   const trs = explicit?.tr || [];
+  const rawExamples = (grammar.examples || [])
+    .map((ex, i) => ({ text: stripMarkup(ex), tr: trs[i] ? stripMarkup(trs[i]) : "" }));
   const examples = (grammar.examples || [])
     .map((ex, i) => ({ text: stripMarkup(ex), spans: splitClauses(ex), tr: trs[i] ? stripMarkup(trs[i]) : "" }))
     .filter((e) => e.spans.length === parts.length && parts.length >= 1);
@@ -107,20 +112,31 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
   }, card);
   document.body.append(overlay);
 
-  // Si no hay ejemplos mapeables, degradar: solo leer formula + ejemplos.
+  // Si la formula no mapea por partes -> MODO LECTOR: cada ejemplo + su significado.
   if (!examples.length) {
-    caption.textContent = isEs
-      ? "Escucha la formula y los ejemplos con atencion."
-      : "Listen to the formula and the examples carefully.";
-    const items = [
-      { text: "Escucha con atenci\u00f3n.", lang: explainLang },
-      { text: stripMarkup(grammar.form || grammar.title), lang: contentLang },
-    ];
-    (grammar.examples || []).forEach((ex) => items.push({ text: stripMarkup(ex), lang: contentLang }));
-    cancel = speakSequence(items);
-    nextBtn.classList.remove("hidden");
-    nextBtn.textContent = isEs ? "Entendido" : "Got it";
-    nextBtn.onclick = close;
+    chipsRow.remove();
+    svg.remove();
+    let rIdx = 0;
+    const playReader = (idx) => {
+      const ex = rawExamples[idx];
+      exCounter.textContent = "Ejemplo " + (idx + 1) + "/" + rawExamples.length;
+      exampleRow.replaceChildren(el("span", { class: "text-slate-100 text-center" }, ex.text));
+      caption.replaceChildren(ex.tr
+        ? el("span", { class: "block text-indigo-200 font-semibold text-lg" }, "= " + ex.tr)
+        : el("span", { class: "text-slate-300" }, "Escucha y repite en voz alta."));
+      replayBtn.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      const items = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
+      if (ex.tr) items.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
+      cancel = speakSequence(items, null, () => {
+        replayBtn.classList.remove("hidden");
+        if (rawExamples.length > 1) nextBtn.classList.remove("hidden");
+      });
+    };
+    replayBtn.onclick = () => playReader(rIdx);
+    nextBtn.onclick = () => { rIdx = (rIdx + 1) % rawExamples.length; playReader(rIdx); };
+    if (rawExamples.length) playReader(0);
+    else { caption.textContent = "Escucha la regla."; cancel = speakSequence([{ text: stripMarkup(grammar.form || grammar.title), lang: contentLang }]); }
     return;
   }
 
@@ -194,9 +210,6 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
   }
 
   // Tonos de voz: ejemplo en ingles CLARO; explicacion en espanol DINAMICA y alegre.
-  const EX_OPTS = { rate: 1.0, pitch: 1.0 };
-  const FUN_OPTS = { rate: 1.12, pitch: 1.18 };
-
   function playExample(idx) {
     renderExample(idx);
     const ex = examples[idx];
