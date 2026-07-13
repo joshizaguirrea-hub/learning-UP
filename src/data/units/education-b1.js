@@ -1,6 +1,6 @@
 /**
  * data/units/education-b1.js — Unidad tematica "Education & learning" (B1).
- * Datos PUROS. Modelo desacoplado por competencia. Gramatica: relative clauses.
+ * Datos PUROS. MODELO DESACOPLADO + CONTENIDO ENRIQUECIDO. Gramatica: relative clauses.
  */
 
 export const EDUCATION_B1 = {
@@ -28,6 +28,8 @@ export const EDUCATION_B1 = {
     { id: "edu-8", term: "knowledge", translation: "conocimiento", example: "Knowledge is power." },
     { id: "edu-9", term: "skill", translation: "habilidad", example: "Reading is a key skill." },
     { id: "edu-10", term: "homework", translation: "tarea", example: "I do my homework at night." },
+    { id: "edu-11", term: "to study", translation: "estudiar", example: "I study every evening." },
+    { id: "edu-12", term: "classmate", translation: "companero de clase", example: "My classmates are friendly." },
   ],
 
   lessons: [
@@ -38,23 +40,40 @@ export const EDUCATION_B1 = {
       phase: "learn",
       skills: ["reading"],
       title: "Reading: aprender de verdad",
-      intro: "Competencia de LECTURA. Lee el texto y comprueba que entendiste.",
+      intro: "Competencia de LECTURA. Lee DOS textos y responde las preguntas de comprension.",
       content: {
         reading:
+          "TEXT 1 - Lucas the student\n" +
           "Lucas is a student who loves learning. His favourite subject is history, which he finds " +
-          "fascinating. Last year he had a teacher who changed his life. She was a person who never " +
-          "gave up on her students. The book that she recommended helped him pass his exams. Lucas " +
-          "believes that knowledge is the skill that opens doors. Now he wants a degree that will " +
-          "help him become a teacher too.",
+          "fascinating. Last year he had a teacher who changed his life. She was a person who never gave " +
+          "up on her students. The book that she recommended helped him pass his exams. Lucas believes " +
+          "that knowledge is the skill that opens doors. Now he wants a degree that will help him become " +
+          "a teacher too.\n\n" +
+          "TEXT 2 - Study tips\n" +
+          "A: I always fail the exams that I don't prepare for. B: You need a method that works for you. " +
+          "A: Like what? B: Study with a classmate who is organised, and do the homework that the teacher " +
+          "gives. A: That's the advice which I needed! B: And rest well the night before.",
+        glossary: [
+          { term: "who / which / that", translation: "que (personas / cosas)" },
+          { term: "gave up on", translation: "se rindio con" },
+          { term: "to pass / to fail", translation: "aprobar / reprobar" },
+          { term: "degree / knowledge", translation: "titulo / conocimiento" },
+          { term: "skill / subject", translation: "habilidad / materia" },
+          { term: "classmate / homework", translation: "companero de clase / tarea" },
+          { term: "method", translation: "metodo" },
+          { term: "advice", translation: "consejo" },
+        ],
         keyPhrases: [
           "Fijate en who (personas), which/that (cosas).",
-          "Busca que materia le gusta y que quiere ser.",
+          "Busca la materia favorita y el consejo de estudio.",
         ],
         check: [
-          { prompt: "What is Lucas's favourite subject?", choices: ["History", "Maths", "Science"], answer: 0 },
-          { prompt: "What did the teacher do?", choices: ["Gave up on students", "Changed his life", "Failed him"], answer: 1 },
-          { prompt: "What helped him pass?", choices: ["A film", "The book she recommended", "Luck"], answer: 1 },
-          { prompt: "What does Lucas want to become?", choices: ["A doctor", "A teacher", "An artist"], answer: 1 },
+          { prompt: "T1: What is Lucas's favourite subject?", choices: ["History", "Maths", "Science"], answer: 0 },
+          { prompt: "T1: What did the teacher do?", choices: ["Gave up on students", "Changed his life", "Failed him"], answer: 1 },
+          { prompt: "T1: What does Lucas want to become?", choices: ["A doctor", "A teacher", "An artist"], answer: 1 },
+          { prompt: "T2: When does A fail exams?", choices: ["When unprepared", "Always", "Never"], answer: 0 },
+          { prompt: "T2: Who should A study with?", choices: ["An organised classmate", "Nobody", "A teacher"], answer: 0 },
+          { prompt: "T2: What should A do the night before?", choices: ["Study all night", "Rest well", "Party"], answer: 1 },
         ],
       },
       activities: [],
@@ -70,40 +89,69 @@ export const EDUCATION_B1 = {
       intro: "Competencia de VOCABULARIO. Estudia el glosario y practica. Entra a tu SRS.",
       teachesVocab: true,
       glossary: [
-        { term: "subject", translation: "materia" },
+        { term: "subject / to study", translation: "materia / estudiar" },
         { term: "to learn / knowledge", translation: "aprender / conocimiento" },
         { term: "exam / homework", translation: "examen / tarea" },
         { term: "to pass / to fail", translation: "aprobar / reprobar" },
-        { term: "degree", translation: "titulo / carrera" },
-        { term: "skill", translation: "habilidad" },
+        { term: "degree / skill", translation: "titulo / habilidad" },
+        { term: "teacher / classmate", translation: "profesor / companero" },
       ],
       activities: [
         {
           id: "edu-vocab-a1", type: "matching",
-          prompt: "Empareja la palabra con su significado:",
+          prompt: "Empareja (1/2):",
           payload: { pairs: [
             { left: "subject", right: "materia" },
             { left: "exam", right: "examen" },
             { left: "degree", right: "titulo" },
+            { left: "skill", right: "habilidad" },
           ] },
         },
         {
-          id: "edu-vocab-a2", type: "cloze",
+          id: "edu-vocab-a2", type: "matching",
+          prompt: "Empareja (2/2):",
+          payload: { pairs: [
+            { left: "to pass", right: "aprobar" },
+            { left: "to fail", right: "reprobar" },
+            { left: "homework", right: "tarea" },
+            { left: "classmate", right: "companero de clase" },
+          ] },
+        },
+        {
+          id: "edu-vocab-a3", type: "cloze",
           prompt: "Completa: 'I ___ the exam!' (aprobar -> pasado)",
           payload: { answer: "passed" },
           explain: "'To pass' = aprobar; pasado: passed.",
-        },
-        {
-          id: "edu-vocab-a3", type: "multiple_choice",
-          prompt: "Which word means 'reprobar'?",
-          payload: { choices: ["to pass", "to fail", "to learn"], answer: 1 },
-          explain: "'To fail' = reprobar.",
         },
         {
           id: "edu-vocab-a4", type: "cloze",
           prompt: "Completa: 'I do my ___ at night.' (tarea)",
           payload: { answer: "homework" },
           explain: "'Homework' = tarea.",
+        },
+        {
+          id: "edu-vocab-a5", type: "cloze",
+          prompt: "Completa: 'She has a ___ in biology.' (titulo)",
+          payload: { answer: "degree" },
+          explain: "'Degree' = titulo / carrera.",
+        },
+        {
+          id: "edu-vocab-a6", type: "multiple_choice",
+          prompt: "Which word means 'reprobar'?",
+          payload: { choices: ["to pass", "to fail", "to learn"], answer: 1 },
+          explain: "'To fail' = reprobar.",
+        },
+        {
+          id: "edu-vocab-a7", type: "multiple_choice",
+          prompt: "Which word means 'conocimiento'?",
+          payload: { choices: ["knowledge", "homework", "subject"], answer: 0 },
+          explain: "'Knowledge' = conocimiento.",
+        },
+        {
+          id: "edu-vocab-a8", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["evening", "I", "every", "study"], answer: ["I", "study", "every", "evening"] },
+          explain: "'I study every evening' = estudio cada tarde.",
         },
       ],
     },
@@ -123,6 +171,7 @@ export const EDUCATION_B1 = {
         mistakes: [
           { wrong: "The man which helped me.", right: "The man who helped me." },
           { wrong: "The book who I read.", right: "The book which I read." },
+          { wrong: "The person what called.", right: "The person who called." },
         ],
       },
       activities: [
@@ -139,16 +188,40 @@ export const EDUCATION_B1 = {
           explain: "'which' (o 'that') para cosas.",
         },
         {
-          id: "edu-gram-a3", type: "multiple_choice",
+          id: "edu-gram-a3", type: "cloze",
+          prompt: "Completa: 'This is the advice ___ I needed.' (cosa)",
+          payload: { answer: "which", alt: ["that"] },
+          explain: "'which/that' para cosas.",
+        },
+        {
+          id: "edu-gram-a4", type: "multiple_choice",
           prompt: "Choose the correct sentence:",
           payload: { choices: ["The man which called you.", "The man who called you.", "The man what called you."], answer: 1 },
           explain: "'who' para personas.",
         },
         {
-          id: "edu-gram-a4", type: "word_bank",
+          id: "edu-gram-a5", type: "multiple_choice",
+          prompt: "Which relative pronoun is for things?",
+          payload: { choices: ["who", "which", "whose"], answer: 1 },
+          explain: "'which' para cosas.",
+        },
+        {
+          id: "edu-gram-a6", type: "word_bank",
           prompt: "Ordena la frase:",
           payload: { words: ["who", "person", "a", "She's", "helps"], answer: ["She's", "a", "person", "who", "helps"] },
-          explain: "Orden: She's + a + person + who + helps.",
+          explain: "She's + a + person + who + helps.",
+        },
+        {
+          id: "edu-gram-a7", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["I", "book", "The", "read", "that"], answer: ["The", "book", "that", "I", "read"] },
+          explain: "The + book + that + I + read.",
+        },
+        {
+          id: "edu-gram-a8", type: "cloze",
+          prompt: "Completa: 'Study with a classmate ___ is organised.' (persona)",
+          payload: { answer: "who", alt: ["that"] },
+          explain: "'who' (o 'that') para personas.",
         },
       ],
     },
@@ -160,27 +233,47 @@ export const EDUCATION_B1 = {
       phase: "produce",
       skills: ["writing"],
       title: "Writing: describe con detalle",
-      intro: "Competencia de ESCRITURA. Construye frases con oraciones de relativo. Ordena cada frase.",
+      intro: "Competencia de ESCRITURA. Construye frases con oraciones de relativo.",
       activities: [
         {
           id: "edu-write-a1", type: "word_bank",
-          prompt: "Describe al profesor que te ayudo:",
+          prompt: "1. Describe al profesor que te ayudo:",
           payload: { words: ["who", "The", "teacher", "me", "helped"], answer: ["The", "teacher", "who", "helped", "me"] },
         },
         {
           id: "edu-write-a2", type: "word_bank",
-          prompt: "Describe el libro que leiste:",
+          prompt: "2. Describe el libro que leiste:",
           payload: { words: ["I", "book", "The", "read", "that"], answer: ["The", "book", "that", "I", "read"] },
         },
         {
           id: "edu-write-a3", type: "word_bank",
-          prompt: "Di que aprobaste el examen:",
+          prompt: "3. Di que aprobaste el examen:",
           payload: { words: ["the", "I", "exam", "passed"], answer: ["I", "passed", "the", "exam"] },
         },
         {
-          id: "edu-write-a4", type: "multiple_choice",
-          prompt: "Which relative pronoun is for things?",
-          payload: { choices: ["who", "which", "whose"], answer: 1 },
+          id: "edu-write-a4", type: "word_bank",
+          prompt: "4. Di tu materia favorita:",
+          payload: { words: ["subject", "My", "is", "favourite", "history"], answer: ["My", "favourite", "subject", "is", "history"] },
+        },
+        {
+          id: "edu-write-a5", type: "word_bank",
+          prompt: "5. Di que necesitas un metodo que funcione:",
+          payload: { words: ["works", "I", "a", "need", "method", "that"], answer: ["I", "need", "a", "method", "that", "works"] },
+        },
+        {
+          id: "edu-write-a6", type: "multiple_choice",
+          prompt: "6. Which relative pronoun is for people?",
+          payload: { choices: ["who", "which", "where"], answer: 0 },
+        },
+        {
+          id: "edu-write-a7", type: "multiple_choice",
+          prompt: "7. Choose the correct one:",
+          payload: { choices: ["The car who I bought.", "The car which I bought.", "The car who bought I."], answer: 1 },
+        },
+        {
+          id: "edu-write-a8", type: "multiple_choice",
+          prompt: "8. Which word means 'aprobar'?",
+          payload: { choices: ["to fail", "to pass", "to study"], answer: 1 },
         },
       ],
     },
