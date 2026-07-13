@@ -168,6 +168,7 @@ export const MEDIA_B1 = {
         title: "Reported speech (basico)",
         form: "say -> said (that) · tell -> told (someone) · el verbo retrocede en el tiempo",
         examples: ["'I am tired' -> He said he was tired.", "'I will go' -> She said she would go."],
+        explain: { tr: ["'Estoy cansado' -> \u00c9l dijo que estaba cansado.", "'Ir\u00e9' -> Ella dijo que ir\u00eda."] },
         mistakes: [
           { wrong: "He said me he was tired.", right: "He told me he was tired." },
           { wrong: "She said that she is happy.", right: "She said that she was happy." },

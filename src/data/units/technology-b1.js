@@ -168,6 +168,7 @@ export const TECHNOLOGY_B1 = {
         title: "used to (habitos del pasado)",
         form: "used to + base (afirm) · didn't use to + base (neg) · Did ... use to...? (preg)",
         examples: ["I used to write letters.", "They didn't use to have phones.", "Did you use to play outside?"],
+        explain: { tr: ["Sol\u00eda escribir cartas.", "Ellos no sol\u00edan tener tel\u00e9fonos.", "\u00bfSol\u00edas jugar afuera?"] },
         mistakes: [
           { wrong: "I use to write letters.", right: "I used to write letters." },
           { wrong: "She didn't used to call.", right: "She didn't use to call." },

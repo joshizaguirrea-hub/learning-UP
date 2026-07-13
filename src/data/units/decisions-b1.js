@@ -167,6 +167,7 @@ export const DECISIONS_B1 = {
         title: "First vs second conditional",
         form: "1st (real): If + present, will + base · 2nd (imaginario): If + past, would + base",
         examples: ["If I accept, I will earn more. (probable)", "If I moved, I would miss my family. (imaginario)"],
+        explain: { tr: ["Si acepto, ganar\u00e9 m\u00e1s. (probable)", "Si me mudara, extra\u00f1ar\u00eda a mi familia. (imaginario)"] },
         mistakes: [
           { wrong: "If I will accept, I earn more.", right: "If I accept, I will earn more." },
           { wrong: "If I moved, I will miss them.", right: "If I moved, I would miss them." },

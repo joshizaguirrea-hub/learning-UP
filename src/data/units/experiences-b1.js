@@ -167,6 +167,7 @@ export const EXPERIENCES_B1 = {
         title: "Present perfect continuous (for / since)",
         form: "have/has been + verbo-ing · for + periodo · since + punto de inicio",
         examples: ["I have been working for five years.", "She has been studying since 2019."],
+        explain: { tr: ["He estado trabajando durante cinco a\u00f1os.", "Ella ha estado estudiando desde 2019."] },
         mistakes: [
           { wrong: "I have been work here.", right: "I have been working here." },
           { wrong: "I've lived here since five years.", right: "I've lived here for five years." },

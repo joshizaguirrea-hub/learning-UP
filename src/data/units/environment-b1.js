@@ -169,6 +169,7 @@ export const ENVIRONMENT_B1 = {
         title: "Voz pasiva (present y past)",
         form: "presente: is/are + participio · pasado: was/were + participio · (by + agente, opcional)",
         examples: ["Paper is recycled.", "The river was polluted.", "Trees are planted every year."],
+        explain: { tr: ["El papel se recicla.", "El r\u00edo fue contaminado.", "Se plantan \u00e1rboles cada a\u00f1o."] },
         mistakes: [
           { wrong: "The river was pollute.", right: "The river was polluted." },
           { wrong: "Paper is recycle.", right: "Paper is recycled." },

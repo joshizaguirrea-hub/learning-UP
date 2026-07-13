@@ -168,6 +168,7 @@ export const EDUCATION_B1 = {
         title: "Relative clauses (who / which / that)",
         form: "who = personas · which = cosas · that = personas o cosas",
         examples: ["The teacher who helped me.", "The book which she wrote.", "The film that we saw."],
+        explain: { tr: ["El profesor que me ayud\u00f3.", "El libro que ella escribi\u00f3.", "La pel\u00edcula que vimos."] },
         mistakes: [
           { wrong: "The man which helped me.", right: "The man who helped me." },
           { wrong: "The book who I read.", right: "The book which I read." },

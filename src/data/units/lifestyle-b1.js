@@ -167,6 +167,7 @@ export const LIFESTYLE_B1 = {
         title: "Modales de deduccion + too / enough",
         form: "must (seguro) / might (posible) / can't (imposible) + base · too + adj · adj + enough",
         examples: ["He must be tired.", "She might be sick.", "It's too difficult.", "It's not easy enough."],
+        explain: { tr: ["\u00c9l debe estar cansado.", "Ella podr\u00eda estar enferma.", "Es demasiado dif\u00edcil.", "No es lo suficientemente f\u00e1cil."] },
         mistakes: [
           { wrong: "He must to be tired.", right: "He must be tired." },
           { wrong: "It's enough easy.", right: "It's easy enough." },

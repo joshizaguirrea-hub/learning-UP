@@ -167,6 +167,7 @@ export const RELATIONSHIPS_B1 = {
         title: "Verbos + gerundio / infinitivo",
         form: "enjoy/love/hate/keep + -ing · want/decide/agree/hope/learn + to + base",
         examples: ["I enjoy talking.", "She wants to travel.", "They decided to stay.", "He keeps studying."],
+        explain: { tr: ["Disfruto conversar.", "Ella quiere viajar.", "Ellos decidieron quedarse.", "\u00c9l sigue estudiando."] },
         mistakes: [
           { wrong: "I enjoy to talk.", right: "I enjoy talking." },
           { wrong: "She wants traveling.", right: "She wants to travel." },
