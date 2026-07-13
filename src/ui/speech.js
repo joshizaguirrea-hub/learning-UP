@@ -64,6 +64,8 @@ const EN_WORDS = new Set([
   "can", "could", "do", "does", "did", "has", "have", "had", "by", "of", "the", "to",
   "and", "or", "not", "going", "get", "got", "verb", "past", "present", "future",
   "subject", "object", "with", "for", "from", "they", "you", "he", "she", "it", "we",
+  "that", "this", "these", "those", "who", "which", "what", "where", "when", "why",
+  "how", "whose", "whom", "there", "here", "my", "your", "his", "her", "our", "their",
 ]);
 
 /** Idioma de una palabra: 'es' | 'en' | null (ambiguo, se hereda). */
@@ -104,9 +106,9 @@ export function speak(text, lang = "en-US", opts = {}) {
   if (!isSpeechSupported() || !text) return;
   const synth = window.speechSynthesis;
   synth.cancel();
-  const rate = opts.rate ?? 0.98;
+  const rate = opts.rate ?? 0.9;
   const pitch = opts.pitch ?? 1.0;
-  const gap = opts.gap ?? 900; // pausa larga (ms) entre alternativas "/"
+  const gap = opts.gap ?? 950; // pausa larga (ms) entre alternativas "/"
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
