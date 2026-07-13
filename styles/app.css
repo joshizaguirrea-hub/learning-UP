@@ -78,9 +78,61 @@ body.lesson-mode > header,
 body.lesson-mode > footer,
 body.lesson-mode #bottom-nav { display: none !important; }
 
+/* Fondo "aula viva": aurora suave con blobs que flotan (mas ligero a la vista). */
+body.lesson-mode {
+  background:
+    radial-gradient(1100px 600px at 12% -10%, rgba(99,102,241,0.20), transparent 60%),
+    radial-gradient(1000px 600px at 115% 8%, rgba(217,70,239,0.16), transparent 55%),
+    radial-gradient(900px 700px at 50% 120%, rgba(16,185,129,0.13), transparent 55%),
+    #0b1020;
+}
 body.lesson-mode #app {
   max-width: 100%;
-  padding: 0.75rem 0.75rem 1rem;
+  padding: 0.75rem 0.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body.lesson-mode::before,
+body.lesson-mode::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.45;
+  pointer-events: none;
+}
+body.lesson-mode::before {
+  width: 340px; height: 340px; background: #6366f1; top: -90px; left: -70px;
+  animation: blobA 15s ease-in-out infinite;
+}
+body.lesson-mode::after {
+  width: 300px; height: 300px; background: #d946ef; bottom: -90px; right: -50px;
+  animation: blobB 18s ease-in-out infinite;
+}
+@keyframes blobA { 0%,100% { transform: translate(0,0); } 50% { transform: translate(45px,35px); } }
+@keyframes blobB { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-35px,-45px); } }
+
+/* Tarjeta de la clase: cristal (glassmorphism) con brillo suave. */
+.lesson-card {
+  box-shadow: 0 24px 70px -24px rgba(79,70,229,0.45);
+}
+
+/* Cada paso entra con una animacion (deslizar + aparecer) => dinamico. */
+@keyframes stepEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+.step-enter { animation: stepEnter 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* Barra de progreso con glow alegre. */
+.progress-glow { box-shadow: 0 0 12px rgba(45, 212, 191, 0.75); }
+
+/* Respeta a quien prefiere menos movimiento (accesibilidad WCAG 2.2). */
+@media (prefers-reduced-motion: reduce) {
+  .step-enter, .robot-float, .robot-pop,
+  body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
 }
 
 /* Burbuja del Profe Robo: colita del bocadillo. */
