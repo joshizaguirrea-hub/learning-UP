@@ -14,6 +14,7 @@ import { avatarNode, AVATAR_LIST, avatarSvg } from "./avatars.js";
 import { getRobot, setRobot } from "./robot-prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
+import { openBymaxChat } from "../features/bymax-chat.js";
 
 /** Nombre actual del robot. */
 export function robotName() {
@@ -134,6 +135,10 @@ export function openRobotHint(grammar, act, lang = "es-MX") {
       el("p", {}, typeTip(act.type, lang))),
 
     el("div", { class: "mt-5 flex flex-col gap-2" },
+      el("button", {
+        class: "w-full border border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200 font-semibold px-5 py-3 rounded-xl hover:bg-fuchsia-500/20 focus:outline focus:outline-2 focus:outline-fuchsia-400",
+        onclick: () => { close(); openBymaxChat(grammar, lang); },
+      }, "\uD83D\uDCAC Preguntale a " + name + " (IA)"),
       grammar ? el("button", {
         class: "w-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 font-semibold px-5 py-3 rounded-xl hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
         onclick: () => { close(); openRuleExplainer(grammar, lang); },
