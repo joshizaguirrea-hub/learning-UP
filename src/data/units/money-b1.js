@@ -168,8 +168,8 @@ export const MONEY_B1 = {
         form: "If + past simple, subject + would + verbo base",
         explain: {
           parts: [
-            { label: "If + past simple", fn: "Esta primera parte es la condicion: la situacion que imaginamos. Fijate que el verbo va en pasado, aunque estemos hablando del presente o del futuro. No es algo real, solo lo suponemos." },
-            { label: "subject + would + verbo base", fn: "Esta segunda parte es el resultado: lo que pasaria si esa condicion se cumpliera. Es la consecuencia imaginaria, la que solo ocurriria en ese caso supuesto." },
+            { label: "If + past simple", fn: "La condici\u00f3n: la situaci\u00f3n que imaginamos. El verbo va en pasado, aunque hablemos del presente o del futuro. No es algo real, solo lo suponemos." },
+            { label: "subject + would + verbo base", fn: "El resultado: lo que pasar\u00eda si esa condici\u00f3n se cumpliera. Es la consecuencia imaginaria, la que solo ocurrir\u00eda en ese caso." },
           ],
         },
         examples: ["If I had money, I would travel.", "If I won, I wouldn't stop working.", "If I were you, I'd buy it."],

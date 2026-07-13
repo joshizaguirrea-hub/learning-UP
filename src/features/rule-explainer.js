@@ -112,7 +112,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
       ? "Escucha la formula y los ejemplos con atencion."
       : "Listen to the formula and the examples carefully.";
     const items = [
-      { text: "Escucha con atencion.", lang: explainLang },
+      { text: "Escucha con atenci\u00f3n.", lang: explainLang },
       { text: stripMarkup(grammar.form || grammar.title), lang: contentLang },
     ];
     (grammar.examples || []).forEach((ex) => items.push({ text: stripMarkup(ex), lang: contentLang }));
@@ -188,7 +188,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     if (explicit?.parts?.[i]?.fn) return explicit.parts[i].fn;
     // Generico: en ESPANOL limpio (no leemos la formula en ingles con voz espanola).
     const esOrd = ["la primera", "la segunda", "la tercera", "la cuarta", "la quinta"];
-    if (isEs) return "Esta es " + (esOrd[i] || ("la parte " + (i + 1))) + " parte de la estructura. Fijate como se conecta con la formula de arriba.";
+    if (isEs) return "Observa c\u00f3mo " + (esOrd[i] || ("la parte " + (i + 1))) + " parte se conecta con la f\u00f3rmula de arriba.";
     return "This is part " + (i + 1) + " of the structure. See how it connects to the formula above.";
   }
 
@@ -198,7 +198,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     let k = 0;
     function playStep() {
       if (k >= parts.length) {
-        caption.textContent = isEs ? "Eso es! Asi funciona la regla." : "That's it! That's how the rule works.";
+        caption.textContent = isEs ? "\u00a1Eso es! As\u00ed funciona la regla." : "That's it! That's how the rule works.";
         replayBtn.classList.remove("hidden");
         if (examples.length > 1) nextBtn.classList.remove("hidden");
         return;
