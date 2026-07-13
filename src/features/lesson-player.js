@@ -20,6 +20,7 @@ import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
 import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
+import { richText, stripMarkup } from "../ui/richtext.js";
 
 const CARD = "max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 min-h-[70vh] flex flex-col";
 const PRIMARY = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl " +
@@ -295,9 +296,9 @@ function readingSection(text) {
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: "font-bold text-lg text-slate-100" }, "Lectura"),
-      speakButton(String(text).replace(/\n+/g, " "))),
+      speakButton(stripMarkup(String(text).replace(/\n+/g, " ")))),
     el("div", { class: "mt-3 space-y-3" },
-      ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, p))));
+      ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, richText(p)))));
 }
 
 function glossarySection(glossary) {
@@ -305,7 +306,7 @@ function glossarySection(glossary) {
     el("h2", { class: "font-bold text-lg text-slate-100" }, "Glosario"),
     el("div", { class: "mt-3" }, ...glossary.map((g) =>
       el("div", { class: "flex justify-between items-center gap-4 py-1.5 border-b border-slate-800 last:border-0" },
-        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, g.term, speakButton(g.term)),
+        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, richText(g.term), speakButton(stripMarkup(g.term))),
         el("span", { class: "text-slate-400 text-right" }, g.translation)))));
 }
 
@@ -313,13 +314,13 @@ function keyPhrasesSection(phrases) {
   return el("section", {},
     el("h2", { class: "font-bold text-lg text-slate-100" }, "Frases clave"),
     el("ul", { class: "mt-3 space-y-2" },
-      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(p), p))));
+      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(stripMarkup(p)), richText(p)))));
 }
 
 function noteSection(note) {
   return el("section", { class: "bg-amber-500/10 border border-amber-500/30 rounded-lg p-4" },
     el("h2", { class: "font-bold text-amber-300" }, "Nota de uso"),
-    el("p", { class: "mt-1 text-sm text-amber-200" }, note));
+    el("p", { class: "mt-1 text-sm text-amber-200" }, richText(note)));
 }
 
 function dialogueSection(dialogue) {
@@ -327,16 +328,16 @@ function dialogueSection(dialogue) {
     el("h2", { class: "font-bold text-lg text-slate-100" }, "Dialogo"),
     el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
       ...dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
-        speakButton(line.replace(/^[A-Z]:\s*/, "")), el("span", {}, line)))));
+        speakButton(stripMarkup(line.replace(/^[A-Z]:\s*/, ""))), el("span", {}, richText(line))))));
 }
 
 function grammarBox(g) {
   return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-lg p-4" },
     el("p", { class: "text-xs uppercase tracking-wide text-indigo-300/80" }, "Las reglas"),
     el("h2", { class: "font-bold text-lg text-indigo-200 mt-0.5" }, g.title),
-    g.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, g.form) : null,
+    g.form ? el("p", { class: "mt-2 font-mono text-sm text-indigo-100 bg-slate-900/60 rounded px-3 py-2" }, richText(g.form)) : null,
     g.examples?.length ? el("ul", { class: "mt-3 space-y-1" },
-      ...g.examples.map((ex) => el("li", { class: "text-sm text-slate-200 flex items-center gap-2" }, speakButton(ex), "- " + ex))) : null,
+      ...g.examples.map((ex) => el("li", { class: "text-sm text-slate-200 flex items-center gap-2" }, speakButton(stripMarkup(ex)), "- ", richText(ex)))) : null,
     g.mistakes?.length ? el("div", { class: "mt-3" },
       el("p", { class: "text-xs font-semibold text-slate-400 uppercase tracking-wide" }, "Errores comunes"),
       el("ul", { class: "mt-1 space-y-1" }, ...g.mistakes.map((m) =>
@@ -350,7 +351,7 @@ function grammarBox(g) {
 // Renderizadores de actividad. Cada uno devuelve { node, getResponse }.
 // ---------------------------------------------------------------------------
 function renderActivity(act, idx) {
-  const title = el("legend", { class: "font-medium text-slate-100 text-lg" }, act.prompt);
+  const title = el("legend", { class: "font-medium text-slate-100 text-lg" }, richText(act.prompt));
   switch (act.type) {
     case "multiple_choice": return mcActivity(act, idx, title);
     case "cloze": return clozeActivity(act, title);

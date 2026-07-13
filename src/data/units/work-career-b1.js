@@ -185,11 +185,11 @@ export const WORK_CAREER_B1 = {
         "con varios ejercicios.",
       grammar: {
         title: "in charge of / responsible for + have experience",
-        form: "be + in charge of / responsible for + (noun | -ing) · have + X years of experience (in/with)",
+        form: "*be* + **in charge of** / **responsible for** + (noun | -ing) - *have* + **X years of experience** (in/with)",
         examples: [
-          "I'm in charge of the sales team.",
-          "She is responsible for hiring new staff.",
-          "I have five years of experience in marketing.",
+          "I'm **in charge of** the sales team.",
+          "She *is* **responsible for** hiring new staff.",
+          "I *have* five years of **experience** in marketing.",
         ],
         mistakes: [
           { wrong: "I'm in charge the team.", right: "I'm in charge of the team." },
