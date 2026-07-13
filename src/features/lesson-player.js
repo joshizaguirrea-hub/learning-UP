@@ -257,7 +257,7 @@ function buildSteps(unit, lesson, robotLang = "es-MX") {
   const reading = c.reading || lesson.passage;
   if (reading) teach.push({ node: readingSection(reading), robot: line("reading", robotLang) });
   const grammar = c.grammar || lesson.grammar;
-  if (grammar) teach.push({ node: grammarBox(grammar), robot: line("grammar", robotLang) });
+  if (grammar) teach.push({ node: grammarBox(grammar, robotLang), robot: line("grammar", robotLang) });
   const glossary = c.glossary || lesson.glossary;
   if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: line("glossary", robotLang) });
   if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: line("keyPhrases", robotLang) });
