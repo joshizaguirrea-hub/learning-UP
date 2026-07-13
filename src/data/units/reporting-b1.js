@@ -168,6 +168,7 @@ export const REPORTING_B1 = {
         title: "Question tags",
         form: "afirmativo -> tag negativa (is, isn't it?) · negativo -> tag afirmativa (don't, do you?)",
         examples: ["It's great, isn't it?", "You save time, don't you?", "We should meet, shouldn't we?"],
+        explain: { tr: ["Es genial, \u00bfverdad?", "Ahorras tiempo, \u00bfno?", "Deber\u00edamos reunirnos, \u00bfno crees?"] },
         mistakes: [
           { wrong: "It's great, is it?", right: "It's great, isn't it?" },
           { wrong: "You like it, don't it?", right: "You like it, don't you?" },

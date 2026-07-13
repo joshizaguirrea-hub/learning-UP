@@ -199,6 +199,7 @@ export const WORK_CAREER_B1 = {
           "She *is* **responsible for** hiring new staff.",
           "I *have* five years of **experience** in marketing.",
         ],
+        explain: { tr: ["Estoy a cargo del equipo de ventas.", "Ella es responsable de contratar nuevo personal.", "Tengo cinco a\u00f1os de experiencia en marketing."] },
         mistakes: [
           { wrong: "I'm in charge the team.", right: "I'm in charge of the team." },
           { wrong: "He is responsible of sales.", right: "He is responsible for sales." },

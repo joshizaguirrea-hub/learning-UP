@@ -168,6 +168,7 @@ export const TRAVEL_PLANS_B1 = {
         title: "Futuro: going to vs will",
         form: "going to = plan decidido · will = prediccion o decision del momento",
         examples: ["I'm going to visit Canada. (ya lo decidi)", "It's cold, I'll take a jacket. (ahora)", "I think it will rain. (prediccion)"],
+        explain: { tr: ["Voy a visitar Canad\u00e1. (ya lo decid\u00ed)", "Hace fr\u00edo, llevar\u00e9 una chaqueta. (ahora)", "Creo que va a llover. (predicci\u00f3n)"] },
         mistakes: [
           { wrong: "I will visit Canada, I booked it.", right: "I'm going to visit Canada, I booked it." },
           { wrong: "I'm going to studying.", right: "I'm going to study." },
