@@ -167,6 +167,7 @@ export const A2_WORK_JOBS = {
         title: "Present perfect (experiencias)",
         form: "have/has + participio · Have you ever...? · never / just / already / not ... yet",
         examples: ["I have worked as a waiter.", "Have you ever been to London?", "She hasn't finished yet."],
+        explain: { tr: ["He trabajado como mesero.", "\u00bfAlguna vez has estado en Londres?", "Ella no ha terminado todav\u00eda."] },
         mistakes: [
           { wrong: "I have work here.", right: "I have worked here." },
           { wrong: "Have you ever went there?", right: "Have you ever been there?" },

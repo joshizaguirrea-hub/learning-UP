@@ -167,6 +167,7 @@ export const A2_MAKING_PLANS = {
         title: "be going to / will",
         form: "am/is/are + going to + base (plan) · will + base (decision del momento / oferta)",
         examples: ["I'm going to study tonight.", "I'll call you later.", "It's going to be fun."],
+        explain: { tr: ["Voy a estudiar esta noche.", "Te llamar\u00e9 m\u00e1s tarde.", "Va a ser divertido."] },
         mistakes: [
           { wrong: "I'm going to studying.", right: "I'm going to study." },
           { wrong: "I will to help you.", right: "I'll help you." },
