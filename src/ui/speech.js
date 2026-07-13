@@ -8,6 +8,7 @@
  */
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
+import { fixSpanishAccents } from "./es-accents.js";
 
 /** True si el navegador soporta sintesis de voz. */
 export function isSpeechSupported() {
@@ -139,7 +140,8 @@ export function speak(text, lang = "en-US", opts = {}) {
   let i = 0;
   function sayNext() {
     if (i >= parts.length) return;
-    const u = new SpeechSynthesisUtterance(parts[i]);
+    const say = useLang === "es" ? fixSpanishAccents(parts[i]) : parts[i];
+    const u = new SpeechSynthesisUtterance(say);
     u.lang = v?.lang || (useLang === "es" ? "es-MX" : "en-US");
     u.rate = rate;
     u.pitch = pitch;
@@ -176,7 +178,8 @@ export function speakSequence(items, onEach, onDone) {
     const opts = it.opts || {};
     const base = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es-MX" : "en-US";
     const v = pickVoice(base);
-    const u = new SpeechSynthesisUtterance(String(it.text));
+    const say = base === "es-MX" ? fixSpanishAccents(String(it.text)) : String(it.text);
+    const u = new SpeechSynthesisUtterance(say);
     u.lang = v?.lang || base;
     u.rate = opts.rate ?? 0.98;
     u.pitch = opts.pitch ?? 1.05;
