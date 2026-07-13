@@ -152,9 +152,43 @@ export function speak(text, lang = "en-US", opts = {}) {
   sayNext();
 }
 
-/** Voz del Profe Robo: mas aguda y alegre. Idioma segun se le pase. */
-export function speakRobot(text, lang = "es-MX") {
-  speak(text, lang, { rate: 1.06, pitch: 1.2 });
+/** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
+export function speakRobot(text, lang = "es-MX", opts = {}) {
+  if (opts.chirp) robotChirp();
+  speak(text, lang, { rate: 1.05, pitch: 1.18 });
+}
+
+// ---- Chirp "sci-fi" del robot (Web Audio) ---------------------------------
+// El navegador NO deja procesar la voz del TTS, pero SI podemos generar un
+// "bip-bup" electronico corto ANTES de hablar => sensacion de robot futurista.
+let _audioCtx = null;
+function audioCtx() {
+  if (_audioCtx) return _audioCtx;
+  try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  catch { _audioCtx = null; }
+  return _audioCtx;
+}
+
+/** Dos notas ascendentes cortas: el "saludo" robotico de Bymax. */
+export function robotChirp() {
+  const ctx = audioCtx();
+  if (!ctx) return;
+  if (ctx.state === "suspended") ctx.resume();
+  const now = ctx.currentTime;
+  const notes = [720, 1080]; // bip (grave) -> bup (agudo)
+  notes.forEach((f, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "square";
+    osc.frequency.value = f;
+    const t = now + i * 0.065;
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.05, t + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.07);
+  });
 }
 
 /**
