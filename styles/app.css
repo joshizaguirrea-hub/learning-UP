@@ -39,3 +39,43 @@ html[data-contrast="high"] a { text-decoration: underline; }
   outline: 2px solid #4338ca;
   outline-offset: 2px;
 }
+
+/* ---------------------------------------------------------------------------
+ * MODO CLASE (leccion a pantalla completa): oculta header, footer y menu
+ * inferior para una experiencia inmersiva tipo "aula". Se activa con la clase
+ * body.lesson-mode (la pone main.js cuando la ruta es /leccion/...).
+ * ------------------------------------------------------------------------- */
+body.lesson-mode > header,
+body.lesson-mode > footer,
+body.lesson-mode #bottom-nav { display: none !important; }
+
+body.lesson-mode #app {
+  max-width: 100%;
+  padding: 0.75rem 0.75rem 1rem;
+}
+
+/* Burbuja del Profe Robo: colita del bocadillo. */
+.robot-bubble { position: relative; }
+.robot-bubble::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  border-width: 7px 7px 7px 0;
+  border-style: solid;
+  border-color: transparent rgb(30 41 59 / 0.9) transparent transparent;
+}
+
+/* Animacion suave de aparicion del robot / pops. */
+@keyframes robotPop {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.robot-pop { animation: robotPop .28s ease both; }
+
+/* Flotar del robot (idle). */
+@keyframes robotFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+.robot-float { animation: robotFloat 3s ease-in-out infinite; }

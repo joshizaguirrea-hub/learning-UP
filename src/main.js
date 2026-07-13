@@ -113,6 +113,11 @@ function refreshHeader(user) {
   }
 }
 
+/** Activa el "modo clase" (pantalla exclusiva) en rutas de leccion. */
+function updateChrome() {
+  document.body.classList.toggle("lesson-mode", currentPath().startsWith("/leccion/"));
+}
+
 function init() {
   applyTextSize(); // aplica el tamano de texto guardado (accesibilidad)
   applyContrast(); // aplica el modo alto contraste guardado
@@ -121,8 +126,10 @@ function init() {
   setupRoutes();
   startRouter();
   renderLangSelector();
+  updateChrome();
   // Mantiene sincronizada la ruta activa de la barra inferior.
   window.addEventListener("hashchange", renderBottomNav);
+  window.addEventListener("hashchange", updateChrome);
   currentUser().then(refreshHeader);
   onAuthChange((user) => {
     refreshHeader(user);
