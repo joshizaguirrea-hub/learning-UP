@@ -1,6 +1,6 @@
 /**
  * data/units/language-style-c1.js — Unidad tematica "Language & style" (C1).
- * Datos PUROS. Modelo desacoplado por competencia. Gramatica: participle clauses.
+ * Datos PUROS. MODELO DESACOPLADO + CONTENIDO ENRIQUECIDO. Gramatica: participle clauses.
  */
 
 export const LANGUAGE_STYLE_C1 = {
@@ -28,6 +28,8 @@ export const LANGUAGE_STYLE_C1 = {
     { id: "c1ls-8", term: "vivid", translation: "vivido", example: "A vivid description." },
     { id: "c1ls-9", term: "clarity", translation: "claridad", example: "Write with clarity." },
     { id: "c1ls-10", term: "coherent", translation: "coherente", example: "A coherent argument." },
+    { id: "c1ls-11", term: "elegant", translation: "elegante", example: "An elegant sentence." },
+    { id: "c1ls-12", term: "to draft", translation: "redactar un borrador", example: "I drafted the essay first." },
   ],
 
   lessons: [
@@ -38,23 +40,40 @@ export const LANGUAGE_STYLE_C1 = {
       phase: "learn",
       skills: ["reading"],
       title: "Reading: escribir con estilo",
-      intro: "Competencia de LECTURA. Lee el texto y comprueba que entendiste.",
+      intro: "Competencia de LECTURA. Lee DOS textos y responde las preguntas de comprension.",
       content: {
         reading:
+          "TEXT 1 - Elena the writer\n" +
           "Written carefully, a good text conveys meaning with clarity. Having studied literature for " +
-          "years, Elena writes with a vivid and concise style. Choosing every word with care, she " +
-          "captures each nuance. Feeling confident, she adapts her tone to the register. Once finished, " +
-          "her essays are always coherent and fluent. Encouraged by her teachers, she now helps others " +
-          "improve their writing style.",
+          "years, Elena writes with a vivid and concise style. Choosing every word with care, she captures " +
+          "each nuance. Feeling confident, she adapts her tone to the register. Once finished, her essays " +
+          "are always coherent and fluent.\n\n" +
+          "TEXT 2 - A writing lesson\n" +
+          "A: My paragraphs feel too long. B: Try participle clauses. 'Feeling tired, I stopped' is more " +
+          "elegant than 'Because I was tired, I stopped.' A: I see! B: Written well, a sentence sounds " +
+          "professional. A: So I should draft, then cut extra words? B: Exactly. Keep it concise and " +
+          "coherent.",
+        glossary: [
+          { term: "Written carefully, ...", translation: "Escrito con cuidado, ..." },
+          { term: "Having studied ...", translation: "Habiendo estudiado ..." },
+          { term: "Choosing / Feeling ...", translation: "Eligiendo / Sintiendo ..." },
+          { term: "style / register", translation: "estilo / registro" },
+          { term: "concise / clarity", translation: "conciso / claridad" },
+          { term: "nuance / vivid", translation: "matiz / vivido" },
+          { term: "coherent / elegant", translation: "coherente / elegante" },
+          { term: "to convey / to draft", translation: "transmitir / redactar borrador" },
+        ],
         keyPhrases: [
           "Fijate en las participle clauses: Written carefully..., Having studied..., Choosing..., Once finished...",
           "Reemplazan clausulas completas para escribir con elegancia y concision.",
         ],
         check: [
-          { prompt: "What does a good text convey?", choices: ["Meaning with clarity", "Confusion", "Noise"], answer: 0 },
-          { prompt: "What had Elena studied?", choices: ["Literature", "Medicine", "Music"], answer: 0 },
-          { prompt: "How is her style?", choices: ["Vivid and concise", "Boring", "Unclear"], answer: 0 },
-          { prompt: "What does she help others do?", choices: ["Improve their writing", "Cook", "Travel"], answer: 0 },
+          { prompt: "T1: What does a good text convey?", choices: ["Meaning with clarity", "Confusion", "Noise"], answer: 0 },
+          { prompt: "T1: What had Elena studied?", choices: ["Literature", "Medicine", "Music"], answer: 0 },
+          { prompt: "T1: How is her style?", choices: ["Vivid and concise", "Boring", "Unclear"], answer: 0 },
+          { prompt: "T2: What does B suggest to shorten paragraphs?", choices: ["Participle clauses", "Longer words", "More commas"], answer: 0 },
+          { prompt: "T2: Which sounds more elegant?", choices: ["Feeling tired, I stopped.", "Because I was tired, I stopped.", "I was tired so stop."], answer: 0 },
+          { prompt: "T2: What should you do after drafting?", choices: ["Cut extra words", "Add more words", "Nothing"], answer: 0 },
         ],
       },
       activities: [],
@@ -74,36 +93,65 @@ export const LANGUAGE_STYLE_C1 = {
         { term: "concise / clarity", translation: "conciso / claridad" },
         { term: "fluent / coherent", translation: "fluido / coherente" },
         { term: "tone / nuance", translation: "tono / matiz" },
-        { term: "to convey", translation: "transmitir" },
-        { term: "vivid", translation: "vivido" },
+        { term: "vivid / elegant", translation: "vivido / elegante" },
+        { term: "to convey / to draft", translation: "transmitir / redactar" },
       ],
       activities: [
         {
           id: "c1ls-vocab-a1", type: "matching",
-          prompt: "Empareja la palabra con su significado:",
+          prompt: "Empareja (1/2):",
           payload: { pairs: [
             { left: "style", right: "estilo" },
             { left: "nuance", right: "matiz" },
             { left: "clarity", right: "claridad" },
+            { left: "tone", right: "tono" },
           ] },
         },
         {
-          id: "c1ls-vocab-a2", type: "cloze",
+          id: "c1ls-vocab-a2", type: "matching",
+          prompt: "Empareja (2/2):",
+          payload: { pairs: [
+            { left: "concise", right: "conciso" },
+            { left: "coherent", right: "coherente" },
+            { left: "vivid", right: "vivido" },
+            { left: "elegant", right: "elegante" },
+          ] },
+        },
+        {
+          id: "c1ls-vocab-a3", type: "cloze",
           prompt: "Completa: 'Keep your writing ___.' (conciso)",
           payload: { answer: "concise" },
           explain: "'Concise' = conciso.",
-        },
-        {
-          id: "c1ls-vocab-a3", type: "multiple_choice",
-          prompt: "Which word means 'transmitir'?",
-          payload: { choices: ["to convey", "to write", "to read"], answer: 0 },
-          explain: "'To convey' = transmitir.",
         },
         {
           id: "c1ls-vocab-a4", type: "cloze",
           prompt: "Completa: 'Use a formal ___.' (registro)",
           payload: { answer: "register" },
           explain: "'Register' = registro.",
+        },
+        {
+          id: "c1ls-vocab-a5", type: "cloze",
+          prompt: "Completa: 'I ___ the essay first.' (redactar borrador -> pasado)",
+          payload: { answer: "drafted" },
+          explain: "'To draft' = redactar un borrador; pasado: drafted.",
+        },
+        {
+          id: "c1ls-vocab-a6", type: "multiple_choice",
+          prompt: "Which word means 'transmitir'?",
+          payload: { choices: ["to convey", "to write", "to read"], answer: 0 },
+          explain: "'To convey' = transmitir.",
+        },
+        {
+          id: "c1ls-vocab-a7", type: "multiple_choice",
+          prompt: "Which word means 'matiz'?",
+          payload: { choices: ["nuance", "clarity", "tone"], answer: 0 },
+          explain: "'Nuance' = matiz.",
+        },
+        {
+          id: "c1ls-vocab-a8", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["clarity", "Write", "with"], answer: ["Write", "with", "clarity"] },
+          explain: "'Write with clarity' = escribe con claridad.",
         },
       ],
     },
@@ -149,10 +197,34 @@ export const LANGUAGE_STYLE_C1 = {
           explain: "Participle pasivo: Written (= It was written).",
         },
         {
-          id: "c1ls-gram-a4", type: "word_bank",
+          id: "c1ls-gram-a4", type: "multiple_choice",
+          prompt: "Participle clauses help you write...",
+          payload: { choices: ["longer and unclear", "concisely and elegantly", "with more errors"], answer: 1 },
+          explain: "Sirven para escribir de forma concisa y elegante.",
+        },
+        {
+          id: "c1ls-gram-a5", type: "cloze",
+          prompt: "Completa: '___ studied for years, she writes well.' (have -> Having)",
+          payload: { answer: "Having" },
+          explain: "Having + participio (studied) para accion previa.",
+        },
+        {
+          id: "c1ls-gram-a6", type: "word_bank",
           prompt: "Ordena la participle clause:",
           payload: { words: ["I", "tired,", "Feeling", "left"], answer: ["Feeling", "tired,", "I", "left"] },
-          explain: "Orden: Feeling + tired, + I + left.",
+          explain: "Feeling + tired, + I + left.",
+        },
+        {
+          id: "c1ls-gram-a7", type: "word_bank",
+          prompt: "Ordena la frase:",
+          payload: { words: ["they", "Having", "left", "finished,"], answer: ["Having", "finished,", "they", "left"] },
+          explain: "Having + finished, + they + left.",
+        },
+        {
+          id: "c1ls-gram-a8", type: "cloze",
+          prompt: "Completa: '___ well, a sentence sounds professional.' (write -> participio pasivo)",
+          payload: { answer: "Written" },
+          explain: "Participle pasivo: Written (= If it is written).",
         },
       ],
     },
@@ -164,27 +236,47 @@ export const LANGUAGE_STYLE_C1 = {
       phase: "produce",
       skills: ["writing"],
       title: "Writing: escribe con estilo",
-      intro: "Competencia de ESCRITURA. Construye participle clauses. Ordena cada frase.",
+      intro: "Competencia de ESCRITURA. Construye participle clauses.",
       activities: [
         {
           id: "c1ls-write-a1", type: "word_bank",
-          prompt: "Une con participle (sintiendote cansado, te fuiste):",
+          prompt: "1. Une con participle (sintiendote cansado, te fuiste):",
           payload: { words: ["I", "tired,", "Feeling", "left"], answer: ["Feeling", "tired,", "I", "left"] },
         },
         {
           id: "c1ls-write-a2", type: "word_bank",
-          prompt: "Habiendo terminado, se fueron:",
+          prompt: "2. Habiendo terminado, se fueron:",
           payload: { words: ["they", "Having", "left", "finished,"], answer: ["Having", "finished,", "they", "left"] },
         },
         {
           id: "c1ls-write-a3", type: "word_bank",
-          prompt: "Di que escribe con claridad:",
+          prompt: "3. Di que escribe con claridad:",
           payload: { words: ["clarity", "She", "with", "writes"], answer: ["She", "writes", "with", "clarity"] },
         },
         {
-          id: "c1ls-write-a4", type: "multiple_choice",
-          prompt: "Participle clauses help you write...",
+          id: "c1ls-write-a4", type: "word_bank",
+          prompt: "4. Une con participle pasivo (escrito bien, funciona):",
+          payload: { words: ["it", "Written", "works", "well,"], answer: ["Written", "well,", "it", "works"] },
+        },
+        {
+          id: "c1ls-write-a5", type: "word_bank",
+          prompt: "5. Aconseja mantenerlo conciso:",
+          payload: { words: ["it", "Keep", "concise"], answer: ["Keep", "it", "concise"] },
+        },
+        {
+          id: "c1ls-write-a6", type: "multiple_choice",
+          prompt: "6. Participle clauses help you write...",
           payload: { choices: ["longer and unclear", "concisely and elegantly", "with more errors"], answer: 1 },
+        },
+        {
+          id: "c1ls-write-a7", type: "multiple_choice",
+          prompt: "7. Choose the correct one:",
+          payload: { choices: ["Having ate, we left.", "Having eaten, we left.", "Having eat, we left."], answer: 1 },
+        },
+        {
+          id: "c1ls-write-a8", type: "multiple_choice",
+          prompt: "8. Which word means 'coherente'?",
+          payload: { choices: ["vivid", "coherent", "concise"], answer: 1 },
         },
       ],
     },
