@@ -166,6 +166,8 @@ export const SCIENCE_B2 = {
       grammar: {
         title: "Passive (all tenses) + causative",
         form: "pasiva: be (en su tiempo) + participio · causative: have/get + objeto + participio",
+        desc: "Sirve para enfocar la acci\u00f3n en cualquier tiempo y para decir que mandas hacer algo.",
+        rule: "Pasiva: 'be' (en el tiempo que toque) + participio (has been developed, will be published). Causativo: 'have/get + objeto + participio' cuando otro lo hace por ti (I had my car repaired).",
         examples: ["It has been developed.", "It will be published.", "I had my car repaired."],
         explain: { tr: ["Ha sido desarrollado.", "Ser\u00e1 publicado.", "Mand\u00e9 a reparar mi coche."] },
         mistakes: [

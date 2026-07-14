@@ -167,6 +167,8 @@ export const SOCIETY_B2 = {
       grammar: {
         title: "Third conditional",
         form: "If + had + participio, ... would have + participio",
+        desc: "Sirve para imaginar un pasado distinto y su resultado (tambi\u00e9n pasado) que no ocurri\u00f3.",
+        rule: "Tercer condicional: 'If + had + participio, ... would have + participio'. Todo es hipot\u00e9tico y pasado: 'If I had studied, I would have passed'.",
         examples: ["If they hadn't protested, laws wouldn't have changed.", "If I had studied, I would have passed."],
         explain: { tr: ["Si no hubieran protestado, las leyes no habr\u00edan cambiado.", "Si hubiera estudiado, habr\u00eda aprobado."] },
         mistakes: [
