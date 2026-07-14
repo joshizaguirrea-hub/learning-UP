@@ -166,6 +166,8 @@ export const A1_FREETIME = {
       grammar: {
         title: "like + -ing / can",
         form: "like/love/hate + verbo-ing · can / can't + verbo base",
+        desc: "Sirve para decir qu\u00e9 actividades te gustan y qu\u00e9 sabes o puedes hacer.",
+        rule: "Despu\u00e9s de 'like', 'love' o 'hate' el verbo lleva -ing: 'I love reading'. Con 'can' y 'can't' el verbo va en base, sin 'to' y sin -s: 'She can dance'.",
         examples: ["I love reading.", "She can play the guitar.", "He can't dance.", "They like dancing."],
         explain: { tr: ["Me encanta leer.", "Ella sabe tocar la guitarra.", "\u00c9l no sabe bailar.", "A ellos les gusta bailar."] },
         mistakes: [

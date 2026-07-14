@@ -166,6 +166,8 @@ export const A1_YESTERDAY = {
       grammar: {
         title: "was/were y pasado regular (-ed)",
         form: "was (I/he/she/it) · were (you/we/they) · verbo + ed (regular)",
+        desc: "Sirve para contar lo que hiciste o lo que pas\u00f3 en el pasado.",
+        rule: "Para el pasado del verbo 'to be' usa 'was' (I/he/she/it) y 'were' (you/we/they). Los verbos regulares forman el pasado a\u00f1adiendo -ed: 'work' -> 'worked'.",
         examples: ["I was at home.", "They were happy.", "She watched a movie.", "We played football."],
         explain: { tr: ["Yo estaba en casa.", "Ellos estaban felices.", "Ella vio una pel\u00edcula.", "Nosotros jugamos f\u00fatbol."] },
         mistakes: [

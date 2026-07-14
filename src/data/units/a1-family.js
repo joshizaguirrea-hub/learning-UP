@@ -165,6 +165,8 @@ export const A1_FAMILY = {
       grammar: {
         title: "have got y adjetivos posesivos",
         form: "I/you/we/they + have got · he/she/it + has got · my/your/his/her/our/their + sustantivo",
+        desc: "Sirve para decir lo que TIENES (hermanos, casa) y de qui\u00e9n es algo (mi, tu, su).",
+        rule: "Con I, you, we, they usas 'have got'. Con he, she, it cambia a 'has got'. Los posesivos (my, your, his, her, our, their) van SIEMPRE antes del sustantivo: 'my mother', 'their house'.",
         examples: ["I have got two brothers.", "She has got one sister.", "This is my mother.", "That is their house."],
         explain: { tr: ["Tengo dos hermanos.", "Ella tiene una hermana.", "Esta es mi madre.", "Esa es su casa."] },
         mistakes: [

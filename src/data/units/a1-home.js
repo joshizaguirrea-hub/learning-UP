@@ -166,6 +166,8 @@ export const A1_HOME = {
       grammar: {
         title: "there is / there are + preposiciones",
         form: "There is + singular · There are + plural · on / under / next to / in",
+        desc: "Sirve para decir qu\u00e9 hay en un lugar y d\u00f3nde est\u00e1n las cosas.",
+        rule: "Usa 'There is' con una cosa (singular) y 'There are' con varias (plural). Las preposiciones dicen la posici\u00f3n: 'on' (sobre), 'under' (debajo), 'next to' (al lado), 'in' (dentro).",
         examples: ["There is a bed in the room.", "There are two windows.", "The book is on the table."],
         explain: { tr: ["Hay una cama en el cuarto.", "Hay dos ventanas.", "El libro est\u00e1 sobre la mesa."] },
         mistakes: [

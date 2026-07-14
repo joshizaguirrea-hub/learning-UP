@@ -166,6 +166,8 @@ export const A1_ROUTINE = {
       grammar: {
         title: "Present simple (rutinas)",
         form: "I/you/we/they + verbo · he/she/it + verbo + s · adverbio de frecuencia ANTES del verbo",
+        desc: "Sirve para hablar de tu rutina y de lo que haces siempre, a veces o nunca.",
+        rule: "En presente simple, con he/she/it el verbo lleva -s: 'she works'. Los adverbios de frecuencia (always, usually, sometimes, never) van ANTES del verbo: 'I always study'.",
         examples: ["I work in a hospital.", "She works in a hospital.", "He always gets up early.", "We never eat late."],
         explain: { tr: ["Yo trabajo en un hospital.", "Ella trabaja en un hospital.", "\u00c9l siempre se levanta temprano.", "Nosotros nunca comemos tarde."] },
         mistakes: [

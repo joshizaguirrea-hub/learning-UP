@@ -166,6 +166,8 @@ export const A1_SHOPPING = {
       grammar: {
         title: "this / that / these / those + How much",
         form: "singular: this (cerca) / that (lejos) · plural: these / those · How much is/are...?",
+        desc: "Sirve para se\u00f1alar cosas al comprar y preguntar precios.",
+        rule: "'This/these' para lo que est\u00e1 cerca; 'that/those' para lo lejano. 'This/that' son singular; 'these/those' plural. Para el precio: 'How much is...?' (uno) / 'How much are...?' (varios).",
         examples: ["This shirt is nice.", "Those shoes are expensive.", "How much is this?", "How much are these?"],
         explain: { tr: ["Esta camisa es bonita.", "Esos zapatos son caros.", "\u00bfCu\u00e1nto cuesta esto?", "\u00bfCu\u00e1nto cuestan estos?"] },
         mistakes: [
