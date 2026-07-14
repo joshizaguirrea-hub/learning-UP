@@ -5,7 +5,7 @@
  * elige el avatar y le pone nombre; se usa en todas las clases.
  */
 const KEY = "linguapath.robot";
-const DEFAULT = { name: "Profe Robo", avatar: "beep" };
+const DEFAULT = { name: "Profe Horus", avatar: "beep" };
 
 /** Config actual del robot (con valores por defecto). */
 export function getRobot() {

@@ -241,7 +241,7 @@ export function openRobotSetup(onDone) {
   const close = () => overlay.remove();
 
   const nameInput = el("input", {
-    type: "text", maxlength: "20", value: current.name === "Profe Robo" ? "" : current.name,
+    type: "text", maxlength: "20", value: current.name === "Profe Horus" ? "" : current.name,
     placeholder: "Ej: Robi, Chispas, Max...",
     class: "mt-2 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
   });
