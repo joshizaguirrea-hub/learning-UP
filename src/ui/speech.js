@@ -70,6 +70,13 @@ function pickVoice(lang) {
   return pool[0];
 }
 
+// True si el navegador tiene AL MENOS una voz de ese idioma (es/en).
+// Sirve de candado anti-Spanglish: no leer espanol con voz inglesa.
+function hasVoiceFor(lang) {
+  const base = lang.slice(0, 2).toLowerCase();
+  return voices.some((v) => v.lang && v.lang.toLowerCase().startsWith(base));
+}
+
 // Palabras clave para detectar idioma en textos MIXTOS (es/en).
 const ES_WORDS = new Set([
   "presente", "pasado", "futuro", "participio", "gerundio", "infinitivo", "agente",
@@ -143,6 +150,8 @@ export function speak(text, lang = "en-US", opts = {}) {
 
   function browserSpeak() {
     if (!isSpeechSupported()) return;
+    // Candado anti-Spanglish: nunca leer espanol con una voz que no sea espanola.
+    if (useLang === "es" && !hasVoiceFor("es")) return;
     const synth = window.speechSynthesis;
     synth.cancel();
     const rate = opts.rate ?? 0.96;
@@ -242,6 +251,9 @@ export function speakSequence(items, onEach, onDone) {
 
   function browserSay(it, isEs, done) {
     if (!isSpeechSupported()) { setTimeout(done, 300); return; }
+    // Candado anti-Spanglish: si es espanol y no hay voz espanola, saltar el item
+    // (mejor callar que leer espanol con acento gringo).
+    if (isEs && !hasVoiceFor("es")) { setTimeout(done, 150); return; }
     const synth = window.speechSynthesis;
     const opts = it.opts || {};
     const b = isEs ? "es-MX" : "en-US";
