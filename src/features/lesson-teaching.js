@@ -130,7 +130,9 @@ export function grammarBox(g, robotLang = "es-MX") {
         el("h2", { class: "font-bold text-lg text-indigo-100 leading-tight" }, g.title))),
 
     g.desc ? el("div", { class: "mt-3 border-l-2 border-fuchsia-400/60 bg-fuchsia-500/5 rounded-r-lg px-3 py-2" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-fuchsia-300/80 mb-0.5" }, "\u00bfPara que sirve?"),
+      el("div", { class: "flex items-center gap-2 mb-0.5" },
+        el("p", { class: "text-[11px] uppercase tracking-wide text-fuchsia-300/80" }, "\u00bfPara que sirve?"),
+        speakButton(g.desc, { lang: "es-MX" })),
       el("p", { class: "text-sm text-slate-200 leading-relaxed" }, g.desc)) : null,
 
     (g.form || g.examples?.length) ? el("button", {
