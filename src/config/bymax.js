@@ -10,7 +10,7 @@
  */
 
 // Pega aqui la URL de tu Cloudflare Worker (ej: https://bymax-ia.tu.workers.dev)
-export const BYMAX_WORKER_URL = "";
+export const BYMAX_WORKER_URL = "https://bymax-ia.joshizaguirrea.workers.dev";
 
 /** True si el Bymax con IA ya esta configurado. */
 export const bymaxAiEnabled = /^https?:\/\//.test(BYMAX_WORKER_URL);
