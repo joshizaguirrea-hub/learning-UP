@@ -9,6 +9,7 @@
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { fixSpanishAccents } from "./es-accents.js";
+import { cloudSpeak, cancelCloud, cloudTtsEnabled } from "./cloud-tts.js";
 
 /** True si el navegador soporta sintesis de voz. */
 export function isSpeechSupported() {
@@ -109,12 +110,9 @@ function detectLang(text, base) {
  * @param {object} [opts] { rate, pitch, gap }
  */
 export function speak(text, lang = "en-US", opts = {}) {
-  if (!isSpeechSupported() || !text) return;
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  const rate = opts.rate ?? 0.96;
-  const pitch = opts.pitch ?? 1.0;
-  const gap = opts.gap ?? 750; // pausa larga (ms) entre alternativas "/"
+  if (!text) return;
+  cancelCloud();
+  if (isSpeechSupported()) window.speechSynthesis.cancel();
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
@@ -133,23 +131,38 @@ export function speak(text, lang = "en-US", opts = {}) {
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
   if (!parts.length) return;
 
-  // UNA sola voz para todo (la del idioma dominante) => nada de Spanglish saltarin.
   const useLang = detectLang(norm, base);
-  const v = pickVoice(useLang === "es" ? "es-MX" : "en-US");
 
-  let i = 0;
-  function sayNext() {
-    if (i >= parts.length) return;
-    const say = useLang === "es" ? fixSpanishAccents(parts[i]) : parts[i];
-    const u = new SpeechSynthesisUtterance(say);
-    u.lang = v?.lang || (useLang === "es" ? "es-MX" : "en-US");
-    u.rate = rate;
-    u.pitch = pitch;
-    if (v) u.voice = v;
-    u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
-    synth.speak(u);
+  // ESPANOL -> voz nativa de la nube (si hay Worker). Cae al navegador si falla.
+  if (useLang === "es" && cloudTtsEnabled()) {
+    const esText = fixSpanishAccents(parts.join(". "));
+    cloudSpeak(esText, "es").catch(browserSpeak);
+    return;
   }
-  sayNext();
+  browserSpeak();
+
+  function browserSpeak() {
+    if (!isSpeechSupported()) return;
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    const rate = opts.rate ?? 0.96;
+    const pitch = opts.pitch ?? 1.0;
+    const gap = opts.gap ?? 750; // pausa larga (ms) entre alternativas "/"
+    const v = pickVoice(useLang === "es" ? "es-MX" : "en-US");
+    let i = 0;
+    function sayNext() {
+      if (i >= parts.length) return;
+      const say = useLang === "es" ? fixSpanishAccents(parts[i]) : parts[i];
+      const u = new SpeechSynthesisUtterance(say);
+      u.lang = v?.lang || (useLang === "es" ? "es-MX" : "en-US");
+      u.rate = rate;
+      u.pitch = pitch;
+      if (v) u.voice = v;
+      u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
+      synth.speak(u);
+    }
+    sayNext();
+  }
 }
 
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
@@ -199,30 +212,51 @@ export function robotChirp() {
  * @returns {function} cancel() para detener la secuencia
  */
 export function speakSequence(items, onEach, onDone) {
-  if (!isSpeechSupported()) { onDone?.(); return () => {}; }
-  const synth = window.speechSynthesis;
-  synth.cancel();
+  cancelCloud();
+  if (isSpeechSupported()) window.speechSynthesis.cancel();
   let i = 0;
   let cancelled = false;
+
+  function advance(it) {
+    i++;
+    if (!cancelled) setTimeout(next, it.gapAfter ?? 220);
+  }
+
   function next() {
     if (cancelled) return;
     if (i >= items.length) { onDone?.(); return; }
     const it = items[i];
     onEach?.(i);
+    const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
+
+    // Espanol -> voz de la nube (nativa). Cae al navegador si falla.
+    if (isEs && cloudTtsEnabled()) {
+      cloudSpeak(fixSpanishAccents(String(it.text)), "es")
+        .then(() => advance(it))
+        .catch(() => browserSay(it, isEs, () => advance(it)));
+      return;
+    }
+    browserSay(it, isEs, () => advance(it));
+  }
+
+  function browserSay(it, isEs, done) {
+    if (!isSpeechSupported()) { setTimeout(done, 300); return; }
+    const synth = window.speechSynthesis;
     const opts = it.opts || {};
-    const base = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es-MX" : "en-US";
-    const v = pickVoice(base);
-    const say = base === "es-MX" ? fixSpanishAccents(String(it.text)) : String(it.text);
+    const b = isEs ? "es-MX" : "en-US";
+    const v = pickVoice(b);
+    const say = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
     const u = new SpeechSynthesisUtterance(say);
-    u.lang = v?.lang || base;
+    u.lang = v?.lang || b;
     u.rate = opts.rate ?? 0.98;
     u.pitch = opts.pitch ?? 1.05;
     if (v) u.voice = v;
-    u.onend = () => { i++; if (!cancelled) setTimeout(next, it.gapAfter ?? 220); };
+    u.onend = done;
     synth.speak(u);
   }
+
   next();
-  return () => { cancelled = true; synth.cancel(); };
+  return () => { cancelled = true; cancelCloud(); if (isSpeechSupported()) window.speechSynthesis.cancel(); };
 }
 
 /**
