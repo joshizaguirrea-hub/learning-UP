@@ -140,10 +140,13 @@ export function speak(text, lang = "en-US", opts = {}) {
 
   const useLang = detectLang(norm, base);
 
-  // Voz NATURAL de la nube (espanol e ingles) si hay Worker. Cae al navegador si falla.
-  if (cloudTtsEnabled()) {
-    const cloudText = useLang === "es" ? fixSpanishAccents(parts.join(". ")) : parts.join(". ");
-    cloudSpeak(cloudText, useLang === "es" ? "es" : "en").catch(browserSpeak);
+  // Ingles -> voz humana de la nube (Aura). Espanol -> voz del dispositivo
+  // (prefiere es-MX Latino, que es lo que se quiere); solo usa la nube si el
+  // equipo no tiene ninguna voz espanola.
+  const wantEs = useLang === "es";
+  if (cloudTtsEnabled() && (!wantEs || !hasVoiceFor("es"))) {
+    const cloudText = wantEs ? fixSpanishAccents(parts.join(". ")) : parts.join(". ");
+    cloudSpeak(cloudText, wantEs ? "es" : "en").catch(browserSpeak);
     return;
   }
   browserSpeak();
@@ -238,8 +241,9 @@ export function speakSequence(items, onEach, onDone) {
     onEach?.(i);
     const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
 
-    // Voz NATURAL de la nube (es/en). Cae al navegador si falla.
-    if (cloudTtsEnabled()) {
+    // Ingles -> nube (Aura, humana). Espanol -> voz del dispositivo (es-MX Latino);
+    // la nube de espanol solo como respaldo si no hay voz espanola local.
+    if (cloudTtsEnabled() && (!isEs || !hasVoiceFor("es"))) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
       cloudSpeak(ct, isEs ? "es" : "en", it.opts?.voice)
         .then(() => advance(it))
