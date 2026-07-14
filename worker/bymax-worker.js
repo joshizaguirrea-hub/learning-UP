@@ -69,11 +69,47 @@ async function toBase64Audio(out) {
   return null;
 }
 
-// ---- VOZ: texto -> audio (espanol nativo / ingles humano) ----------------
-async function handleTts(request, env, origin) {
-  if (!env.AI) {
-    return json({ error: "Falta el binding 'AI' (Workers AI) en el Worker." }, 500, origin);
+// Divide texto largo en trozos <= max chars (Google TTS limita ~200 por peticion).
+function splitForTts(text, max) {
+  const out = [];
+  let rest = String(text).trim();
+  while (rest.length > max) {
+    let cut = rest.lastIndexOf(". ", max);
+    if (cut < 40) cut = rest.lastIndexOf(", ", max);
+    if (cut < 40) cut = rest.lastIndexOf(" ", max);
+    if (cut < 1) cut = max;
+    out.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
   }
+  if (rest) out.push(rest);
+  return out;
+}
+
+// Espanol LATINO independiente del dispositivo via Google TTS. Concatena los mp3.
+async function googleTts(text) {
+  const chunks = splitForTts(text, 190);
+  const parts = [];
+  let total = 0;
+  for (const c of chunks) {
+    const url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q=" + encodeURIComponent(c);
+    const r = await fetch(url, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Referer": "https://translate.google.com/",
+      },
+    });
+    if (!r.ok) throw new Error("gtts " + r.status);
+    const b = new Uint8Array(await r.arrayBuffer());
+    parts.push(b); total += b.length;
+  }
+  const all = new Uint8Array(total);
+  let off = 0;
+  for (const b of parts) { all.set(b, off); off += b.length; }
+  return abToBase64(all.buffer);
+}
+
+// ---- VOZ: texto -> audio (espanol latino / ingles humano) ----------------
+async function handleTts(request, env, origin) {
   let body;
   try { body = await request.json(); }
   catch { return json({ error: "JSON invalido." }, 400, origin); }
@@ -86,15 +122,15 @@ async function handleTts(request, env, origin) {
   const isEn = lang.toLowerCase().startsWith("en");
   try {
     if (isEn) {
-      // Ingles con voz humana (Aura). Si falla, cae a MeloTTS.
-      try {
-        const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
-        const audio = await toBase64Audio(out);
-        if (audio) return json({ audio }, 200, origin);
-      } catch (_) { /* fallback a melotts */ }
+      if (!env.AI) return json({ error: "Falta el binding 'AI' (Workers AI)." }, 500, origin);
+      // Ingles con voz humana (Aura).
+      const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
+      const audio = await toBase64Audio(out);
+      if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
+      return json({ audio }, 200, origin);
     }
-    const out = await env.AI.run(TTS_MODEL, { prompt: text, lang });
-    const audio = await toBase64Audio(out);
+    // ESPANOL -> Google TTS (acento latino). Funciona en CUALQUIER dispositivo.
+    const audio = await googleTts(text);
     if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
     return json({ audio }, 200, origin);
   } catch (e) {
