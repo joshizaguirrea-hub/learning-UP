@@ -232,7 +232,7 @@ export function speakSequence(items, onEach, onDone) {
     // Voz NATURAL de la nube (es/en). Cae al navegador si falla.
     if (cloudTtsEnabled()) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
-      cloudSpeak(ct, isEs ? "es" : "en")
+      cloudSpeak(ct, isEs ? "es" : "en", it.opts?.voice)
         .then(() => advance(it))
         .catch(() => browserSay(it, isEs, () => advance(it)));
       return;

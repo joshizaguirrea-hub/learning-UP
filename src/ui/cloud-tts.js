@@ -27,14 +27,14 @@ export function cancelCloud() {
   }
 }
 
-async function fetchAudio(text, lang) {
-  const key = lang + "|" + text;
+async function fetchAudio(text, lang, voice) {
+  const key = lang + "|" + (voice || "") + "|" + text;
   if (cache.has(key)) return cache.get(key);
   const base = BYMAX_WORKER_URL.replace(/\/+$/, "");
   const res = await fetch(base + "/tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, lang }),
+    body: JSON.stringify({ text, lang, voice }),
   });
   if (!res.ok) throw new Error("tts http " + res.status);
   const data = await res.json().catch(() => ({}));
@@ -50,12 +50,13 @@ async function fetchAudio(text, lang) {
  * navegador).
  * @param {string} text
  * @param {string} [lang] "es" | "en"
+ * @param {string} [voice] voz Aura para ingles (ej. "asteria", "orion")
  */
-export function cloudSpeak(text, lang = "es") {
+export function cloudSpeak(text, lang = "es", voice) {
   return new Promise((resolve, reject) => {
     if (!cloudTtsEnabled() || !text) { reject(new Error("cloud tts off")); return; }
     cancelCloud();
-    fetchAudio(text, lang).then((url) => {
+    fetchAudio(text, lang, voice).then((url) => {
       const audio = new Audio(url);
       current = audio;
       audio.onended = () => { if (current === audio) current = null; resolve(); };

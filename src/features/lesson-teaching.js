@@ -47,7 +47,7 @@ function renderReadingBlock(b) {
       ...turns.map((t) => {
         const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-start gap-2" },
-          speakButton((who ? who + ": " : "") + stripMarkup(t.line)),
+          playSeqButton(() => [turnItem(t, names)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));
@@ -101,10 +101,15 @@ function parseDialogTurns(text) {
     });
 }
 
-/** Un turno -> item de voz con nombre y pausa BREVE de conversacion. */
+/** Voz humana (Aura) por interlocutor: suena como personas distintas. */
+const SPEAKER_VOICE = { A: "asteria", B: "orion", C: "luna", D: "arcas" };
+function voiceFor(speaker) { return SPEAKER_VOICE[speaker] || "asteria"; }
+
+/** Un turno -> item de voz con nombre (pausa tras el nombre) y voz propia. */
 function turnItem(t, names) {
-  const who = t.speaker ? (names[t.speaker] || t.speaker) + ": " : "";
-  return { text: who + t.line, lang: "en-US", opts: { rate: 0.92 }, gapAfter: 250 };
+  const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
+  const text = who ? who + ". " + t.line : t.line; // el punto crea la pausa
+  return { text, lang: "en-US", opts: { rate: 0.95, voice: voiceFor(t.speaker) }, gapAfter: 250 };
 }
 
 /**
@@ -185,7 +190,7 @@ export function dialogueSection(dialogue) {
       ...turns.map((t) => {
         const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-center gap-2" },
-          speakButton((who ? who + ": " : "") + stripMarkup(t.line)),
+          playSeqButton(() => [turnItem(t, names)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));

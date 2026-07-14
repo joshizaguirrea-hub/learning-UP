@@ -12,7 +12,13 @@
  */
 
 const MODEL = "gemini-2.0-flash";
-const TTS_MODEL = "@cf/myshell-ai/melotts";
+const TTS_MODEL = "@cf/myshell-ai/melotts";        // multilingue (espanol)
+const TTS_MODEL_EN = "@cf/deepgram/aura-1";         // ingles MUY natural (humano)
+// Voces Aura permitidas (para dar voz distinta a cada persona del dialogo).
+const AURA_VOICES = new Set([
+  "asteria", "luna", "stella", "athena", "hera",
+  "orion", "arcas", "perseus", "angus", "orpheus", "helios", "zeus",
+]);
 
 const SYSTEM_PROMPT = `Eres "Bymax", un profesor de ingles amigable, futurista y motivador
 dentro de una app llamada "Learning UP". Ayudas a hispanohablantes a aprender ingles.
@@ -42,7 +48,28 @@ function json(data, status, origin) {
   });
 }
 
-// ---- VOZ: texto -> audio (espanol nativo) --------------------------------
+// Convierte cualquier salida de audio (base64 string, ArrayBuffer, Response o
+// ReadableStream) a base64 para mandarlo como JSON al navegador.
+function abToBase64(ab) {
+  const bytes = new Uint8Array(ab);
+  let bin = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+async function toBase64Audio(out) {
+  if (out && typeof out.audio === "string") return out.audio;       // melotts
+  if (out instanceof ArrayBuffer) return abToBase64(out);
+  if (typeof Response !== "undefined" && out instanceof Response) return abToBase64(await out.arrayBuffer());
+  if (typeof ReadableStream !== "undefined" && out instanceof ReadableStream) return abToBase64(await new Response(out).arrayBuffer());
+  if (out && out.audio instanceof ArrayBuffer) return abToBase64(out.audio);
+  return null;
+}
+
+// ---- VOZ: texto -> audio (espanol nativo / ingles humano) ----------------
 async function handleTts(request, env, origin) {
   if (!env.AI) {
     return json({ error: "Falta el binding 'AI' (Workers AI) en el Worker." }, 500, origin);
@@ -53,13 +80,23 @@ async function handleTts(request, env, origin) {
 
   const text = String(body.text || "").slice(0, 600).trim();
   const lang = String(body.lang || "es").slice(0, 5);
+  const voice = AURA_VOICES.has(body.voice) ? body.voice : "asteria";
   if (!text) return json({ error: "Sin texto." }, 400, origin);
 
+  const isEn = lang.toLowerCase().startsWith("en");
   try {
+    if (isEn) {
+      // Ingles con voz humana (Aura). Si falla, cae a MeloTTS.
+      try {
+        const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
+        const audio = await toBase64Audio(out);
+        if (audio) return json({ audio }, 200, origin);
+      } catch (_) { /* fallback a melotts */ }
+    }
     const out = await env.AI.run(TTS_MODEL, { prompt: text, lang });
-    if (!out || !out.audio) return json({ error: "TTS sin audio." }, 502, origin);
-    // out.audio viene en base64 (mp3).
-    return json({ audio: out.audio }, 200, origin);
+    const audio = await toBase64Audio(out);
+    if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
+    return json({ audio }, 200, origin);
   } catch (e) {
     return json({ error: "TTS fallo.", detail: String(e).slice(0, 200) }, 502, origin);
   }
