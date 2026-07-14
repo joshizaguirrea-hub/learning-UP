@@ -167,6 +167,8 @@ export const LANGUAGE_STYLE_C1 = {
       grammar: {
         title: "Participle clauses",
         form: "-ing (activo): Feeling tired, I left. · -ed (pasivo): Written well, it works. · Having + part: Having finished, she left.",
+        desc: "Sirve para unir ideas de forma elegante y compacta en textos formales.",
+        rule: "Cl\u00e1usulas de participio: '-ing' para sentido activo (Feeling tired, I left), '-ed' para pasivo (Written well, it works) y 'Having + participio' para algo anterior (Having finished, she left).",
         examples: ["Feeling tired, she went home.", "Written in 1990, the book is still popular.", "Having eaten, we left."],
         explain: { tr: ["Sinti\u00e9ndose cansada, se fue a casa.", "Escrito en 1990, el libro sigue siendo popular.", "Habiendo comido, nos fuimos."] },
         mistakes: [

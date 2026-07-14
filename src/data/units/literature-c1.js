@@ -166,6 +166,8 @@ export const LITERATURE_C1 = {
       grammar: {
         title: "Relative clauses with quantifiers / prepositions",
         form: "quantifier + of + which/whom: most of whom, some of which · prep + which/whom: in which, to whom",
+        desc: "Sirve para dar informaci\u00f3n precisa y formal sobre parte de un grupo.",
+        rule: "'cuantificador + of + which/whom': 'most of whom', 'some of which'. 'preposici\u00f3n + which/whom': 'in which', 'to whom'. Es el registro formal de las cl\u00e1usulas relativas.",
         examples: ["The students, most of whom passed, celebrated.", "The house in which she lived is old.", "The person to whom I spoke."],
         explain: { tr: ["Los estudiantes, la mayor\u00eda de los cuales aprob\u00f3, celebraron.", "La casa en la que vivi\u00f3 es antigua.", "La persona con quien habl\u00e9."] },
         mistakes: [

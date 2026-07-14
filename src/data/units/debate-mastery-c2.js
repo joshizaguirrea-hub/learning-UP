@@ -166,6 +166,8 @@ export const DEBATE_MASTERY_C2 = {
       grammar: {
         title: "Concession + rebuttal connectors",
         form: "concesion: Admittedly / Granted / It is true that... · giro/refutacion: That said / Nonetheless / However",
+        desc: "Sirve para conceder un punto y luego refutarlo con elegancia en debates.",
+        rule: "Para conceder: 'Admittedly', 'Granted', 'It is true that...'. Para el giro/refutaci\u00f3n: 'That said', 'Nonetheless', 'However'. Primero reconoces algo, luego contraargumentas.",
         examples: ["Granted, it's costly. That said, it saves time.", "Admittedly, I was late. Nonetheless, I finished."],
         explain: { tr: ["De acuerdo, es costoso. Dicho esto, ahorra tiempo.", "Es cierto, llegu\u00e9 tarde. No obstante, termin\u00e9."] },
         mistakes: [

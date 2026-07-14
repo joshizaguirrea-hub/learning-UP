@@ -166,6 +166,8 @@ export const HUMOR_SUBTEXT_C2 = {
       grammar: {
         title: "Understatement & litotes",
         form: "litotes: not + adjetivo negativo = positivo suave (not bad = good) · understatement: minimizar (a bit tired)",
+        desc: "Sirve para expresar iron\u00eda y humor suavizando lo que dices.",
+        rule: "Litotes: 'not + adjetivo negativo' = un positivo suave ('not bad' = bueno). Understatement: minimizar a prop\u00f3sito ('a bit tired' cuando est\u00e1s agotado). Dan un tono ir\u00f3nico o modesto.",
         examples: ["It's not bad = It's quite good.", "She's not unkind = She's kind.", "A slight problem = a big problem."],
         explain: { tr: ["No est\u00e1 mal = Est\u00e1 bastante bien.", "Ella no es descort\u00e9s = Es amable.", "Un peque\u00f1o problema = un gran problema."] },
         mistakes: [
