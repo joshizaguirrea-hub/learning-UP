@@ -43,6 +43,19 @@ Navegador (Learning UP)  ->  Cloudflare Worker (esconde la key)  ->  Gemini  -> 
 
 ---
 
+## Paso 3.5 — Activar la VOZ de Bymax (Workers AI, gratis)
+
+Esto le da a Bymax voz de espanol nativo en cualquier dispositivo (endpoint /tts).
+
+1. En tu Worker: **Settings** -> **Bindings** (o "Variables and Bindings").
+2. **Add** -> tipo **"Workers AI"**.
+   - Variable name: `AI`  (exactamente asi, en mayusculas)
+3. **Deploy / Save**.
+
+No requiere key ni tarjeta: Workers AI trae free-tier incluido.
+
+---
+
 ## Paso 4 — Copiar la URL del Worker
 
 En la pagina del Worker veras una URL tipo:
