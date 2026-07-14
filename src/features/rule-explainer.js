@@ -127,7 +127,8 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
       replayBtn.classList.add("hidden");
       nextBtn.classList.add("hidden");
       const items = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
-      if (ex.tr) items.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
+      if (idx === 0 && grammar.rule) items.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
+      else if (ex.tr) items.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
       cancel = speakSequence(items, null, () => {
         replayBtn.classList.remove("hidden");
         if (rawExamples.length > 1) nextBtn.classList.remove("hidden");
@@ -217,10 +218,13 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     spanEls.forEach((s) => s.classList.remove("opacity-40"));
     caption.replaceChildren(
       el("span", { class: "block text-slate-100 leading-snug" }, ex.text),
-      ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {})
+      (idx === 0 && grammar.rule)
+        ? el("span", { class: "block mt-1 text-emerald-200" }, stripMarkup(grammar.rule))
+        : (ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {}))
     );
     const intro = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
-    if (ex.tr) intro.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
+    if (idx === 0 && grammar.rule) intro.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
+    else if (ex.tr) intro.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
 
     cancel = speakSequence(intro, null, () => {
       // 2) Desglose parte por parte.

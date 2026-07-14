@@ -195,6 +195,8 @@ export const A1_HELLO = {
           ],
         },
         form: "I *am* / you *are* / he-she-it *is* / we-they *are*",
+        desc: "Sirve para presentarte, decir qui\u00e9n eres, c\u00f3mo est\u00e1s y de d\u00f3nde eres.",
+        rule: "El verbo 'to be' (ser/estar) cambia seg\u00fan la persona: 'I am', 'you are', 'he/she/it is', 'we/you/they are'. Se usa para nombre, edad, nacionalidad y estado.",
         examples: ["I am a student.", "She is from Canada.", "We are friends.", "They are teachers."],
         explain: { tr: ["Yo soy estudiante.", "Ella es de Canad\u00e1.", "Nosotros somos amigos.", "Ellos son profesores."] },
         mistakes: [
