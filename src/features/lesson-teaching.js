@@ -22,17 +22,72 @@ function chip(emoji, tone = "bg-indigo-500/20 text-indigo-200") {
 }
 
 export function readingSection(text) {
-  const paras = String(text).split(/\n\n+/);
+  const blocks = String(text).split(/\n\n+/).map((para) => {
+    const lines = para.split(/\n/);
+    const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
+    const title = tm ? tm[1].trim() : null;
+    const body = lines.slice(tm ? 1 : 0).join(" ").trim();
+    return { title, body };
+  });
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83D\uDCD6"), "Lectura"),
       playSeqButton(() => readingItems(text))),
-    el("div", { class: "mt-3 space-y-3" },
-      ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, richText(p)))));
+    el("div", { class: "mt-3 space-y-4" }, ...blocks.map(renderReadingBlock)));
 }
 
-// Nombres para los interlocutores de un dialogo (A/B/C/D -> nombre real).
-const DIALOG_NAMES = { A: "Anna", B: "Ben", C: "Carla", D: "Dan" };
+/** Render de un bloque de lectura: titulo + (dialogo con nombres | narracion). */
+function renderReadingBlock(b) {
+  const children = [];
+  if (b.title) children.push(el("p", { class: "font-bold text-indigo-200 mb-1" }, b.title));
+  if (b.body && hasDialog(b.body)) {
+    const turns = parseDialogTurns(b.body);
+    const names = assignNames(turns, b.body);
+    children.push(el("ul", { class: "space-y-1 text-slate-200 text-sm" },
+      ...turns.map((t) => {
+        const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
+        return el("li", { class: "flex items-start gap-2" },
+          speakButton((who ? who + ": " : "") + stripMarkup(t.line)),
+          el("span", {},
+            who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
+            richText(t.line)));
+      })));
+  } else if (b.body) {
+    children.push(el("p", { class: "text-slate-200 leading-relaxed" }, richText(b.body)));
+  }
+  return el("div", { class: BOX }, ...children);
+}
+
+// Nombres para los interlocutores de un dialogo. Se asignan de forma
+// determinista por texto (mismo texto -> mismos nombres; textos distintos ->
+// nombres distintos) para dar variedad sin perder consistencia.
+const NAME_POOL = [
+  "Mar\u00eda", "Joshua", "Daniel", "Oscar", "Sonia", "Alessandro", "Geo",
+  "Adrian", "Kristel", "Gaby", "Jenny", "Meribeth", "Stephanie", "Zoe",
+  "Megan", "Mau", "Valeria", "Sophia", "Paula",
+];
+
+/** Hash estable de un texto (para elegir nombres de forma reproducible). */
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+/** Asigna un nombre distinto a cada interlocutor (A,B,C,D) segun el texto. */
+function assignNames(turns, seed) {
+  const speakers = [...new Set(turns.map((t) => t.speaker).filter(Boolean))];
+  const h = hashStr(seed);
+  const map = {};
+  const used = new Set();
+  speakers.forEach((sp, idx) => {
+    let i = (h + idx * 7) % NAME_POOL.length;
+    while (used.has(NAME_POOL[i])) i = (i + 1) % NAME_POOL.length;
+    used.add(NAME_POOL[i]);
+    map[sp] = NAME_POOL[i];
+  });
+  return map;
+}
 
 /** Parte un texto en oraciones (para narrar con ritmo natural). */
 function splitSentences(text) {
@@ -52,9 +107,9 @@ function parseDialogTurns(text) {
     });
 }
 
-/** Un turno -> item de voz con nombre ("Ben: ...") y pausa de conversacion. */
-function turnItem(t) {
-  const who = t.speaker ? (DIALOG_NAMES[t.speaker] || t.speaker) + ": " : "";
+/** Un turno -> item de voz con nombre y pausa de conversacion. */
+function turnItem(t, names) {
+  const who = t.speaker ? (names[t.speaker] || t.speaker) + ": " : "";
   return { text: who + t.line, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 450 };
 }
 
@@ -77,7 +132,9 @@ function readingItems(text) {
     const body = lines.slice(bodyStart).join(" ").trim();
     if (!body) continue;
     if (hasDialog(body)) {
-      for (const t of parseDialogTurns(body)) items.push(turnItem(t));
+      const turns = parseDialogTurns(body);
+      const names = assignNames(turns, body);
+      for (const t of turns) items.push(turnItem(t, names));
     } else {
       for (const s of splitSentences(body)) items.push({ text: s, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 260 });
     }
@@ -124,13 +181,14 @@ export function dialogueSection(dialogue) {
     const m = String(line).match(/^([A-D]):\s*(.*)$/s);
     return m ? { speaker: m[1], line: m[2].trim() } : { speaker: null, line: String(line) };
   });
+  const names = assignNames(turns, dialogue.join(" "));
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83C\uDFAD"), "Dialogo"),
-      playSeqButton(() => turns.map(turnItem))),
+      playSeqButton(() => turns.map((t) => turnItem(t, names)))),
     el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
       ...turns.map((t) => {
-        const who = t.speaker ? (DIALOG_NAMES[t.speaker] || t.speaker) : "";
+        const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-center gap-2" },
           speakButton((who ? who + ": " : "") + stripMarkup(t.line)),
           el("span", {},
