@@ -166,6 +166,8 @@ export const A2_FREE_TIME_SPORT = {
       grammar: {
         title: "Primer condicional / adverbios de modo",
         form: "If + present simple, subject + will + base · adjetivo + ly = adverbio (good -> well)",
+        desc: "Sirve para hablar de resultados probables ('si pasa esto, pasar\u00e1 aquello') y para describir C\u00d3MO se hace algo.",
+        rule: "Primer condicional: 'If + presente simple, sujeto + will + base' (If it rains, I will stay). Para el adverbio de modo a\u00f1ade -ly al adjetivo (quick -> quickly); ojo con el irregular good -> well.",
         examples: ["If we train, we will win.", "She sings beautifully.", "He runs quickly."],
         explain: { tr: ["Si entrenamos, ganaremos.", "Ella canta hermosamente.", "\u00c9l corre r\u00e1pidamente."] },
         mistakes: [

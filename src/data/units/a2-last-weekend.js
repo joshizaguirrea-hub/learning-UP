@@ -166,6 +166,8 @@ export const A2_LAST_WEEKEND = {
       grammar: {
         title: "Pasado simple (afirmativo, negativo, pregunta)",
         form: "afirm: verbo pasado · neg: didn't + base · preg: Did + sujeto + base?",
+        desc: "Sirve para contar acciones terminadas en el pasado (ayer, el fin de semana).",
+        rule: "Afirmativo: verbo en pasado (played, went). Negativo: 'didn't + base' (didn't play). Pregunta: 'Did + sujeto + base?' (Did you play?). Tras 'didn't' y 'did' el verbo vuelve a la base.",
         examples: ["I went to the beach.", "I didn't go to work.", "Did you see the film?"],
         explain: { tr: ["Fui a la playa.", "No fui a trabajar.", "\u00bfViste la pel\u00edcula?"] },
         mistakes: [

@@ -166,6 +166,8 @@ export const A2_WORK_JOBS = {
       grammar: {
         title: "Present perfect (experiencias)",
         form: "have/has + participio · Have you ever...? · never / just / already / not ... yet",
+        desc: "Sirve para hablar de experiencias de vida y acciones recientes sin decir cu\u00e1ndo exactamente.",
+        rule: "'have/has + participio' (has con he/she/it). 'Have you ever...?' pregunta por experiencias; 'never' = nunca; 'just' = reci\u00e9n; 'already' = ya; 'not ... yet' = todav\u00eda no.",
         examples: ["I have worked as a waiter.", "Have you ever been to London?", "She hasn't finished yet."],
         explain: { tr: ["He trabajado como mesero.", "\u00bfAlguna vez has estado en Londres?", "Ella no ha terminado todav\u00eda."] },
         mistakes: [

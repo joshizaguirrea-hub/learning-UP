@@ -166,6 +166,8 @@ export const MIND_B2 = {
       grammar: {
         title: "wish / if only",
         form: "deseo presente: wish + past · arrepentimiento pasado: wish + had + participio",
+        desc: "Sirve para expresar deseos sobre el presente y arrepentimientos sobre el pasado.",
+        rule: "Deseo del presente: 'wish + pasado simple' (I wish I had more time). Arrepentimiento del pasado: 'wish + had + participio' (I wish I had studied).",
         examples: ["I wish I were taller.", "I wish I had studied.", "If only I knew the answer."],
         explain: { tr: ["Ojal\u00e1 fuera m\u00e1s alto.", "Ojal\u00e1 hubiera estudiado.", "Si tan solo supiera la respuesta."] },
         mistakes: [

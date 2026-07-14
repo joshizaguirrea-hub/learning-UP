@@ -166,6 +166,8 @@ export const ETHICS_B2 = {
       grammar: {
         title: "Mixed conditionals",
         form: "pasado -> presente: If + had + participio, ... would + base (ahora)",
+        desc: "Sirve para imaginar c\u00f3mo ser\u00eda AHORA algo que en el pasado fue diferente (arrepentimientos).",
+        rule: "Condicional mixto: 'If + had + participio, ... would + base'. La condici\u00f3n es del pasado y el resultado es del presente: 'If I had studied, I would have a better job now'.",
         examples: ["If I had studied medicine, I would be a doctor now.", "If she hadn't left, she would be here today."],
         explain: { tr: ["Si hubiera estudiado medicina, ahora ser\u00eda doctor.", "Si ella no se hubiera ido, hoy estar\u00eda aqu\u00ed."] },
         mistakes: [
