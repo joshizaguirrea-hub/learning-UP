@@ -166,6 +166,8 @@ export const CAPSTONE_C2 = {
       grammar: {
         title: "C2 review (inversion, cleft, passive, concessive)",
         form: "inversion: Never have I... · cleft: What I need is... · pasiva: has been mastered · concesiva: However hard...",
+        desc: "Repaso: combina las estructuras avanzadas para escribir con estilo y \u00e9nfasis.",
+        rule: "Herramientas de estilo: inversi\u00f3n (Never have I...), oraciones hendidas (What I need is...), voz pasiva (has been mastered) y concesivas (However hard...). Eliges seg\u00fan el \u00e9nfasis que quieras dar.",
         examples: ["Never have I felt so ready.", "What matters is confidence.", "The skills have been mastered.", "However hard it is, I'll try."],
         explain: { tr: ["Nunca me he sentido tan preparado.", "Lo que importa es la confianza.", "Las habilidades se han dominado.", "Por muy dif\u00edcil que sea, lo intentar\u00e9."] },
         mistakes: [

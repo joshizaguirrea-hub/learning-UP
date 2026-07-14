@@ -166,6 +166,8 @@ export const CULTURE_IDENTITY_C1 = {
       grammar: {
         title: "Ellipsis & substitution",
         form: "so/neither + auxiliar + sujeto · do/one como sustitutos · respuestas cortas (Yes, I do)",
+        desc: "Sirve para mostrar acuerdo, evitar repetir y responder de forma natural.",
+        rule: "'So + auxiliar + sujeto' para coincidir en afirmativo (So do I) y 'neither + auxiliar + sujeto' en negativo (Neither do I). Usa 'do' y 'one' para no repetir; en respuestas cortas repite el auxiliar (Yes, I do).",
         examples: ["I love it, and so does she.", "I don't, and neither does he.", "Do you? Yes, I do."],
         explain: { tr: ["Me encanta, y a ella tambi\u00e9n.", "Yo no, y \u00e9l tampoco.", "\u00bfT\u00fa s\u00ed? S\u00ed, yo s\u00ed."] },
         mistakes: [

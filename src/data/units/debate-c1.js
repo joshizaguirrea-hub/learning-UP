@@ -166,6 +166,8 @@ export const DEBATE_C1 = {
       grammar: {
         title: "Hedging / cautious language",
         form: "tend to + base · it seems/appears that... · may/might/could + base · perhaps",
+        desc: "Sirve para opinar con cautela y sonar menos tajante en debates.",
+        rule: "'tend to + base' (suele), 'it seems/appears that...' (parece que), 'may/might/could + base' (posibilidad) y 'perhaps' suavizan la afirmaci\u00f3n para no sonar absoluto.",
         examples: ["Prices tend to rise.", "It seems that he is right.", "This may be a problem."],
         explain: { tr: ["Los precios tienden a subir.", "Parece que \u00e9l tiene raz\u00f3n.", "Esto podr\u00eda ser un problema."] },
         mistakes: [

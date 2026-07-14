@@ -166,6 +166,8 @@ export const PROFESSIONAL_COMM_C2 = {
       grammar: {
         title: "Diplomatic / formal requests",
         form: "I would appreciate it if you could + base · Would you mind + -ing · I was wondering if you could + base",
+        desc: "Sirve para pedir cosas de forma formal y cort\u00e9s en el trabajo.",
+        rule: "F\u00f3rmulas corteses: 'I would appreciate it if you could + base', 'Would you mind + verbo-ing', 'I was wondering if you could + base'. Cuanto m\u00e1s indirecta la petici\u00f3n, m\u00e1s formal y amable suena.",
         examples: ["I would appreciate it if you could reply.", "Would you mind sending it?", "I was wondering if you could help."],
         explain: { tr: ["Le agradecer\u00eda si pudiera responder.", "\u00bfLe importar\u00eda enviarlo?", "Me preguntaba si podr\u00eda ayudar."] },
         mistakes: [
