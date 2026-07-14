@@ -166,6 +166,8 @@ export const MEDIA_INFLUENCE_B2 = {
       grammar: {
         title: "Modal perfects (past)",
         form: "should have + part (critica) · must have + part (deduccion) · could have + part (posibilidad)",
+        desc: "Sirve para criticar, deducir o imaginar cosas sobre el pasado.",
+        rule: "'should have + participio' critica algo que no se hizo (you should have called). 'must have + participio' es deducci\u00f3n segura (she must have left). 'could have + participio' es posibilidad no realizada (he could have won).",
         examples: ["You should have checked.", "She must have known.", "It could have been worse."],
         explain: { tr: ["Deber\u00edas haber revisado.", "Ella debi\u00f3 haberlo sabido.", "Pudo haber sido peor."] },
         mistakes: [

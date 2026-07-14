@@ -167,6 +167,7 @@ export const MONEY_B1 = {
         title: "Second conditional",
         desc: "Sirve para imaginar cosas que hoy NO son reales, y decir qu\u00e9 pasar\u00eda si ocurrieran. Ejemplo: 'Si tuviera dinero, viajar\u00eda'.",
         form: "If + past simple, subject + would + verbo base",
+        rule: "Segundo condicional: 'If + pasado simple, sujeto + would + verbo base'. Aunque usa pasado, habla de algo imaginario del presente o futuro: 'If I had money, I would travel'.",
         explain: {
           tr: [
             "Si tuviera dinero, viajar\u00eda.",

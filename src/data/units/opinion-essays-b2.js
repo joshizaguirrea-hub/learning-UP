@@ -168,6 +168,8 @@ export const OPINION_ESSAYS_B2 = {
       grammar: {
         title: "Linkers (contraste, causa, adicion)",
         form: "contraste: however / although · causa-efecto: therefore / so · adicion: furthermore / moreover",
+        desc: "Sirve para conectar ideas en textos y ensayos de forma clara y formal.",
+        rule: "Contraste: 'however', 'although'. Causa-efecto: 'therefore', 'so'. Adici\u00f3n: 'furthermore', 'moreover'. Suelen ir al inicio de la idea y con coma cuando encabezan la frase.",
         examples: ["Although it's hard, it's worth it.", "It rained; therefore, we stayed.", "It's cheap. Furthermore, it's fast."],
         explain: { tr: ["Aunque es dif\u00edcil, vale la pena.", "Llovi\u00f3; por lo tanto, nos quedamos.", "Es barato. Adem\u00e1s, es r\u00e1pido."] },
         mistakes: [

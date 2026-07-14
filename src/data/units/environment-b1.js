@@ -168,6 +168,8 @@ export const ENVIRONMENT_B1 = {
       grammar: {
         title: "Voz pasiva (present y past)",
         form: "presente: is/are + participio · pasado: was/were + participio · (by + agente, opcional)",
+        desc: "Sirve para enfocar la acci\u00f3n o el resultado cuando no importa qui\u00e9n lo hace.",
+        rule: "Voz pasiva: 'to be' + participio. Presente: 'is/are + participio' (is made). Pasado: 'was/were + participio' (was built). Si quieres decir qui\u00e9n lo hizo, a\u00f1ade 'by + agente' (opcional).",
         examples: ["Paper is recycled.", "The river was polluted.", "Trees are planted every year."],
         explain: { tr: ["El papel se recicla.", "El r\u00edo fue contaminado.", "Se plantan \u00e1rboles cada a\u00f1o."] },
         mistakes: [

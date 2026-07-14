@@ -166,6 +166,8 @@ export const A2_MAKING_PLANS = {
       grammar: {
         title: "be going to / will",
         form: "am/is/are + going to + base (plan) · will + base (decision del momento / oferta)",
+        desc: "Sirve para hablar del futuro: planes que ya tienes y decisiones del momento.",
+        rule: "'be going to + base' para planes e intenciones decididas de antes (I'm going to travel). 'will + base' para decisiones del momento, ofertas y predicciones (I'll help you).",
         examples: ["I'm going to study tonight.", "I'll call you later.", "It's going to be fun."],
         explain: { tr: ["Voy a estudiar esta noche.", "Te llamar\u00e9 m\u00e1s tarde.", "Va a ser divertido."] },
         mistakes: [

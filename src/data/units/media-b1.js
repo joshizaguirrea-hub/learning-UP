@@ -167,6 +167,8 @@ export const MEDIA_B1 = {
       grammar: {
         title: "Reported speech (basico)",
         form: "say -> said (that) · tell -> told (someone) · el verbo retrocede en el tiempo",
+        desc: "Sirve para contar lo que otra persona dijo, sin repetir sus palabras exactas.",
+        rule: "Usa 'say' -> 'said (that)' y 'tell' -> 'told (someone)'. Al reportar, el verbo retrocede un tiempo: el presente pasa a pasado (I am -> he said he was).",
         examples: ["'I am tired' -> He said he was tired.", "'I will go' -> She said she would go."],
         explain: { tr: ["'Estoy cansado' -> \u00c9l dijo que estaba cansado.", "'Ir\u00e9' -> Ella dijo que ir\u00eda."] },
         mistakes: [

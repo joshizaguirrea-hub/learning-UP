@@ -167,6 +167,8 @@ export const ARTS_B2 = {
       grammar: {
         title: "Non-defining relative clauses",
         form: "informacion EXTRA entre comas: ..., who/which/whose ..., ...",
+        desc: "Sirve para a\u00f1adir informaci\u00f3n extra sobre algo, sin que sea esencial para entender la frase.",
+        rule: "La info extra va ENTRE COMAS con who (personas), which (cosas) o whose (posesi\u00f3n): 'My brother, who lives in Rome, is a chef'. Si quitas la parte entre comas, la frase sigue teniendo sentido.",
         examples: ["Frida Kahlo, who was a painter, ...", "The film, which won an award, ...", "The director, whose work is famous, ..."],
         explain: { tr: ["Frida Kahlo, quien fue pintora, ...", "La pel\u00edcula, que gan\u00f3 un premio, ...", "El director, cuya obra es famosa, ..."] },
         mistakes: [

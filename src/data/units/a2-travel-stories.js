@@ -166,6 +166,8 @@ export const A2_TRAVEL_STORIES = {
       grammar: {
         title: "Past continuous vs past simple",
         form: "was/were + verbo-ing (fondo) + when + past simple (accion breve)",
+        desc: "Sirve para contar qu\u00e9 estaba pasando cuando otra acci\u00f3n lo interrumpi\u00f3.",
+        rule: "'was/were + verbo-ing' describe la acci\u00f3n larga de fondo (I was sleeping) y 'when + pasado simple' marca la acci\u00f3n breve que la corta (when the phone rang).",
         examples: ["I was reading when you called.", "While we were waiting, it rained.", "They were walking when it started."],
         explain: { tr: ["Estaba leyendo cuando llamaste.", "Mientras esper\u00e1bamos, llovi\u00f3.", "Estaban caminando cuando empez\u00f3."] },
         mistakes: [
