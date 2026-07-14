@@ -89,12 +89,6 @@ function assignNames(turns, seed) {
   return map;
 }
 
-/** Parte un texto en oraciones (para narrar con ritmo natural). */
-function splitSentences(text) {
-  return String(text).replace(/\s+/g, " ").trim()
-    .split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
-}
-
 /** True si el texto trae marcas de dialogo tipo "A: ... B: ...". */
 function hasDialog(text) { return /\b[A-D]:\s/.test(text); }
 
@@ -107,17 +101,18 @@ function parseDialogTurns(text) {
     });
 }
 
-/** Un turno -> item de voz con nombre y pausa de conversacion. */
+/** Un turno -> item de voz con nombre y pausa BREVE de conversacion. */
 function turnItem(t, names) {
   const who = t.speaker ? (names[t.speaker] || t.speaker) + ": " : "";
-  return { text: who + t.line, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 450 };
+  return { text: who + t.line, lang: "en-US", opts: { rate: 0.92 }, gapAfter: 250 };
 }
 
 /**
  * Convierte un texto de lectura en items para speakSequence:
- *   - Titulo ("TEXT 1 - Emma and money") se dice solo y con PAUSA larga.
- *   - Dialogos se leen con nombres y pausa entre cada persona.
- *   - Narracion normal se parte en oraciones a ritmo entendible.
+ *   - Titulo se dice solo, con pausa breve.
+ *   - La narracion va COMPLETA en un item (la voz pone las pausas naturales
+ *     dentro -> suena fluido y claro, no cortado).
+ *   - Los dialogos se leen turno por turno con nombres y pausa breve.
  */
 function readingItems(text) {
   const items = [];
@@ -126,7 +121,7 @@ function readingItems(text) {
     let bodyStart = 0;
     const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
     if (tm) {
-      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.95 }, gapAfter: 650 });
+      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.92 }, gapAfter: 300 });
       bodyStart = 1;
     }
     const body = lines.slice(bodyStart).join(" ").trim();
@@ -136,7 +131,7 @@ function readingItems(text) {
       const names = assignNames(turns, body);
       for (const t of turns) items.push(turnItem(t, names));
     } else {
-      for (const s of splitSentences(body)) items.push({ text: s, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 260 });
+      items.push({ text: body, lang: "en-US", opts: { rate: 0.9 }, gapAfter: 300 });
     }
   }
   return items;
