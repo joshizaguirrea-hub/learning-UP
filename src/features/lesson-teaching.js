@@ -129,6 +129,10 @@ export function grammarBox(g, robotLang = "es-MX") {
         el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/80" }, "Las reglas"),
         el("h2", { class: "font-bold text-lg text-indigo-100 leading-tight" }, g.title))),
 
+    g.desc ? el("div", { class: "mt-3 border-l-2 border-fuchsia-400/60 bg-fuchsia-500/5 rounded-r-lg px-3 py-2" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-fuchsia-300/80 mb-0.5" }, "\u00bfPara que sirve?"),
+      el("p", { class: "text-sm text-slate-200 leading-relaxed" }, g.desc)) : null,
+
     (g.form || g.examples?.length) ? el("button", {
       class: "mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 " +
         "text-white font-semibold px-4 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]",
