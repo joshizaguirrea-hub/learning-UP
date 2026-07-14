@@ -166,6 +166,8 @@ export const RELATIONSHIPS_B1 = {
       grammar: {
         title: "Verbos + gerundio / infinitivo",
         form: "enjoy/love/hate/keep + -ing · want/decide/agree/hope/learn + to + base",
+        desc: "Sirve para saber cu\u00e1ndo un verbo va seguido de -ing y cu\u00e1ndo de 'to + verbo'.",
+        rule: "Tras 'enjoy, love, hate, keep' va verbo + -ing (I enjoy talking). Tras 'want, decide, agree, hope, learn' va 'to + base' (She wants to travel).",
         examples: ["I enjoy talking.", "She wants to travel.", "They decided to stay.", "He keeps studying."],
         explain: { tr: ["Disfruto conversar.", "Ella quiere viajar.", "Ellos decidieron quedarse.", "\u00c9l sigue estudiando."] },
         mistakes: [

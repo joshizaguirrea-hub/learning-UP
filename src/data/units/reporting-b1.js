@@ -167,6 +167,8 @@ export const REPORTING_B1 = {
       grammar: {
         title: "Question tags",
         form: "afirmativo -> tag negativa (is, isn't it?) · negativo -> tag afirmativa (don't, do you?)",
+        desc: "Sirve para confirmar informaci\u00f3n o pedir acuerdo al final de una frase (\u00bfverdad?).",
+        rule: "Frase afirmativa -> tag NEGATIVA (It's great, isn't it?). Frase negativa -> tag AFIRMATIVA (You don't smoke, do you?). La tag repite el auxiliar y el pronombre.",
         examples: ["It's great, isn't it?", "You save time, don't you?", "We should meet, shouldn't we?"],
         explain: { tr: ["Es genial, \u00bfverdad?", "Ahorras tiempo, \u00bfno?", "Deber\u00edamos reunirnos, \u00bfno crees?"] },
         mistakes: [
