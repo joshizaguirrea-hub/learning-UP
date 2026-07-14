@@ -133,10 +133,10 @@ export function speak(text, lang = "en-US", opts = {}) {
 
   const useLang = detectLang(norm, base);
 
-  // ESPANOL -> voz nativa de la nube (si hay Worker). Cae al navegador si falla.
-  if (useLang === "es" && cloudTtsEnabled()) {
-    const esText = fixSpanishAccents(parts.join(". "));
-    cloudSpeak(esText, "es").catch(browserSpeak);
+  // Voz NATURAL de la nube (espanol e ingles) si hay Worker. Cae al navegador si falla.
+  if (cloudTtsEnabled()) {
+    const cloudText = useLang === "es" ? fixSpanishAccents(parts.join(". ")) : parts.join(". ");
+    cloudSpeak(cloudText, useLang === "es" ? "es" : "en").catch(browserSpeak);
     return;
   }
   browserSpeak();
@@ -229,9 +229,10 @@ export function speakSequence(items, onEach, onDone) {
     onEach?.(i);
     const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
 
-    // Espanol -> voz de la nube (nativa). Cae al navegador si falla.
-    if (isEs && cloudTtsEnabled()) {
-      cloudSpeak(fixSpanishAccents(String(it.text)), "es")
+    // Voz NATURAL de la nube (es/en). Cae al navegador si falla.
+    if (cloudTtsEnabled()) {
+      const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
+      cloudSpeak(ct, isEs ? "es" : "en")
         .then(() => advance(it))
         .catch(() => browserSay(it, isEs, () => advance(it)));
       return;
