@@ -7,7 +7,8 @@
  * todo mas ordenado y bonito. Sin logica de negocio.
  */
 import { el } from "../ui/dom.js";
-import { speakButton } from "../ui/speech.js";
+import { speakButton, speakSequence } from "../ui/speech.js";
+import { ICONS } from "../ui/icons.js";
 import { richText, stripMarkup } from "../ui/richtext.js";
 import { robotName } from "../ui/robot.js";
 import { openRuleExplainer } from "./rule-explainer.js";
@@ -25,9 +26,75 @@ export function readingSection(text) {
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83D\uDCD6"), "Lectura"),
-      speakButton(stripMarkup(String(text).replace(/\n+/g, " ")))),
+      playSeqButton(() => readingItems(text))),
     el("div", { class: "mt-3 space-y-3" },
       ...paras.map((p) => el("p", { class: "text-slate-200 leading-relaxed " + BOX }, richText(p)))));
+}
+
+// Nombres para los interlocutores de un dialogo (A/B/C/D -> nombre real).
+const DIALOG_NAMES = { A: "Anna", B: "Ben", C: "Carla", D: "Dan" };
+
+/** Parte un texto en oraciones (para narrar con ritmo natural). */
+function splitSentences(text) {
+  return String(text).replace(/\s+/g, " ").trim()
+    .split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter(Boolean);
+}
+
+/** True si el texto trae marcas de dialogo tipo "A: ... B: ...". */
+function hasDialog(text) { return /\b[A-D]:\s/.test(text); }
+
+/** Separa "A: .. B: .. A: .." en turnos { speaker, line }. */
+function parseDialogTurns(text) {
+  return String(text).split(/\s*(?=\b[A-D]:\s)/).map((s) => s.trim()).filter(Boolean)
+    .map((ch) => {
+      const m = ch.match(/^([A-D]):\s*(.*)$/s);
+      return m ? { speaker: m[1], line: m[2].trim() } : { speaker: null, line: ch };
+    });
+}
+
+/** Un turno -> item de voz con nombre ("Ben: ...") y pausa de conversacion. */
+function turnItem(t) {
+  const who = t.speaker ? (DIALOG_NAMES[t.speaker] || t.speaker) + ": " : "";
+  return { text: who + t.line, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 450 };
+}
+
+/**
+ * Convierte un texto de lectura en items para speakSequence:
+ *   - Titulo ("TEXT 1 - Emma and money") se dice solo y con PAUSA larga.
+ *   - Dialogos se leen con nombres y pausa entre cada persona.
+ *   - Narracion normal se parte en oraciones a ritmo entendible.
+ */
+function readingItems(text) {
+  const items = [];
+  for (const para of String(text).split(/\n\n+/)) {
+    const lines = para.split(/\n/);
+    let bodyStart = 0;
+    const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
+    if (tm) {
+      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.95 }, gapAfter: 650 });
+      bodyStart = 1;
+    }
+    const body = lines.slice(bodyStart).join(" ").trim();
+    if (!body) continue;
+    if (hasDialog(body)) {
+      for (const t of parseDialogTurns(body)) items.push(turnItem(t));
+    } else {
+      for (const s of splitSentences(body)) items.push({ text: s, lang: "en-US", opts: { rate: 0.95 }, gapAfter: 260 });
+    }
+  }
+  return items;
+}
+
+/** Boton de altavoz que reproduce una SECUENCIA (titulo/pausas/turnos). */
+function playSeqButton(getItems, cls = "") {
+  return el("button", {
+    type: "button",
+    class: "inline-flex items-center justify-center w-7 h-7 rounded-full text-indigo-300 " +
+      "hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400 shrink-0 " + cls,
+    "aria-label": "Escuchar todo", title: "Escuchar todo",
+    onclick: (e) => { e.preventDefault(); e.stopPropagation(); speakSequence(getItems()); },
+    html: ICONS.sound,
+  });
 }
 
 export function glossarySection(glossary) {
@@ -53,11 +120,23 @@ export function noteSection(note) {
 }
 
 export function dialogueSection(dialogue) {
+  const turns = dialogue.map((line) => {
+    const m = String(line).match(/^([A-D]):\s*(.*)$/s);
+    return m ? { speaker: m[1], line: m[2].trim() } : { speaker: null, line: String(line) };
+  });
   return el("section", {},
-    el("h2", { class: H2 }, chip("\uD83C\uDFAD"), "Dialogo"),
+    el("div", { class: "flex items-center gap-2" },
+      el("h2", { class: H2 }, chip("\uD83C\uDFAD"), "Dialogo"),
+      playSeqButton(() => turns.map(turnItem))),
     el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
-      ...dialogue.map((line) => el("li", { class: "flex items-center gap-2" },
-        speakButton(stripMarkup(line.replace(/^[A-Z]:\s*/, ""))), el("span", {}, richText(line))))));
+      ...turns.map((t) => {
+        const who = t.speaker ? (DIALOG_NAMES[t.speaker] || t.speaker) : "";
+        return el("li", { class: "flex items-center gap-2" },
+          speakButton((who ? who + ": " : "") + stripMarkup(t.line)),
+          el("span", {},
+            who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
+            richText(t.line)));
+      })));
 }
 
 /** Tabla comparativa opcional: { headers:[...], rows:[[...], ...] }. */
