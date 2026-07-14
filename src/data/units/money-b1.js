@@ -165,7 +165,7 @@ export const MONEY_B1 = {
       intro: "Competencia de GRAMATICA. Aprende el segundo condicional (situaciones imaginarias).",
       grammar: {
         title: "Second conditional",
-        desc: "Se usa para hablar de situaciones IMAGINARIAS o poco probables en el presente o el futuro: lo que har\u00edas si algo (que hoy no es real) llegara a pasar.",
+        desc: "Sirve para imaginar cosas que hoy NO son reales, y decir qu\u00e9 pasar\u00eda si ocurrieran. Ejemplo: 'Si tuviera dinero, viajar\u00eda'.",
         form: "If + past simple, subject + would + verbo base",
         explain: {
           tr: [
