@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba de voz - Learning UP</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #0f172a; color: #f1f5f9;
+           margin: 0; padding: 24px; display: flex; flex-direction: column; gap: 18px;
+           align-items: center; min-height: 100vh; }
+    h1 { font-size: 20px; text-align: center; margin: 8px 0; }
+    p  { text-align: center; color: #94a3b8; margin: 0; font-size: 14px; }
+    button { width: 100%; max-width: 420px; padding: 18px; font-size: 18px; font-weight: 700;
+             border: none; border-radius: 14px; color: #fff; cursor: pointer; }
+    .es { background: #7c3aed; }
+    .en { background: #0891b2; }
+    #status { max-width: 420px; width: 100%; background: #1e293b; border-radius: 12px;
+              padding: 14px; font-size: 14px; white-space: pre-wrap; word-break: break-word; }
+    .tag { font-size: 12px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <h1>Prueba de voz de la nube</h1>
+  <p>Toca un boton y escucha. Esta pagina NO usa cache: va directo al Worker.</p>
+
+  <button class="es" id="btnEs">Escuchar ESPANOL (latino)</button>
+  <button class="en" id="btnEn">Escuchar INGLES (humano)</button>
+
+  <div id="status">Listo. Toca un boton para probar.</div>
+  <div class="tag">voz-test.html &middot; v1</div>
+
+  <script>
+    const WORKER = "https://bymax-ia.joshizaguirrea.workers.dev/tts";
+    const status = document.getElementById("status");
+    function log(msg) { status.textContent = msg; }
+
+    async function speak(text, lang, voice) {
+      log("Pidiendo audio a la nube... (" + lang + ")");
+      try {
+        const res = await fetch(WORKER, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, lang, voice }),
+        });
+        if (!res.ok) { log("ERROR HTTP " + res.status + " - la nube respondio mal."); return; }
+        const data = await res.json();
+        if (!data.audio) { log("ERROR: la nube no devolvio audio. " + JSON.stringify(data).slice(0, 120)); return; }
+        log("Audio recibido OK. Reproduciendo...");
+        const audio = new Audio("data:audio/mp3;base64," + data.audio);
+        audio.onended = () => log("Termino de sonar. Como se escucho?");
+        audio.onerror = () => log("El audio LLEGO pero el telefono no lo reprodujo (bloqueo de sonido?).");
+        await audio.play();
+      } catch (e) {
+        log("ERROR de red: " + String(e).slice(0, 140));
+      }
+    }
+
+    document.getElementById("btnEs").addEventListener("click", () => {
+      speak("Hola, soy tu profe Horus. Con el verbo have got dices lo que tienes.", "es");
+    });
+    document.getElementById("btnEn").addEventListener("click", () => {
+      speak("Hello! I am your teacher Horus. Let me explain this rule to you.", "en", "orion");
+    });
+  </script>
+</body>
+</html>
