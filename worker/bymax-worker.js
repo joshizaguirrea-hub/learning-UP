@@ -85,6 +85,69 @@ function splitForTts(text, max) {
   return out;
 }
 
+// Escapa texto para meterlo en SSML/XML.
+function escapeXml(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+
+// Voz NEURAL humana (Microsoft Edge TTS) via WebSocket. GRATIS, sin key.
+// voice ej: "es-MX-DaliaNeural" (latino), "en-US-AriaNeural". xmlLang ej "es-MX".
+async function edgeTts(text, voice, xmlLang) {
+  const TRUSTED = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
+  const url = "wss://speech.platform.bing.com/consumer/speech/synthesize/" +
+    "readaloud/edge/v1?TrustedClientToken=" + TRUSTED;
+  const resp = await fetch(url, { headers: { Upgrade: "websocket" } });
+  const ws = resp.webSocket;
+  if (!ws) throw new Error("edge sin websocket");
+  ws.accept();
+
+  const chunks = [];
+  const done = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("edge timeout")), 15000);
+    ws.addEventListener("message", (ev) => {
+      if (typeof ev.data === "string") {
+        if (ev.data.includes("Path:turn.end")) { clearTimeout(timer); resolve(); }
+      } else {
+        const buf = new Uint8Array(ev.data);
+        const headerLen = (buf[0] << 8) | buf[1];
+        const audio = buf.slice(2 + headerLen);
+        if (audio.length) chunks.push(audio);
+      }
+    });
+    ws.addEventListener("close", () => { clearTimeout(timer); resolve(); });
+    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("edge ws error")); });
+  });
+
+  const now = new Date().toString();
+  const reqId = (crypto.randomUUID ? crypto.randomUUID() : "id" + Date.now()).replace(/-/g, "");
+  ws.send(
+    "X-Timestamp:" + now + "\r\nContent-Type:application/json; charset=utf-8\r\n" +
+    "Path:speech.config\r\n\r\n" +
+    JSON.stringify({ context: { synthesis: { audio: {
+      metadataoptions: { sentenceBoundaryEnabled: false, wordBoundaryEnabled: false },
+      outputFormat: "audio-24khz-48kbitrate-mono-mp3",
+    } } } })
+  );
+  const ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='" +
+    xmlLang + "'><voice name='" + voice + "'><prosody rate='-4%'>" +
+    escapeXml(text) + "</prosody></voice></speak>";
+  ws.send(
+    "X-RequestId:" + reqId + "\r\nContent-Type:application/ssml+xml\r\n" +
+    "X-Timestamp:" + now + "\r\nPath:ssml\r\n\r\n" + ssml
+  );
+
+  await done;
+  try { ws.close(); } catch { /* ignore */ }
+  let total = 0;
+  for (const c of chunks) total += c.length;
+  if (!total) throw new Error("edge sin audio");
+  const all = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) { all.set(c, off); off += c.length; }
+  return abToBase64(all.buffer);
+}
+
 // Espanol LATINO independiente del dispositivo via Google TTS. Concatena los mp3.
 async function googleTts(text) {
   const chunks = splitForTts(text, 190);
@@ -129,7 +192,11 @@ async function handleTts(request, env, origin) {
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
       return json({ audio }, 200, origin);
     }
-    // ESPANOL -> Google TTS (acento latino). Funciona en CUALQUIER dispositivo.
+    // ESPANOL -> voz neural humana latina (Edge, es-MX Dalia). Si falla, Google TTS.
+    try {
+      const audio = await edgeTts(text, "es-MX-DaliaNeural", "es-MX");
+      if (audio) return json({ audio }, 200, origin);
+    } catch (_) { /* fallback a google */ }
     const audio = await googleTts(text);
     if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
     return json({ audio }, 200, origin);
