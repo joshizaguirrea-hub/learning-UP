@@ -95,7 +95,7 @@ function escapeXml(s) {
 // voice ej: "es-MX-DaliaNeural" (latino), "en-US-AriaNeural". xmlLang ej "es-MX".
 async function edgeTts(text, voice, xmlLang) {
   const TRUSTED = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
-  const url = "wss://speech.platform.bing.com/consumer/speech/synthesize/" +
+  const url = "https://speech.platform.bing.com/consumer/speech/synthesize/" +
     "readaloud/edge/v1?TrustedClientToken=" + TRUSTED;
   const resp = await fetch(url, { headers: { Upgrade: "websocket" } });
   const ws = resp.webSocket;
