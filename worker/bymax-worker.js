@@ -91,15 +91,31 @@ function escapeXml(s) {
     .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 }
 
+// Token anti-abuso que Microsoft Edge exige: SHA-256 de (ticks + TrustedToken).
+// ticks = tiempo Windows (100ns desde 1601), redondeado a 5 min.
+async function secMsGec(trusted) {
+  let ticks = Math.floor(Date.now() / 1000) + 11644473600;
+  ticks = ticks - (ticks % 300);
+  ticks = ticks * 10000000;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ticks + trusted));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+}
+
 // Voz NEURAL humana (Microsoft Edge TTS) via WebSocket. GRATIS, sin key.
 // voice ej: "es-MX-DaliaNeural" (latino), "en-US-AriaNeural". xmlLang ej "es-MX".
 async function edgeTts(text, voice, xmlLang) {
   const TRUSTED = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
+  const gec = await secMsGec(TRUSTED);
   const url = "https://speech.platform.bing.com/consumer/speech/synthesize/" +
-    "readaloud/edge/v1?TrustedClientToken=" + TRUSTED;
-  const resp = await fetch(url, { headers: { Upgrade: "websocket" } });
+    "readaloud/edge/v1?TrustedClientToken=" + TRUSTED +
+    "&Sec-MS-GEC=" + gec + "&Sec-MS-GEC-Version=1-130.0.2849.68";
+  const resp = await fetch(url, { headers: {
+    Upgrade: "websocket",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
+    "Origin": "chrome-extension://jdiccldimppanfnpcagkadcbnghnaaao",
+  } });
   const ws = resp.webSocket;
-  if (!ws) throw new Error("edge sin websocket");
+  if (!ws) throw new Error("edge sin websocket (status " + resp.status + ")");
   ws.accept();
 
   const chunks = [];
