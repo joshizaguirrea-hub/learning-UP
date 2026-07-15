@@ -17,12 +17,36 @@ export function cloudTtsEnabled() {
 }
 
 const cache = new Map(); // "lang|texto" -> dataURL (mp3 base64)
-let current = null;      // Audio en reproduccion
+let current = null;      // true si el player esta reproduciendo algo nuestro
+
+// UN SOLO elemento de audio, reusado siempre. Clave en MOVIL: una vez que el
+// usuario lo "desbloquea" con un toque, los play() programaticos posteriores
+// (secuencias titulo->narracion) ya NO los bloquea la politica de autoplay.
+let player = null;
+function getPlayer() {
+  if (!player) player = new Audio();
+  return player;
+}
+// Desbloquea el audio en el primer gesto del usuario (touch/click).
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    try {
+      const p = getPlayer();
+      p.muted = true;
+      const pr = p.play();
+      if (pr && pr.then) pr.then(() => { p.pause(); p.muted = false; }).catch(() => { p.muted = false; });
+    } catch { /* ignore */ }
+    window.removeEventListener("touchend", unlock);
+    window.removeEventListener("click", unlock);
+  };
+  window.addEventListener("touchend", unlock, { once: true });
+  window.addEventListener("click", unlock, { once: true });
+}
 
 /** Detiene el audio de nube que este sonando. */
 export function cancelCloud() {
-  if (current) {
-    try { current.pause(); } catch { /* ignore */ }
+  if (current && player) {
+    try { player.pause(); } catch { /* ignore */ }
     current = null;
   }
 }
@@ -57,10 +81,11 @@ export function cloudSpeak(text, lang = "es", voice) {
     if (!cloudTtsEnabled() || !text) { reject(new Error("cloud tts off")); return; }
     cancelCloud();
     fetchAudio(text, lang, voice).then((url) => {
-      const audio = new Audio(url);
-      current = audio;
-      audio.onended = () => { if (current === audio) current = null; resolve(); };
-      audio.onerror = () => { if (current === audio) current = null; reject(new Error("audio error")); };
+      const audio = getPlayer();
+      current = true;
+      audio.onended = () => { current = null; resolve(); };
+      audio.onerror = () => { current = null; reject(new Error("audio error")); };
+      audio.src = url;
       const p = audio.play();
       if (p && p.catch) p.catch(reject);
     }).catch(reject);
