@@ -4,7 +4,7 @@
  * Cache-first para el "app shell". La version se sincroniza con VERSION via
  * tools/stamp_version.py (ADR-002): NO editar CACHE a mano en cada release.
  */
-const CACHE = "linguapath-v0.104.0";
+const CACHE = "linguapath-v0.105.0";
 
 const SHELL = [
   "./",
@@ -29,11 +29,19 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  // Solo GET del mismo origen se cachea; el resto (Supabase, CDN) pasa directo.
+  // Solo GET del mismo origen; el resto (Supabase, Worker, CDN) pasa directo.
   if (request.method !== "GET" || new URL(request.url).origin !== location.origin) {
     return;
   }
+  // NETWORK-FIRST: siempre intenta lo mas nuevo (asi las actualizaciones llegan
+  // al instante). Si no hay red, cae al cache guardado (offline sigue andando).
   event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
+    fetch(request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {});
+        return res;
+      })
+      .catch(() => caches.match(request))
   );
 });
