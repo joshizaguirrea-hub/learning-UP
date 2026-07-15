@@ -186,20 +186,21 @@ async function handleTts(request, env, origin) {
   try {
     if (isEn) {
       if (!env.AI) return json({ error: "Falta el binding 'AI' (Workers AI)." }, 500, origin);
-      // Ingles con voz humana (Aura).
       const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
       const audio = await toBase64Audio(out);
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
-      return json({ audio }, 200, origin);
+      return json({ audio, engine: "aura" }, 200, origin);
     }
     // ESPANOL -> voz neural humana latina (Edge, es-MX Dalia). Si falla, Google TTS.
     try {
       const audio = await edgeTts(text, "es-MX-DaliaNeural", "es-MX");
-      if (audio) return json({ audio }, 200, origin);
-    } catch (_) { /* fallback a google */ }
+      if (audio) return json({ audio, engine: "edge" }, 200, origin);
+    } catch (e) {
+      return json({ audio: await googleTts(text), engine: "google", edgeError: String(e).slice(0, 160) }, 200, origin);
+    }
     const audio = await googleTts(text);
     if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
-    return json({ audio }, 200, origin);
+    return json({ audio, engine: "google" }, 200, origin);
   } catch (e) {
     return json({ error: "TTS fallo.", detail: String(e).slice(0, 200) }, 502, origin);
   }
