@@ -75,6 +75,18 @@ Estimado de uso: toda la app hablada 1 vez ~= 250,000 chars (1/4 del gratis). Un
 
 ## SIGUIENTE PASO INMEDIATO
 
+### CACHE VERIFICADO EN VIVO (2026-07-16)
+- [x] Worker redesplegado con codigo de cache (version 2726d266). CONFIRMADO por Horus
+      pegandole 2 veces al Worker: intento 1 engine=google-cloud voice=es-US-Chirp3-HD-Aoede
+      cached=(vacio); intento 2 mismo texto -> cached=True. CACHE KV FUNCIONA.
+- [x] Voz confirmada = es-US-Chirp3-HD-Aoede (la Chirp3-HD, la mas humana). No cayo a Neural2.
+- [x] El Worker responde en ~1.3s desde red Walmart via PowerShell (curl). El backend NO esta bloqueado.
+- NOTA: el navegador del celular del usuario se quedaba en "Pidiendo audio a la nube" (fetch colgado)
+      tanto en WiFi Walmart como en datos moviles -> probable dispositivo/red corporativa que enruta
+      todo por la red de Walmart y bloquea el fetch del browser a workers.dev. La prueba limpia es
+      abrir voz-test.html desde una red 100% fuera de Walmart (casa). El backend esta OK, es tema de red.
+- El panel Preview de Cloudflare muestra "documento roto" porque hace GET y el Worker solo acepta POST. Normal.
+
 ### YA GANAMOS (2026-07-15 noche)
 - [x] Google Cloud TTS FUNCIONA: `[motor: google-cloud]` confirmado en el celular, suena natural/latino.
 - [x] Secret `GOOGLE_TTS_KEY` puesto en el Worker. API key restringida a Text-to-Speech.
