@@ -56,6 +56,30 @@ No requiere key ni tarjeta: Workers AI trae free-tier incluido.
 
 ---
 
+## Paso 3.6 — Activar el CACHE de audio (KV, opcional pero recomendado)
+
+Los textos de la app son fijos (reglas, ejemplos, lecciones). Con este cache,
+cada audio se genera **una sola vez** y luego se sirve al instante desde KV.
+Resultado: costo ~**$0** y carga inmediata. Si NO haces este paso, el Worker
+funciona igual (solo se salta el cache).
+
+1. En Cloudflare: **Workers & Pages** -> **KV** -> **Create a namespace**.
+   - Nombre sugerido: `bymax-audio` (el nombre interno da igual).
+2. Vuelve a tu Worker: **Settings** -> **Bindings** -> **Add** -> tipo **"KV namespace"**.
+   - Variable name: `AUDIO_KV`  (exactamente asi, en mayusculas)
+   - KV namespace: elige `bymax-audio`
+3. **Deploy / Save**.
+
+Detalles tecnicos (ya implementados en `bymax-worker.js`):
+- Clave = `tts:v1:<lang>:<sha256(lang|voice|text)>`. El prefijo `v1` permite
+  invalidar TODO el cache de golpe (subir a `v2`) si cambias la voz global.
+- Los audios cacheados devuelven `"cached": true` en el JSON (util para diagnostico).
+- El fallback robotico (Google Translate) NO se cachea, para que reintente
+  Chirp3-HD la proxima vez.
+- TTL de 30 dias por entrada (se regenera solo si caduca).
+
+---
+
 ## Paso 4 — Copiar la URL del Worker
 
 En la pagina del Worker veras una URL tipo:
