@@ -14,9 +14,10 @@ const AURA_VOICES = new Set([
   "asteria", "luna", "stella", "athena", "hera",
   "orion", "arcas", "perseus", "angus", "orpheus", "helios", "zeus",
 ]);
-// Voz espanol latina de Google Cloud (Neural2, natural). es-US = latinoamericano.
-const GTTS_VOICE = "es-US-Neural2-A";
+// Voces espanol latino de Google Cloud, de MAS humana a mas segura.
+// Chirp3-HD = lo mas natural (persona real). Neural2 = respaldo solido.
 const GTTS_LANG = "es-US";
+const GTTS_VOICES = ["es-US-Chirp3-HD-Aoede", "es-US-Neural2-A"];
 
 const SYSTEM_PROMPT = `Eres "Bymax", un profesor de ingles amigable, futurista y motivador
 dentro de una app llamada "Learning UP". Ayudas a hispanohablantes a aprender ingles.
@@ -82,29 +83,34 @@ function splitForTts(text, max) {
   return out;
 }
 
-// ESPANOL con voz NATURAL latina: Google Cloud Text-to-Speech (Neural2).
-// Devuelve base64 mp3. Lanza error si falla (para caer al fallback).
+// ESPANOL con voz NATURAL latina: Google Cloud Text-to-Speech.
+// Intenta cada voz de GTTS_VOICES en orden (Chirp3-HD primero); usa la que funcione.
+// Devuelve base64 mp3. Lanza error solo si TODAS fallan.
 async function googleCloudTts(text, env) {
   const key = env.GOOGLE_TTS_KEY;
   if (!key) throw new Error("sin GOOGLE_TTS_KEY");
   const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + key;
-  const body = {
-    input: { text },
-    voice: { languageCode: GTTS_LANG, name: GTTS_VOICE },
-    audioConfig: { audioEncoding: "MP3", speakingRate: 0.98 },
-  };
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!r.ok) {
-    const detail = await r.text().catch(() => "");
-    throw new Error("gctts " + r.status + " " + detail.slice(0, 140));
+  let lastErr = "";
+  for (const name of GTTS_VOICES) {
+    const body = {
+      input: { text },
+      voice: { languageCode: GTTS_LANG, name },
+      audioConfig: { audioEncoding: "MP3" },
+    };
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.audioContent) return { audio: data.audioContent, voice: name };
+      lastErr = "sin audioContent (" + name + ")";
+      continue;
+    }
+    lastErr = "gctts " + r.status + " " + (await r.text().catch(() => "")).slice(0, 120);
   }
-  const data = await r.json();
-  if (!data.audioContent) throw new Error("gctts sin audioContent");
-  return data.audioContent; // ya viene en base64 mp3
+  throw new Error(lastErr || "gctts fallo");
 }
 
 // Fallback espanol (robotico): Google Translate TTS. Concatena los mp3.
@@ -152,8 +158,8 @@ async function handleTts(request, env, origin) {
     }
     // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
     try {
-      const audio = await googleCloudTts(text, env);
-      if (audio) return json({ audio, engine: "google-cloud" }, 200, origin);
+      const gc = await googleCloudTts(text, env);
+      if (gc && gc.audio) return json({ audio: gc.audio, engine: "google-cloud", voice: gc.voice }, 200, origin);
     } catch (e) {
       return json({ audio: await googleTts(text), engine: "google", gcttsError: String(e).slice(0, 180) }, 200, origin);
     }

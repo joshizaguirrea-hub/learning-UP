@@ -27,7 +27,7 @@
   <button class="en" id="btnEn">Escuchar INGLES (humano)</button>
 
   <div id="status">Listo. Toca un boton para probar.</div>
-  <div class="tag">voz-test.html &middot; v2</div>
+  <div class="tag">voz-test.html &middot; v3</div>
 
   <script>
     const WORKER = "https://bymax-ia.joshizaguirrea.workers.dev/tts";
@@ -45,7 +45,7 @@
         if (!res.ok) { log("ERROR HTTP " + res.status + " - la nube respondio mal."); return; }
         const data = await res.json();
         if (!data.audio) { log("ERROR: la nube no devolvio audio. " + JSON.stringify(data).slice(0, 160)); return; }
-        const eng = data.engine ? ("[motor: " + data.engine.toUpperCase() + "] ") : "";
+        const eng = data.engine ? ("[motor: " + data.engine.toUpperCase() + (data.voice ? " / " + data.voice : "") + "] ") : "";
         const errExtra = data.edgeError ? ("\nEdge fallo: " + data.edgeError) : "";
         log(eng + "Audio recibido OK. Reproduciendo..." + errExtra);
         const audio = new Audio("data:audio/mp3;base64," + data.audio);
