@@ -4,7 +4,7 @@
  * Cache-first para el "app shell". La version se sincroniza con VERSION via
  * tools/stamp_version.py (ADR-002): NO editar CACHE a mano en cada release.
  */
-const CACHE = "linguapath-v0.110.0";
+const CACHE = "linguapath-v0.111.0";
 
 const SHELL = [
   "./",
@@ -33,10 +33,12 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET" || new URL(request.url).origin !== location.origin) {
     return;
   }
-  // NETWORK-FIRST: siempre intenta lo mas nuevo (asi las actualizaciones llegan
-  // al instante). Si no hay red, cae al cache guardado (offline sigue andando).
+  // NETWORK-FIRST + BYPASS del cache HTTP del navegador (cache:"reload"). Clave:
+  // los modulos ES se importan sin ?v=, y el navegador servia versiones viejas
+  // desde SU cache (motor de voz atorado). Con "reload" siempre pedimos a la red
+  // la version fresca. Si no hay red, caemos al cache del SW (offline sigue ok).
   event.respondWith(
-    fetch(request)
+    fetch(request, { cache: "reload" })
       .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {});
