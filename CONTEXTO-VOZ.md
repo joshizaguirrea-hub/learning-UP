@@ -1,5 +1,7 @@
 # CONTEXTO — Saga de la Voz (TTS) de Learning UP
 
+> PALABRA CLAVE PARA RETOMAR: **"retoma learning-UP"** -> leer este archivo y seguir el setup de Google Cloud TTS.
+
 > Documento para retomar el trabajo sin perder contexto si se apaga la PC.
 > Ultima actualizacion: 2026-07-15
 
