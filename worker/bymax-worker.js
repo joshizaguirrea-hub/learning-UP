@@ -1,24 +1,22 @@
-/**
- * bymax-worker.js — Cloudflare Worker: cerebro de Bymax (chat IA + voz).
- *
- * Dos endpoints (ambos POST):
- *   /       -> CHAT con Gemini (responde dudas de ingles). Necesita el secret
- *              GEMINI_API_KEY.
- *   /tts    -> VOZ: texto -> audio (espanol nativo) usando Workers AI (MeloTTS).
- *              Necesita el binding "AI" (Workers AI). GRATIS, sin key extra.
- *
- * El navegador nunca ve claves: viven aqui como secret/binding.
- * Despliegue: ver README.md en esta carpeta.
- */
+// bymax-worker.js — Cloudflare Worker: cerebro de Bymax (chat IA + voz).
+//
+// Endpoints (POST):
+//   /       -> CHAT con Gemini (secret GEMINI_API_KEY)
+//   /tts    -> VOZ: texto -> audio
+//              ESPANOL: Google Cloud TTS (voz latina natural, secret GOOGLE_TTS_KEY)
+//                       fallback -> Google Translate TTS (robotico) si algo falla.
+//              INGLES : Deepgram Aura via Workers AI (binding "AI"), voz humana.
 
 const MODEL = "gemini-2.0-flash";
-const TTS_MODEL = "@cf/myshell-ai/melotts";        // multilingue (espanol)
 const TTS_MODEL_EN = "@cf/deepgram/aura-1";         // ingles MUY natural (humano)
-// Voces Aura permitidas (para dar voz distinta a cada persona del dialogo).
+// Voces Aura permitidas (voz distinta a cada persona del dialogo).
 const AURA_VOICES = new Set([
   "asteria", "luna", "stella", "athena", "hera",
   "orion", "arcas", "perseus", "angus", "orpheus", "helios", "zeus",
 ]);
+// Voz espanol latina de Google Cloud (Neural2, natural). es-US = latinoamericano.
+const GTTS_VOICE = "es-US-Neural2-A";
+const GTTS_LANG = "es-US";
 
 const SYSTEM_PROMPT = `Eres "Bymax", un profesor de ingles amigable, futurista y motivador
 dentro de una app llamada "Learning UP". Ayudas a hispanohablantes a aprender ingles.
@@ -48,8 +46,7 @@ function json(data, status, origin) {
   });
 }
 
-// Convierte cualquier salida de audio (base64 string, ArrayBuffer, Response o
-// ReadableStream) a base64 para mandarlo como JSON al navegador.
+// Convierte ArrayBuffer / Response / stream a base64 (para el audio de Aura).
 function abToBase64(ab) {
   const bytes = new Uint8Array(ab);
   let bin = "";
@@ -61,7 +58,7 @@ function abToBase64(ab) {
 }
 
 async function toBase64Audio(out) {
-  if (out && typeof out.audio === "string") return out.audio;       // melotts
+  if (out && typeof out.audio === "string") return out.audio;
   if (out instanceof ArrayBuffer) return abToBase64(out);
   if (typeof Response !== "undefined" && out instanceof Response) return abToBase64(await out.arrayBuffer());
   if (typeof ReadableStream !== "undefined" && out instanceof ReadableStream) return abToBase64(await new Response(out).arrayBuffer());
@@ -69,7 +66,7 @@ async function toBase64Audio(out) {
   return null;
 }
 
-// Divide texto largo en trozos <= max chars (Google TTS limita ~200 por peticion).
+// Divide texto largo en trozos <= max chars (Google Translate TTS limita ~200).
 function splitForTts(text, max) {
   const out = [];
   let rest = String(text).trim();
@@ -85,86 +82,32 @@ function splitForTts(text, max) {
   return out;
 }
 
-// Escapa texto para meterlo en SSML/XML.
-function escapeXml(s) {
-  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-}
-
-// Token anti-abuso que Microsoft Edge exige: SHA-256 de (ticks + TrustedToken).
-// ticks = tiempo Windows (100ns desde 1601), redondeado a 5 min.
-async function secMsGec(trusted) {
-  let ticks = Math.floor(Date.now() / 1000) + 11644473600;
-  ticks = ticks - (ticks % 300);
-  ticks = ticks * 10000000;
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(ticks + trusted));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-}
-
-// Voz NEURAL humana (Microsoft Edge TTS) via WebSocket. GRATIS, sin key.
-// voice ej: "es-MX-DaliaNeural" (latino), "en-US-AriaNeural". xmlLang ej "es-MX".
-async function edgeTts(text, voice, xmlLang) {
-  const TRUSTED = "6A5AA1D4EAFF4E9FB37E23D68491D6F4";
-  const gec = await secMsGec(TRUSTED);
-  const url = "https://speech.platform.bing.com/consumer/speech/synthesize/" +
-    "readaloud/edge/v1?TrustedClientToken=" + TRUSTED +
-    "&Sec-MS-GEC=" + gec + "&Sec-MS-GEC-Version=1-130.0.2849.68";
-  const resp = await fetch(url, { headers: {
-    Upgrade: "websocket",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0",
-    "Origin": "chrome-extension://jdiccldimppanfnpcagkadcbnghnaaao",
-  } });
-  const ws = resp.webSocket;
-  if (!ws) throw new Error("edge sin websocket (status " + resp.status + ")");
-  ws.accept();
-
-  const chunks = [];
-  const done = new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error("edge timeout")), 15000);
-    ws.addEventListener("message", (ev) => {
-      if (typeof ev.data === "string") {
-        if (ev.data.includes("Path:turn.end")) { clearTimeout(timer); resolve(); }
-      } else {
-        const buf = new Uint8Array(ev.data);
-        const headerLen = (buf[0] << 8) | buf[1];
-        const audio = buf.slice(2 + headerLen);
-        if (audio.length) chunks.push(audio);
-      }
-    });
-    ws.addEventListener("close", () => { clearTimeout(timer); resolve(); });
-    ws.addEventListener("error", () => { clearTimeout(timer); reject(new Error("edge ws error")); });
+// ESPANOL con voz NATURAL latina: Google Cloud Text-to-Speech (Neural2).
+// Devuelve base64 mp3. Lanza error si falla (para caer al fallback).
+async function googleCloudTts(text, env) {
+  const key = env.GOOGLE_TTS_KEY;
+  if (!key) throw new Error("sin GOOGLE_TTS_KEY");
+  const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + key;
+  const body = {
+    input: { text },
+    voice: { languageCode: GTTS_LANG, name: GTTS_VOICE },
+    audioConfig: { audioEncoding: "MP3", speakingRate: 0.98 },
+  };
+  const r = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
   });
-
-  const now = new Date().toString();
-  const reqId = (crypto.randomUUID ? crypto.randomUUID() : "id" + Date.now()).replace(/-/g, "");
-  ws.send(
-    "X-Timestamp:" + now + "\r\nContent-Type:application/json; charset=utf-8\r\n" +
-    "Path:speech.config\r\n\r\n" +
-    JSON.stringify({ context: { synthesis: { audio: {
-      metadataoptions: { sentenceBoundaryEnabled: false, wordBoundaryEnabled: false },
-      outputFormat: "audio-24khz-48kbitrate-mono-mp3",
-    } } } })
-  );
-  const ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='" +
-    xmlLang + "'><voice name='" + voice + "'><prosody rate='-4%'>" +
-    escapeXml(text) + "</prosody></voice></speak>";
-  ws.send(
-    "X-RequestId:" + reqId + "\r\nContent-Type:application/ssml+xml\r\n" +
-    "X-Timestamp:" + now + "\r\nPath:ssml\r\n\r\n" + ssml
-  );
-
-  await done;
-  try { ws.close(); } catch { /* ignore */ }
-  let total = 0;
-  for (const c of chunks) total += c.length;
-  if (!total) throw new Error("edge sin audio");
-  const all = new Uint8Array(total);
-  let off = 0;
-  for (const c of chunks) { all.set(c, off); off += c.length; }
-  return abToBase64(all.buffer);
+  if (!r.ok) {
+    const detail = await r.text().catch(() => "");
+    throw new Error("gctts " + r.status + " " + detail.slice(0, 140));
+  }
+  const data = await r.json();
+  if (!data.audioContent) throw new Error("gctts sin audioContent");
+  return data.audioContent; // ya viene en base64 mp3
 }
 
-// Espanol LATINO independiente del dispositivo via Google TTS. Concatena los mp3.
+// Fallback espanol (robotico): Google Translate TTS. Concatena los mp3.
 async function googleTts(text) {
   const chunks = splitForTts(text, 190);
   const parts = [];
@@ -187,7 +130,7 @@ async function googleTts(text) {
   return abToBase64(all.buffer);
 }
 
-// ---- VOZ: texto -> audio (espanol latino / ingles humano) ----------------
+// ---- VOZ: texto -> audio -------------------------------------------------
 async function handleTts(request, env, origin) {
   let body;
   try { body = await request.json(); }
@@ -207,12 +150,12 @@ async function handleTts(request, env, origin) {
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
       return json({ audio, engine: "aura" }, 200, origin);
     }
-    // ESPANOL -> voz neural humana latina (Edge, es-MX Dalia). Si falla, Google TTS.
+    // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
     try {
-      const audio = await edgeTts(text, "es-MX-DaliaNeural", "es-MX");
-      if (audio) return json({ audio, engine: "edge" }, 200, origin);
+      const audio = await googleCloudTts(text, env);
+      if (audio) return json({ audio, engine: "google-cloud" }, 200, origin);
     } catch (e) {
-      return json({ audio: await googleTts(text), engine: "google", edgeError: String(e).slice(0, 160) }, 200, origin);
+      return json({ audio: await googleTts(text), engine: "google", gcttsError: String(e).slice(0, 180) }, 200, origin);
     }
     const audio = await googleTts(text);
     if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
