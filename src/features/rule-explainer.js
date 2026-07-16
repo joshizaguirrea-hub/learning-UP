@@ -104,8 +104,8 @@ export function openRuleExplainer(grammar) {
   const name = robotName();
   const explainLang = "es-MX"; // la EXPLICACION siempre en espanol (idioma del alumno)
   const contentLang = "en-US"; // el ejemplo se lee en ingles
-  const EX_OPTS = { rate: 1.0, pitch: 1.0 };
-  const FUN_OPTS = { rate: 1.12, pitch: 1.18 };
+  const EX_OPTS = { rate: 0.88, pitch: 1.0 }; // ingles PAUSADO (no atropellado)
+  const FUN_OPTS = { rate: 1.08, pitch: 1.14 };
 
   // Partes de la formula (labels explicitos o troceo de la formula).
   const explicit = grammar.explain;
@@ -283,8 +283,9 @@ export function openRuleExplainer(grammar) {
         : (ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {}))
     );
     const intro = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
+    // La voz en espanol NO traduce: solo explica la LOGICA de la formula (la regla
+    // en el 1er ejemplo). La traduccion queda visible en pantalla, pero no se lee.
     if (idx === 0 && grammar.rule) intro.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
-    else if (ex.tr) intro.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
 
     cancel = speakSequence(intro, null, () => {
       // 2) Desglose ficha por ficha.

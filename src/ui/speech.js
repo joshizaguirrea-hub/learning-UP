@@ -262,7 +262,11 @@ export function speakSequence(items, onEach, onDone) {
     // independiente del dispositivo. Cae al navegador si falla.
     if (cloudTtsEnabled()) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
-      cloudSpeak(ct, isEs ? "es" : "en", it.opts || {})
+      // Ingles PAUSADO por defecto (0.9) si nadie fijo un rate; espanol queda
+      // normal (ya suena nitido). Asi el ingles nunca sale atropellado.
+      const baseOpts = it.opts || {};
+      const opts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
+      cloudSpeak(ct, isEs ? "es" : "en", opts)
         .then(() => advance(it))
         .catch(() => {
           // MEDIDA DRASTICA: si la nube falla y es ESPANOL, saltamos el item
