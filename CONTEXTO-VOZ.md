@@ -91,7 +91,11 @@ Estimado de uso: toda la app hablada 1 vez ~= 250,000 chars (1/4 del gratis). Un
    (debe decir `[motor: GOOGLE-CLOUD / es-US-Chirp3-HD-Aoede]`). Si dice Neural2, Chirp no jalo -> revisar
    nombre de voz (probar es-US-Chirp3-HD-Kore, -Leda, o es-US-Studio-B masculina).
 2. Dejar que el usuario ELIJA su voz favorita (hay varias Chirp3-HD y Neural2, F y M).
-3. Implementar CACHE de audios (texto fijo -> generar 1 vez): Cloudflare KV `AUDIO_KV`,
-   clave = hash(lang+voice+text). Para que sea $0 y cargue instantaneo. (YAGNI: solo si hace falta).
+3. [x] CACHE de audios IMPLEMENTADO en el Worker (2026-07-16). Cloudflare KV binding `AUDIO_KV`,
+   clave = `tts:v1:<lang>:sha256(lang|voice|text)`. Genera 1 vez, sirve siempre (TTL 30 dias).
+   Devuelve `cached:true` en cache-hit. Fallback robotico NO se cachea. A prueba de fallos:
+   si el binding no existe, el Worker sigue igual (solo se salta el cache).
+   PENDIENTE del usuario: crear namespace KV en Cloudflare + bind como `AUDIO_KV` + Deploy.
+   Instrucciones en worker/README.md (Paso 3.6).
 4. Revisar el warning de pago en Google Cloud si sigue apareciendo.
 5. Opcional: quitar voz-test.html cuando ya no se use (o dejarlo como herramienta de diagnostico).

@@ -6,6 +6,11 @@
 //              ESPANOL: Google Cloud TTS (voz latina natural, secret GOOGLE_TTS_KEY)
 //                       fallback -> Google Translate TTS (robotico) si algo falla.
 //              INGLES : Deepgram Aura via Workers AI (binding "AI"), voz humana.
+//
+// CACHE (opcional): si existe el binding KV "AUDIO_KV", cada audio generado se
+// guarda por hash(lang+voice+text). Como los textos de la app son fijos, cada
+// audio se genera UNA sola vez -> costo ~$0 y carga instantanea. Si el binding
+// no existe, el Worker funciona igual (solo se salta el cache).
 
 const MODEL = "gemini-2.0-flash";
 const TTS_MODEL_EN = "@cf/deepgram/aura-1";         // ingles MUY natural (humano)
@@ -65,6 +70,16 @@ async function toBase64Audio(out) {
   if (typeof ReadableStream !== "undefined" && out instanceof ReadableStream) return abToBase64(await new Response(out).arrayBuffer());
   if (out && out.audio instanceof ArrayBuffer) return abToBase64(out.audio);
   return null;
+}
+
+// ---- CACHE de audio (Cloudflare KV, opcional) ----------------------------
+// Clave estable por (lang, voice, text). SHA-256 en hex, prefijo versionado
+// para poder invalidar todo el cache cambiando "v1" si cambia la voz global.
+async function cacheKey(lang, voice, text) {
+  const raw = `${lang}|${voice}|${text}`;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  return `tts:v1:${lang}:${hex}`;
 }
 
 // Divide texto largo en trozos <= max chars (Google Translate TTS limita ~200).
@@ -148,19 +163,46 @@ async function handleTts(request, env, origin) {
   if (!text) return json({ error: "Sin texto." }, 400, origin);
 
   const isEn = lang.toLowerCase().startsWith("en");
+
+  // 1) CACHE HIT: si hay binding KV y ya generamos este audio, lo servimos ya.
+  //    La "voz" solo afecta la clave en ingles (Aura); en espanol es fija.
+  const kv = env.AUDIO_KV;
+  const keyVoice = isEn ? voice : "es";
+  let key = null;
+  if (kv) {
+    try {
+      key = await cacheKey(lang, keyVoice, text);
+      const hit = await kv.get(key, { type: "json" });
+      if (hit && hit.audio) {
+        return json({ ...hit, cached: true }, 200, origin);
+      }
+    } catch { /* si el cache falla, seguimos generando normal */ }
+  }
+
+  // 2) Generar el audio (y, si hay KV, guardarlo para la proxima).
+  const store = async (payload) => {
+    if (kv && key && payload && payload.audio) {
+      // 30 dias de TTL: texto fijo, pero deja que se refresque si cambia la voz.
+      try { await kv.put(key, JSON.stringify(payload), { expirationTtl: 2592000 }); }
+      catch { /* mejor sin cache que romper la respuesta */ }
+    }
+    return json(payload, 200, origin);
+  };
+
   try {
     if (isEn) {
       if (!env.AI) return json({ error: "Falta el binding 'AI' (Workers AI)." }, 500, origin);
       const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
       const audio = await toBase64Audio(out);
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
-      return json({ audio, engine: "aura" }, 200, origin);
+      return store({ audio, engine: "aura", voice });
     }
     // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
     try {
       const gc = await googleCloudTts(text, env);
-      if (gc && gc.audio) return json({ audio: gc.audio, engine: "google-cloud", voice: gc.voice }, 200, origin);
+      if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud", voice: gc.voice });
     } catch (e) {
+      // Fallback robotico NO se cachea (para que reintente Chirp3-HD la proxima).
       return json({ audio: await googleTts(text), engine: "google", gcttsError: String(e).slice(0, 180) }, 200, origin);
     }
     const audio = await googleTts(text);
