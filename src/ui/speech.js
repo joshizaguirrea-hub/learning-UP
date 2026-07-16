@@ -69,89 +69,10 @@ function pickVoice(lang) {
   }
   return pool[0];
 }
-// Palabras clave para detectar idioma en textos MIXTOS (es/en).
-const ES_WORDS = new Set([
-  "presente", "pasado", "futuro", "participio", "gerundio", "infinitivo", "agente",
-  "opcional", "verbo", "verbos", "sujeto", "complemento", "objeto", "regla", "reglas",
-  "voz", "pasiva", "activa", "ejemplo", "ejemplos", "femenino", "masculino", "singular",
-  "plural", "afirmativo", "negativo", "pregunta", "respuesta", "sustantivo", "adjetivo",
-  "adverbio", "articulo", "pronombre", "condicional", "subjuntivo", "imperativo", "tiempo",
-  "con", "para", "por", "una", "uno", "unos", "unas", "del", "las", "los", "que", "cuando",
-  "como", "mas", "pero", "tambien", "ser", "estar", "hacer", "cosa", "cosas", "forma",
-  // Palabras espanolas COMUNES sin acento (antes se contaban mal como ingles).
-  "sirve", "imaginar", "cosas", "hoy", "no", "son", "reales", "decir", "si", "tuviera",
-  "dinero", "aunque", "usa", "habla", "algo", "imaginario", "o", "significa", "observa",
-  "parte", "se", "conecta", "arriba", "eso", "ya", "viste", "arma", "escucha", "repite",
-  "en", "alta", "de", "la", "el", "un", "y", "a", "es", "su", "le", "lo", "mi", "tu",
-  "esto", "esta", "este", "muy", "sin", "sobre", "entre", "cada", "todo", "toda", "al",
-]);
 
-// Palabras clave INGLESAS comunes (para no marcar todo lo desconocido como ingles).
-const EN_WORDS = new Set([
-  "the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of", "in", "on",
-  "if", "would", "will", "could", "should", "had", "have", "has", "do", "does", "did",
-  "i", "you", "he", "she", "it", "we", "they", "my", "your", "his", "her", "money",
-  "travel", "work", "working", "stop", "buy", "won", "and", "or", "but", "not", "with",
-  "this", "that", "there", "here", "what", "when", "where", "how", "why", "can", "go",
-]);
-
-/**
- * Detecta el idioma DOMINANTE de un texto contando senales de AMBOS idiomas.
- * Devuelve 'es' o 'en'. Si empata o no hay pistas claras, usa `base`.
- */
-function detectLang(text, base) {
-  let es = 0;
-  let en = 0;
-  for (const raw of String(text).toLowerCase().split(/\s+/)) {
-    const w = raw.replace(/[^a-z\u00E0-\u00FF]/gi, "");
-    if (!w) continue;
-    // Senal ESPANOLA: acento/enie, palabra de la lista, o terminacion tipica.
-    const esSignal = /[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC]/.test(raw) || ES_WORDS.has(w) ||
-      /(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa|aria|eria|iria)$/.test(w);
-    // Senal INGLESA: palabra de la lista, o terminacion tipica del ingles.
-    const enSignal = EN_WORDS.has(w) || /(ing|tion|ould|n't|ed)$/.test(w);
-    if (esSignal && !enSignal) es++;
-    else if (enSignal && !esSignal) en++;
-    else if (esSignal && enSignal) { es += 0.5; en += 0.5; } // ambigua: no inclina
-  }
-  // Gana quien tenga MAS senales reales. Si empata o nadie puntua, usa base.
-  if (es === en) return base;
-  return es > en ? "es" : "en";
-}
-
-// Comillas (rectas y tipograficas) que suelen envolver el ejemplo en el OTRO
-// idioma. Se usan como corte para detectar espanol vs ingles por trozo.
-const QUOTE_SPLIT = /(["\u201C\u201D\u2018\u2019\u0027])/;
-const QUOTE_CHAR = /^["\u201C\u201D\u2018\u2019\u0027]$/;
-
-// Parte un texto MIXTO (es/en) en segmentos por idioma. Usa las comillas como
-// pista (los ejemplos van entre comillas) y detecta el idioma de cada trozo.
-// Fusiona segmentos contiguos del mismo idioma. RAIZ del anti-Spanglish: asi
-// la voz espanola NUNCA lee ingles ni viceversa. Devuelve [{ text, lang }].
-function splitByLang(text, base) {
-  const raw = String(text);
-  const pieces = raw.split(QUOTE_SPLIT).filter(Boolean);
-  const segs = [];
-  let buf = "";
-  const flush = () => { const t = buf.trim(); if (t) segs.push(t); buf = ""; };
-  for (const c of pieces) {
-    if (QUOTE_CHAR.test(c)) { flush(); continue; } // la comilla NO se habla
-    buf += c;
-  }
-  flush();
-  const out = [];
-  for (const t of segs) {
-    const lang = detectLang(t, base);
-    const last = out[out.length - 1];
-    if (last && last.lang === lang) last.text += ", " + t; // fusiona contiguos
-    else out.push({ text: t, lang });
-  }
-  return out.length ? out : [{ text: raw.trim(), lang: base }];
-}
-
-// Pronuncia un texto (posiblemente MIXTO es/en). Normaliza simbolos, lo parte
-// por idioma y lo pasa a speakSequence, que da a cada trozo su voz correcta.
-// @param text  @param lang idioma base (es-MX | en-US)  @param opts { rate, pitch, gap }
+// Pronuncia un texto en el idioma indicado (no lo parte por idioma: el profe de
+// cada rol dice su frase entera). Normaliza simbolos y lo pasa a speakSequence.
+// @param text  @param lang idioma (es-MX | en-US)  @param opts { rate, pitch, gap }
 export function speak(text, lang = "en-US", opts = {}) {
   if (!text) return;
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
@@ -225,23 +146,16 @@ export function speakSequence(items, onEach, onDone) {
   cancelCloud();
   if (isSpeechSupported()) window.speechSynthesis.cancel();
 
-  // RAIZ anti-Spanglish: expande cada item MIXTO (es/en) en sub-trozos, cada uno
-  // con su idioma real. Asi la voz espanola nunca lee ingles ni al reves. La
-  // pausa (gapAfter) del item original solo se aplica tras su ultimo sub-trozo.
-  const expanded = [];
-  for (const it of items) {
-    const base = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en";
-    const segs = splitByLang(String(it.text), base);
-    segs.forEach((s, idx) => {
-      const isLast = idx === segs.length - 1;
-      expanded.push({
-        text: s.text,
-        lang: s.lang === "es" ? "es-MX" : "en-US",
-        opts: it.opts,
-        gapAfter: isLast ? it.gapAfter : 40, // pausa corta entre sub-trozos
-      });
-    });
-  }
+  // MODELO DOS PROFES: cada item se dice ENTERO en el idioma de su rol. El profe
+  // de ESPANOL (explicaciones, preguntas, logica) no corta a ingles a media
+  // frase; el profe de INGLES lee el contenido (ejemplos, dialogos, lecturas).
+  // El idioma lo fija quien crea el item (lang: es-MX | en-US).
+  const expanded = items.map((it) => ({
+    text: String(it.text),
+    lang: String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es-MX" : "en-US",
+    opts: it.opts,
+    gapAfter: it.gapAfter,
+  }));
 
   let i = 0;
   let cancelled = false;
