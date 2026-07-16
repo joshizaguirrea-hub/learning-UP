@@ -83,6 +83,10 @@ export function cloudSpeak(text, lang = "es", voice) {
     fetchAudio(text, lang, voice).then((url) => {
       const audio = getPlayer();
       current = true;
+      // Blindaje: el "unlock" movil pudo dejar el player en muted. Forzamos que
+      // el audio real SIEMPRE suene (si no, la app se oiria muda por error).
+      audio.muted = false;
+      audio.volume = 1;
       audio.onended = () => { current = null; resolve(); };
       audio.onerror = () => { current = null; reject(new Error("audio error")); };
       audio.src = url;
