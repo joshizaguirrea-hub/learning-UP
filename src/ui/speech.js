@@ -69,14 +69,6 @@ function pickVoice(lang) {
   }
   return pool[0];
 }
-
-// True si el navegador tiene AL MENOS una voz de ese idioma (es/en).
-// Sirve de candado anti-Spanglish: no leer espanol con voz inglesa.
-function hasVoiceFor(lang) {
-  const base = lang.slice(0, 2).toLowerCase();
-  return voices.some((v) => v.lang && v.lang.toLowerCase().startsWith(base));
-}
-
 // Palabras clave para detectar idioma en textos MIXTOS (es/en).
 const ES_WORDS = new Set([
   "presente", "pasado", "futuro", "participio", "gerundio", "infinitivo", "agente",
@@ -145,15 +137,21 @@ export function speak(text, lang = "en-US", opts = {}) {
   const wantEs = useLang === "es";
   if (cloudTtsEnabled()) {
     const cloudText = wantEs ? fixSpanishAccents(parts.join(". ")) : parts.join(". ");
-    cloudSpeak(cloudText, wantEs ? "es" : "en").catch(browserSpeak);
+    cloudSpeak(cloudText, wantEs ? "es" : "en").catch(() => {
+      // MEDIDA DRASTICA anti-Spanglish: si la nube falla y el texto es ESPANOL,
+      // NO usamos la voz del navegador (suena robotica/gringa). Mejor silencio.
+      if (wantEs) return;
+      browserSpeak();
+    });
     return;
   }
   browserSpeak();
 
   function browserSpeak() {
     if (!isSpeechSupported()) return;
-    // Candado anti-Spanglish: nunca leer espanol con una voz que no sea espanola.
-    if (useLang === "es" && !hasVoiceFor("es")) return;
+    // CANDADO DURO anti-Spanglish: el navegador NUNCA lee espanol. La voz de
+    // espanol SIEMPRE viene de la nube (Chirp3-HD). Sin excepciones.
+    if (useLang === "es") return;
     const synth = window.speechSynthesis;
     synth.cancel();
     const rate = opts.rate ?? 0.96;
@@ -246,7 +244,12 @@ export function speakSequence(items, onEach, onDone) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
       cloudSpeak(ct, isEs ? "es" : "en", it.opts?.voice)
         .then(() => advance(it))
-        .catch(() => browserSay(it, isEs, () => advance(it)));
+        .catch(() => {
+          // MEDIDA DRASTICA: si la nube falla y es ESPANOL, saltamos el item
+          // (silencio) en vez de leerlo con voz gringa. Ingles si cae al navegador.
+          if (isEs) { advance(it); return; }
+          browserSay(it, isEs, () => advance(it));
+        });
       return;
     }
     browserSay(it, isEs, () => advance(it));
@@ -254,9 +257,8 @@ export function speakSequence(items, onEach, onDone) {
 
   function browserSay(it, isEs, done) {
     if (!isSpeechSupported()) { setTimeout(done, 300); return; }
-    // Candado anti-Spanglish: si es espanol y no hay voz espanola, saltar el item
-    // (mejor callar que leer espanol con acento gringo).
-    if (isEs && !hasVoiceFor("es")) { setTimeout(done, 150); return; }
+    // CANDADO DURO anti-Spanglish: el navegador NUNCA lee espanol. Solo nube.
+    if (isEs) { setTimeout(done, 100); return; }
     const synth = window.speechSynthesis;
     const opts = it.opts || {};
     const b = isEs ? "es-MX" : "en-US";
