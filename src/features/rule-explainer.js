@@ -1,10 +1,13 @@
 /**
  * features/rule-explainer.js — "Yo, [robot], te explico la regla".
  *
- * Capa de feature. Abre un modo inmersivo donde el Profe Robo toma la FORMULA y
- * los EJEMPLOS, y TRAZA una linea de cada parte de la formula a su parte en el
- * ejemplo, explicando su funcion con voz, paso a paso. Sin IA en la nube:
- * empareja las clausulas por comas (o usa datos explicitos en grammar.explain).
+ * Modo inmersivo: toma la FORMULA y los EJEMPLOS, dibuja las fichas de la formula
+ * y TRAZA una linea de cada ficha a su(s) palabra(s) clave en el ejemplo, mientras
+ * el profe lo explica con voz, paso a paso. Sin IA en la nube.
+ *
+ * Funciona en TODAS las unidades: primero intenta anclar cada ficha a su palabra
+ * clave dentro del ejemplo; si no encuentra ancla, reparte las palabras del
+ * ejemplo entre las fichas por bloques -> SIEMPRE hay fichas y lineas.
  */
 import { el } from "../ui/dom.js";
 import { stripMarkup } from "../ui/richtext.js";
@@ -12,15 +15,33 @@ import { speakSequence } from "../ui/speech.js";
 import { robotAvatar, robotName } from "../ui/robot.js";
 
 const COLORS = [
-  { chip: "bg-amber-400 text-slate-900", soft: "text-amber-300", line: "#fbbf24", ring: "ring-amber-400" },
-  { chip: "bg-sky-400 text-slate-900", soft: "text-sky-300", line: "#38bdf8", ring: "ring-sky-400" },
-  { chip: "bg-fuchsia-400 text-slate-900", soft: "text-fuchsia-300", line: "#e879f9", ring: "ring-fuchsia-400" },
-  { chip: "bg-emerald-400 text-slate-900", soft: "text-emerald-300", line: "#34d399", ring: "ring-emerald-400" },
+  { chip: "bg-amber-400 text-slate-900", line: "#fbbf24", ring: "ring-amber-400" },
+  { chip: "bg-sky-400 text-slate-900", line: "#38bdf8", ring: "ring-sky-400" },
+  { chip: "bg-fuchsia-400 text-slate-900", line: "#e879f9", ring: "ring-fuchsia-400" },
+  { chip: "bg-emerald-400 text-slate-900", line: "#34d399", ring: "ring-emerald-400" },
+  { chip: "bg-rose-400 text-slate-900", line: "#fb7185", ring: "ring-rose-400" },
+  { chip: "bg-violet-400 text-slate-900", line: "#a78bfa", ring: "ring-violet-400" },
 ];
 
-/** Parte un texto en clausulas por coma (respetando el punto medio). */
-function splitClauses(text) {
-  return stripMarkup(String(text))
+// Terminos gramaticales en espanol (descriptores): NO son palabras que anclar
+// dentro del ejemplo, solo describen la formula.
+const DESCRIPTORS = new Set([
+  "sujeto", "verbo", "verbos", "base", "participio", "gerundio", "infinitivo",
+  "adjetivo", "adverbio", "sustantivo", "complemento", "objeto", "singular",
+  "plural", "afirmativo", "negativo", "afirm", "neg", "preg", "pregunta",
+  "respuesta", "opcional", "agente", "persona", "personas", "cosas", "cosa",
+  "presente", "pasado", "futuro", "punto", "periodo", "inicio", "adj", "adv",
+  "part", "real", "imaginario", "decision", "momento", "oferta", "fondo",
+  "accion", "breve", "cerca", "lejos", "antes", "medio", "corto", "largo",
+  "irregular", "ahora", "resto", "clausula", "enfasis", "extra", "informacion",
+  // conectores/articulos es (glue)
+  "y", "o", "de", "la", "el", "los", "las", "un", "una", "con", "sin", "en",
+  "mas", "como", "que", "del", "por", "para", "ly", "ing", "ed",
+]);
+
+/** Parte la FORMULA en partes visibles (por punto medio y coma). */
+function splitParts(form) {
+  return stripMarkup(String(form))
     .replace(/\u00B7/g, ",")
     .replace(/[.]+\s*$/, "")
     .split(",")
@@ -28,48 +49,91 @@ function splitClauses(text) {
     .filter(Boolean);
 }
 
+/** Palabras "ancla" de una parte (tokens ingleses, sin descriptores ni simbolos). */
+function anchorWords(part) {
+  return String(part)
+    .toLowerCase()
+    .replace(/[+*_()[\]{}|]/g, " ")
+    .split(/[\s/]+/) // separa por espacio y por "/"
+    .map((w) => w.replace(/[^a-z']/g, ""))
+    .filter((w) => w && !DESCRIPTORS.has(w));
+}
+
+/** Divide un ejemplo en tokens { text (visible), key (para comparar) }. */
+function tokenize(example) {
+  return stripMarkup(String(example))
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((t) => ({ text: t, key: t.toLowerCase().replace(/[^a-z']/g, "") }));
+}
+
+/**
+ * Asigna cada token del ejemplo a una parte (indice de ficha). Ancla por palabra
+ * clave; los huecos se rellenan hacia la derecha; si no hubo NINGUNA ancla,
+ * reparte por bloques iguales. Garantiza que cada ficha tenga a que apuntar.
+ */
+function mapTokensToParts(tokens, parts) {
+  const owner = new Array(tokens.length).fill(-1);
+  parts.forEach((p, pi) => {
+    const keys = anchorWords(p);
+    if (!keys.length) return;
+    tokens.forEach((tk, ti) => {
+      if (owner[ti] === -1 && keys.includes(tk.key)) owner[ti] = pi;
+    });
+  });
+  const anyAssigned = owner.some((o) => o !== -1);
+  if (!anyAssigned) {
+    const per = Math.max(1, Math.ceil(tokens.length / parts.length));
+    tokens.forEach((_, ti) => { owner[ti] = Math.min(parts.length - 1, Math.floor(ti / per)); });
+    return owner;
+  }
+  // Rellena huecos con el ultimo dueno visto (bloques contiguos naturales).
+  let last = owner.find((o) => o !== -1);
+  for (let ti = 0; ti < owner.length; ti++) {
+    if (owner[ti] === -1) owner[ti] = last;
+    else last = owner[ti];
+  }
+  return owner;
+}
+
 /**
  * Abre el explicador de una regla.
- * @param {object} grammar - { title, form, examples, explain? }
- * @param {string} robotLang - idioma de la voz del profe (es-MX / en-US)
+ * @param {object} grammar - { title, form, examples, rule?, explain? }
  */
-export function openRuleExplainer(grammar, robotLang = "es-MX") {
+export function openRuleExplainer(grammar) {
   const name = robotName();
   const explainLang = "es-MX"; // la EXPLICACION siempre en espanol (idioma del alumno)
-  const contentLang = "en-US"; // el TEXTO/ejemplos se leen en ingles
-  const isEs = true;           // toda la UI del explicador va en espanol
-  // Tonos: ejemplo en ingles CLARO; explicacion en espanol DINAMICA y alegre.
+  const contentLang = "en-US"; // el ejemplo se lee en ingles
   const EX_OPTS = { rate: 1.0, pitch: 1.0 };
   const FUN_OPTS = { rate: 1.12, pitch: 1.18 };
 
-  // Partes de la formula.
+  // Partes de la formula (labels explicitos o troceo de la formula).
   const explicit = grammar.explain;
   const parts = explicit?.parts?.length
     ? explicit.parts.map((p) => stripMarkup(p.label))
-    : splitClauses(grammar.form || grammar.title || "");
+    : splitParts(grammar.form || grammar.title || "");
+  if (!parts.length) parts.push(stripMarkup(grammar.title || "Formula"));
+  const partFns = explicit?.parts?.length ? explicit.parts.map((p) => p.fn) : [];
 
-  // Ejemplos con su traduccion (si existe). `examples` = los que mapean por partes.
+  // TODOS los ejemplos sirven ahora (con su traduccion si existe).
   const trs = explicit?.tr || [];
-  const rawExamples = (grammar.examples || [])
-    .map((ex, i) => ({ text: stripMarkup(ex), tr: trs[i] ? stripMarkup(trs[i]) : "" }));
-  const examples = (grammar.examples || [])
-    .map((ex, i) => ({ text: stripMarkup(ex), spans: splitClauses(ex), tr: trs[i] ? stripMarkup(trs[i]) : "" }))
-    .filter((e) => e.spans.length === parts.length && parts.length >= 1);
+  const examples = (grammar.examples || []).map((ex, i) => ({
+    text: stripMarkup(ex),
+    tokens: tokenize(ex),
+    tr: trs[i] ? stripMarkup(trs[i]) : "",
+  }));
 
   let cancel = () => {};
   const close = () => { cancel(); overlay.remove(); };
 
   // ----- Estructura visual -------------------------------------------------
   const chipsRow = el("div", { class: "flex flex-wrap justify-center gap-2 relative z-10" });
-  const chipEls = parts.map((p, i) => {
-    const c = COLORS[i % COLORS.length];
-    return el("span", {
-      class: "px-3 py-1.5 rounded-lg font-bold text-sm transition-all duration-300 opacity-40 " + c.chip,
-    }, p);
-  });
+  const chipEls = parts.map((p, i) => el("span", {
+    class: "px-3 py-1.5 rounded-lg font-bold text-sm transition-all duration-300 opacity-40 " + COLORS[i % COLORS.length].chip,
+  }, p));
   chipEls.forEach((c) => chipsRow.append(c));
 
-  const exampleRow = el("div", { class: "flex flex-wrap justify-center gap-x-1 gap-y-1 text-xl sm:text-2xl font-semibold relative z-10" });
+  const exampleRow = el("div", { class: "flex flex-wrap justify-center gap-x-2 gap-y-1 text-xl sm:text-2xl font-semibold relative z-10" });
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("class", "absolute inset-0 w-full h-full pointer-events-none z-0");
   svg.setAttribute("aria-hidden", "true");
@@ -78,7 +142,6 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     svg, chipsRow, exampleRow);
 
   const caption = el("p", { class: "mt-4 text-center text-slate-300 min-h-[4rem] text-sm sm:text-base" });
-
   const exCounter = el("span", { class: "text-xs text-slate-500" });
   const replayBtn = el("button", {
     class: "hidden bg-white/5 border border-white/15 text-slate-200 rounded-xl px-4 py-2.5 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-indigo-400",
@@ -97,7 +160,7 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
       robotAvatar("md"),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, name),
-        el("p", { class: "text-xs text-slate-400" }, isEs ? "Te explico la regla" : "Let me explain the rule")),
+        el("p", { class: "text-xs text-slate-400" }, "Te explico la regla")),
       el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
     el("h2", { class: "mt-3 text-center font-bold text-lg text-indigo-100" }, grammar.title),
     stage,
@@ -112,47 +175,27 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
   }, card);
   document.body.append(overlay);
 
-  // Si la formula no mapea por partes -> MODO LECTOR: cada ejemplo + su significado.
+  // Sin ejemplos: solo lee la formula.
   if (!examples.length) {
-    chipsRow.remove();
-    svg.remove();
-    let rIdx = 0;
-    const playReader = (idx) => {
-      const ex = rawExamples[idx];
-      exCounter.textContent = "Ejemplo " + (idx + 1) + "/" + rawExamples.length;
-      exampleRow.replaceChildren(el("span", { class: "text-slate-100 text-center" }, ex.text));
-      caption.replaceChildren(ex.tr
-        ? el("span", { class: "block text-indigo-200 font-semibold text-lg" }, "= " + ex.tr)
-        : el("span", { class: "text-slate-300" }, "Escucha y repite en voz alta."));
-      replayBtn.classList.add("hidden");
-      nextBtn.classList.add("hidden");
-      const items = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
-      if (idx === 0 && grammar.rule) items.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
-      else if (ex.tr) items.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
-      cancel = speakSequence(items, null, () => {
-        replayBtn.classList.remove("hidden");
-        if (rawExamples.length > 1) nextBtn.classList.remove("hidden");
-      });
-    };
-    replayBtn.onclick = () => playReader(rIdx);
-    nextBtn.onclick = () => { rIdx = (rIdx + 1) % rawExamples.length; playReader(rIdx); };
-    if (rawExamples.length) playReader(0);
-    else { caption.textContent = "Escucha la regla."; cancel = speakSequence([{ text: stripMarkup(grammar.form || grammar.title), lang: contentLang }]); }
+    exampleRow.replaceChildren(el("span", { class: "text-slate-100 text-center" }, grammar.form || grammar.title || ""));
+    caption.textContent = "Escucha la regla.";
+    cancel = speakSequence([{ text: stripMarkup(grammar.form || grammar.title || ""), lang: contentLang }]);
     return;
   }
 
   // ----- Reproduccion paso a paso -----------------------------------------
   let exIndex = 0;
-  let spanEls = [];
+  let tokenEls = [];
+  let owner = [];
 
   function renderExample(idx) {
     const ex = examples[idx];
-    exCounter.textContent = (isEs ? "Ejemplo " : "Example ") + (idx + 1) + "/" + examples.length;
+    owner = mapTokensToParts(ex.tokens, parts);
+    exCounter.textContent = "Ejemplo " + (idx + 1) + "/" + examples.length;
     exampleRow.replaceChildren();
-    spanEls = ex.spans.map((s, i) => {
-      const span = el("span", { class: "px-2 py-1 rounded-lg transition-all duration-300 opacity-40 text-slate-100" }, s);
+    tokenEls = ex.tokens.map((tk) => {
+      const span = el("span", { class: "px-1 py-0.5 rounded-lg transition-all duration-300 opacity-40 text-slate-100" }, tk.text);
       exampleRow.append(span);
-      if (i < ex.spans.length - 1) exampleRow.append(el("span", { class: "text-slate-500 self-center" }, ","));
       return span;
     });
     chipEls.forEach((c) => { c.classList.add("opacity-40"); c.classList.remove("ring-2", "scale-110"); });
@@ -161,15 +204,29 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     nextBtn.classList.add("hidden");
   }
 
-  function drawLine(i) {
-    const c = COLORS[i % COLORS.length];
+  /** Centro (x,y) del grupo de tokens que pertenecen a la parte pi. */
+  function groupCenter(pi) {
+    const idxs = owner.map((o, i) => (o === pi ? i : -1)).filter((i) => i >= 0);
+    if (!idxs.length) return null;
     const stageR = stage.getBoundingClientRect();
-    const a = chipEls[i].getBoundingClientRect();
-    const b = spanEls[i].getBoundingClientRect();
+    let left = Infinity, right = -Infinity, top = Infinity;
+    idxs.forEach((i) => {
+      const r = tokenEls[i].getBoundingClientRect();
+      left = Math.min(left, r.left); right = Math.max(right, r.right); top = Math.min(top, r.top);
+    });
+    return { x: (left + right) / 2 - stageR.left, y: top - stageR.top, idxs };
+  }
+
+  function drawLine(pi) {
+    const c = COLORS[pi % COLORS.length];
+    const g = groupCenter(pi);
+    if (!g) return;
+    const stageR = stage.getBoundingClientRect();
+    const a = chipEls[pi].getBoundingClientRect();
     const x1 = a.left + a.width / 2 - stageR.left;
     const y1 = a.bottom - stageR.top;
-    const x2 = b.left + b.width / 2 - stageR.left;
-    const y2 = b.top - stageR.top;
+    const x2 = g.x;
+    const y2 = g.y;
     const midY = (y1 + y2) / 2;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
@@ -185,37 +242,40 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     requestAnimationFrame(() => { path.style.strokeDashoffset = "0"; });
   }
 
-  function highlight(i) {
+  function highlight(pi) {
     chipEls.forEach((c, k) => {
-      const on = k === i;
+      const on = k === pi;
       c.classList.toggle("opacity-40", !on);
       c.classList.toggle("ring-2", on);
       c.classList.toggle("scale-110", on);
-      if (on) c.classList.add(COLORS[i % COLORS.length].ring);
+      if (on) c.classList.add(COLORS[pi % COLORS.length].ring);
     });
-    spanEls.forEach((s, k) => {
-      const on = k === i;
+    tokenEls.forEach((s, k) => {
+      const on = owner[k] === pi;
       s.classList.toggle("opacity-40", !on);
       s.classList.toggle("bg-white/10", on);
-      s.style.color = on ? COLORS[i % COLORS.length].line : "";
+      s.style.color = on ? COLORS[pi % COLORS.length].line : "";
     });
-    drawLine(i);
+    drawLine(pi);
   }
 
-  function stepText(i) {
-    if (explicit?.parts?.[i]?.fn) return explicit.parts[i].fn;
-    // Generico: en ESPANOL limpio (no leemos la formula en ingles con voz espanola).
-    const esOrd = ["la primera", "la segunda", "la tercera", "la cuarta", "la quinta"];
-    if (isEs) return "Observa c\u00f3mo " + (esOrd[i] || ("la parte " + (i + 1))) + " parte se conecta con la f\u00f3rmula de arriba.";
-    return "This is part " + (i + 1) + " of the structure. See how it connects to the formula above.";
+  /** Texto (voz + caption) del paso pi: usa fn explicita o un generico util. */
+  function stepText(pi) {
+    if (partFns[pi]) return partFns[pi];
+    const ord = ["la primera", "la segunda", "la tercera", "la cuarta", "la quinta", "la sexta"];
+    return "Fijate en " + (ord[pi] || ("la parte " + (pi + 1))) + " parte de la formula y como aparece en el ejemplo.";
   }
 
-  // Tonos de voz: ejemplo en ingles CLARO; explicacion en espanol DINAMICA y alegre.
+  /** Palabras (visibles) del ejemplo que pertenecen a la parte pi. */
+  function groupText(pi) {
+    return examples[exIndex].tokens.filter((_, i) => owner[i] === pi).map((t) => t.text).join(" ");
+  }
+
   function playExample(idx) {
     renderExample(idx);
     const ex = examples[idx];
-    // 1) Intro: muestra el ejemplo COMPLETO y dice su significado (unico por ejemplo).
-    spanEls.forEach((s) => s.classList.remove("opacity-40"));
+    // 1) Intro: ejemplo completo + su significado/regla.
+    tokenEls.forEach((s) => s.classList.remove("opacity-40"));
     caption.replaceChildren(
       el("span", { class: "block text-slate-100 leading-snug" }, ex.text),
       (idx === 0 && grammar.rule)
@@ -227,12 +287,14 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
     else if (ex.tr) intro.push({ text: "Significa: " + ex.tr, lang: explainLang, opts: FUN_OPTS });
 
     cancel = speakSequence(intro, null, () => {
-      // 2) Desglose parte por parte.
+      // 2) Desglose ficha por ficha.
       let k = 0;
+      const owns = (pi) => ex.tokens.some((_, i) => owner[i] === pi);
       function playStep() {
+        // Salta fichas que no anclan a ninguna palabra (no dibujar lineas al vacio).
+        while (k < parts.length && !owns(k)) k++;
         if (k >= parts.length) {
-          caption.replaceChildren(el("span", { class: "text-emerald-300 font-semibold" },
-            "\u00a1Eso es! Ya viste c\u00f3mo se arma."));
+          caption.replaceChildren(el("span", { class: "text-emerald-300 font-semibold" }, "\u00a1Eso es! Ya viste como se arma."));
           replayBtn.classList.remove("hidden");
           if (examples.length > 1) nextBtn.classList.remove("hidden");
           return;
@@ -240,12 +302,13 @@ export function openRuleExplainer(grammar, robotLang = "es-MX") {
         highlight(k);
         caption.replaceChildren(
           el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
-          el("span", { class: "block mt-1.5 text-xs text-slate-400" }, examples[idx].spans[k] + "  \u2192  " + parts[k])
+          el("span", { class: "block mt-1.5 text-xs text-slate-400" }, (groupText(k) || parts[k]) + "  \u2192  " + parts[k])
         );
-        cancel = speakSequence([
-          { text: examples[idx].spans[k], lang: contentLang, opts: EX_OPTS },
-          { text: stepText(k), lang: explainLang, opts: FUN_OPTS },
-        ], null, () => { k++; setTimeout(playStep, 200); });
+        const spoken = [];
+        const gt = groupText(k);
+        if (gt) spoken.push({ text: gt, lang: contentLang, opts: EX_OPTS });
+        spoken.push({ text: stepText(k), lang: explainLang, opts: FUN_OPTS });
+        cancel = speakSequence(spoken, null, () => { k++; setTimeout(playStep, 200); });
       }
       requestAnimationFrame(() => requestAnimationFrame(playStep));
     });
