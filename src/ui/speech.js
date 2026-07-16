@@ -100,24 +100,45 @@ function detectLang(text, base) {
   return es > en ? "es" : "en";
 }
 
-/**
- * Pronuncia un texto con UNA sola voz (natural, sin cambios de acento a media
- * frase). Elige la voz por el idioma dominante del texto (o `lang` si empata) y
- * agrega pausas naturales en "/", "." y ",". Corta lo que este sonando.
- * @param {string} text
- * @param {string} [lang] idioma base ('es-MX' | 'en-US')
- * @param {object} [opts] { rate, pitch, gap }
- */
+// Comillas (rectas y tipograficas) que suelen envolver el ejemplo en el OTRO
+// idioma. Se usan como corte para detectar espanol vs ingles por trozo.
+const QUOTE_SPLIT = /(["\u201C\u201D\u2018\u2019\u0027])/;
+const QUOTE_CHAR = /^["\u201C\u201D\u2018\u2019\u0027]$/;
+
+// Parte un texto MIXTO (es/en) en segmentos por idioma. Usa las comillas como
+// pista (los ejemplos van entre comillas) y detecta el idioma de cada trozo.
+// Fusiona segmentos contiguos del mismo idioma. RAIZ del anti-Spanglish: asi
+// la voz espanola NUNCA lee ingles ni viceversa. Devuelve [{ text, lang }].
+function splitByLang(text, base) {
+  const raw = String(text);
+  const pieces = raw.split(QUOTE_SPLIT).filter(Boolean);
+  const segs = [];
+  let buf = "";
+  const flush = () => { const t = buf.trim(); if (t) segs.push(t); buf = ""; };
+  for (const c of pieces) {
+    if (QUOTE_CHAR.test(c)) { flush(); continue; } // la comilla NO se habla
+    buf += c;
+  }
+  flush();
+  const out = [];
+  for (const t of segs) {
+    const lang = detectLang(t, base);
+    const last = out[out.length - 1];
+    if (last && last.lang === lang) last.text += ", " + t; // fusiona contiguos
+    else out.push({ text: t, lang });
+  }
+  return out.length ? out : [{ text: raw.trim(), lang: base }];
+}
+
+// Pronuncia un texto (posiblemente MIXTO es/en). Normaliza simbolos, lo parte
+// por idioma y lo pasa a speakSequence, que da a cada trozo su voz correcta.
+// @param text  @param lang idioma base (es-MX | en-US)  @param opts { rate, pitch, gap }
 export function speak(text, lang = "en-US", opts = {}) {
   if (!text) return;
-  cancelCloud();
-  if (isSpeechSupported()) window.speechSynthesis.cancel();
   const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
-  //   "=" -> pausa breve (coma)     "who = personas" => "who, personas"
-  //   "\u00B7" y flechas -> pausa larga (separan ideas)
-  //   "+ ( ) * _ :" -> se omiten o se vuelven pausa.
+  //   "=" -> pausa (coma); "\u00B7"/flechas -> separan ideas; "+ ( ) * _ :" -> pausa.
   const norm = String(text)
     .replace(/\s*=\s*/g, ", ")
     .replace(/\u00B7/g, " / ")
@@ -130,48 +151,9 @@ export function speak(text, lang = "en-US", opts = {}) {
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
   if (!parts.length) return;
 
-  const useLang = detectLang(norm, base);
-
-  // Voz de la nube para AMBOS idiomas (ingles: Aura humana; espanol: Google TTS
-  // latino). Es independiente del dispositivo. Cae al navegador si falla.
-  const wantEs = useLang === "es";
-  if (cloudTtsEnabled()) {
-    const cloudText = wantEs ? fixSpanishAccents(parts.join(". ")) : parts.join(". ");
-    cloudSpeak(cloudText, wantEs ? "es" : "en").catch(() => {
-      // MEDIDA DRASTICA anti-Spanglish: si la nube falla y el texto es ESPANOL,
-      // NO usamos la voz del navegador (suena robotica/gringa). Mejor silencio.
-      if (wantEs) return;
-      browserSpeak();
-    });
-    return;
-  }
-  browserSpeak();
-
-  function browserSpeak() {
-    if (!isSpeechSupported()) return;
-    // CANDADO DURO anti-Spanglish: el navegador NUNCA lee espanol. La voz de
-    // espanol SIEMPRE viene de la nube (Chirp3-HD). Sin excepciones.
-    if (useLang === "es") return;
-    const synth = window.speechSynthesis;
-    synth.cancel();
-    const rate = opts.rate ?? 0.96;
-    const pitch = opts.pitch ?? 1.0;
-    const gap = opts.gap ?? 750; // pausa larga (ms) entre alternativas "/"
-    const v = pickVoice(useLang === "es" ? "es-MX" : "en-US");
-    let i = 0;
-    function sayNext() {
-      if (i >= parts.length) return;
-      const say = useLang === "es" ? fixSpanishAccents(parts[i]) : parts[i];
-      const u = new SpeechSynthesisUtterance(say);
-      u.lang = v?.lang || (useLang === "es" ? "es-MX" : "en-US");
-      u.rate = rate;
-      u.pitch = pitch;
-      if (v) u.voice = v;
-      u.onend = () => { i++; if (i < parts.length) setTimeout(sayNext, gap); };
-      synth.speak(u);
-    }
-    sayNext();
-  }
+  // Un item por parte; speakSequence lo divide por idioma (es/en) y le da a cada
+  // trozo su voz correcta (RAIZ anti-Spanglish). Cae al navegador solo en ingles.
+  speakSequence(parts.map((p) => ({ text: p, lang: base === "es" ? "es-MX" : "en-US", opts })));
 }
 
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
@@ -223,6 +205,25 @@ export function robotChirp() {
 export function speakSequence(items, onEach, onDone) {
   cancelCloud();
   if (isSpeechSupported()) window.speechSynthesis.cancel();
+
+  // RAIZ anti-Spanglish: expande cada item MIXTO (es/en) en sub-trozos, cada uno
+  // con su idioma real. Asi la voz espanola nunca lee ingles ni al reves. La
+  // pausa (gapAfter) del item original solo se aplica tras su ultimo sub-trozo.
+  const expanded = [];
+  for (const it of items) {
+    const base = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en";
+    const segs = splitByLang(String(it.text), base);
+    segs.forEach((s, idx) => {
+      const isLast = idx === segs.length - 1;
+      expanded.push({
+        text: s.text,
+        lang: s.lang === "es" ? "es-MX" : "en-US",
+        opts: it.opts,
+        gapAfter: isLast ? it.gapAfter : 40, // pausa corta entre sub-trozos
+      });
+    });
+  }
+
   let i = 0;
   let cancelled = false;
 
@@ -233,8 +234,8 @@ export function speakSequence(items, onEach, onDone) {
 
   function next() {
     if (cancelled) return;
-    if (i >= items.length) { onDone?.(); return; }
-    const it = items[i];
+    if (i >= expanded.length) { onDone?.(); return; }
+    const it = expanded[i];
     onEach?.(i);
     const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
 
