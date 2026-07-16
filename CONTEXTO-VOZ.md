@@ -74,8 +74,24 @@ Estimado de uso: toda la app hablada 1 vez ~= 250,000 chars (1/4 del gratis). Un
 - Al cambiar codigo front: subir version en sw.js (CACHE) y footer, commit + push.
 
 ## SIGUIENTE PASO INMEDIATO
-1. Terminar la **alerta de presupuesto de $1** (Fase 4).
-2. **Sacar la API key** de Text-to-Speech y restringirla (Fase 5).
-3. Pegarla como secret en el Worker.
-4. Escribir el codigo de Google Cloud TTS en `handleTts` (espanol) + cache.
-5. Probar en `voz-test.html` -> debe decir `[motor: google-cloud]` y sonar NATURAL/latino.
+
+### YA GANAMOS (2026-07-15 noche)
+- [x] Google Cloud TTS FUNCIONA: `[motor: google-cloud]` confirmado en el celular, suena natural/latino.
+- [x] Secret `GOOGLE_TTS_KEY` puesto en el Worker. API key restringida a Text-to-Speech.
+- [x] Alerta de presupuesto de $1 creada. (OJO: hubo warning de "no pudimos procesar el pago" -- la
+      tarjeta Mastercard ...0141 quedo registrada; revisar si el warning persiste, pero el TTS ya funciono).
+- [x] Codigo Worker: espanol -> googleCloudTts (intenta Chirp3-HD `es-US-Chirp3-HD-Aoede`, fallback
+      `es-US-Neural2-A`, luego Google Translate). Ingles = Aura. Edge ELIMINADO.
+- [x] La APP YA usa la voz de nube en TODO: speech.js (speak/speakSequence/speakRobot) llaman a
+      cloudSpeak cuando cloudTtsEnabled() (bymaxAiEnabled=true). NO hay que tocar mas la app.
+- [x] Version subida a v0.108.0 (SW + footer + ?v main.js) para forzar update en dispositivos.
+
+### PENDIENTE PARA MANANA ("retoma learning-UP")
+1. CONFIRMAR que el usuario redesplego el Worker con la version Chirp3-HD y probar en voz-test.html
+   (debe decir `[motor: GOOGLE-CLOUD / es-US-Chirp3-HD-Aoede]`). Si dice Neural2, Chirp no jalo -> revisar
+   nombre de voz (probar es-US-Chirp3-HD-Kore, -Leda, o es-US-Studio-B masculina).
+2. Dejar que el usuario ELIJA su voz favorita (hay varias Chirp3-HD y Neural2, F y M).
+3. Implementar CACHE de audios (texto fijo -> generar 1 vez): Cloudflare KV `AUDIO_KV`,
+   clave = hash(lang+voice+text). Para que sea $0 y cargue instantaneo. (YAGNI: solo si hace falta).
+4. Revisar el warning de pago en Google Cloud si sigue apareciendo.
+5. Opcional: quitar voz-test.html cuando ya no se use (o dejarlo como herramienta de diagnostico).
