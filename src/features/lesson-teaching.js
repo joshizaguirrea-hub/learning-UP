@@ -141,8 +141,8 @@ function turnItem(t, cast) {
   const v = (cast.voices && t.speaker && cast.voices[t.speaker]) || {};
   return {
     text, lang: "en-US",
-    opts: { rate: 0.95, voice: v.voice, voiceHd: v.voiceHd, gender: v.gender },
-    gapAfter: 250,
+    opts: { rate: 0.86, voice: v.voice, voiceHd: v.voiceHd, gender: v.gender }, // ingles PAUSADO
+    gapAfter: 380, // mas aire entre turnos (no atropellado)
   };
 }
 
@@ -171,7 +171,7 @@ function readingItems(text) {
       const cast = buildCast(turns, body);
       for (const t of turns) items.push(turnItem(t, cast));
     } else {
-      items.push({ text: body, lang: "en-US", opts: { rate: 0.9 }, gapAfter: 300 });
+      items.push({ text: body, lang: "en-US", opts: { rate: 0.85 }, gapAfter: 350 }); // narracion PAUSADA
     }
   }
   return items;
