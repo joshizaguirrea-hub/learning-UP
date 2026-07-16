@@ -51,14 +51,22 @@ export function cancelCloud() {
   }
 }
 
-async function fetchAudio(text, lang, voice) {
-  const key = lang + "|" + (voice || "") + "|" + text;
+async function fetchAudio(text, lang, opts) {
+  const o = opts || {};
+  // La clave de cache incluye todo lo que cambia el audio (voz, voz HD, rate).
+  const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + (o.rate || "") + "|" + text;
   if (cache.has(key)) return cache.get(key);
   const base = BYMAX_WORKER_URL.replace(/\/+$/, "");
   const res = await fetch(base + "/tts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text, lang, voice }),
+    body: JSON.stringify({
+      text, lang,
+      voice: o.voice,      // voz Aura (compat con Worker viejo)
+      voiceHd: o.voiceHd,  // voz Google Chirp3-HD ingles (Worker nuevo)
+      gender: o.gender,    // "F" | "M" (para elegir voz por defecto)
+      rate: o.rate,        // velocidad (titulos mas lentos = mas carino)
+    }),
   });
   if (!res.ok) throw new Error("tts http " + res.status);
   const data = await res.json().catch(() => ({}));
@@ -74,13 +82,14 @@ async function fetchAudio(text, lang, voice) {
  * navegador).
  * @param {string} text
  * @param {string} [lang] "es" | "en"
- * @param {string} [voice] voz Aura para ingles (ej. "asteria", "orion")
+ * @param {object|string} [opts] { voice, voiceHd, gender, rate } (o voz Aura como string, compat)
  */
-export function cloudSpeak(text, lang = "es", voice) {
+export function cloudSpeak(text, lang = "es", opts) {
+  const o = typeof opts === "string" ? { voice: opts } : (opts || {});
   return new Promise((resolve, reject) => {
     if (!cloudTtsEnabled() || !text) { reject(new Error("cloud tts off")); return; }
     cancelCloud();
-    fetchAudio(text, lang, voice).then((url) => {
+    fetchAudio(text, lang, o).then((url) => {
       const audio = getPlayer();
       current = true;
       // Blindaje: el "unlock" movil pudo dejar el player en muted. Forzamos que

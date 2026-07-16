@@ -42,12 +42,12 @@ function renderReadingBlock(b) {
   if (b.title) children.push(el("p", { class: "font-bold text-indigo-200 mb-1" }, b.title));
   if (b.body && hasDialog(b.body)) {
     const turns = parseDialogTurns(b.body);
-    const names = assignNames(turns, b.body);
+    const cast = buildCast(turns, b.body);
     children.push(el("ul", { class: "space-y-1 text-slate-200 text-sm" },
       ...turns.map((t) => {
-        const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
+        const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-start gap-2" },
-          playSeqButton(() => [turnItem(t, names)]),
+          playSeqButton(() => [turnItem(t, cast)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));
@@ -67,6 +67,29 @@ const NAME_POOL = [
   "Megan", "Mau", "Valeria", "Sophia", "Paula",
 ];
 
+// Genero de cada nombre (F = femenino, M = masculino) para elegir una voz que
+// SUENE al personaje (antes se asignaba por turno y salia un hombre por Meribeth).
+const NAME_GENDER = {
+  "Mar\u00eda": "F", Joshua: "M", Daniel: "M", Oscar: "M", Sonia: "F",
+  Alessandro: "M", Geo: "M", Adrian: "M", Kristel: "F", Gaby: "F", Jenny: "F",
+  Meribeth: "F", Stephanie: "F", Zoe: "F", Megan: "F", Mau: "M", Valeria: "F",
+  Sophia: "F", Paula: "F",
+};
+
+// Voces por genero. `aura` = Deepgram Aura (Worker actual). `hd` = Google
+// Chirp3-HD ingles (Worker nuevo, mas humano). Se emparejan por indice para dar
+// una voz DISTINTA a cada persona del mismo genero.
+const VOICES = {
+  F: {
+    aura: ["asteria", "luna", "stella", "athena", "hera"],
+    hd: ["en-US-Chirp3-HD-Aoede", "en-US-Chirp3-HD-Kore", "en-US-Chirp3-HD-Leda", "en-US-Chirp3-HD-Zephyr", "en-US-Chirp3-HD-Aoede"],
+  },
+  M: {
+    aura: ["orion", "arcas", "perseus", "angus", "orpheus"],
+    hd: ["en-US-Chirp3-HD-Charon", "en-US-Chirp3-HD-Fenrir", "en-US-Chirp3-HD-Orus", "en-US-Chirp3-HD-Puck", "en-US-Chirp3-HD-Charon"],
+  },
+};
+
 /** Hash estable de un texto (para elegir nombres de forma reproducible). */
 function hashStr(s) {
   let h = 0;
@@ -74,19 +97,29 @@ function hashStr(s) {
   return Math.abs(h);
 }
 
-/** Asigna un nombre distinto a cada interlocutor (A,B,C,D) segun el texto. */
-function assignNames(turns, seed) {
+/**
+ * Reparte NOMBRES y VOCES a cada interlocutor segun el texto (determinista).
+ * Devuelve { names: {A:'Sonia',...}, voices: {A:{voice,voiceHd,gender},...} }.
+ * La voz se elige por el GENERO del nombre, distinta a cada persona.
+ */
+function buildCast(turns, seed) {
   const speakers = [...new Set(turns.map((t) => t.speaker).filter(Boolean))];
   const h = hashStr(seed);
-  const map = {};
+  const names = {};
+  const voices = {};
   const used = new Set();
+  const gCount = { F: 0, M: 0 };
   speakers.forEach((sp, idx) => {
     let i = (h + idx * 7) % NAME_POOL.length;
     while (used.has(NAME_POOL[i])) i = (i + 1) % NAME_POOL.length;
     used.add(NAME_POOL[i]);
-    map[sp] = NAME_POOL[i];
+    const name = NAME_POOL[i];
+    names[sp] = name;
+    const g = NAME_GENDER[name] || "F";
+    const slot = gCount[g]++ % VOICES[g].aura.length;
+    voices[sp] = { voice: VOICES[g].aura[slot], voiceHd: VOICES[g].hd[slot], gender: g };
   });
-  return map;
+  return { names, voices };
 }
 
 /** True si el texto trae marcas de dialogo tipo "A: ... B: ...". */
@@ -101,15 +134,16 @@ function parseDialogTurns(text) {
     });
 }
 
-/** Voz humana (Aura) por interlocutor: suena como personas distintas. */
-const SPEAKER_VOICE = { A: "asteria", B: "orion", C: "luna", D: "arcas" };
-function voiceFor(speaker) { return SPEAKER_VOICE[speaker] || "asteria"; }
-
-/** Un turno -> item de voz con nombre (pausa tras el nombre) y voz propia. */
-function turnItem(t, names) {
-  const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
+/** Un turno -> item de voz con nombre (pausa tras el nombre) y voz por genero. */
+function turnItem(t, cast) {
+  const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
   const text = who ? who + ". " + t.line : t.line; // el punto crea la pausa
-  return { text, lang: "en-US", opts: { rate: 0.95, voice: voiceFor(t.speaker) }, gapAfter: 250 };
+  const v = (cast.voices && t.speaker && cast.voices[t.speaker]) || {};
+  return {
+    text, lang: "en-US",
+    opts: { rate: 0.95, voice: v.voice, voiceHd: v.voiceHd, gender: v.gender },
+    gapAfter: 250,
+  };
 }
 
 /**
@@ -126,15 +160,16 @@ function readingItems(text) {
     let bodyStart = 0;
     const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
     if (tm) {
-      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.92 }, gapAfter: 300 });
+      // Titulo: mas LENTO y con calma (con carino), no corriendo. gapAfter largo.
+      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.8, pitch: 1.04, gender: "F" }, gapAfter: 500 });
       bodyStart = 1;
     }
     const body = lines.slice(bodyStart).join(" ").trim();
     if (!body) continue;
     if (hasDialog(body)) {
       const turns = parseDialogTurns(body);
-      const names = assignNames(turns, body);
-      for (const t of turns) items.push(turnItem(t, names));
+      const cast = buildCast(turns, body);
+      for (const t of turns) items.push(turnItem(t, cast));
     } else {
       items.push({ text: body, lang: "en-US", opts: { rate: 0.9 }, gapAfter: 300 });
     }
@@ -181,16 +216,16 @@ export function dialogueSection(dialogue) {
     const m = String(line).match(/^([A-D]):\s*(.*)$/s);
     return m ? { speaker: m[1], line: m[2].trim() } : { speaker: null, line: String(line) };
   });
-  const names = assignNames(turns, dialogue.join(" "));
+  const cast = buildCast(turns, dialogue.join(" "));
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83C\uDFAD"), "Dialogo"),
-      playSeqButton(() => turns.map((t) => turnItem(t, names)))),
+      playSeqButton(() => turns.map((t) => turnItem(t, cast)))),
     el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
       ...turns.map((t) => {
-        const who = t.speaker ? (names[t.speaker] || t.speaker) : "";
+        const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-center gap-2" },
-          playSeqButton(() => [turnItem(t, names)]),
+          playSeqButton(() => [turnItem(t, cast)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));
