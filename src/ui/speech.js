@@ -78,11 +78,26 @@ const ES_WORDS = new Set([
   "adverbio", "articulo", "pronombre", "condicional", "subjuntivo", "imperativo", "tiempo",
   "con", "para", "por", "una", "uno", "unos", "unas", "del", "las", "los", "que", "cuando",
   "como", "mas", "pero", "tambien", "ser", "estar", "hacer", "cosa", "cosas", "forma",
+  // Palabras espanolas COMUNES sin acento (antes se contaban mal como ingles).
+  "sirve", "imaginar", "cosas", "hoy", "no", "son", "reales", "decir", "si", "tuviera",
+  "dinero", "aunque", "usa", "habla", "algo", "imaginario", "o", "significa", "observa",
+  "parte", "se", "conecta", "arriba", "eso", "ya", "viste", "arma", "escucha", "repite",
+  "en", "alta", "de", "la", "el", "un", "y", "a", "es", "su", "le", "lo", "mi", "tu",
+  "esto", "esta", "este", "muy", "sin", "sobre", "entre", "cada", "todo", "toda", "al",
+]);
+
+// Palabras clave INGLESAS comunes (para no marcar todo lo desconocido como ingles).
+const EN_WORDS = new Set([
+  "the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of", "in", "on",
+  "if", "would", "will", "could", "should", "had", "have", "has", "do", "does", "did",
+  "i", "you", "he", "she", "it", "we", "they", "my", "your", "his", "her", "money",
+  "travel", "work", "working", "stop", "buy", "won", "and", "or", "but", "not", "with",
+  "this", "that", "there", "here", "what", "when", "where", "how", "why", "can", "go",
 ]);
 
 /**
- * Detecta el idioma DOMINANTE de un texto (por conteo de palabras es/en).
- * Devuelve 'es' o 'en'. Si empata o no hay pistas, usa `base`.
+ * Detecta el idioma DOMINANTE de un texto contando senales de AMBOS idiomas.
+ * Devuelve 'es' o 'en'. Si empata o no hay pistas claras, usa `base`.
  */
 function detectLang(text, base) {
   let es = 0;
@@ -90,12 +105,16 @@ function detectLang(text, base) {
   for (const raw of String(text).toLowerCase().split(/\s+/)) {
     const w = raw.replace(/[^a-z\u00E0-\u00FF]/gi, "");
     if (!w) continue;
-    if (/[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC]/.test(raw) || ES_WORDS.has(w) ||
-        /(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa)$/.test(w)) es++;
+    // Senal ESPANOLA: acento/enie, palabra de la lista, o terminacion tipica.
+    const esSignal = /[\u00E1\u00E9\u00ED\u00F3\u00FA\u00F1\u00FC]/.test(raw) || ES_WORDS.has(w) ||
+      /(cion|mente|dad|aje|ando|iendo|ivo|iva|ncia|oso|osa|aria|eria|iria)$/.test(w);
+    // Senal INGLESA: palabra de la lista, o terminacion tipica del ingles.
+    const enSignal = EN_WORDS.has(w) || /(ing|tion|ould|n't|ed)$/.test(w);
+    if (esSignal && !enSignal) es++;
+    else if (enSignal && !esSignal) en++;
+    else if (esSignal && enSignal) { es += 0.5; en += 0.5; } // ambigua: no inclina
   }
-  // Heuristica simple: cuenta acentos/palabras es; el resto pesa hacia en.
-  const words = String(text).split(/\s+/).filter(Boolean).length;
-  en = words - es;
+  // Gana quien tenga MAS senales reales. Si empata o nadie puntua, usa base.
   if (es === en) return base;
   return es > en ? "es" : "en";
 }
