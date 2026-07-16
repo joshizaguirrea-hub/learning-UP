@@ -5,7 +5,8 @@
 //   /tts    -> VOZ: texto -> audio
 //              ESPANOL: Google Cloud TTS (voz latina natural, secret GOOGLE_TTS_KEY)
 //                       fallback -> Google Translate TTS (robotico) si algo falla.
-//              INGLES : Deepgram Aura via Workers AI (binding "AI"), voz humana.
+//              INGLES : Google Chirp3-HD (voz humana, con genero y velocidad) si
+//                       hay GOOGLE_TTS_KEY; fallback -> Deepgram Aura (binding "AI").
 //
 // CACHE (opcional): si existe el binding KV "AUDIO_KV", cada audio generado se
 // guarda por hash(lang+voice+text). Como los textos de la app son fijos, cada
@@ -79,7 +80,7 @@ async function cacheKey(lang, voice, text) {
   const raw = `${lang}|${voice}|${text}`;
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
   const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return `tts:v1:${lang}:${hex}`;
+  return `tts:v2:${lang}:${hex}`;
 }
 
 // Divide texto largo en trozos <= max chars (Google Translate TTS limita ~200).
@@ -101,29 +102,37 @@ function splitForTts(text, max) {
 // ESPANOL con voz NATURAL latina: Google Cloud Text-to-Speech.
 // Intenta cada voz de GTTS_VOICES en orden (Chirp3-HD primero); usa la que funcione.
 // Devuelve base64 mp3. Lanza error solo si TODAS fallan.
-async function googleCloudTts(text, env) {
-  const key = env.GOOGLE_TTS_KEY;
+async function googleCloudTts(text, env, rate) {
+  return gctts(text, env.GOOGLE_TTS_KEY, GTTS_LANG, GTTS_VOICES, rate);
+}
+
+// Google Cloud TTS generico (ES o EN). Prueba las voces en orden y usa la 1a que
+// funcione. `rate` (0.5-1.5) ajusta la velocidad (titulos mas lentos = carino).
+// Chirp3-HD soporta speakingRate; si una voz no lo acepta, reintenta sin rate.
+async function gctts(text, key, langCode, voiceNames, rate) {
   if (!key) throw new Error("sin GOOGLE_TTS_KEY");
   const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + key;
+  const useRate = rate >= 0.5 && rate <= 1.5;
   let lastErr = "";
-  for (const name of GTTS_VOICES) {
-    const body = {
-      input: { text },
-      voice: { languageCode: GTTS_LANG, name },
-      audioConfig: { audioEncoding: "MP3" },
-    };
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (r.ok) {
-      const data = await r.json();
-      if (data.audioContent) return { audio: data.audioContent, voice: name };
-      lastErr = "sin audioContent (" + name + ")";
-      continue;
+  for (const name of voiceNames) {
+    for (const withRate of (useRate ? [true, false] : [false])) {
+      const audioConfig = { audioEncoding: "MP3" };
+      if (withRate) audioConfig.speakingRate = rate;
+      const body = { input: { text }, voice: { languageCode: langCode, name }, audioConfig };
+      const r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        if (data.audioContent) return { audio: data.audioContent, voice: name };
+        lastErr = "sin audioContent (" + name + ")";
+        break; // sin audio: prueba la siguiente voz, no el mismo con/sin rate
+      }
+      lastErr = "gctts " + r.status + " " + (await r.text().catch(() => "")).slice(0, 120);
+      // si fallo CON rate, el bucle interno reintenta SIN rate antes de rendirse.
     }
-    lastErr = "gctts " + r.status + " " + (await r.text().catch(() => "")).slice(0, 120);
   }
   throw new Error(lastErr || "gctts fallo");
 }
@@ -160,14 +169,23 @@ async function handleTts(request, env, origin) {
   const text = String(body.text || "").slice(0, 600).trim();
   const lang = String(body.lang || "es").slice(0, 5);
   const voice = AURA_VOICES.has(body.voice) ? body.voice : "asteria";
+  // Voz Google Chirp3-HD ingles (Worker nuevo): solo se acepta el patron oficial.
+  const voiceHd = typeof body.voiceHd === "string" && /^en-US-Chirp3-HD-[A-Za-z]+$/.test(body.voiceHd) ? body.voiceHd : "";
+  const gender = body.gender === "M" ? "M" : "F";
+  // Velocidad opcional (0.5-1.5). 0 = velocidad normal (no forzar).
+  let rate = Number(body.rate);
+  if (!(rate >= 0.5 && rate <= 1.5)) rate = 0;
   if (!text) return json({ error: "Sin texto." }, 400, origin);
 
   const isEn = lang.toLowerCase().startsWith("en");
+  // Voz HD ingles efectiva: la pedida, o una por genero (para que TODO el ingles
+  // suene humano por defecto, no solo los dialogos). Vacia si no hay clave Google.
+  const hdEn = env.GOOGLE_TTS_KEY ? (voiceHd || (gender === "M" ? "en-US-Chirp3-HD-Charon" : "en-US-Chirp3-HD-Aoede")) : "";
 
   // 1) CACHE HIT: si hay binding KV y ya generamos este audio, lo servimos ya.
-  //    La "voz" solo afecta la clave en ingles (Aura); en espanol es fija.
+  //    La clave incluye la voz REAL usada (HD o Aura) y el rate (afectan el audio).
   const kv = env.AUDIO_KV;
-  const keyVoice = isEn ? voice : "es";
+  const keyVoice = (isEn ? (hdEn || voice) : "es") + "@" + (rate || "n");
   let key = null;
   if (kv) {
     try {
@@ -191,6 +209,15 @@ async function handleTts(request, env, origin) {
 
   try {
     if (isEn) {
+      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
+      //    defecto TODO el ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
+      if (hdEn) {
+        try {
+          const gc = await gctts(text, env.GOOGLE_TTS_KEY, "en-US", [hdEn], rate);
+          if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud-en", voice: gc.voice });
+        } catch (e) { /* cae a Aura abajo */ }
+      }
+      // 2) Respaldo: Deepgram Aura (Workers AI).
       if (!env.AI) return json({ error: "Falta el binding 'AI' (Workers AI)." }, 500, origin);
       const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
       const audio = await toBase64Audio(out);
@@ -199,7 +226,7 @@ async function handleTts(request, env, origin) {
     }
     // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
     try {
-      const gc = await googleCloudTts(text, env);
+      const gc = await googleCloudTts(text, env, rate);
       if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud", voice: gc.voice });
     } catch (e) {
       // Fallback robotico NO se cachea (para que reintente Chirp3-HD la proxima).
