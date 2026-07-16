@@ -27,7 +27,7 @@
   <button class="en" id="btnEn">Escuchar INGLES (humano)</button>
 
   <div id="status">Listo. Toca un boton para probar.</div>
-  <div class="tag">voz-test.html &middot; v3</div>
+  <div class="tag">voz-test.html &middot; v4 (muestra motivo de fallo + cache)</div>
 
   <script>
     const WORKER = "https://bymax-ia.joshizaguirrea.workers.dev/tts";
@@ -46,10 +46,12 @@
         const data = await res.json();
         if (!data.audio) { log("ERROR: la nube no devolvio audio. " + JSON.stringify(data).slice(0, 160)); return; }
         const eng = data.engine ? ("[motor: " + data.engine.toUpperCase() + (data.voice ? " / " + data.voice : "") + "] ") : "";
-        const errExtra = data.edgeError ? ("\nEdge fallo: " + data.edgeError) : "";
-        log(eng + "Audio recibido OK. Reproduciendo..." + errExtra);
+        // Si cayo al respaldo robotico, mostramos POR QUE fallo Google Cloud.
+        const errExtra = data.gcttsError ? ("\n\nPor que NO uso la voz de nube:\n" + data.gcttsError) : "";
+        const cachedTag = data.cached ? " (CACHE)" : "";
+        log(eng + cachedTag + "Audio recibido OK. Reproduciendo..." + errExtra);
         const audio = new Audio("data:audio/mp3;base64," + data.audio);
-        audio.onended = () => log(eng + "Termino de sonar. Como se escucho?" + errExtra);
+        audio.onended = () => log(eng + cachedTag + "Termino de sonar. Como se escucho?" + errExtra);
         audio.onerror = () => log("El audio LLEGO pero el telefono no lo reprodujo (bloqueo de sonido?).");
         await audio.play();
       } catch (e) {
