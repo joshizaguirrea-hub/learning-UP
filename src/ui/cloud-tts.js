@@ -19,6 +19,15 @@ export function cloudTtsEnabled() {
 const cache = new Map(); // "lang|texto" -> dataURL (mp3 base64)
 let current = null;      // true si el player esta reproduciendo algo nuestro
 
+/**
+ * Arregla pronunciaciones para la voz ANTES de mandar el texto al TTS.
+ * "UP" en mayusculas lo deletrea "u-pe" (cree que es sigla); como es la marca
+ * "Learning UP" queremos que suene la palabra "up" -> lo pasamos a "Up".
+ */
+function normalizeForTts(text) {
+  return String(text).replace(/\bUP\b/g, "Up");
+}
+
 // UN SOLO elemento de audio, reusado siempre. Clave en MOVIL: una vez que el
 // usuario lo "desbloquea" con un toque, los play() programaticos posteriores
 // (secuencias titulo->narracion) ya NO los bloquea la politica de autoplay.
@@ -51,8 +60,9 @@ export function cancelCloud() {
   }
 }
 
-async function fetchAudio(text, lang, opts) {
+async function fetchAudio(rawText, lang, opts) {
   const o = opts || {};
+  const text = normalizeForTts(rawText);
   // La clave de cache incluye todo lo que cambia el audio (voz, voz HD, rate).
   const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + (o.rate || "") + "|" + text;
   if (cache.has(key)) return cache.get(key);
