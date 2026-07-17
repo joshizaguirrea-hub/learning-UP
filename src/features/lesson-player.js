@@ -150,7 +150,7 @@ export async function renderLessonPlayer(container, params, user) {
         if (card && card.firstElementChild) {
           card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state), card.firstElementChild);
         }
-        body.append(feedbackBanner(ok, act, unitGrammar, robotLang));
+        body.append(feedbackBanner(ok, act, unitGrammar, robotLang, unit.level));
         mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
           state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
         announce(ok ? "Correcto" : "Incorrecto");
@@ -315,7 +315,7 @@ function topBar(unit, pct, state) {
 // ---------------------------------------------------------------------------
 // Feedback inmediato por actividad (banner tipo Duolingo).
 // ---------------------------------------------------------------------------
-function feedbackBanner(ok, act, grammar = null, lang = "es-MX") {
+function feedbackBanner(ok, act, grammar = null, lang = "es-MX", level) {
   const answerText = correctAnswerText(act);
   return el("div", {
     class: "mt-4 rounded-xl p-4 border " +
@@ -328,7 +328,7 @@ function feedbackBanner(ok, act, grammar = null, lang = "es-MX") {
     !ok ? el("button", {
       class: "mt-3 flex items-center gap-2 text-sm text-indigo-200 border border-indigo-500/40 " +
         "bg-indigo-500/10 rounded-xl px-3 py-2 hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
-      onclick: () => openWhyWrong(grammar, act, answerText, lang, unit.level),
+      onclick: () => openWhyWrong(grammar, act, answerText, lang, level),
     }, robotAvatar("sm"), "Por que me equivoque?") : null);
 }
 
