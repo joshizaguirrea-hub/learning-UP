@@ -27,18 +27,39 @@ function bubble(text, who) {
 }
 
 /**
+ * Arma un contexto RICO para que Bymax responda sobre la leccion/ejercicio
+ * concreto (no de forma generica). Se recorta a ~550 chars porque el Worker
+ * limita el contexto a 600.
+ * @param {object|null} grammar - { title, form, rule, examples }
+ * @param {object|null} act - ejercicio actual { prompt, explain }
+ */
+function buildContext(grammar, act) {
+  const parts = [];
+  if (grammar) {
+    if (grammar.title) parts.push("Tema: " + stripMarkup(grammar.title));
+    if (grammar.form) parts.push("Formula: " + stripMarkup(grammar.form));
+    if (grammar.rule) parts.push("Regla: " + stripMarkup(grammar.rule));
+    if (grammar.examples?.length) parts.push("Ejemplo: " + stripMarkup(grammar.examples[0]));
+  }
+  if (act) {
+    if (act.prompt) parts.push('Ejercicio actual: "' + stripMarkup(act.prompt) + '"');
+    if (act.explain) parts.push("Pista del ejercicio: " + stripMarkup(act.explain));
+  }
+  return parts.join(". ").slice(0, 550);
+}
+
+/**
  * Abre el chat de Bymax.
  * @param {object|null} grammar - gramatica de la unidad (da contexto a la IA)
  * @param {string} [lang]
+ * @param {object|null} [act] - ejercicio actual, para respuestas especificas
  */
-export function openBymaxChat(grammar, lang = "es-MX") {
+export function openBymaxChat(grammar, lang = "es-MX", act = null) {
   const name = robotName();
   const close = () => overlay.remove();
   robotChirp();
 
-  const context = grammar
-    ? [stripMarkup(grammar.title), stripMarkup(grammar.form || "")].filter(Boolean).join(" - ")
-    : "";
+  const context = buildContext(grammar, act);
 
   const log = el("div", { class: "flex flex-col gap-2.5 overflow-y-auto px-1 py-2", style: "max-height:48vh" });
 
