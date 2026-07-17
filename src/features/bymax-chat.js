@@ -84,7 +84,10 @@ export function openBymaxChat(grammar, lang = "es-MX") {
       const data = await res.json().catch(() => ({}));
       thinking.remove();
       if (!res.ok || !data.answer) {
-        push("Ups, no pude responder ahora. Intenta de nuevo en un momento.", "bot");
+        // Mostramos el motivo REAL del Worker (ej: falta GEMINI_API_KEY) para poder
+        // diagnosticar. Si no hay detalle, un mensaje amable generico.
+        const why = data.error || data.detail;
+        push(why ? ("\u26A0\uFE0F " + why) : "Ups, no pude responder ahora. Intenta de nuevo en un momento.", "bot");
       } else {
         const row = el("div", { class: "flex items-start gap-2 justify-start" },
           bubble(data.answer, "bot"),
