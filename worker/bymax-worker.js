@@ -261,7 +261,13 @@ async function handleChat(request, env, origin) {
   const payload = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents: [{ role: "user", parts: [{ text: userText }] }],
-    generationConfig: { temperature: 0.7, maxOutputTokens: 400 },
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 800,
+      // Gemini 2.5 "piensa" y ese pensamiento consume maxOutputTokens -> respuestas
+      // cortadas. Lo apagamos: Bymax da respuestas breves, no necesita razonar hondo.
+      thinkingConfig: { thinkingBudget: 0 },
+    },
   };
 
   let res;
