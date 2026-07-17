@@ -13,6 +13,7 @@ import { el } from "../ui/dom.js";
 import { stripMarkup } from "../ui/richtext.js";
 import { speakSequence } from "../ui/speech.js";
 import { robotAvatar, robotName } from "../ui/robot.js";
+import { isAtLeast } from "../data/cefr.js";
 
 const COLORS = [
   { chip: "bg-amber-400 text-slate-900", line: "#fbbf24", ring: "ring-amber-400" },
@@ -99,10 +100,14 @@ function mapTokensToParts(tokens, parts) {
 /**
  * Abre el explicador de una regla.
  * @param {object} grammar - { title, form, examples, rule?, explain? }
+ * @param {string} [level] - nivel CEFR de la unidad (A1..C2). En AVANZADO (C1/C2)
+ *   la explicacion va SOLO en ingles (inmersion): sin voz ni caption en espanol.
  */
-export function openRuleExplainer(grammar) {
+export function openRuleExplainer(grammar, level) {
   const name = robotName();
-  const explainLang = "es-MX"; // la EXPLICACION siempre en espanol (idioma del alumno)
+  // AVANZADO = C1 o superior: inmersion total, sin muleta de espanol.
+  const advanced = isAtLeast(level || "A1", "C1");
+  const explainLang = "es-MX"; // la EXPLICACION en espanol (idioma del alumno)
   const contentLang = "en-US"; // el ejemplo se lee en ingles
   const EX_OPTS = { rate: 0.88, pitch: 1.0 }; // ingles PAUSADO (no atropellado)
   const FUN_OPTS = { rate: 1.08, pitch: 1.14 };
@@ -178,7 +183,7 @@ export function openRuleExplainer(grammar) {
   // Sin ejemplos: solo lee la formula.
   if (!examples.length) {
     exampleRow.replaceChildren(el("span", { class: "text-slate-100 text-center" }, grammar.form || grammar.title || ""));
-    caption.textContent = "Escucha la regla.";
+    caption.textContent = advanced ? "Listen to the rule." : "Escucha la regla.";
     cancel = speakSequence([{ text: stripMarkup(grammar.form || grammar.title || ""), lang: contentLang }]);
     return;
   }
@@ -274,18 +279,22 @@ export function openRuleExplainer(grammar) {
   function playExample(idx) {
     renderExample(idx);
     const ex = examples[idx];
-    // 1) Intro: ejemplo completo + su significado/regla.
+    // 1) Intro: ejemplo completo + (solo en niveles no avanzados) su regla/traduccion.
     tokenEls.forEach((s) => s.classList.remove("opacity-40"));
     caption.replaceChildren(
       el("span", { class: "block text-slate-100 leading-snug" }, ex.text),
-      (idx === 0 && grammar.rule)
-        ? el("span", { class: "block mt-1 text-emerald-200" }, stripMarkup(grammar.rule))
-        : (ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {}))
+      // AVANZADO: nada de espanol (inmersion). Otros niveles: regla o traduccion.
+      advanced
+        ? el("span", {})
+        : (idx === 0 && grammar.rule)
+          ? el("span", { class: "block mt-1 text-emerald-200" }, stripMarkup(grammar.rule))
+          : (ex.tr ? el("span", { class: "block mt-1 text-indigo-200 font-semibold" }, "= " + ex.tr) : el("span", {}))
     );
     const intro = [{ text: ex.text, lang: contentLang, opts: EX_OPTS }];
     // La voz en espanol NO traduce: solo explica la LOGICA de la formula (la regla
     // en el 1er ejemplo). La traduccion queda visible en pantalla, pero no se lee.
-    if (idx === 0 && grammar.rule) intro.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
+    // En AVANZADO no hay voz en espanol en absoluto.
+    if (!advanced && idx === 0 && grammar.rule) intro.push({ text: stripMarkup(grammar.rule), lang: explainLang, opts: FUN_OPTS });
 
     cancel = speakSequence(intro, null, () => {
       // 2) Desglose ficha por ficha.
@@ -295,20 +304,25 @@ export function openRuleExplainer(grammar) {
         // Salta fichas que no anclan a ninguna palabra (no dibujar lineas al vacio).
         while (k < parts.length && !owns(k)) k++;
         if (k >= parts.length) {
-          caption.replaceChildren(el("span", { class: "text-emerald-300 font-semibold" }, "\u00a1Eso es! Ya viste como se arma."));
+          caption.replaceChildren(el("span", { class: "text-emerald-300 font-semibold" },
+            advanced ? "That's it! See how it's built." : "\u00a1Eso es! Ya viste como se arma."));
           replayBtn.classList.remove("hidden");
           if (examples.length > 1) nextBtn.classList.remove("hidden");
           return;
         }
         highlight(k);
+        // AVANZADO: caption solo con el mapeo visual (sin la frase en espanol).
         caption.replaceChildren(
-          el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
+          advanced
+            ? el("span", {})
+            : el("span", { class: "block text-slate-100 leading-snug" }, stepText(k)),
           el("span", { class: "block mt-1.5 text-xs text-slate-400" }, (groupText(k) || parts[k]) + "  \u2192  " + parts[k])
         );
         const spoken = [];
         const gt = groupText(k);
         if (gt) spoken.push({ text: gt, lang: contentLang, opts: EX_OPTS });
-        spoken.push({ text: stepText(k), lang: explainLang, opts: FUN_OPTS });
+        // La explicacion en espanol de cada parte solo en niveles no avanzados.
+        if (!advanced) spoken.push({ text: stepText(k), lang: explainLang, opts: FUN_OPTS });
         cancel = speakSequence(spoken, null, () => { k++; setTimeout(playStep, 200); });
       }
       requestAnimationFrame(() => requestAnimationFrame(playStep));

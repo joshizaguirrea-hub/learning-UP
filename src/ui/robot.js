@@ -103,7 +103,7 @@ function typeTip(type, lang) {
  * @param {object} act - actividad actual (para el tip por tipo)
  * @param {string} [lang] - idioma de la voz del profe (es-MX / en-US)
  */
-export function openRobotHint(grammar, act, lang = "es-MX") {
+export function openRobotHint(grammar, act, lang = "es-MX", level) {
   const name = getRobot().name;
   const close = () => overlay.remove();
   robotChirp();
@@ -141,7 +141,7 @@ export function openRobotHint(grammar, act, lang = "es-MX") {
       }, "\uD83D\uDCAC Preguntale a " + name + " (IA)"),
       grammar ? el("button", {
         class: "w-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 font-semibold px-5 py-3 rounded-xl hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
-        onclick: () => { close(); openRuleExplainer(grammar, lang); },
+        onclick: () => { close(); openRuleExplainer(grammar, level); },
       }, "\uD83D\uDD0D Ver la regla completa") : null,
       el("button", {
         class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
@@ -166,7 +166,7 @@ export function openRobotHint(grammar, act, lang = "es-MX") {
  * @param {string} answerText - texto de la respuesta correcta
  * @param {string} [lang]
  */
-export function openWhyWrong(grammar, act, answerText, lang = "es-MX") {
+export function openWhyWrong(grammar, act, answerText, lang = "es-MX", level) {
   const name = getRobot().name;
   const close = () => overlay.remove();
   robotChirp();
@@ -213,7 +213,7 @@ export function openWhyWrong(grammar, act, answerText, lang = "es-MX") {
     el("div", { class: "mt-5 flex flex-col gap-2" },
       grammar ? el("button", {
         class: "w-full border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 font-semibold px-5 py-3 rounded-xl hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
-        onclick: () => { close(); openRuleExplainer(grammar, lang); },
+        onclick: () => { close(); openRuleExplainer(grammar, level); },
       }, "\uD83D\uDD0D Ver la regla completa") : null,
       el("button", {
         class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
