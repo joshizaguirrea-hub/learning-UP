@@ -116,11 +116,13 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
             type: "button",
             class: "shrink-0 mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-indigo-300 hover:bg-indigo-500/20",
             "aria-label": "Escuchar respuesta", title: "Escuchar",
-            onclick: () => speakRobot(data.answer, lang), html: ICONS.sound,
+            onclick: () => speakRobot(data.answer, "es-MX"), html: ICONS.sound,
           }));
         log.append(row);
         log.scrollTop = log.scrollHeight;
-        speakRobot(data.answer, lang);
+        // Bymax SIEMPRE responde en espanol -> voz espanola (Chirp3-HD), no la
+        // del nivel (que en B1+ es en-US y sonaria a gringa leyendo espanol).
+        speakRobot(data.answer, "es-MX");
       }
     } catch {
       thinking.remove();
