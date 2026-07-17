@@ -115,7 +115,7 @@ export async function renderLessonPlayer(container, params, user) {
     const { node, getResponse } = renderActivity(act, idxNum);
     const headRow = el("div", { class: "flex items-center justify-between gap-3" },
       el("p", { class: "text-xs uppercase tracking-wide text-slate-400" }, "Practica " + idxNum + " de " + activityTotal),
-      robotHelpButton(() => openRobotHint(unitGrammar, act, robotLang)));
+      robotHelpButton(() => openRobotHint(unitGrammar, act, robotLang, unit.level)));
     const body = el("div", {}, headRow, el("div", { class: "mt-4" }, node));
     const footerHost = el("div", {});
 
@@ -257,7 +257,7 @@ function buildSteps(unit, lesson, robotLang = "es-MX") {
   const reading = c.reading || lesson.passage;
   if (reading) teach.push({ node: readingSection(reading), robot: line("reading", robotLang) });
   const grammar = c.grammar || lesson.grammar;
-  if (grammar) teach.push({ node: grammarBox(grammar, robotLang), robot: line("grammar", robotLang) });
+  if (grammar) teach.push({ node: grammarBox(grammar, robotLang, unit.level), robot: line("grammar", robotLang) });
   const glossary = c.glossary || lesson.glossary;
   if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: line("glossary", robotLang) });
   if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: line("keyPhrases", robotLang) });
@@ -328,7 +328,7 @@ function feedbackBanner(ok, act, grammar = null, lang = "es-MX") {
     !ok ? el("button", {
       class: "mt-3 flex items-center gap-2 text-sm text-indigo-200 border border-indigo-500/40 " +
         "bg-indigo-500/10 rounded-xl px-3 py-2 hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
-      onclick: () => openWhyWrong(grammar, act, answerText, lang),
+      onclick: () => openWhyWrong(grammar, act, answerText, lang, unit.level),
     }, robotAvatar("sm"), "Por que me equivoque?") : null);
 }
 

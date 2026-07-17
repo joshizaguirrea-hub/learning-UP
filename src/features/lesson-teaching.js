@@ -293,7 +293,7 @@ export function grammarChart(chart) {
  * Caja de gramatica REDISENADA: encabezado, cuadro visual, formula, tabla
  * comparativa, ejemplos (con audio) y errores comunes (antes/despues).
  */
-export function grammarBox(g, robotLang = "es-MX") {
+export function grammarBox(g, robotLang = "es-MX", level) {
   return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-2xl p-5" },
     el("div", { class: "flex items-center gap-2" },
       chip("\u2728"),
@@ -316,7 +316,7 @@ export function grammarBox(g, robotLang = "es-MX") {
     (g.form || g.examples?.length) ? el("button", {
       class: "mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 " +
         "text-white font-semibold px-4 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]",
-      onclick: () => openRuleExplainer(g, robotLang),
+      onclick: () => openRuleExplainer(g, level),
     }, el("span", { class: "text-lg" }, "\uD83E\uDD16"), "Yo, " + robotName() + ", te explico la regla") : null,
 
     g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
