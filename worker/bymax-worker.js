@@ -13,7 +13,7 @@
 // audio se genera UNA sola vez -> costo ~$0 y carga instantanea. Si el binding
 // no existe, el Worker funciona igual (solo se salta el cache).
 
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-2.5-flash";   // gemini-2.0-flash fue retirado por Google (jul-2026)
 const TTS_MODEL_EN = "@cf/deepgram/aura-1";         // ingles MUY natural (humano)
 // Voces Aura permitidas (voz distinta a cada persona del dialogo).
 const AURA_VOICES = new Set([
