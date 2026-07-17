@@ -9,6 +9,7 @@
  * Pasos = [intro] + [pasos de clase] + [una actividad por paso] + [final].
  */
 import { findLesson } from "../data/units/index.js";
+import { isAtLeast } from "../data/cefr.js";
 import { grade } from "../core/activities.js";
 import { completeLesson } from "../services/course.js";
 import { ensureCards } from "../services/srs.js";
@@ -43,7 +44,8 @@ export async function renderLessonPlayer(container, params, user) {
   }
   const { unit, lesson } = found;
   // Idioma/voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
-  const robotLang = (unit.level === "A1" || unit.level === "A2") ? "es-MX" : "en-US";
+  // Guia de Bymax: espanol en A1-B2, ingles (inmersion) solo en C1-C2.
+  const robotLang = isAtLeast(unit.level, "C1") ? "en-US" : "es-MX";
   const steps = buildSteps(unit, lesson, robotLang);
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
   // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.
