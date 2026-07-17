@@ -38,6 +38,14 @@ const LINES = {
     es: "Tranqui, esto se puede. Repasemos juntos y lo resuelves.",
     en: "No worries, you can do this. Let's review together and you'll solve it.",
   },
+  whyWrongIntro: {
+    es: "No pasa nada, equivocarse ayuda a aprender.",
+    en: "No worries, making mistakes helps you learn.",
+  },
+  correctIs: {
+    es: "La respuesta correcta es: {answer}.",
+    en: "The correct answer is: {answer}.",
+  },
   remember: {
     es: "Recuerda:",
     en: "Remember:",

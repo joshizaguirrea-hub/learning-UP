@@ -108,6 +108,11 @@ export function openRobotHint(grammar, act, lang = "es-MX", level) {
   const close = () => overlay.remove();
   robotChirp();
   const intro = line("hintIntro", lang);
+  // La regla/forma (grammar.form) y los tips estan escritos en ESPANOL. Para que
+  // la voz NO mezcle idiomas en una frase, el hint se dice en espanol (es-MX).
+  const spokenHint = line("hintIntro", "es-MX") + " " + (grammar
+    ? line("remember", "es-MX") + " " + stripMarkup(grammar.title) + ". " + stripMarkup(grammar.form || "")
+    : typeTip(act.type, "es-MX"));
 
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl",
@@ -118,7 +123,7 @@ export function openRobotHint(grammar, act, lang = "es-MX", level) {
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, name),
         el("p", { class: "text-xs text-slate-400" }, "Tu profesor de bolsillo")),
-      robotSpeakBtn(intro + " " + (grammar ? line("remember", lang) + " " + stripMarkup(grammar.title) + ". " + stripMarkup(grammar.form || "") : typeTip(act.type, lang)), lang)),
+      robotSpeakBtn(spokenHint, "es-MX")),
 
     el("p", { class: "mt-4 text-slate-200" }, intro),
 
@@ -172,10 +177,13 @@ export function openWhyWrong(grammar, act, answerText, lang = "es-MX", level) {
   robotChirp();
 
   const mistakes = (grammar?.mistakes || []).slice(0, 2);
+  // La explicacion del ejercicio (act.explain) esta escrita en ESPANOL en todos
+  // los niveles. Para NO mezclar idiomas en una misma frase hablada, todo el
+  // "por que me equivoque" se dice en espanol (voz es-MX), sin importar el nivel.
   const spoken = [
-    "No pasa nada, equivocarse ayuda a aprender.",
-    answerText ? ("La respuesta correcta es: " + answerText + ".") : "",
-    act.explain ? act.explain : (grammar ? "Recuerda: " + stripMarkup(grammar.title) + "." : ""),
+    line("whyWrongIntro", "es-MX"),
+    answerText ? line("correctIs", "es-MX", { answer: answerText }) : "",
+    act.explain ? act.explain : (grammar ? line("remember", "es-MX") + " " + stripMarkup(grammar.title) + "." : ""),
   ].filter(Boolean).join(" ");
 
   const card = el("div", {
@@ -187,7 +195,7 @@ export function openWhyWrong(grammar, act, answerText, lang = "es-MX", level) {
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, name),
         el("p", { class: "text-xs text-slate-400" }, "Te explico tu error")),
-      robotSpeakBtn(spoken, lang)),
+      robotSpeakBtn(spoken, "es-MX")),
 
     el("div", { class: "mt-4 border border-emerald-600/40 bg-emerald-900/20 rounded-xl p-4" },
       el("p", { class: "text-xs uppercase tracking-wide text-emerald-300/80" }, "Respuesta correcta"),
