@@ -20,12 +20,20 @@ const cache = new Map(); // "lang|texto" -> dataURL (mp3 base64)
 let current = null;      // true si el player esta reproduciendo algo nuestro
 
 /**
- * Arregla pronunciaciones para la voz ANTES de mandar el texto al TTS.
- * "UP" en mayusculas lo deletrea "u-pe" (cree que es sigla); como es la marca
- * "Learning UP" queremos que suene la palabra "up" -> lo pasamos a "Up".
+ * Arregla el texto ANTES de mandarlo al TTS para que suene natural:
+ *  - "UP" en mayusculas lo deletrea "u-pe" -> lo pasamos a "Up" (marca).
+ *  - Flechas (->, =>, <-, unicode) -> pausa natural (coma), no leer el simbolo.
+ *  - Simbolos mudos (= * _ # < > | ~ ^ ` {} [] () \ / " y comillas) -> espacio.
+ * Se conservan apostrofes (para "isn't") y la puntuacion normal (. , ; : ! ?).
  */
 function normalizeForTts(text) {
-  return String(text).replace(/\bUP\b/g, "Up");
+  return String(text)
+    .replace(/\bUP\b/g, "Up")
+    .replace(/-->|->|=>|<--|<-|[\u2190-\u21FF\u2794\u279C\u27A1]/g, ", ")
+    .replace(/[=_*#|~^`<>{}\[\]\\/()"\u201C\u201D\u00AB\u00BB]/g, " ")
+    .replace(/\s+([,.;:!?])/g, "$1")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
 // UN SOLO elemento de audio, reusado siempre. Clave en MOVIL: una vez que el
