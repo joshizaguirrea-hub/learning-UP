@@ -80,6 +80,12 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
   }, "\u27A4");
 
   let busy = false;
+  // MEMORIA de la conversacion: turnos previos { role:"user"|"model", text }.
+  // Se mandan al Worker para que Bymax recuerde el hilo. Cap de 10 turnos
+  // (5 intercambios) para cuidar el presupuesto de la IA.
+  const history = [];
+  const MAX_TURNS = 10;
+
   function push(text, who) {
     log.append(bubble(text, who));
     log.scrollTop = log.scrollHeight;
@@ -97,10 +103,14 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
     log.scrollTop = log.scrollHeight;
 
     try {
+      // El contexto de la leccion solo viaja en el 1er turno (luego ya vive en
+      // el historial) -> respuestas con memoria sin gastar tokens de mas.
+      const payload = { question: q, history: history.slice(-MAX_TURNS) };
+      if (history.length === 0) payload.context = context;
       const res = await fetch(BYMAX_WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, context }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       thinking.remove();
@@ -120,6 +130,9 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
           }));
         log.append(row);
         log.scrollTop = log.scrollHeight;
+        // Guardamos el intercambio en la memoria (y recortamos al tope).
+        history.push({ role: "user", text: q }, { role: "model", text: data.answer });
+        if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
         // Bymax SIEMPRE responde en espanol -> voz espanola (Chirp3-HD), no la
         // del nivel (que en B1+ es en-US y sonaria a gringa leyendo espanol).
         speakRobot(data.answer, "es-MX");
