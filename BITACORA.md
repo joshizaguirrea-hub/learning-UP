@@ -165,6 +165,17 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       Capstone (repaso integrador). Curriculo A1->C2 100% completo y rico. SW v0.59.0.
 - [ ] Más mazos de verbos (phrasal verbs, preposiciones).
 - [ ] Diccionario offline (fallback sin red).
+- [x] MEMORIA DE CONVERSACION en el chat de Bymax (2026-07-18, v0.126.0). Antes
+      cada pregunta iba aislada (amnesia). Ahora el cliente (bymax-chat.js) guarda
+      un array `history` [{role:'user'|'model', text}] y manda los turnos previos
+      al Worker. El contexto de la leccion solo viaja en el 1er turno (ya vive en
+      el historial despues -> ahorra tokens). Cap: 10 turnos (5 intercambios) en
+      cliente; el Worker (handleChat) reconstruye `contents` multi-turno con
+      guardrails: max 10 turnos, ~6000 chars totales (suelta los mas viejos),
+      recorta textos a 1200 chars y asegura que empiece con turno 'user' (Gemini
+      lo exige). RETROCOMPATIBLE: Worker viejo ignora `history` -> sigue funcionando
+      sin memoria. IMPORTANTE: hay que REDESPLEGAR el Worker en Cloudflare
+      (Edit code -> pegar bymax-worker.js -> Deploy) para que la memoria funcione.
 
 ---
 

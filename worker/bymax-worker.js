@@ -253,14 +253,38 @@ async function handleChat(request, env, origin) {
   const context = String(body.context || "").slice(0, 600).trim();
   if (!question) return json({ error: "Escribe una pregunta." }, 400, origin);
 
+  // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`
+  // ([{role:"user"|"model", text}]). Reconstruimos el hilo para que Bymax
+  // recuerde de que hablabamos. Guardrails (presupuesto $1): max 10 turnos y
+  // ~6000 chars totales; textos largos se recortan. El contexto de la leccion
+  // solo viaja en el 1er turno (ya vive en el historial despues) -> ahorra tokens.
+  const rawHistory = Array.isArray(body.history) ? body.history : [];
+  const contents = [];
+  let histChars = 0;
+  for (const h of rawHistory.slice(-10)) {
+    const role = h && h.role === "model" ? "model" : "user";
+    const text = String((h && h.text) || "").slice(0, 1200).trim();
+    if (!text) continue;
+    histChars += text.length;
+    contents.push({ role, parts: [{ text }] });
+  }
+  // Recorte por tamano total: soltamos los turnos mas viejos si nos pasamos.
+  while (histChars > 6000 && contents.length > 1) {
+    const dropped = contents.shift();
+    histChars -= dropped.parts[0].text.length;
+  }
+  // Gemini exige que la conversacion empiece con un turno "user".
+  while (contents.length && contents[0].role !== "user") contents.shift();
+
   const userText = context
     ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
     : `Pregunta del alumno: ${question}`;
+  contents.push({ role: "user", parts: [{ text: userText }] });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
   const payload = {
     systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-    contents: [{ role: "user", parts: [{ text: userText }] }],
+    contents,
     generationConfig: {
       temperature: 0.7,
       maxOutputTokens: 800,
