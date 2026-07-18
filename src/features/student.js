@@ -1,21 +1,18 @@
 /**
  * features/student.js — Dashboard del estudiante (estilo "Fit Match", tema oscuro).
  *
- * Capa de feature: arma el perfil gamificado (avatar, XP, nivel), las tarjetas
- * de dominio por competencia (gradientes), el curso y el repaso.
- * Los calculos viven en core/gamification (puro); aqui solo se orquesta y pinta.
+ * Capa de feature: arma el perfil gamificado (avatar, XP, nivel), el CURSO como
+ * protagonista (mosaico de temas) y el repaso. Los calculos viven en
+ * core/gamification (puro); aqui solo se orquesta y pinta.
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
 import { countDue, srsStats } from "../services/srs.js";
 import { unitsForLevel } from "../data/units/index.js";
-import { SKILL_META } from "../data/skill-meta.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { ICONS } from "../ui/icons.js";
 import { didToday } from "../core/streak.js";
-import {
-  skillProgress, totalXp, xpToNext,
-} from "../core/gamification.js";
+import { totalXp, xpToNext } from "../core/gamification.js";
 import { el, mount } from "../ui/dom.js";
 import { getAccent } from "../ui/prefs.js";
 import { focusMainHeading } from "../ui/a11y.js";
@@ -42,17 +39,14 @@ export async function renderStudent(container, user) {
     Object.entries(progressMap).filter(([, v]) => v.status === "done").map(([id]) => id));
   const lessonsDone = completed.size;
   const units = unitsForLevel(profile.cefr_level);
-
-  const skills = skillProgress(units, completed);
   const xp = totalXp(lessonsDone, srs.learned);
 
   mount(container, el("div", { class: "space-y-6" },
     profileHeader(name, profile, xp),
     nextActionHero(profile, units, completed, due),
+    courseCards(units, progressMap),
     statsRow(profile, srs.learned, lessonsDone),
-    skillsSection(skills),
-    bonusBanner(),
-    courseCards(units, progressMap)));
+    bonusBanner()));
   focusMainHeading(container);
 }
 
@@ -132,11 +126,6 @@ function nextAction(units, completed, due) {
 // --------------------------------------------------------------------------
 // Tarjetas de dominio por competencia (estilo Fit Match)
 // --------------------------------------------------------------------------
-function skillsSection(skills) {
-  return el("section", {},
-    el("h2", { class: "text-lg font-bold mb-3" }, "Tus competencias"),
-    el("div", { class: "grid sm:grid-cols-2 gap-3" }, ...skills.map(skillCard)));
-}
 
 /** Banner de acceso a los mazos Bonus + medallas. */
 function bonusBanner() {
@@ -151,33 +140,6 @@ function bonusBanner() {
         el("p", { class: "font-bold text-white text-lg" }, "Bonus: gana medallas"),
         el("p", { class: "text-white/85 text-sm" }, "Domina verbos irregulares, pasados y mas. Contenido de memorizar.")),
       el("span", { class: "text-white/90 text-sm font-semibold" }, "Ir ->")));
-}
-
-function skillCard(s) {
-  const meta = SKILL_META[s.key];
-  const gradient = s.locked ? "from-slate-700 to-slate-800" : meta.gradient;
-  const iconBox = el("div", { class: "w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0", html: meta.icon });
-
-  const right = s.locked
-    ? el("span", { class: "text-xs font-semibold text-white/70 uppercase tracking-wide" }, "Proximamente")
-    : el("div", { class: "text-right" },
-        el("p", { class: "text-2xl font-extrabold text-white leading-none" }, `${s.pct}%`),
-        el("p", { class: "text-[10px] text-white/70 uppercase tracking-wide mt-1" }, "Dominio"));
-
-  return el(s.locked ? "div" : "a", {
-    href: s.locked ? null : `#/competencia/${s.key}`,
-    class: `block relative overflow-hidden rounded-xl bg-gradient-to-r ${gradient} shadow-lg ` +
-      (s.locked ? "opacity-60" : "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60"),
-  },
-    el("div", { class: "flex items-center gap-4 p-4" },
-      iconBox,
-      el("div", { class: "flex-1 min-w-0" },
-        el("p", { class: "font-bold text-white text-lg leading-tight" }, meta.label),
-        el("p", { class: "text-white/70 text-sm truncate" }, meta.subtitle)),
-      right),
-    s.locked ? null
-      : el("div", { class: "h-1 bg-black/20" },
-          el("div", { class: "h-1 bg-white/80", style: `width:${s.pct}%` })));
 }
 
 // --------------------------------------------------------------------------

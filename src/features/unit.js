@@ -1,8 +1,10 @@
 /**
- * features/unit.js — Vista de una unidad tematica del curso.
+ * features/unit.js — Pantalla COMPLETA de una unidad (tema) del curso.
  *
- * Capa de feature: muestra objetivos can-do, las lecciones (Presentacion,
- * Practica, Produccion) con su estado, y un acceso al repaso SRS del dia.
+ * Capa de feature: al tocar una tarjeta cuadrada del inicio se abre esta vista,
+ * con los objetivos can-do, el progreso, las COMPETENCIAS (grammar, vocabulary,
+ * reading, writing, listening, speaking), los bonos de verbos y la conversacion
+ * con IA (todo via unit-content.js), mas el repaso SRS del dia.
  */
 import { unitById } from "../data/units/index.js";
 import { getCourseProgress } from "../services/course.js";
@@ -10,9 +12,9 @@ import { countDue } from "../services/srs.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
+import { unitContent } from "./unit-content.js";
 
 const CARD = "bg-slate-900 rounded-2xl p-6 border border-slate-800";
-const PHASE_LABEL = { learn: "Aprende", present: "Presentacion", practice: "Practica", produce: "Produccion" };
 
 export async function renderUnit(container, params, user) {
   const unit = unitById(params.id);
@@ -24,19 +26,29 @@ export async function renderUnit(container, params, user) {
   const doneCount = unit.lessons.filter((l) => progress[l.id]?.status === "done").length;
   const pct = Math.round((doneCount / unit.lessons.length) * 100);
 
-  const header = el("div", {},
-    el("a", { href: "#/student", class: "text-sm text-indigo-400 hover:text-indigo-300" }, "< Volver al inicio"),
-    el("div", { class: "flex items-center gap-2 mt-3" },
-      el("span", { class: "text-xs font-mono bg-slate-800 text-slate-300 px-2 py-0.5 rounded" }, unit.level),
-      el("h1", { class: "text-2xl font-bold" }, unit.title)),
-    el("p", { class: "text-slate-400 mt-1" }, unit.subtitle));
+  const header = el("section", { class: "rounded-2xl overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg" },
+    el("div", { class: "p-6" },
+      el("a", { href: "#/student", class: "inline-flex items-center gap-1 text-sm text-white/80 hover:text-white" }, "< Volver al inicio"),
+      el("div", { class: "flex items-center gap-3 mt-3" },
+        el("span", { class: "text-xs font-mono font-bold bg-black/30 text-white px-2 py-0.5 rounded" }, unit.level),
+        el("h1", { class: "text-2xl sm:text-3xl font-extrabold text-white" }, unit.title)),
+      el("p", { class: "text-white/85 mt-1" }, unit.subtitle),
+      el("div", { class: "mt-4" },
+        el("div", { class: "flex justify-between text-xs text-white/80 mb-1" },
+          el("span", {}, `${doneCount}/${unit.lessons.length} lecciones`),
+          el("span", {}, `${pct}% completado`)),
+        el("div", { class: "w-full bg-black/25 rounded-full h-2", role: "progressbar",
+          "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
+          el("div", { class: "bg-white h-2 rounded-full transition-all", style: `width:${pct}%` })))));
 
-  const cando = el("section", { class: "mt-6 " + CARD },
-    el("h2", { class: "font-bold" }, "Al terminar esta unidad podras:"),
+  const cando = el("section", { class: CARD },
+    el("h2", { class: "font-bold" }, "Al terminar este tema podras:"),
     el("ul", { class: "mt-3 space-y-1 text-sm text-slate-300" },
       ...unit.cando.map((c) => el("li", { class: "flex gap-2" }, el("span", { class: "text-emerald-400" }, "+"), c))));
 
-  const review = el("section", { class: "mt-6 " + CARD + " flex items-center justify-between flex-wrap gap-3" },
+  const content = el("section", { class: CARD }, unitContent(unit, progress));
+
+  const review = el("section", { class: CARD + " flex items-center justify-between flex-wrap gap-3" },
     el("div", {},
       el("h2", { class: "font-bold" }, "Repaso del dia (SRS)"),
       el("p", { class: "text-sm text-slate-400 mt-1" },
@@ -48,28 +60,6 @@ export async function renderUnit(container, params, user) {
       onclick: () => go("/repaso"),
     }, "Repasar ahora"));
 
-  const lessons = el("section", { class: "mt-6 " + CARD },
-    el("div", { class: "flex items-center justify-between" },
-      el("h2", { class: "font-bold text-lg" }, "Lecciones"),
-      el("span", { class: "text-sm text-slate-400" }, `${doneCount}/${unit.lessons.length}`)),
-    el("div", { class: "w-full bg-slate-800 rounded-full h-2 mt-3", role: "progressbar",
-      "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
-      el("div", { class: "bg-gradient-to-r from-indigo-400 to-fuchsia-400 h-2 rounded-full transition-all", style: `width:${pct}%` })),
-    el("div", { class: "mt-4" }, ...unit.lessons.map((l) => lessonRow(l, progress[l.id]))));
-
-  mount(container, el("div", {}, header, cando, review, lessons));
+  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" }, header, cando, content, review));
   focusMainHeading(container);
-}
-
-function lessonRow(lesson, prog) {
-  const done = prog?.status === "done";
-  return el("a", {
-    href: `#/leccion/${lesson.id}`,
-    class: "flex items-center gap-3 py-3 px-2 -mx-2 rounded-lg border-b border-slate-800 last:border-0 " +
-      "hover:bg-slate-800 focus:outline focus:outline-2 focus:outline-indigo-500",
-  },
-    el("span", { class: "text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full" }, PHASE_LABEL[lesson.phase] || ""),
-    el("span", { class: "flex-1 text-slate-100" }, lesson.title),
-    el("span", { class: `text-xs px-2 py-0.5 rounded-full ${done ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-800 text-slate-400"}` },
-      done ? "Completada" : "Pendiente"));
 }
