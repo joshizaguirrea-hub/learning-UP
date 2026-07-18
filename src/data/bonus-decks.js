@@ -184,6 +184,41 @@ export const BONUS_DECKS = [
         { en: "The firm was founded back in 2010.", es: "La empresa se fundo alla por 2010." }] },
     ],
   },
+  {
+    id: "idioms",
+    title: "Idioms (modismos)",
+    subtitle: "Frases hechas del ingles real",
+    recall: "Di el SIGNIFICADO en espanol",
+    gradient: "from-fuchsia-500 to-purple-700",
+    medalTitle: "Maestro de modismos",
+    medalDesc: "Dominaste los modismos mas usados del ingles",
+    items: [
+      { id: "bi-breaktheice", front: "break the ice", back: "romper el hielo", examples: [
+        { en: "He told a joke to break the ice at the meeting.", es: "Conto un chiste para romper el hielo en la reunion." }] },
+      { id: "bi-pieceofcake", front: "a piece of cake", back: "pan comido / muy facil", examples: [
+        { en: "The exam was a piece of cake.", es: "El examen fue pan comido." }] },
+      { id: "bi-underweather", front: "under the weather", back: "sentirse mal / indispuesto", examples: [
+        { en: "I'm feeling a bit under the weather today.", es: "Hoy me siento un poco indispuesto." }] },
+      { id: "bi-hitthesack", front: "hit the sack", back: "irse a dormir", examples: [
+        { en: "I'm exhausted, I'm going to hit the sack.", es: "Estoy agotado, me voy a dormir." }] },
+      { id: "bi-costanarm", front: "cost an arm and a leg", back: "costar un ojo de la cara", examples: [
+        { en: "That car cost an arm and a leg.", es: "Ese carro costo un ojo de la cara." }] },
+      { id: "bi-onceinabluemoon", front: "once in a blue moon", back: "muy de vez en cuando", examples: [
+        { en: "We eat out once in a blue moon.", es: "Comemos fuera muy de vez en cuando." }] },
+      { id: "bi-hitthebooks", front: "hit the books", back: "ponerse a estudiar duro", examples: [
+        { en: "Finals are close, time to hit the books.", es: "Se acercan los finales, hora de estudiar duro." }] },
+      { id: "bi-underthetable", front: "the ball is in your court", back: "te toca decidir / la pelota esta en tu cancha", examples: [
+        { en: "I made my offer; now the ball is in your court.", es: "Ya hice mi oferta; ahora te toca decidir a ti." }] },
+      { id: "bi-cutcorners", front: "cut corners", back: "hacer las cosas a medias / ahorrar mal", examples: [
+        { en: "Don't cut corners on safety.", es: "No hagas las cosas a medias con la seguridad." }] },
+      { id: "bi-onthesamepage", front: "be on the same page", back: "estar de acuerdo / en sintonia", examples: [
+        { en: "Let's make sure we're on the same page.", es: "Aseguremonos de estar en sintonia." }] },
+      { id: "bi-bitethebullet", front: "bite the bullet", back: "hacer de tripas corazon / afrontarlo", examples: [
+        { en: "I had to bite the bullet and apologize.", es: "Tuve que hacer de tripas corazon y disculparme." }] },
+      { id: "bi-getthehang", front: "get the hang of it", back: "agarrarle el truco", examples: [
+        { en: "Don't worry, you'll get the hang of it soon.", es: "No te preocupes, pronto le agarraras el truco." }] },
+    ],
+  },
 ];
 
 /** Devuelve un mazo por id (o null). */

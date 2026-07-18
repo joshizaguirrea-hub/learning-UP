@@ -20,6 +20,7 @@ import { el, mount } from "../ui/dom.js";
 import { getAccent } from "../ui/prefs.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
+import { courseCards } from "./course-cards.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -51,7 +52,7 @@ export async function renderStudent(container, user) {
     statsRow(profile, srs.learned, lessonsDone),
     skillsSection(skills),
     bonusBanner(),
-    courseSection(units, progressMap)));
+    courseCards(units, progressMap)));
   focusMainHeading(container);
 }
 
@@ -177,35 +178,6 @@ function skillCard(s) {
     s.locked ? null
       : el("div", { class: "h-1 bg-black/20" },
           el("div", { class: "h-1 bg-white/80", style: `width:${s.pct}%` })));
-}
-
-// --------------------------------------------------------------------------
-// Curso (unidades) + repaso
-// --------------------------------------------------------------------------
-function courseSection(units, progressMap) {
-  const cards = units.length
-    ? units.map((u) => {
-        const done = u.lessons.filter((l) => progressMap[l.id]?.status === "done").length;
-        const pct = Math.round((done / u.lessons.length) * 100);
-        return el("a", {
-          href: `#/unidad/${u.id}`,
-          class: "block p-4 rounded-xl bg-slate-800/60 border border-slate-700 hover:border-indigo-500 " +
-            "focus:outline focus:outline-2 focus:outline-indigo-500 transition-colors",
-        },
-          el("div", { class: "flex items-center gap-2" },
-            el("span", { class: "text-xs font-mono bg-slate-700 text-slate-200 px-2 py-0.5 rounded" }, u.level),
-            el("span", { class: "font-semibold text-slate-100" }, u.title)),
-          el("p", { class: "text-sm text-slate-400 mt-1" }, u.subtitle),
-          el("div", { class: "w-full bg-slate-700 rounded-full h-1.5 mt-3" },
-            el("div", { class: "bg-emerald-400 h-1.5 rounded-full", style: `width:${pct}%` })),
-          el("p", { class: "text-xs text-slate-500 mt-1" }, `${done}/${u.lessons.length} lecciones`));
-      })
-    : [el("p", { class: "text-sm text-slate-400" }, "Pronto habra mas unidades para tu nivel.")];
-
-  return el("section", { class: PANEL + " p-5" },
-    el("h2", { class: "text-lg font-bold" }, "Tu curso"),
-    el("p", { class: "text-slate-400 text-sm mt-1" }, "Unidades tematicas con lecciones interactivas."),
-    el("div", { class: "mt-4 grid gap-3" }, ...cards));
 }
 
 // --------------------------------------------------------------------------

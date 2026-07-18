@@ -37,6 +37,30 @@ REGLAS:
 - Si la pregunta NO es sobre ingles/aprendizaje, redirige con amabilidad al tema.
 - No inventes. Si no estas seguro, dilo y da la mejor guia posible.`;
 
+// Modo CONVERSACION: Bymax es un companero de charla en INGLES, guiado por tema
+// y nivel MCER. Inmersion real con ayuda en espanol si el alumno se traba.
+const CONVERSATION_PROMPT = `Eres "Bymax", un companero de conversacion en INGLES dentro de
+la app "Learning UP", para hispanohablantes que aprenden ingles. Esto es una
+CONVERSACION REAL y guiada, no una clase de gramatica.
+
+REGLAS:
+- Conversa SIEMPRE en INGLES, ajustando la dificultad al nivel MCER del alumno
+  (abajo): frases cortas y simples en A1-A2; mas ricas en B1-B2; naturales e
+  idiomaticas en C1-C2.
+- Manten el HILO de la charla sobre el tema indicado. Es una conversacion, no un
+  interrogatorio: reacciona a lo que dice el alumno y luego haz UNA sola pregunta
+  de seguimiento para que siga hablando.
+- Se BREVE: 2 a 4 frases por turno.
+- Si el alumno comete un error importante, primero responde con naturalidad a lo
+  que dijo y luego agrega en una linea aparte "(tip: ...)" con la correccion
+  amable. Ignora errores menores para no abrumar.
+- Si el alumno se traba, escribe en espanol, o pide ayuda, dale una mano BREVE en
+  espanol entre parentesis y sigue en ingles.
+- El PRIMER mensaje del alumno sera "[BEGIN]": cuando lo veas, saluda con calidez
+  en ingles, presenta el tema en una frase y haz la primera pregunta sencilla.
+- Tono calido, alentador y con chispa. No rompas el personaje ni cambies de tema
+  salvo que el alumno lo pida.`;
+
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin || "*",
@@ -253,6 +277,16 @@ async function handleChat(request, env, origin) {
   const context = String(body.context || "").slice(0, 600).trim();
   if (!question) return json({ error: "Escribe una pregunta." }, 400, origin);
 
+  // MODO CONVERSACION: companero de charla en ingles guiado por tema + nivel.
+  const isConversation = body.mode === "conversation";
+  const topic = String(body.topic || "").slice(0, 160).trim();
+  const level = String(body.level || "").slice(0, 4).trim();
+  let systemText = isConversation ? CONVERSATION_PROMPT : SYSTEM_PROMPT;
+  if (isConversation) {
+    systemText += `\n\nTEMA de la conversacion: ${topic || "general"}` +
+      `\nNIVEL del alumno (MCER): ${level || "B1"}`;
+  }
+
   // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`
   // ([{role:"user"|"model", text}]). Reconstruimos el hilo para que Bymax
   // recuerde de que hablabamos. Guardrails (presupuesto $1): max 10 turnos y
@@ -276,14 +310,18 @@ async function handleChat(request, env, origin) {
   // Gemini exige que la conversacion empiece con un turno "user".
   while (contents.length && contents[0].role !== "user") contents.shift();
 
-  const userText = context
-    ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
-    : `Pregunta del alumno: ${question}`;
+  // En conversacion el tema vive en el system prompt -> el turno va tal cual.
+  // En tutoria, el contexto de la leccion se antepone a la pregunta.
+  const userText = isConversation
+    ? question
+    : (context
+        ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
+        : `Pregunta del alumno: ${question}`);
   contents.push({ role: "user", parts: [{ text: userText }] });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
   const payload = {
-    systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    systemInstruction: { parts: [{ text: systemText }] },
     contents,
     generationConfig: {
       temperature: 0.7,

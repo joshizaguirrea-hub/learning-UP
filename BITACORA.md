@@ -176,6 +176,28 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       lo exige). RETROCOMPATIBLE: Worker viejo ignora `history` -> sigue funcionando
       sin memoria. IMPORTANTE: hay que REDESPLEGAR el Worker en Cloudflare
       (Edit code -> pegar bymax-worker.js -> Deploy) para que la memoria funcione.
+- [x] TARJETAS-ACORDEON DE UNIDADES + CONVERSACION CON IA (2026-07-18, v0.127.0).
+      (1) UI: la seccion "Tu curso" del dashboard ahora muestra cada unidad como
+      TARJETA con borde degradado que se DESPLIEGA al tocar (acordeon, sin cambiar
+      de pantalla -> menos choque visual). Nuevo archivo src/features/course-cards.js
+      (courseCards(units, progressMap)); se elimino la vieja courseSection de
+      student.js (DRY/YAGNI). Dentro de cada tarjeta: las 6 competencias (grammar,
+      vocabulary, reading, writing, listening, speaking) como chips enlazados a su
+      leccion (listening = 'proximamente' si la unidad no la tiene); los BONOS de
+      verbos (pasado regular -ed, expresiones de tiempo, idioms) enlazados a
+      #/bonus/:id; y un boton estrella de conversacion con IA.
+      (2) NUEVO MAZO BONUS 'idioms' (data/bonus-decks.js): 12 modismos con ejemplo
+      y medalla 'Maestro de modismos'. Sin practice (flashcard de recall como past-time).
+      (3) CONVERSACION REAL CON IA por unidad (src/features/conversation.js,
+      openConversation(unit)): modal donde Bymax es companero de charla en INGLES,
+      guiado por TEMA (unit.title) y NIVEL (unit.level), con ayuda en espanol si el
+      alumno se traba. Reutiliza el Worker en modo 'conversation' (nuevo
+      CONVERSATION_PROMPT + tema/nivel inyectados en systemInstruction) y la MEMORIA
+      de conversacion. Arranca solo con sentinela '[BEGIN]' (la IA saluda y hace la
+      1a pregunta). Voz INGLESA (speak en-US). IMPORTANTE: requiere el MISMO redeploy
+      del Worker que la memoria (v0.126). Idea futura: registrar 'speaking' como
+      leccion real para que cuente en el % de dominio (hoy la conversacion no marca
+      progreso).
 
 ---
 
