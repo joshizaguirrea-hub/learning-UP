@@ -96,6 +96,61 @@ export function speak(text, lang = "en-US", opts = {}) {
   speakSequence(parts.map((p) => ({ text: p, lang: base === "es" ? "es-MX" : "en-US", opts })));
 }
 
+// --- Deteccion de idioma por frase (anti-Spanglish en respuestas MIXTAS) ---
+// Marcas inequivocas de espanol (acentos, enye, signos ¿¡) y palabras funcion
+// frecuentes. Se usa para decidir la voz de cada frase por separado.
+const ES_CHARS = /[\u00E1\u00E9\u00ED\u00F3\u00FA\u00FC\u00F1\u00BF\u00A1]/i;
+const ES_WORDS = /\b(el|la|los|las|un|una|unos|unas|de|del|que|qu\u00E9|y|o|pero|porque|como|c\u00F3mo|para|por|con|sin|tu|tus|te|te|es|est\u00E1|estas|estoy|soy|eres|eras|puedes|puede|tienes|tiene|hacer|dices|dice|algo|muy|bien|no|s\u00ED|si|esto|esta|este|eso|ese|cuando|donde|dedicas|trabajo|sue\u00F1os|ayudarte|preocupes|completamente|normal|responder|sencillo|ejemplo|frase|regla|recuerda|significa|correcto|respuesta)\b/i;
+const EN_WORDS = /\b(the|a|an|of|to|is|are|was|were|do|does|did|you|your|i|we|they|he|she|it|and|or|but|because|what|when|where|how|can|could|would|should|will|have|has|had|work|student|office|dream|job|example|answer|question|hello|hi|nice)\b/i;
+
+/** Devuelve "es" o "en" para un fragmento de texto (default en). */
+function detectLang(text) {
+  const t = String(text || "");
+  if (ES_CHARS.test(t)) return "es";
+  const es = (t.match(new RegExp(ES_WORDS, "gi")) || []).length;
+  const en = (t.match(new RegExp(EN_WORDS, "gi")) || []).length;
+  return es > en ? "es" : "en";
+}
+
+/**
+ * Habla un texto MIXTO (es/en) dando a cada frase su voz correcta. Los ejemplos
+ * entre comillas ("I am a student") se dicen SIEMPRE en ingles; el resto se
+ * detecta por frase. Anti-Spanglish real cuando Bymax ayuda en espanol pero
+ * cita ejemplos en ingles.
+ * @param {string} text
+ * @returns {function} cancel()
+ */
+export function speakBilingual(text) {
+  if (!text) return () => {};
+  // 1) Trocea en segmentos: lo entrecomillado (" " o “ ”) va aparte como INGLES.
+  const raw = String(text).replace(/\s+/g, " ").trim();
+  const segs = [];
+  const re = /["\u201C\u201D]([^"\u201C\u201D]+)["\u201C\u201D]/g;
+  let last = 0, m;
+  while ((m = re.exec(raw))) {
+    if (m.index > last) segs.push({ text: raw.slice(last, m.index), quoted: false });
+    segs.push({ text: m[1], quoted: true });
+    last = re.lastIndex;
+  }
+  if (last < raw.length) segs.push({ text: raw.slice(last), quoted: false });
+
+  // 2) Cada segmento no entrecomillado se parte en frases; cada frase toma su
+  //    idioma detectado. Las entrecomilladas van forzadas a ingles.
+  const items = [];
+  for (const s of segs) {
+    const clean = s.text.replace(/^[\s,.;:]+|[\s,.;:]+$/g, "").trim();
+    if (!clean) continue;
+    if (s.quoted) { items.push({ text: clean, lang: "en-US" }); continue; }
+    for (const phrase of clean.split(/(?<=[.!?\u00A1\u00BF])\s+/)) {
+      const p = phrase.trim();
+      if (!p) continue;
+      items.push({ text: p, lang: detectLang(p) === "es" ? "es-MX" : "en-US" });
+    }
+  }
+  if (!items.length) return () => {};
+  return speakSequence(items);
+}
+
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
 export function speakRobot(text, lang = "es-MX", opts = {}) {
   if (opts.chirp) robotChirp();
