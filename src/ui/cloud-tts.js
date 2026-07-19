@@ -94,6 +94,15 @@ async function fetchAudio(rawText, lang, opts) {
   return url;
 }
 
+// PRE-DESCARGA (warm cache) del audio SIN reproducirlo. Se usa para bajar en
+// paralelo todos los trozos de una secuencia bilingue -> al reproducir ya estan
+// en cache y NO hay pausa de red entre idiomas. Silencioso: ignora errores.
+export function prefetchCloud(text, lang = "es", opts) {
+  const o = typeof opts === "string" ? { voice: opts } : (opts || {});
+  if (!cloudTtsEnabled() || !text) return Promise.resolve();
+  return fetchAudio(text, lang, o).catch(() => {});
+}
+
 /**
  * Reproduce `text` con voz de la nube. Devuelve una Promise que se resuelve
  * cuando termina de sonar (o se rechaza si algo falla -> el que llama cae al
