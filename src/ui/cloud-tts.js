@@ -16,8 +16,10 @@ export function cloudTtsEnabled() {
   return bymaxAiEnabled;
 }
 
-const cache = new Map(); // "lang|texto" -> dataURL (mp3 base64)
-let current = null;      // true si el player esta reproduciendo algo nuestro
+const cache = new Map();    // "lang|texto" -> dataURL (mp3 base64) YA descargado
+const inflight = new Map(); // "lang|texto" -> Promise<dataURL> en vuelo (DEDUP)
+let current = null;         // true si el player esta reproduciendo algo nuestro
+let playToken = 0;          // generacion: invalida reproducciones viejas (anti-"pisa y reinicia")
 
 /**
  * Arregla el texto ANTES de mandarlo al TTS para que suene natural:
@@ -60,8 +62,9 @@ if (typeof window !== "undefined") {
   window.addEventListener("click", unlock, { once: true });
 }
 
-/** Detiene el audio de nube que este sonando. */
+/** Detiene el audio de nube que este sonando (e invalida reproducciones pendientes). */
 export function cancelCloud() {
+  playToken++; // cualquier fetch.then anterior vera un token viejo y NO tocara el player
   if (current && player) {
     try { player.pause(); } catch { /* ignore */ }
     current = null;
@@ -74,24 +77,30 @@ async function fetchAudio(rawText, lang, opts) {
   // La clave de cache incluye todo lo que cambia el audio (voz, voz HD, rate).
   const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + (o.rate || "") + "|" + text;
   if (cache.has(key)) return cache.get(key);
+  if (inflight.has(key)) return inflight.get(key); // DEDUP: no bajar 2 veces lo mismo
   const base = BYMAX_WORKER_URL.replace(/\/+$/, "");
-  const res = await fetch(base + "/tts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      text, lang,
-      voice: o.voice,      // voz Aura (compat con Worker viejo)
-      voiceHd: o.voiceHd,  // voz Google Chirp3-HD ingles (Worker nuevo)
-      gender: o.gender,    // "F" | "M" (para elegir voz por defecto)
-      rate: o.rate,        // velocidad (titulos mas lentos = mas carino)
-    }),
-  });
-  if (!res.ok) throw new Error("tts http " + res.status);
-  const data = await res.json().catch(() => ({}));
-  if (!data.audio) throw new Error("tts sin audio");
-  const url = "data:audio/mp3;base64," + data.audio;
-  cache.set(key, url);
-  return url;
+  const p = (async () => {
+    const res = await fetch(base + "/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text, lang,
+        voice: o.voice,      // voz Aura (compat con Worker viejo)
+        voiceHd: o.voiceHd,  // voz Google Chirp3-HD ingles (Worker nuevo)
+        gender: o.gender,    // "F" | "M" (para elegir voz por defecto)
+        rate: o.rate,        // velocidad (titulos mas lentos = mas carino)
+      }),
+    });
+    if (!res.ok) throw new Error("tts http " + res.status);
+    const data = await res.json().catch(() => ({}));
+    if (!data.audio) throw new Error("tts sin audio");
+    const url = "data:audio/mp3;base64," + data.audio;
+    cache.set(key, url);
+    return url;
+  })();
+  inflight.set(key, p);
+  try { return await p; }
+  finally { inflight.delete(key); }
 }
 
 // PRE-DESCARGA (warm cache) del audio SIN reproducirlo. Se usa para bajar en
@@ -116,18 +125,44 @@ export function cloudSpeak(text, lang = "es", opts) {
   return new Promise((resolve, reject) => {
     if (!cloudTtsEnabled() || !text) { reject(new Error("cloud tts off")); return; }
     cancelCloud();
+    // Token de ESTA reproduccion. Si mientras baja el audio alguien llama a
+    // cancelCloud()/otro cloudSpeak, el token cambia y este .then se descarta
+    // -> NUNCA se reproduce un audio viejo encima del nuevo (bug "reinicia").
+    const myToken = playToken;
     fetchAudio(text, lang, o).then((url) => {
+      if (myToken !== playToken) { resolve(); return; } // quedo obsoleto: no suena
       const audio = getPlayer();
       current = true;
       // Blindaje: el "unlock" movil pudo dejar el player en muted. Forzamos que
       // el audio real SIEMPRE suene (si no, la app se oiria muda por error).
       audio.muted = false;
       audio.volume = 1;
-      audio.onended = () => { current = null; resolve(); };
-      audio.onerror = () => { current = null; reject(new Error("audio error")); };
-      audio.src = url;
+      let done = false;
+      const finish = (fn, arg) => {
+        if (done) return;           // un solo desenlace: ni doble resolve ni reinicio
+        done = true;
+        audio.onended = null;
+        audio.onerror = null;
+        if (current && myToken === playToken) current = null;
+        fn(arg);
+      };
+      audio.onended = () => finish(resolve);
+      audio.onerror = () => {
+        // Si esta reproduccion quedo obsoleta (otra la reemplazo), NO es un error
+        // real: resolvemos en silencio para NO gatillar el fallback del navegador
+        // (que releeria el texto = "dice palabras y reinicia").
+        if (myToken !== playToken) finish(resolve);
+        else finish(reject, new Error("audio error"));
+      };
+      try { audio.pause(); } catch { /* ignore */ }
+      audio.src = url;            // reasignar src reinicia currentTime a 0 (una sola vez)
       const p = audio.play();
-      if (p && p.catch) p.catch(reject);
+      if (p && p.catch) p.catch((e) => {
+        // AbortError = play() interrumpido por otro src/pause (normal al alternar).
+        // Eso o quedar obsoleto NO debe reintentar con la voz del navegador.
+        if ((e && e.name === "AbortError") || myToken !== playToken) finish(resolve);
+        else finish(reject, e);
+      });
     }).catch(reject);
   });
 }
