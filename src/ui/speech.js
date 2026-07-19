@@ -218,8 +218,11 @@ export function robotChirp() {
  * @returns {function} cancel() para detener la secuencia
  */
 export function speakSequence(items, onEach, onDone) {
-  cancelCloud();
   if (isSpeechSupported()) window.speechSynthesis.cancel();
+
+  // Solo la ULTIMA secuencia manda: si alguien arranca otra, esta se detiene
+  // sola (evita que dos secuencias se pisen -> "dice palabras y reinicia").
+  const myGen = ++seqGen;
 
   // MODELO DOS PROFES: cada item se dice ENTERO en el idioma de su rol. El profe
   // de ESPANOL (explicaciones, preguntas, logica) no corta a ingles a media
@@ -234,14 +237,15 @@ export function speakSequence(items, onEach, onDone) {
 
   let i = 0;
   let cancelled = false;
+  const dead = () => cancelled || myGen !== seqGen;
 
   function advance(it) {
     i++;
-    if (!cancelled) setTimeout(next, it.gapAfter ?? 220);
+    if (!dead()) setTimeout(next, it.gapAfter ?? 220);
   }
 
   function next() {
-    if (cancelled) return;
+    if (dead()) return;
     if (i >= expanded.length) { onDone?.(); return; }
     const it = expanded[i];
     onEach?.(i);
