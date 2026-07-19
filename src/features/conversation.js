@@ -11,7 +11,7 @@
  */
 import { el } from "../ui/dom.js";
 import { robotAvatar, robotName } from "../ui/robot.js";
-import { speak, robotChirp } from "../ui/speech.js";
+import { speakBilingual, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
@@ -81,12 +81,13 @@ export function openConversation(unit) {
         type: "button",
         class: "shrink-0 mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-emerald-300 hover:bg-emerald-500/20",
         "aria-label": "Escuchar respuesta", title: "Escuchar",
-        onclick: () => speak(text, "en-US"), html: ICONS.sound,
+        onclick: () => speakBilingual(text), html: ICONS.sound,
       }));
     log.append(row);
     log.scrollTop = log.scrollHeight;
-    // La IA conversa en ingles -> voz inglesa (Chirp3-HD / Aura).
-    speak(text, "en-US");
+    // La IA suele hablar en ingles, pero la ayuda va en espanol con ejemplos en
+    // ingles entre comillas -> speakBilingual da a cada frase su voz correcta.
+    speakBilingual(text);
   }
 
   /**
