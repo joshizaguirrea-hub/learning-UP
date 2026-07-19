@@ -9,7 +9,7 @@
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { fixSpanishAccents } from "./es-accents.js";
-import { cloudSpeak, cancelCloud, cloudTtsEnabled } from "./cloud-tts.js";
+import { cloudSpeak, cancelCloud, cloudTtsEnabled, prefetchCloud } from "./cloud-tts.js";
 
 /** True si el navegador soporta sintesis de voz. */
 export function isSpeechSupported() {
@@ -136,18 +136,38 @@ export function speakBilingual(text) {
 
   // 2) Cada segmento no entrecomillado se parte en frases; cada frase toma su
   //    idioma detectado. Las entrecomilladas van forzadas a ingles.
-  const items = [];
+  const rawItems = [];
   for (const s of segs) {
     const clean = s.text.replace(/^[\s,.;:]+|[\s,.;:]+$/g, "").trim();
     if (!clean) continue;
-    if (s.quoted) { items.push({ text: clean, lang: "en-US" }); continue; }
+    if (s.quoted) { rawItems.push({ text: clean, lang: "en-US" }); continue; }
     for (const phrase of clean.split(/(?<=[.!?\u00A1\u00BF])\s+/)) {
       const p = phrase.trim();
       if (!p) continue;
-      items.push({ text: p, lang: detectLang(p) === "es" ? "es-MX" : "en-US" });
+      rawItems.push({ text: p, lang: detectLang(p) === "es" ? "es-MX" : "en-US" });
     }
   }
-  if (!items.length) return () => {};
+  if (!rawItems.length) return () => {};
+
+  // 2b) FUSIONA trozos SEGUIDOS del mismo idioma en uno solo -> menos cortes y
+  //     menos peticiones (una frase completa por idioma suena mas fluida).
+  const items = [];
+  for (const it of rawItems) {
+    const prev = items[items.length - 1];
+    if (prev && prev.lang === it.lang) prev.text += " " + it.text;
+    else items.push({ ...it });
+  }
+  // Gap corto entre idiomas: transicion viva, sin silencios que aburran.
+  for (const it of items) it.gapAfter = 90;
+
+  // 3) PRE-DESCARGA en PARALELO todos los audios (warm cache) para que al
+  //    reproducir NO haya pausa de red entre el espanol y el ingles. La clave
+  //    debe coincidir con la que usa speakSequence (fixSpanishAccents en ES).
+  for (const it of items) {
+    const isEs = String(it.lang).toLowerCase().startsWith("es");
+    prefetchCloud(isEs ? fixSpanishAccents(it.text) : it.text, isEs ? "es" : "en");
+  }
+
   return speakSequence(items);
 }
 
