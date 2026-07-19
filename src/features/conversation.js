@@ -13,6 +13,7 @@ import { el } from "../ui/dom.js";
 import { robotAvatar, robotName } from "../ui/robot.js";
 import { speak, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
+import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
 
@@ -36,7 +37,7 @@ export function openConversation(unit) {
   const name = robotName();
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
-  const close = () => { stopAudio(); overlay.remove(); };
+  const close = () => { dictation?.abort(); stopAudio(); overlay.remove(); };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
   function stopAudio() {
     cancelCloud();
@@ -142,6 +143,59 @@ export function openConversation(unit) {
   sendBtn.onclick = ask;
   input.addEventListener("keydown", (e) => { if (e.key === "Enter") ask(); });
 
+  // --- MICROFONO (speech-to-text): habla en ingles y se transcribe ---------
+  const TYPE_PH = bymaxAiEnabled ? "Type in English (or ask for help)..." : "Bymax IA no esta configurado aun";
+  const MIC_IDLE = "shrink-0 grid place-items-center w-12 rounded-xl bg-slate-800 border border-slate-700 " +
+    "text-emerald-300 hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400 disabled:opacity-50";
+  const MIC_LIVE = "shrink-0 grid place-items-center w-12 rounded-xl bg-red-500 text-white " +
+    "animate-pulse focus:outline focus:outline-2 focus:outline-red-300";
+  let listening = false;
+  let dictation = null;
+  const micBtn = el("button", {
+    type: "button",
+    disabled: bymaxAiEnabled ? undefined : "true",
+    class: MIC_IDLE, "aria-label": "Hablar (microfono)", title: "Hablar", html: ICONS.mic,
+  });
+
+  function setMic(on) {
+    listening = on;
+    micBtn.className = on ? MIC_LIVE : MIC_IDLE;
+    micBtn.setAttribute("aria-label", on ? "Detener microfono" : "Hablar (microfono)");
+    micBtn.innerHTML = on ? ICONS.micOff : ICONS.mic;
+    input.placeholder = on ? "Escuchando... habla en ingles" : TYPE_PH;
+  }
+
+  function startMic() {
+    if (busy) return;
+    stopAudio(); // que el microfono NO capture la voz de Bymax
+    if (!dictation) {
+      dictation = createDictation({
+        lang: "en-US",
+        onStart: () => setMic(true),
+        onInterim: (t) => { input.value = t; },
+        onFinal: (t) => { input.value = t; },
+        onEnd: (finalText) => {
+          setMic(false);
+          const q = (finalText || input.value).trim();
+          if (q) { input.value = ""; send(q, true); }  // envia solo al terminar de hablar
+        },
+        onError: (code) => {
+          setMic(false);
+          if (code === "not-allowed" || code === "service-not-allowed") {
+            push("No pude usar el microfono. Da permiso desde el candado de la barra de direcciones y vuelve a intentar.", "bot");
+          }
+        },
+      });
+    }
+    dictation.start();
+  }
+
+  micBtn.onclick = () => {
+    if (!bymaxAiEnabled) return;
+    if (listening) dictation?.stop();
+    else startMic();
+  };
+
   // Boton de ayuda rapida: pide una mano en espanol sin escribir.
   const helpBtn = el("button", {
     type: "button",
@@ -172,7 +226,7 @@ export function openConversation(unit) {
     el("div", { class: "mt-3 border-t border-slate-800 pt-2" }, log),
 
     el("div", { class: "mt-2 flex justify-end" }, helpBtn),
-    el("div", { class: "mt-2 flex gap-2" }, input, sendBtn));
+    el("div", { class: "mt-2 flex gap-2" }, ...(speechSupported() ? [micBtn] : []), input, sendBtn));
 
   const overlay = el("div", {
     class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4",
