@@ -127,11 +127,12 @@ export function openConversation(unit) {
       }
     } catch (err) {
       thinking.remove();
-      // No mentimos con "revisa tu internet": si el fetch falla suele ser el
-      // Worker (caido, sin CORS o cuota agotada). Mostramos la pista real.
-      const hint = String(err && err.message ? err.message : err);
-      push("\u26A0\uFE0F No pude contactar a Bymax IA (" + hint + "). " +
-        "Puede ser el servidor de IA, no tu internet. Intenta de nuevo en un momento.", "bot");
+      // No mentimos con "revisa tu internet": un fetch fallido suele ser que la
+      // RED del alumno bloquea el dominio del Worker (comun en WiFi de escuela/
+      // oficina), no que no tenga internet.
+      push("\u26A0\uFE0F No pude conectar con Bymax IA. Si estas en WiFi de escuela " +
+        "u oficina, es probable que la red bloquee el servicio. Prueba con datos " +
+        "moviles (4G/5G) o con otra red.", "bot");
     } finally {
       busy = false;
       sendBtn.disabled = false;
