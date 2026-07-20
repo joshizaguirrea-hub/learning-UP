@@ -144,7 +144,21 @@ body.lesson-mode::after {
   .bymax-alive, .bymax-happy, .bymax-sad, .bymax-think,
   .celebrate-ring, .celebrate-card, .celebrate-overlay,
   body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
+  .card-sheen::after { display: none !important; }
+  .group:hover { transform: none !important; }
 }
+
+/* Sheen: brillo diagonal que barre las tarjetas del curso al pasar el cursor. */
+.card-sheen { pointer-events: none; overflow: hidden; }
+.card-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.28) 48%, transparent 66%);
+  transform: translateX(-130%);
+  transition: transform .8s ease;
+}
+.group:hover .card-sheen::after { transform: translateX(130%); }
 
 /* Burbuja del Profe Robo: colita del bocadillo. */
 .robot-bubble { position: relative; }
