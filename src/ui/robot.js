@@ -12,6 +12,7 @@ import { speakButton, speakRobot, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
 import { getRobot, setRobot } from "./robot-prefs.js";
+import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
 import { openBymaxChat } from "../features/bymax-chat.js";
@@ -269,6 +270,25 @@ export function openRobotSetup(onDone) {
   }
   paintGrid();
 
+  // Personalizacion de COLOR (acento) de Bymax -> sentido de propiedad.
+  let chosenAccent = getAccent().id;
+  const swatches = el("div", { class: "mt-3 flex flex-wrap gap-2" });
+  function paintSwatches() {
+    swatches.replaceChildren(...ACCENTS.map((ac) => {
+      const sel = ac.id === chosenAccent;
+      return el("button", {
+        type: "button",
+        "aria-label": "Color " + ac.label,
+        "aria-pressed": sel ? "true" : "false",
+        title: ac.label,
+        class: `w-10 h-10 rounded-full bg-gradient-to-br ${ac.grad} transition ` +
+          (sel ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white scale-110" : "opacity-80 hover:opacity-100"),
+        onclick: () => { chosenAccent = ac.id; paintSwatches(); },
+      });
+    }));
+  }
+  paintSwatches();
+
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl",
     role: "dialog", "aria-label": "Configura tu robot", "aria-modal": "true",
@@ -279,10 +299,13 @@ export function openRobotSetup(onDone) {
     nameInput,
     el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Elige su avatar"),
     grid,
+    el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Color de " + (current.name || "tu robot")),
+    swatches,
     el("button", {
       class: "mt-5 w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
       onclick: () => {
         const name = nameInput.value.trim() || "Profe Robo";
+        setAccent(chosenAccent);
         const cfg = setRobot({ name, avatar: chosen });
         close();
         if (typeof onDone === "function") onDone(cfg);

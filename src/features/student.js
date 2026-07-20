@@ -18,6 +18,7 @@ import { getAccent } from "../ui/prefs.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { courseCards } from "./course-cards.js";
+import { bymaxCard, dailyGreeting } from "./bymax-panel.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -42,7 +43,9 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
 
   mount(container, el("div", { class: "space-y-6" },
+    dailyGreeting({ name, streak: profile.streak || 0 }),
     profileHeader(name, profile, xp),
+    bymaxCard({ xp, streak: profile.streak || 0 }),
     nextActionHero(profile, units, completed, due),
     courseCards(units, progressMap),
     statsRow(profile, srs.learned, lessonsDone),
