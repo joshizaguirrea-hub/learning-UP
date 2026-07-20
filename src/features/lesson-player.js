@@ -147,6 +147,8 @@ export async function renderLessonPlayer(container, params, user) {
         }
         state.checked.add(idxNum);
         lockNode(node);
+        // Avisa a la actividad que ya se comprobo (ej. listening revela transcripcion).
+        node.dispatchEvent(new CustomEvent("activity:checked", { detail: { ok } }));
         ok ? playCorrect() : playWrong();
         robotReact(ok, robotLang);
         // Refresca la barra superior (corazones/racha) sin re-render del ejercicio.
@@ -475,16 +477,27 @@ function listeningActivity(act, idx, title) {
     ? mcActivity({ payload: { choices: p.choices, answer: p.answer } }, idx, qLegend)
     : clozeActivity({ payload: {} }, qLegend);
 
-  // Transcripcion oculta (integridad del listening): el alumno la abre si quiere.
-  const transcript = el("details", { class: "mt-4 text-sm" },
+  // Transcripcion BLOQUEADA hasta responder (integridad del listening). Se
+  // revela sola cuando el paso dispara el evento "activity:checked".
+  const transcript = el("details", { class: "mt-4 text-sm hidden" },
     el("summary", { class: "cursor-pointer text-slate-400 hover:text-slate-200 select-none" }, "Ver transcripci\u00f3n"),
     el("p", { class: "mt-2 text-slate-200 bg-white/5 rounded-lg px-3 py-2" }, richText(p.transcript || audioText)));
+  const locked = el("p", { class: "mt-4 text-xs text-slate-500 italic" }, "La transcripci\u00f3n se desbloquea al responder.");
 
   const node = el("fieldset", {}, title,
     el("p", { class: "mt-1 text-xs text-slate-400" }, "Escucha las veces que necesites. El texto est\u00e1 oculto a prop\u00f3sito."),
     el("div", { class: "mt-3 flex flex-wrap gap-2" }, playBtn, slowBtn),
     el("div", { class: "mt-5" }, sub.node),
-    transcript);
+    transcript, locked);
+
+  // Al comprobar la respuesta, el paso dispara "activity:checked" -> revelamos.
+  node.addEventListener("activity:checked", () => {
+    transcript.classList.remove("hidden");
+    locked.remove();
+    // Reactiva SOLO los botones de audio para poder repetir mientras se repasa.
+    playBtn.disabled = false;
+    slowBtn.disabled = false;
+  });
 
   // Auto-reproduce al aparecer (con un respiro para no pisar otras voces).
   setTimeout(() => play(0.9), 350);
