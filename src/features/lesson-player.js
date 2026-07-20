@@ -152,13 +152,14 @@ export async function renderLessonPlayer(container, params, user) {
         // Avisa a la actividad que ya se comprobo (ej. listening revela transcripcion).
         node.dispatchEvent(new CustomEvent("activity:checked", { detail: { ok } }));
         ok ? playCorrect() : playWrong();
-        robotReact(ok, robotLang);
         // Refresca la barra superior (corazones/racha) sin re-render del ejercicio.
         const card = container.firstElementChild;
         if (card && card.firstElementChild) {
           card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state), card.firstElementChild);
         }
         body.append(feedbackBanner(ok, act, unitGrammar, robotLang, unit.level));
+        // Bymax reacciona DESPUES de montar el banner (ya existe su avatar vivo).
+        robotReact(ok, robotLang);
         mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
           state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
         announce(ok ? "Correcto" : "Incorrecto");
@@ -346,15 +347,17 @@ function feedbackBanner(ok, act, grammar = null, lang = "es-MX", level) {
     class: "mt-4 rounded-xl p-4 border " +
       (ok ? "border-emerald-600/60 bg-emerald-900/25" : "border-red-700/60 bg-red-900/25"),
   },
-    el("p", { class: "font-bold " + (ok ? "text-emerald-300" : "text-red-300") },
-      ok ? "\u2714 Correcto!" : "\u2716 No exactamente"),
-    !ok ? el("p", { class: "mt-1 text-sm text-slate-200" }, "Respuesta: " + answerText) : null,
+    el("div", { class: "flex items-center gap-3" },
+      robotAvatar("md"),
+      el("p", { class: "font-bold text-lg " + (ok ? "text-emerald-300" : "text-red-300") },
+        ok ? "\u2714 \u00a1Correcto!" : "\u2716 No exactamente")),
+    !ok ? el("p", { class: "mt-2 text-sm text-slate-200" }, "Respuesta: " + answerText) : null,
     act.explain ? el("p", { class: "mt-2 text-sm text-slate-300" }, "Por que: " + act.explain) : null,
     !ok ? el("button", {
       class: "mt-3 flex items-center gap-2 text-sm text-indigo-200 border border-indigo-500/40 " +
         "bg-indigo-500/10 rounded-xl px-3 py-2 hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
       onclick: () => openWhyWrong(grammar, act, answerText, lang, level),
-    }, robotAvatar("sm"), "Por que me equivoque?") : null);
+    }, "Por que me equivoque?") : null);
 }
 
 function correctAnswerText(act) {
