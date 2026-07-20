@@ -101,7 +101,9 @@ function identityCard(name, profile, user) {
   if (mot) chips.push(chip(`${mot.emoji} ${mot.label}`));
 
   return el("section", { class: PANEL + " overflow-hidden p-0" },
-    el("div", { class: `h-24 bg-gradient-to-r ${accent.grad}` }),
+    el("div", { class: `relative h-24 bg-gradient-to-r ${accent.grad} overflow-hidden` },
+      el("div", { class: "absolute -top-1/2 -left-8 w-1/2 h-[200%] bg-white/25 blur-2xl opacity-60", "aria-hidden": "true" }),
+      el("div", { class: "absolute -bottom-10 right-8 w-28 h-28 rounded-full border-8 border-white/10", "aria-hidden": "true" })),
     el("div", { class: "px-5 pb-5" },
       el("div", { class: "flex items-end justify-between gap-4 -mt-10 flex-wrap" },
         el("div", { class: "flex items-end gap-4" },
