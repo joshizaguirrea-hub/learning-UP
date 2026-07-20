@@ -104,6 +104,10 @@ export function openConversation(unit) {
     log.append(thinking);
     log.scrollTop = log.scrollHeight;
 
+    // SOLO el fetch decide si hubo error de RED. Todo lo demas (pintar, hablar)
+    // va aparte para NO disfrazar un bug de UI/voz como "sin internet".
+    let data = null;
+    let netError = null;
     try {
       const res = await fetch(BYMAX_WORKER_URL, {
         method: "POST",
@@ -113,31 +117,32 @@ export function openConversation(unit) {
           question: q, history: history.slice(-MAX_TURNS),
         }),
       });
-      const data = await res.json().catch(() => ({}));
-      thinking.remove();
-      if (!res.ok || !data.answer) {
-        const why = [data.error, data.detail].filter(Boolean).join(" | ");
-        push(why ? ("\u26A0\uFE0F " + why) : "Ups, no pude responder ahora. Intenta de nuevo.", "bot");
-      } else {
-        pushBot(data.answer);
-        // Guardamos el intercambio (el "[BEGIN]" no ensucia el hilo visible,
-        // pero SI viaja en el historial para que la IA recuerde que ya arranco).
-        history.push({ role: "user", text: q }, { role: "model", text: data.answer });
-        if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
-      }
+      data = await res.json().catch(() => ({}));
+      if (!res.ok && data) data._status = res.status;
     } catch (err) {
-      thinking.remove();
-      // No mentimos con "revisa tu internet": un fetch fallido suele ser que la
-      // RED del alumno bloquea el dominio del Worker (comun en WiFi de escuela/
-      // oficina), no que no tenga internet.
-      push("\u26A0\uFE0F No pude conectar con Bymax IA. Si estas en WiFi de escuela " +
-        "u oficina, es probable que la red bloquee el servicio. Prueba con datos " +
-        "moviles (4G/5G) o con otra red.", "bot");
-    } finally {
-      busy = false;
-      sendBtn.disabled = false;
-      input.focus();
+      netError = err;
+      console.error("[Bymax] fallo de red al contactar el Worker:", err);
     }
+    thinking.remove();
+
+    if (netError) {
+      push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
+        "intenta en un momento. (Detalle en consola F12).", "bot");
+    } else if (!data || !data.answer) {
+      const why = [data && data.error, data && data.detail, data && data._status]
+        .filter(Boolean).join(" | ");
+      push(why ? ("\u26A0\uFE0F " + why) : "Ups, no pude responder ahora. Intenta de nuevo.", "bot");
+    } else {
+      try { pushBot(data.answer); }
+      catch (e) { console.error("[Bymax] error al pintar/hablar la respuesta:", e); push(data.answer, "bot"); }
+      // Guardamos el intercambio (el "[BEGIN]" no ensucia el hilo visible,
+      // pero SI viaja en el historial para que la IA recuerde que ya arranco).
+      history.push({ role: "user", text: q }, { role: "model", text: data.answer });
+      if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
+    }
+    busy = false;
+    sendBtn.disabled = false;
+    input.focus();
   }
 
   const ask = () => {
