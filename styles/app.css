@@ -169,3 +169,36 @@ body.lesson-mode::after {
   50%      { transform: translateY(-4px); }
 }
 .robot-float { animation: robotFloat 3s ease-in-out infinite; }
+
+/* -------------------------------------------------------------------------
+   Tabla de gramatica (COMPARACION) responsive.
+   En escritorio: tabla normal. En celular (<=640px): cada fila se APILA como
+   tarjeta y cada celda muestra su encabezado (via data-label) -> nunca se
+   corta ni se ve apretada. DRY: mismo DOM, solo cambia el layout por CSS.
+   ------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .gt-table thead { display: none; }
+  .gt-table, .gt-table tbody, .gt-table tr, .gt-table td { display: block; width: 100%; }
+  .gt-table tr {
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+    padding: 0.25rem 0;
+  }
+  .gt-table tr:first-child { border-top: 0; }
+  .gt-table td {
+    border: 0 !important;
+    padding: 0.35rem 0.75rem !important;
+    white-space: normal !important;
+  }
+  /* Etiqueta del encabezado antes del valor, en cada celda. */
+  .gt-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgb(148 163 184);   /* slate-400 */
+    margin-bottom: 0.1rem;
+  }
+  /* La 1a celda (estructura) resalta como titulo de la tarjeta. */
+  .gt-table td:first-child { padding-top: 0.6rem !important; }
+}
