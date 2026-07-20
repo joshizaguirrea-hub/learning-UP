@@ -3,13 +3,14 @@
  *
  * Capa de feature (presentacion). Bloque reutilizable que se muestra en la
  * pantalla completa de la unidad: las 6 competencias como chips enlazados a su
- * leccion ("speaking" abre la conversacion con IA), los bonos de verbos y el
- * boton estrella de CONVERSACION REAL con la IA sobre el tema de la unidad.
+ * leccion ("speaking" abre la practica de PRONUNCIACION), los bonos de verbos y
+ * el boton estrella de CONVERSACION REAL con la IA sobre el tema de la unidad.
  */
 import { SKILL_META } from "../data/skill-meta.js";
 import { ICONS } from "../ui/icons.js";
 import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
+import { openSpeaking } from "./speaking.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 const BONUS_LINKS = [
@@ -62,21 +63,22 @@ export function unitContent(unit, progressMap) {
 }
 
 /**
- * Chip de una competencia. "speaking" abre la conversacion con IA; el resto
- * enlaza a su leccion. Si la unidad no tiene esa competencia, queda "proximamente".
+ * Chip de una competencia. "speaking" abre la practica de pronunciacion; el
+ * resto enlaza a su leccion. Si la unidad no tiene esa competencia, "proximamente".
  */
 function skillChip(key, unit, lesson, progressMap) {
   const meta = SKILL_META[key];
   const iconBox = el("span", { class: "w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0", html: meta.icon });
   const label = el("span", { class: "flex-1 min-w-0 font-bold text-white truncate" }, meta.label);
 
-  // Speaking = conversacion real con la IA (siempre disponible).
+  // Speaking = practica de PRONUNCIACION (escucha y repite), distinta de la
+  // conversacion libre con IA. Siempre disponible.
   if (key === "speaking") {
     return el("button", {
       type: "button",
       class: `flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r ${meta.gradient} shadow-lg ` +
         "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60 text-left",
-      onclick: () => openConversation(unit),
+      onclick: () => openSpeaking(unit),
     }, iconBox, label);
   }
 
