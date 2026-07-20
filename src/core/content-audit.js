@@ -36,6 +36,17 @@ function activityError(a) {
       if (!Array.isArray(p.pairs) || p.pairs.length < 2) return "pares insuficientes";
       if (p.pairs.some((x) => !x.left || !x.right)) return "par incompleto";
       return null;
+    case "listening": {
+      if (!p.audio || !String(p.audio).trim()) return "falta el texto del audio";
+      // Reusa las reglas de MC (si hay choices) o de cloze (texto libre).
+      if (Array.isArray(p.choices)) {
+        if (p.choices.length < 2) return "opciones insuficientes";
+        if (!Number.isInteger(p.answer) || p.answer < 0 || p.answer >= p.choices.length) return "indice de respuesta invalido";
+      } else if (!p.answer || !String(p.answer).trim()) {
+        return "falta la respuesta";
+      }
+      return null;
+    }
     default:
       return `tipo desconocido: ${a.type}`;
   }

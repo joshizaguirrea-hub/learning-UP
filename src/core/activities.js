@@ -9,6 +9,7 @@
  *   - cloze:           escribir la palabra que falta
  *   - word_bank:       ordenar palabras para formar la frase
  *   - matching:        emparejar izquierda-derecha
+ *   - listening:       escuchar un audio (TTS) y responder (MC o cloze)
  */
 
 /** Normaliza texto para comparar respuestas escritas (case/espacios/acentos). */
@@ -48,6 +49,15 @@ export function grade(activity, response) {
       // response: objeto { leftId: rightId }. payload.pairs: [{left, right}]
       const pairs = activity.payload.pairs;
       return pairs.every((p, i) => response?.[i] === p.right);
+    }
+
+    case "listening": {
+      // Se ESCUCHA un audio (texto->TTS) y se responde. Reusa la logica de MC
+      // (si hay choices) o de cloze (si es texto libre). DRY: no reinventamos.
+      const p = activity.payload;
+      if (Array.isArray(p.choices)) return response === p.answer;
+      const accepted = [p.answer, ...(p.alt || [])];
+      return accepted.some((a) => normalize(a) === normalize(response ?? ""));
     }
 
     default:

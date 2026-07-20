@@ -21,6 +21,8 @@ import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/soun
 import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact, openWhyWrong } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText } from "../ui/richtext.js";
+import { speakSequence } from "../ui/speech.js";
+import { ICONS } from "../ui/icons.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
 import { confettiBurst } from "../ui/confetti.js";
 import { line } from "../ui/robot-lines.js";
@@ -341,6 +343,7 @@ function correctAnswerText(act) {
     case "cloze": return p.answer;
     case "word_bank": return p.answer.join(" ");
     case "matching": return p.pairs.map((x) => x.left + " = " + x.right).join(" | ");
+    case "listening": return Array.isArray(p.choices) ? p.choices[p.answer] : p.answer;
     default: return "";
   }
 }
@@ -365,6 +368,7 @@ function renderActivity(act, idx) {
     case "cloze": return clozeActivity(act, title);
     case "word_bank": return wordBankActivity(act, title);
     case "matching": return matchingActivity(act, title);
+    case "listening": return listeningActivity(act, idx, title);
     default: return { node: el("p", {}, "Tipo no soportado."), getResponse: () => null };
   }
 }
@@ -435,6 +439,57 @@ function matchingActivity(act, title) {
       el("span", { class: "font-medium w-32 text-slate-100" }, p.left), el("span", { class: "text-slate-500" }, "->"), sel);
   });
   return { node: el("fieldset", {}, title, ...rows), getResponse: () => selects.map((s) => s.value) };
+}
+
+/**
+ * Actividad de LISTENING: se ESCUCHA un audio (texto -> voz Chirp3-HD, oculto)
+ * y se responde. Reusa la UI de opcion multiple (si hay choices) o de texto
+ * libre (cloze). La transcripcion queda escondida hasta que el alumno la abra,
+ * para que primero entrene el oido. DRY: no duplicamos MC/cloze.
+ * payload: { audio, lang?, question?, choices?, answer, alt?, transcript? }
+ */
+function listeningActivity(act, idx, title) {
+  const p = act.payload;
+  const lang = p.lang || "en-US";
+  const audioText = String(p.audio || "");
+  const play = (rate) => speakSequence([{ text: audioText, lang, opts: { rate } }]);
+
+  const playBtn = el("button", {
+    type: "button",
+    class: "inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white " +
+      "font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 " +
+      "shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]",
+    onclick: () => play(0.9),
+  }, el("span", { class: "w-5 h-5 inline-grid place-items-center", html: ICONS.sound }), "Escuchar");
+
+  const slowBtn = el("button", {
+    type: "button",
+    class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 " +
+      "px-4 py-3 rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-indigo-400 transition",
+    onclick: () => play(0.6),
+  }, "\uD83D\uDC22 M\u00e1s lento");
+
+  // Sub-actividad: MC o cloze, reusando los renderers existentes.
+  const qLegend = el("legend", { class: "font-medium text-slate-100" }, richText(p.question || ""));
+  const sub = Array.isArray(p.choices)
+    ? mcActivity({ payload: { choices: p.choices, answer: p.answer } }, idx, qLegend)
+    : clozeActivity({ payload: {} }, qLegend);
+
+  // Transcripcion oculta (integridad del listening): el alumno la abre si quiere.
+  const transcript = el("details", { class: "mt-4 text-sm" },
+    el("summary", { class: "cursor-pointer text-slate-400 hover:text-slate-200 select-none" }, "Ver transcripci\u00f3n"),
+    el("p", { class: "mt-2 text-slate-200 bg-white/5 rounded-lg px-3 py-2" }, richText(p.transcript || audioText)));
+
+  const node = el("fieldset", {}, title,
+    el("p", { class: "mt-1 text-xs text-slate-400" }, "Escucha las veces que necesites. El texto est\u00e1 oculto a prop\u00f3sito."),
+    el("div", { class: "mt-3 flex flex-wrap gap-2" }, playBtn, slowBtn),
+    el("div", { class: "mt-5" }, sub.node),
+    transcript);
+
+  // Auto-reproduce al aparecer (con un respiro para no pisar otras voces).
+  setTimeout(() => play(0.9), 350);
+
+  return { node, getResponse: sub.getResponse };
 }
 
 // ---------------------------------------------------------------------------

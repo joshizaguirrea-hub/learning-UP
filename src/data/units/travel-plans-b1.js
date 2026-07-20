@@ -281,5 +281,74 @@ export const TRAVEL_PLANS_B1 = {
         },
       ],
     },
+
+    // ================= LISTENING =================
+    {
+      id: "tp-listen",
+      order: 5,
+      phase: "practice",
+      skills: ["listening"],
+      title: "Listening: entiende planes de viaje",
+      intro:
+        "Competencia de LISTENING (comprension auditiva). Escucha cada audio las veces que " +
+        "necesites y responde. El texto esta OCULTO a proposito para entrenar el oido; puedes " +
+        "abrir la transcripcion despues si quieres.",
+      activities: [
+        {
+          id: "tp-listen-a1", type: "listening",
+          prompt: "1. Escucha y responde:",
+          payload: {
+            audio: "I'm going to travel to Canada next Friday.",
+            question: "When is the person going to travel?",
+            choices: ["Next Friday", "Next Monday", "Tomorrow"], answer: 0,
+          },
+        },
+        {
+          id: "tp-listen-a2", type: "listening",
+          prompt: "2. Escucha y responde:",
+          payload: {
+            audio: "My flight departs at six a.m., so I will arrive in the afternoon.",
+            question: "What time does the flight depart?",
+            choices: ["At 6 a.m.", "At 6 p.m.", "In the afternoon"], answer: 0,
+          },
+        },
+        {
+          id: "tp-listen-a3", type: "listening",
+          prompt: "3. Escucha y escribe la respuesta:",
+          payload: {
+            audio: "I'd like to book a double room for three nights, please.",
+            question: "How many nights? (escribe el numero en ingles)",
+            answer: "three", alt: ["3"],
+          },
+        },
+        {
+          id: "tp-listen-a4", type: "listening",
+          prompt: "4. Escucha el dialogo y responde:",
+          payload: {
+            audio: "A: Is check-in at three p.m.? B: Yes, that's right, at three.",
+            question: "What time is check-in?",
+            choices: ["3 p.m.", "5 p.m.", "At noon"], answer: 0,
+          },
+        },
+        {
+          id: "tp-listen-a5", type: "listening",
+          prompt: "5. Escucha y responde:",
+          payload: {
+            audio: "There was a two-hour delay, but we finally arrived at our destination.",
+            question: "What was the problem at the airport?",
+            choices: ["A delay", "A cancellation", "Lost luggage"], answer: 0,
+          },
+        },
+        {
+          id: "tp-listen-a6", type: "listening",
+          prompt: "6. Escucha y escribe la respuesta:",
+          payload: {
+            audio: "Remember to show your boarding pass at the gate.",
+            question: "What do you show at the gate? (dos palabras)",
+            answer: "boarding pass", alt: ["a boarding pass", "the boarding pass"],
+          },
+        },
+      ],
+    },
   ],
 };
