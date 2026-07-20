@@ -234,8 +234,8 @@ export function dialogueSection(dialogue) {
 
 /** Tabla comparativa opcional: { headers:[...], rows:[[...], ...] }. */
 function grammarTable(table) {
-  return el("div", { class: "mt-3 overflow-x-auto rounded-xl border border-white/10" },
-    el("table", { class: "w-full text-sm border-collapse" },
+  return el("div", { class: "mt-3 sm:overflow-x-auto rounded-xl border border-white/10" },
+    el("table", { class: "gt-table w-full text-sm border-collapse" },
       el("thead", {},
         el("tr", { class: "bg-indigo-500/25 text-indigo-100" },
           ...table.headers.map((h) => el("th", { class: "text-left font-bold px-3 py-2 whitespace-nowrap" }, richText(h))))),
@@ -245,6 +245,7 @@ function grammarTable(table) {
             ...row.map((cell, ci) => el("td", {
               class: "px-3 py-2 align-top border-t border-white/5 " +
                 (ci === 0 ? "font-semibold text-indigo-200 whitespace-nowrap" : "text-slate-200"),
+              "data-label": table.headers[ci] ? stripMarkup(table.headers[ci]) : "",
             }, richText(cell))))))));
 }
 
