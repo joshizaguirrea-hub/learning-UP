@@ -15,6 +15,13 @@ import { speak, speakSequence } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
+import { sagaForLevel } from "../data/sagas.js";
+import { unitsForLevel } from "../data/units/index.js";
+
+/** Clave de continuidad de la saga por nivel (recap del ultimo capitulo). */
+const recapKey = (level) => "linguapath.saga." + level + ".recap";
+function getRecap(level) { try { return localStorage.getItem(recapKey(level)) || ""; } catch { return ""; } }
+function saveRecap(level, text) { try { localStorage.setItem(recapKey(level), String(text).slice(0, 400)); } catch { /* ignore */ } }
 
 /** Texto de lectura base de la unidad (de su leccion de reading). */
 function baseReading(unit) {
@@ -77,8 +84,15 @@ export function openStory(unit) {
   const close = () => { cancelCloud(); if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); overlay.remove(); };
   let currentText = baseReading(unit);
 
+  // --- Serializacion (telenovela): saga del nivel + numero de capitulo -------
+  const saga = sagaForLevel(unit.level);
+  const lvlUnits = unitsForLevel(unit.level);
+  const chapterNum = Math.max(1, lvlUnits.findIndex((u) => u.id === unit.id) + 1);
+  const recap = getRecap(unit.level);
+
   const storyBox = el("div", { class: "mt-3" });
-  const status = el("p", { class: "mt-2 text-xs text-slate-500" }, "Lectura de la unidad");
+  const status = el("p", { class: "mt-2 text-xs text-slate-500" },
+    saga ? "Cap\u00edtulo " + chapterNum + " \u00b7 lectura de la unidad" : "Lectura de la unidad");
 
   function readAloud() {
     const items = toSentences(currentText).map((s) => ({
@@ -116,12 +130,18 @@ export function openStory(unit) {
       return;
     }
     iaBtn.disabled = true;
-    status.textContent = "Creando un cuento nuevo para ti...";
+    status.textContent = "Creando el pr\u00f3ximo cap\u00edtulo para ti...";
     const keywords = (unit.vocab || []).slice(0, 8).map((v) => v.term).join(", ");
-    const question = `Escribe UNICAMENTE un cuento corto en INGLES sobre "${unit.title}", ` +
-      `nivel ${unit.level || "B1"} (MCER). Incluye de forma natural estas palabras: ${keywords}. ` +
+    const sagaCtx = saga
+      ? `Es una SAGA llamada "${saga.title}". Premisa: ${saga.premise}. Personajes: ${saga.cast.join(", ")}. ` +
+        `Este es el CAPITULO ${chapterNum}. ` +
+        (recap ? `Anteriormente: ${recap} ` : "") +
+        `Continua la historia con esos personajes y termina con un pequeno cliffhanger (gancho). `
+      : "";
+    const question = `Escribe UNICAMENTE el siguiente capitulo (cuento corto) en INGLES sobre "${unit.title}", ` +
+      `nivel ${unit.level || "B1"} (MCER). ${sagaCtx}Incluye de forma natural estas palabras: ${keywords}. ` +
       `La primera linea es un titulo corto; luego 2 o 3 parrafos. NO uses asteriscos ni markdown. ` +
-      `NO escribas introduccion, saludo, despedida ni traducciones en espanol: SOLO el cuento en ingles ` +
+      `NO escribas introduccion, saludo, despedida ni traducciones en espanol: SOLO el capitulo en ingles ` +
       `y, al final, una sola linea "MORAL: " con una frase breve en espanol.`;
     try {
       const res = await fetch(BYMAX_WORKER_URL, {
@@ -133,7 +153,8 @@ export function openStory(unit) {
       if (data && data.answer) {
         currentText = sanitizeStory(data.answer);
         renderText(storyBox, currentText);
-        status.textContent = "Cuento generado con IA - nivel " + (unit.level || "");
+        if (saga) saveRecap(unit.level, currentText.replace(/\n+/g, " ").slice(0, 380));
+        status.textContent = (saga ? "Cap\u00edtulo " + chapterNum + " " : "") + "generado con IA - nivel " + (unit.level || "");
         readAloud();
       } else {
         const why = [data && data.error, data && data.detail].filter(Boolean).join(" | ");
@@ -163,12 +184,17 @@ export function openStory(unit) {
     el("div", { class: "flex items-center gap-3" },
       el("div", { class: "w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-700 grid place-items-center text-white", html: ICONS.book }),
       el("div", { class: "flex-1" },
-        el("p", { class: "font-bold text-indigo-300" }, "Cuento \u00b7 " + (unit.title || "")),
-        el("p", { class: "text-xs text-slate-400" }, "Lee y escucha \u00b7 nivel " + (unit.level || ""))),
+        el("p", { class: "font-bold text-indigo-300" }, saga ? (saga.title + " \u00b7 Cap. " + chapterNum) : ("Cuento \u00b7 " + (unit.title || ""))),
+        el("p", { class: "text-xs text-slate-400" }, saga ? (unit.title + " \u00b7 nivel " + (unit.level || "")) : ("Lee y escucha \u00b7 nivel " + (unit.level || "")))),
       el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
     el("div", { class: "mt-3 flex flex-wrap gap-2" }, listenBtn, stopBtn, iaBtn),
     status,
-    el("div", { class: "mt-2 overflow-y-auto pr-1", style: "max-height:46vh" }, storyBox, glossary));
+    el("div", { class: "mt-2 overflow-y-auto pr-1", style: "max-height:46vh" },
+      saga ? el("div", { class: "mb-3 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/25 p-3" },
+        el("p", { class: "text-xs uppercase tracking-wide text-fuchsia-300" }, "Saga: " + saga.title),
+        el("p", { class: "text-xs text-slate-300 mt-1" }, saga.premise),
+        recap ? el("p", { class: "text-xs text-slate-400 mt-2 italic" }, "Anteriormente: " + recap) : null) : null,
+      storyBox, glossary));
 
   const overlay = el("div", {
     class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4",
