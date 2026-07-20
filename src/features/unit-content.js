@@ -12,6 +12,7 @@ import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
 import { openSpeaking } from "./speaking.js";
 import { openStory } from "./story.js";
+import { openVoiceCall } from "./voice-call.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 const BONUS_LINKS = [
@@ -68,11 +69,24 @@ export function unitContent(unit, progressMap) {
       el("p", { class: "text-white/85 text-sm" }, "Lee y escucha un texto sobre \"" + unit.title + "\" (o crea uno con IA)")),
     el("span", { class: "text-white/90 text-sm font-semibold" }, "Abrir ->"));
 
+  const call = el("button", {
+    type: "button",
+    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-teal-500 to-cyan-600 " +
+      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-teal-300",
+    onclick: () => openVoiceCall(unit),
+  },
+    el("span", { class: "w-9 h-9 shrink-0", html: ICONS.mic }),
+    el("div", { class: "flex-1 text-left" },
+      el("p", { class: "font-bold text-lg" }, "Solo Hablar (manos libres)"),
+      el("p", { class: "text-white/85 text-sm" }, "Una llamada por voz con Bymax: inmersi\u00f3n total en ingl\u00e9s")),
+    el("span", { class: "text-white/90 text-sm font-semibold" }, "Llamar ->"));
+
   return el("div", {},
     el("h2", { class: "font-bold text-lg mb-3" }, "Competencias"),
     skillGrid,
     bonusRow,
     convo,
+    call,
     story);
 }
 

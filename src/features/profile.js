@@ -23,9 +23,9 @@ import { getAccent } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
+import { openShareCard } from "./share-card.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl p-5";
-
 export async function renderProfile(container, user) {
   const profile = await getStudentProfile(user.id);
   if (!profile) {
@@ -71,15 +71,31 @@ const [progress, srs] = await Promise.all([
         levelProgressCard(level, levelPct),
         goalsCard(profile))),
     statsRow(profile, xp, srs.learned, lessonsDone),
+    shareCard(name, level, profile, xp),
     heatmapCard(activeDays),
     medalsCard(medals),
     achievementsCard(logros)));
   focusMainHeading(container);
 }
 
+/** Banner/boton para compartir el progreso en redes (crecimiento). */
+function shareCard(name, level, profile, xp) {
+  return el("button", {
+    type: "button",
+    class: "w-full text-left rounded-2xl bg-gradient-to-r from-fuchsia-500 to-purple-600 p-5 shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-fuchsia-300",
+    onclick: () => openShareCard({ name, level, streak: profile.streak || 0, xp }),
+  },
+    el("div", { class: "flex items-center gap-4" },
+      el("span", { class: "text-3xl" }, "\uD83D\uDCF8"),
+      el("div", { class: "flex-1" },
+        el("p", { class: "font-bold text-white text-lg" }, "Comparte tu progreso"),
+        el("p", { class: "text-white/85 text-sm" }, "Presume tu racha y nivel con una imagen lista para redes")),
+      el("span", { class: "text-white/90 text-sm font-semibold" }, "Crear \u2192")));
+}
+
 function identityCard(name, profile, user) {
-  const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
-  const info = CEFR_INFO[profile.cefr_level] || {};
+  const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");  const info = CEFR_INFO[profile.cefr_level] || {};
   const accent = getAccent();
   const memberSince = user.created_at ? new Date(user.created_at).toLocaleDateString("es", { year: "numeric", month: "long" }) : null;
   const mot = motivationById(profile.goal_reason);

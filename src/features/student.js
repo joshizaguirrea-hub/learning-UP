@@ -20,6 +20,7 @@ import { go } from "../ui/router.js";
 import { courseCards } from "./course-cards.js";
 import { bymaxCard, dailyGreeting } from "./bymax-panel.js";
 import { openAntiErrors } from "./anti-errors.js";
+import { openMyLifeLesson } from "./my-life-lesson.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -50,6 +51,7 @@ export async function renderStudent(container, user) {
     nextActionHero(profile, units, completed, due),
     courseCards(units, progressMap),
     antiErrorBanner(),
+    myLifeBanner(),
     statsRow(profile, srs.learned, lessonsDone),
     bonusBanner()));
   focusMainHeading(container);
@@ -132,8 +134,7 @@ function nextAction(units, completed, due) {
 // Tarjetas de dominio por competencia (estilo Fit Match)
 // --------------------------------------------------------------------------
 
-/** Banner del Modo Anti-errores (diferencial: trampas es->en). */
-function antiErrorBanner() {
+/** Banner del Modo Anti-errores (diferencial: trampas es->en). */function antiErrorBanner() {
   return el("button", {
     type: "button",
     class: "w-full text-left block rounded-2xl bg-gradient-to-r from-rose-500 to-orange-600 p-5 shadow-lg " +
@@ -146,6 +147,22 @@ function antiErrorBanner() {
         el("p", { class: "font-bold text-white text-lg" }, "Modo Anti-errores"),
         el("p", { class: "text-white/85 text-sm" }, "Vence las trampas t\u00edpicas del espa\u00f1ol al ingl\u00e9s (he/she, falsos amigos...)")),
       el("span", { class: "text-white/90 text-sm font-semibold" }, "Jugar \u2192")));
+}
+
+/** Banner "Lecciones desde tu vida" (aprende con tu propio contenido). */
+function myLifeBanner() {
+  return el("button", {
+    type: "button",
+    class: "w-full text-left block rounded-2xl bg-gradient-to-r from-indigo-500 to-fuchsia-600 p-5 shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-300",
+    onclick: () => openMyLifeLesson(),
+  },
+    el("div", { class: "flex items-center gap-4" },
+      el("span", { class: "w-10 h-10 text-white shrink-0", html: ICONS.bulb }),
+      el("div", { class: "flex-1" },
+        el("p", { class: "font-bold text-white text-lg" }, "Lecciones desde tu vida"),
+        el("p", { class: "text-white/85 text-sm" }, "Pega un mensaje o la letra de una canci\u00f3n y Bymax lo vuelve tu lecci\u00f3n")),
+      el("span", { class: "text-white/90 text-sm font-semibold" }, "Probar \u2192")));
 }
 
 /** Banner de acceso a los mazos Bonus + medallas. */
