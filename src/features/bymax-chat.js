@@ -139,9 +139,9 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
       }
     } catch (err) {
       thinking.remove();
-      const hint = String(err && err.message ? err.message : err);
-      push("\u26A0\uFE0F No pude contactar a Bymax IA (" + hint + "). " +
-        "Puede ser el servidor de IA, no tu internet. Intenta de nuevo en un momento.", "bot");
+      push("\u26A0\uFE0F No pude conectar con Bymax IA. Si estas en WiFi de escuela " +
+        "u oficina, es probable que la red bloquee el servicio. Prueba con datos " +
+        "moviles (4G/5G) o con otra red.", "bot");
     } finally {
       busy = false;
       sendBtn.disabled = false;
