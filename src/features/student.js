@@ -69,7 +69,9 @@ function profileHeader(name, profile, xp) {
 
   return el("section", { class: PANEL + " overflow-hidden" },
     el("h1", { class: "sr-only" }, `Perfil de ${name}`),
-    el("div", { class: `h-20 bg-gradient-to-r ${accent.grad}` }),
+    el("div", { class: `relative h-20 bg-gradient-to-r ${accent.grad} overflow-hidden` },
+      el("div", { class: "absolute -top-1/2 -left-8 w-1/2 h-[200%] bg-white/25 blur-2xl opacity-60", "aria-hidden": "true" }),
+      el("div", { class: "absolute -bottom-8 right-6 w-24 h-24 rounded-full border-8 border-white/10", "aria-hidden": "true" })),
     el("div", { class: "px-5 pb-5" },
       el("a", { href: "#/perfil", class: "flex items-end gap-4 -mt-10 group", "aria-label": "Ver mi perfil" },
         el("div", { class: `w-20 h-20 rounded-full bg-gradient-to-br ${accent.grad} border-4 border-slate-900 flex items-center justify-center text-2xl font-extrabold text-white` }, initials || "?"),

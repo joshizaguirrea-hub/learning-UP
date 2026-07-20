@@ -146,10 +146,19 @@ body.lesson-mode::after {
   body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
   .card-sheen::after { display: none !important; }
   .group:hover { transform: none !important; }
+  #app > * { animation: none !important; }
 }
 
-/* Sheen: brillo diagonal que barre las tarjetas del curso al pasar el cursor. */
-.card-sheen { pointer-events: none; overflow: hidden; }
+/* Transicion de entrada de cada VISTA (hijo directo de #app). Da sensacion de
+   app fluida al navegar. El modo leccion tiene su propia animacion (step-enter). */
+@keyframes viewEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#app > * { animation: viewEnter .32s ease both; }
+body.lesson-mode #app > * { animation: none; }
+
+/* Sheen: brillo diagonal que barre las tarjetas del curso al pasar el cursor. */.card-sheen { pointer-events: none; overflow: hidden; }
 .card-sheen::after {
   content: "";
   position: absolute;
