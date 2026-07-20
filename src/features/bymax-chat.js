@@ -137,9 +137,11 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
         // del nivel (que en B1+ es en-US y sonaria a gringa leyendo espanol).
         speakRobot(data.answer, "es-MX");
       }
-    } catch {
+    } catch (err) {
       thinking.remove();
-      push("No hay conexion con Bymax IA. Revisa tu internet.", "bot");
+      const hint = String(err && err.message ? err.message : err);
+      push("\u26A0\uFE0F No pude contactar a Bymax IA (" + hint + "). " +
+        "Puede ser el servidor de IA, no tu internet. Intenta de nuevo en un momento.", "bot");
     } finally {
       busy = false;
       sendBtn.disabled = false;

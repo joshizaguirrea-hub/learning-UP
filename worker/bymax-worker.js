@@ -371,7 +371,14 @@ export default {
       return json({ error: "Origen no permitido." }, 403, origin);
     }
 
-    if (url.pathname === "/tts") return handleTts(request, env, origin);
-    return handleChat(request, env, origin);
+    // BLINDAJE: cualquier excepcion NO controlada se devuelve como JSON CON
+    // headers CORS. Si no, el navegador ve un 500 sin CORS y lo reporta como
+    // "error de red" (falso "sin internet"). Asi siempre llega la causa real.
+    try {
+      if (url.pathname === "/tts") return await handleTts(request, env, origin);
+      return await handleChat(request, env, origin);
+    } catch (e) {
+      return json({ error: "Error interno del Worker.", detail: String(e && e.message ? e.message : e).slice(0, 300) }, 500, origin);
+    }
   },
 };
