@@ -20,6 +20,7 @@ import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { openConversation } from "./conversation.js";
 import { openSpeaking } from "./speaking.js";
+import { openStory } from "./story.js";
 
 /** Etiqueta corta de una leccion: su competencia (o "Test final"). */
 function lessonLabel(lesson) {
@@ -103,6 +104,14 @@ export async function renderMap(container, user) {
       state: unitUnlocked ? "action" : "locked", pos: pos++,
       icon: unitUnlocked ? ICONS.chat : ICONS.lock,
       onClick: unitUnlocked ? () => openConversation(unit) : null,
+    }));
+
+    // --- Cuento de la unidad (lectura + voz + IA) -------------------------
+    sections.push(pathNode({
+      label: "Cuento", sub: "Lee y escucha",
+      state: unitUnlocked ? "action" : "locked", pos: pos++,
+      icon: unitUnlocked ? ICONS.book : ICONS.lock,
+      onClick: unitUnlocked ? () => openStory(unit) : null,
     }));
 
     // --- Test final (habilita al terminar las competencias) ---------------

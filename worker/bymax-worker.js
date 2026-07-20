@@ -73,6 +73,21 @@ REGLAS:
 - Tono calido, alentador y con chispa. No rompas el personaje ni cambies de tema
   salvo que el alumno lo pida.`;
 
+// Modo CUENTO: narrador que crea un cuento corto en INGLES, tematico y nivelado,
+// para alimentar el contenido de lectura de la unidad.
+const STORY_PROMPT = `Eres un narrador de "Learning UP". Escribe un CUENTO CORTO en INGLES
+para un hispanohablante que aprende ingles, ajustado a su nivel MCER.
+
+REGLAS:
+- El cuento va en INGLES, con vocabulario y gramatica del nivel indicado
+  (A1-A2: muy simple, frases cortas; B1-B2: parrafos naturales; C1-C2: rico e idiomatico).
+- Tematica: el TEMA indicado. Usa de forma natural las PALABRAS CLAVE dadas.
+- Longitud: 110 a 160 palabras, con inicio, nudo y desenlace claros.
+- La PRIMERA linea es un TITULO corto (sin escribir "Title:").
+- Luego el cuento en 2 a 4 parrafos. Nada de listas, notas ni explicaciones.
+- La ULTIMA linea empieza con "MORAL: " y una frase breve EN ESPANOL.
+- No expliques gramatica: solo cuenta la historia con calidez.`;
+
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin || "*",
@@ -291,11 +306,12 @@ async function handleChat(request, env, origin) {
 
   // MODO CONVERSACION: companero de charla en ingles guiado por tema + nivel.
   const isConversation = body.mode === "conversation";
+  const isStory = body.mode === "story";
   const topic = String(body.topic || "").slice(0, 160).trim();
   const level = String(body.level || "").slice(0, 4).trim();
-  let systemText = isConversation ? CONVERSATION_PROMPT : SYSTEM_PROMPT;
-  if (isConversation) {
-    systemText += `\n\nTEMA de la conversacion: ${topic || "general"}` +
+  let systemText = isStory ? STORY_PROMPT : isConversation ? CONVERSATION_PROMPT : SYSTEM_PROMPT;
+  if (isConversation || isStory) {
+    systemText += `\n\nTEMA: ${topic || "general"}` +
       `\nNIVEL del alumno (MCER): ${level || "B1"}`;
   }
 
@@ -326,9 +342,11 @@ async function handleChat(request, env, origin) {
   // En tutoria, el contexto de la leccion se antepone a la pregunta.
   const userText = isConversation
     ? question
-    : (context
-        ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
-        : `Pregunta del alumno: ${question}`);
+    : isStory
+      ? question
+      : (context
+          ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
+          : `Pregunta del alumno: ${question}`);
   contents.push({ role: "user", parts: [{ text: userText }] });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
