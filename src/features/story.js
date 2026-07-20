@@ -25,6 +25,28 @@ function baseReading(unit) {
   return "";
 }
 
+/**
+ * Limpia el texto del cuento: quita markdown (**negrita**, *, _, `) y las lineas
+ * de marco en espanol que a veces mete la IA (saludo/despedida tipo "Aqui tienes
+ * una historia...", "Excelente vocabulario!..."). Deja solo el cuento (+ MORAL).
+ */
+function sanitizeStory(text) {
+  let t = String(text)
+    .replace(/\*\*/g, "")
+    .replace(/[*_`]/g, "")
+    .replace(/^#+\s*/gm, "");
+  const lines = t.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  const kept = lines.filter((l) => {
+    if (/^moral\s*:/i.test(l)) return true;               // la moral en espanol si va
+    const letters = l.replace(/[^a-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1]/gi, "");
+    const spanishHints = /(hola|aqu\u00ed|historia|vocabulario|te animas|t\u00fa puedes|excelente|espero|practicando|traducir|frases)/i;
+    // Descarta lineas de marco: mayormente espanol Y con senales de saludo/cierre.
+    if (spanishHints.test(l) && !/["\u201c]/.test(l)) return false;
+    return letters.length > 0;
+  });
+  return kept.join("\n\n");
+}
+
 /** Divide un texto en frases para leerlo con pausas naturales. */
 function toSentences(text) {
   return String(text)
@@ -96,7 +118,11 @@ export function openStory(unit) {
     iaBtn.disabled = true;
     status.textContent = "Creando un cuento nuevo para ti...";
     const keywords = (unit.vocab || []).slice(0, 8).map((v) => v.term).join(", ");
-    const question = `Escribe un cuento corto sobre "${unit.title}". PALABRAS CLAVE a incluir: ${keywords}.`;
+    const question = `Escribe UNICAMENTE un cuento corto en INGLES sobre "${unit.title}", ` +
+      `nivel ${unit.level || "B1"} (MCER). Incluye de forma natural estas palabras: ${keywords}. ` +
+      `La primera linea es un titulo corto; luego 2 o 3 parrafos. NO uses asteriscos ni markdown. ` +
+      `NO escribas introduccion, saludo, despedida ni traducciones en espanol: SOLO el cuento en ingles ` +
+      `y, al final, una sola linea "MORAL: " con una frase breve en espanol.`;
     try {
       const res = await fetch(BYMAX_WORKER_URL, {
         method: "POST",
@@ -105,7 +131,7 @@ export function openStory(unit) {
       });
       const data = await res.json().catch(() => ({}));
       if (data && data.answer) {
-        currentText = data.answer;
+        currentText = sanitizeStory(data.answer);
         renderText(storyBox, currentText);
         status.textContent = "Cuento generado con IA - nivel " + (unit.level || "");
         readAloud();
