@@ -21,7 +21,7 @@ import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/soun
 import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact, openWhyWrong } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText } from "../ui/richtext.js";
-import { speakSequence } from "../ui/speech.js";
+import { speak, speakSequence } from "../ui/speech.js";
 import { ICONS } from "../ui/icons.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
 import { confettiBurst } from "../ui/confetti.js";
@@ -394,6 +394,34 @@ function mcActivity(act, idx, title) {
 }
 
 function clozeActivity(act, title) {
+  const p = act.payload || {};
+  // Con TRAMPAS: si hay `choices`, se elige la palabra (banco de opciones) y se
+  // PRONUNCIA al tocarla. Sin choices, se escribe libremente (comportamiento clasico).
+  if (Array.isArray(p.choices) && p.choices.length) {
+    let selected = null;
+    const chips = [];
+    const shuffled = [...p.choices].sort(() => Math.random() - 0.5);
+    shuffled.forEach((word) => {
+      const chip = el("button", {
+        type: "button",
+        class: "px-4 py-2.5 rounded-xl border border-white/15 bg-white/5 text-slate-100 " +
+          "hover:bg-white/10 transition active:scale-95 focus:outline focus:outline-2 focus:outline-indigo-400",
+        onclick: () => {
+          selected = word;
+          chips.forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/25"));
+          chip.classList.add("border-indigo-400", "bg-indigo-500/25");
+          speak(word, "en-US", { rate: 0.9 }); // pronuncia la palabra elegida
+        },
+      }, word);
+      chips.push(chip);
+    });
+    const hint = el("p", { class: "mt-2 text-xs text-slate-500" }, "Toca una palabra (la escuchar\u00e1s). Cuidado con las trampas.");
+    return {
+      node: el("fieldset", {}, title, el("div", { class: "mt-3 flex flex-wrap gap-2" }, ...chips), hint),
+      getResponse: () => selected,
+    };
+  }
+
   const input = el("input", { type: "text",
     class: "mt-3 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
     placeholder: "Escribe tu respuesta" });
@@ -430,17 +458,85 @@ function wordBankActivity(act, title) {
 }
 
 function matchingActivity(act, title) {
-  const rights = act.payload.pairs.map((p) => p.right).sort(() => Math.random() - 0.5);
-  const selects = [];
-  const rows = act.payload.pairs.map((p, i) => {
-    const sel = el("select", { class: "rounded-lg bg-slate-800 border border-slate-700 text-slate-100 px-2 py-2 focus:outline focus:outline-2 focus:outline-indigo-500 flex-1" },
-      el("option", { value: "" }, "Elige..."),
-      ...rights.map((r) => el("option", { value: r }, r)));
-    selects[i] = sel;
-    return el("div", { class: "flex items-center gap-3 mt-3" },
-      el("span", { class: "font-medium w-32 text-slate-100" }, p.left), el("span", { class: "text-slate-500" }, "->"), sel);
+  const pairs = act.payload.pairs;
+  const answers = new Array(pairs.length).fill(null); // right elegido por cada left
+  let selectedLeft = null;
+  const bankChips = [];
+
+  const leftRows = [];
+  const bank = el("div", { class: "mt-4 flex flex-wrap gap-2" });
+
+  function redraw() {
+    // Filas izquierda con su "slot".
+    pairs.forEach((p, i) => {
+      const row = leftRows[i];
+      const slot = row._slot;
+      const chosen = answers[i];
+      row.classList.toggle("border-indigo-400", selectedLeft === i);
+      row.classList.toggle("bg-indigo-500/15", selectedLeft === i);
+      if (chosen) {
+        slot.textContent = chosen;
+        slot.className = "ml-auto px-3 py-1.5 rounded-lg bg-emerald-500/25 text-emerald-100 border border-emerald-500/40";
+      } else {
+        slot.textContent = "Toca aqu\u00ed";
+        slot.className = "ml-auto px-3 py-1.5 rounded-lg bg-white/5 text-slate-500 border border-dashed border-white/20";
+      }
+    });
+    // Banco: deshabilita los rights ya usados.
+    bankChips.forEach((chip) => {
+      const used = answers.includes(chip.textContent);
+      chip.disabled = used;
+      chip.classList.toggle("opacity-30", used);
+    });
+  }
+
+  pairs.forEach((p, i) => {
+    const slot = el("span", { class: "ml-auto" }, "");
+    const row = el("button", {
+      type: "button",
+      class: "w-full flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/5 text-left " +
+        "hover:bg-white/10 transition focus:outline focus:outline-2 focus:outline-indigo-400",
+      onclick: () => {
+        if (answers[i]) {
+          // Si ya tenia respuesta, la libera de vuelta al banco.
+          answers[i] = null; selectedLeft = i;
+        } else {
+          selectedLeft = i;
+        }
+        redraw();
+      },
+    }, el("span", { class: "font-medium text-slate-100" }, p.left), slot);
+    row._slot = slot;
+    leftRows.push(row);
   });
-  return { node: el("fieldset", {}, title, ...rows), getResponse: () => selects.map((s) => s.value) };
+
+  const rights = pairs.map((p) => p.right).sort(() => Math.random() - 0.5);
+  rights.forEach((r) => {
+    const chip = el("button", {
+      type: "button",
+      class: "px-3 py-2 rounded-lg border border-white/15 bg-white/5 text-slate-100 " +
+        "hover:bg-white/10 transition active:scale-95 focus:outline focus:outline-2 focus:outline-indigo-400",
+      onclick: () => {
+        // Coloca en el left seleccionado, o en el primer slot vacio.
+        let target = selectedLeft;
+        if (target == null || answers[target]) target = answers.findIndex((a) => !a);
+        if (target === -1 || target == null) return;
+        answers[target] = r;
+        selectedLeft = null;
+        redraw();
+      },
+    }, r);
+    bankChips.push(chip);
+  });
+  bank.append(...bankChips);
+
+  redraw();
+  return {
+    node: el("fieldset", {}, title,
+      el("p", { class: "mt-1 text-xs text-slate-500" }, "Toca un elemento de la izquierda y luego su pareja abajo."),
+      el("div", { class: "mt-3 space-y-2" }, ...leftRows), bank),
+    getResponse: () => answers.map((a) => a || ""),
+  };
 }
 
 /**

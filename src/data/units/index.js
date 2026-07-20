@@ -62,6 +62,7 @@ import { DEBATE_MASTERY_C2 } from "./debate-mastery-c2.js";
 import { CAPSTONE_C2 } from "./capstone-c2.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
+import { withClozeChoices } from "../cloze-gen.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -82,7 +83,7 @@ export const UNITS = [
   // --- C2 ---
   REGISTER_C2, IDIOM_C2, ADVANCED_WRITING_C2,
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
-].map(withListening).map(withTest); // A->C: cada unidad tiene listening + test final (auto)
+].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
 
 /** Unidades disponibles para un nivel MCER dado. */
 export function unitsForLevel(level) {
