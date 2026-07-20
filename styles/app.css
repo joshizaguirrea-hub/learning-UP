@@ -179,13 +179,13 @@ body.lesson-mode::after {
 .bymax-alive { transform-origin: 50% 60%; display: inline-block; }
 @keyframes bymaxAlive {
   0%   { transform: scale(1, 1); }
-  40%  { transform: scale(1.02, 1.02); }   /* inhala */
+  40%  { transform: scale(1.04, 1.04); }   /* inhala */
   70%  { transform: scale(1, 1); }         /* exhala */
-  88%  { transform: scale(1.03, 0.82); }   /* parpadeo (squash) */
-  92%  { transform: scale(1, 1); }
+  86%  { transform: scale(1.05, 0.78); }   /* parpadeo (squash) */
+  91%  { transform: scale(1, 1); }
   100% { transform: scale(1, 1); }
 }
-.bymax-alive { animation: bymaxAlive 6s ease-in-out infinite; }
+.bymax-alive { animation: bymaxAlive 5s ease-in-out infinite; }
 
 /* Reacciones puntuales (se activan por JS: bymaxEmote). */
 @keyframes bymaxHappy {
@@ -215,9 +215,9 @@ body.lesson-mode::after {
  * ------------------------------------------------------------------------- */
 body {
   background:
-    radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.16), transparent 60%),
-    radial-gradient(900px 560px at 112% 4%, rgba(217,70,239,0.13), transparent 55%),
-    radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.10), transparent 55%),
+    radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.28), transparent 60%),
+    radial-gradient(900px 560px at 112% 4%, rgba(217,70,239,0.22), transparent 55%),
+    radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.16), transparent 55%),
     #0b1020;
   background-attachment: fixed;
 }
