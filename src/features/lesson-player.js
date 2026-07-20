@@ -8,7 +8,7 @@
  *
  * Pasos = [intro] + [pasos de clase] + [una actividad por paso] + [final].
  */
-import { findLesson } from "../data/units/index.js";
+import { findLesson, unitsForLevel } from "../data/units/index.js";
 import { isAtLeast } from "../data/cefr.js";
 import { grade } from "../core/activities.js";
 import { completeLesson } from "../services/course.js";
@@ -25,6 +25,8 @@ import { speak, speakSequence } from "../ui/speech.js";
 import { ICONS } from "../ui/icons.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
 import { confettiBurst } from "../ui/confetti.js";
+import { celebrate } from "../ui/celebrate.js";
+import { getCourseProgress } from "../services/course.js";
 import { line } from "../ui/robot-lines.js";
 
 const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
@@ -249,6 +251,23 @@ export async function renderLessonPlayer(container, params, user) {
       }, 500 + i * 650);
     });
     announce("Clase completada. Ganaste " + totalXp + " puntos.");
+
+    // Celebracion EPICA al aprobar el TEST FINAL de la unidad (fin de unidad).
+    // Si ademas quedo completo TODO el nivel, la version es "grand".
+    if (passed && lesson.kind === "test") {
+      let grand = false;
+      try {
+        const prog = await getCourseProgress(user.id);
+        const doneIds = new Set(Object.entries(prog)
+          .filter(([, v]) => v.status === "done").map(([id]) => id));
+        grand = unitsForLevel(unit.level).every((u) => u.lessons.every((l) => doneIds.has(l.id)));
+      } catch (e) { console.error("[leccion] no pude verificar fin de nivel:", e); }
+      setTimeout(() => celebrate({
+        title: grand ? "\u00a1Nivel " + unit.level + " completado!" : "\u00a1Unidad completada!",
+        subtitle: grand ? "Dominaste todo el nivel " + unit.level : unit.title,
+        grand,
+      }), 600);
+    }
   }
 }
 

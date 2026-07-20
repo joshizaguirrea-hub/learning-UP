@@ -93,10 +93,27 @@ export function avatarSvg(id) {
 /** Nodo del avatar dentro de un circulo con gradiente. size: sm|md|lg. */
 export function avatarNode(id, size = "md") {
   const dims = { sm: "w-9 h-9 p-1", md: "w-12 h-12 p-1.5", lg: "w-24 h-24 p-3" }[size] || "w-12 h-12 p-1.5";
+  // El SVG va en una capa interna "bymax-alive" (respira + parpadea) para no
+  // pelear con el "robot-float" (flotar) del contenedor. Asi Bymax se siente vivo.
+  const inner = el("span", { class: "bymax-alive block w-full h-full", html: avatarSvg(id) });
   return el("div", {
     class: "shrink-0 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 " +
       "flex items-center justify-center shadow-lg robot-float " + dims,
     "aria-hidden": "true",
-    html: avatarSvg(id),
+  }, inner);
+}
+
+/**
+ * Hace que TODOS los Bymax visibles reaccionen con una emocion breve.
+ * @param {"happy"|"sad"|"think"} kind
+ */
+export function bymaxEmote(kind = "happy") {
+  if (typeof document === "undefined") return;
+  const cls = "bymax-" + kind;
+  document.querySelectorAll(".bymax-alive").forEach((node) => {
+    node.classList.remove("bymax-happy", "bymax-sad", "bymax-think");
+    void node.offsetWidth; // reinicia la animacion
+    node.classList.add(cls);
+    if (kind !== "think") setTimeout(() => node.classList.remove(cls), 800);
   });
 }
