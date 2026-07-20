@@ -125,9 +125,13 @@ export function openConversation(unit) {
         history.push({ role: "user", text: q }, { role: "model", text: data.answer });
         if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
       }
-    } catch {
+    } catch (err) {
       thinking.remove();
-      push("No hay conexion con Bymax IA. Revisa tu internet.", "bot");
+      // No mentimos con "revisa tu internet": si el fetch falla suele ser el
+      // Worker (caido, sin CORS o cuota agotada). Mostramos la pista real.
+      const hint = String(err && err.message ? err.message : err);
+      push("\u26A0\uFE0F No pude contactar a Bymax IA (" + hint + "). " +
+        "Puede ser el servidor de IA, no tu internet. Intenta de nuevo en un momento.", "bot");
     } finally {
       busy = false;
       sendBtn.disabled = false;
