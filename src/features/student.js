@@ -19,6 +19,7 @@ import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { courseCards } from "./course-cards.js";
 import { bymaxCard, dailyGreeting } from "./bymax-panel.js";
+import { openAntiErrors } from "./anti-errors.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -48,6 +49,7 @@ export async function renderStudent(container, user) {
     bymaxCard({ xp, streak: profile.streak || 0 }),
     nextActionHero(profile, units, completed, due),
     courseCards(units, progressMap),
+    antiErrorBanner(),
     statsRow(profile, srs.learned, lessonsDone),
     bonusBanner()));
   focusMainHeading(container);
@@ -129,6 +131,22 @@ function nextAction(units, completed, due) {
 // --------------------------------------------------------------------------
 // Tarjetas de dominio por competencia (estilo Fit Match)
 // --------------------------------------------------------------------------
+
+/** Banner del Modo Anti-errores (diferencial: trampas es->en). */
+function antiErrorBanner() {
+  return el("button", {
+    type: "button",
+    class: "w-full text-left block rounded-2xl bg-gradient-to-r from-rose-500 to-orange-600 p-5 shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
+    onclick: () => openAntiErrors(),
+  },
+    el("div", { class: "flex items-center gap-4" },
+      el("span", { class: "w-10 h-10 text-white shrink-0", html: ICONS.bulb }),
+      el("div", { class: "flex-1" },
+        el("p", { class: "font-bold text-white text-lg" }, "Modo Anti-errores"),
+        el("p", { class: "text-white/85 text-sm" }, "Vence las trampas t\u00edpicas del espa\u00f1ol al ingl\u00e9s (he/she, falsos amigos...)")),
+      el("span", { class: "text-white/90 text-sm font-semibold" }, "Jugar \u2192")));
+}
 
 /** Banner de acceso a los mazos Bonus + medallas. */
 function bonusBanner() {
