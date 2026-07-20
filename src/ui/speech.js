@@ -217,7 +217,9 @@ export function robotChirp() {
  * @param {function} [onDone] callback al terminar todo
  * @returns {function} cancel() para detener la secuencia
  */
+let seqGen = 0; // generacion global: solo la ultima secuencia sigue viva
 export function speakSequence(items, onEach, onDone) {
+  cancelCloud();
   if (isSpeechSupported()) window.speechSynthesis.cancel();
 
   // Solo la ULTIMA secuencia manda: si alguien arranca otra, esta se detiene
