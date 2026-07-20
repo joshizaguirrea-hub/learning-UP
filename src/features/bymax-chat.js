@@ -107,17 +107,28 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
       // el historial) -> respuestas con memoria sin gastar tokens de mas.
       const payload = { question: q, history: history.slice(-MAX_TURNS) };
       if (history.length === 0) payload.context = context;
-      const res = await fetch(BYMAX_WORKER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json().catch(() => ({}));
+      let data = null, netError = null;
+      try {
+        const res = await fetch(BYMAX_WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        data = await res.json().catch(() => ({}));
+        if (!res.ok && data) data._status = res.status;
+      } catch (err) {
+        netError = err;
+        console.error("[Bymax] fallo de red al contactar el Worker:", err);
+      }
       thinking.remove();
-      if (!res.ok || !data.answer) {
+
+      if (netError) {
+        push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
+          "intenta en un momento. (Detalle en consola F12).", "bot");
+      } else if (!data || !data.answer) {
         // Mostramos el motivo REAL del Worker (ej: falta GEMINI_API_KEY, o el error
         // crudo de Gemini) para poder diagnosticar. Si no hay detalle, generico.
-        const why = [data.error, data.detail].filter(Boolean).join(" | ");
+        const why = [data && data.error, data && data.detail, data && data._status].filter(Boolean).join(" | ");
         push(why ? ("\u26A0\uFE0F " + why) : "Ups, no pude responder ahora. Intenta de nuevo en un momento.", "bot");
       } else {
         const row = el("div", { class: "flex items-start gap-2 justify-start" },
@@ -135,13 +146,8 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
         if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
         // Bymax SIEMPRE responde en espanol -> voz espanola (Chirp3-HD), no la
         // del nivel (que en B1+ es en-US y sonaria a gringa leyendo espanol).
-        speakRobot(data.answer, "es-MX");
+        try { speakRobot(data.answer, "es-MX"); } catch (e) { console.error("[Bymax] error de voz:", e); }
       }
-    } catch (err) {
-      thinking.remove();
-      push("\u26A0\uFE0F No pude conectar con Bymax IA. Si estas en WiFi de escuela " +
-        "u oficina, es probable que la red bloquee el servicio. Prueba con datos " +
-        "moviles (4G/5G) o con otra red.", "bot");
     } finally {
       busy = false;
       sendBtn.disabled = false;
