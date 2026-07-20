@@ -9,6 +9,7 @@
  */
 import { el } from "../ui/dom.js";
 import { robotAvatar, robotName } from "../ui/robot.js";
+import { bymaxEmote } from "../ui/avatars.js";
 import { speakRobot, robotChirp } from "../ui/speech.js";
 import { stripMarkup } from "../ui/richtext.js";
 import { ICONS } from "../ui/icons.js";
@@ -101,6 +102,7 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
     const thinking = bubble(name + " esta pensando...", "bot");
     log.append(thinking);
     log.scrollTop = log.scrollHeight;
+    bymaxEmote("think"); // Bymax se pone a pensar (animacion)
 
     try {
       // El contexto de la leccion solo viaja en el 1er turno (luego ya vive en
@@ -123,9 +125,11 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
       thinking.remove();
 
       if (netError) {
+        bymaxEmote("sad");
         push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
           "intenta en un momento. (Detalle en consola F12).", "bot");
       } else if (!data || !data.answer) {
+        bymaxEmote("sad");
         // Mostramos el motivo REAL del Worker (ej: falta GEMINI_API_KEY, o el error
         // crudo de Gemini) para poder diagnosticar. Si no hay detalle, generico.
         const why = [data && data.error, data && data.detail, data && data._status].filter(Boolean).join(" | ");
@@ -141,6 +145,7 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
           }));
         log.append(row);
         log.scrollTop = log.scrollHeight;
+        bymaxEmote("happy"); // ya respondio: se pone contento
         // Guardamos el intercambio en la memoria (y recortamos al tope).
         history.push({ role: "user", text: q }, { role: "model", text: data.answer });
         if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);

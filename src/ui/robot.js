@@ -10,7 +10,7 @@ import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { speakButton, speakRobot, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
-import { avatarNode, AVATAR_LIST, avatarSvg } from "./avatars.js";
+import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
 import { getRobot, setRobot } from "./robot-prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
@@ -35,6 +35,7 @@ const REACT = {
 
 /** El profe reacciona con voz al acierto/error (frase corta al azar). */
 export function robotReact(ok, lang = "es-MX") {
+  bymaxEmote(ok ? "happy" : "sad"); // Bymax vivo: salta de alegria o se apena
   const l = lang.startsWith("es") ? "es" : "en";
   const pool = REACT[ok ? "ok" : "no"][l];
   const phrase = pool[(Math.random() * pool.length) | 0];
