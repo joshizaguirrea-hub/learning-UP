@@ -65,7 +65,7 @@ export function courseCards(units, progressMap) {
       el("h2", { class: "text-lg font-bold" }, "Tu curso"),
       el("span", { class: "text-xs text-slate-500" }, `${units.length} temas`)),
     el("p", { class: "text-slate-400 text-sm mt-1" }, "Toca un tema para ver su contenido y avanzar de nivel."),
-    el("div", { class: "mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3" }, ...tiles));
+    el("div", { class: "mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" }, ...tiles));
 }
 
 /** Una tarjeta CUADRADA de unidad (tema), enlazada a su pantalla completa. */
@@ -78,7 +78,7 @@ function unitTile(unit, progressMap, i) {
 
   return el("a", {
     href: `#/unidad/${unit.id}`,
-    class: "group relative aspect-square rounded-2xl overflow-hidden shadow-lg " +
+    class: "group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg " +
       "transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl " +
       "focus:outline focus:outline-2 focus:outline-white/70 will-change-transform",
     "aria-label": `${unit.title}, nivel ${unit.level}, ${done} de ${total} lecciones`,
@@ -90,7 +90,7 @@ function unitTile(unit, progressMap, i) {
     // 3) Anillo decorativo inferior-derecho (profundidad + textura).
     el("div", { class: "absolute -bottom-10 -right-10 w-36 h-36 rounded-full border-[10px] border-white/10", "aria-hidden": "true" }),
     // 4) Emoji tematico marca de agua (personalidad + memoria visual).
-    el("div", { class: "absolute top-2 right-2 text-5xl sm:text-6xl opacity-25 group-hover:opacity-40 group-hover:scale-110 transition duration-300 select-none", "aria-hidden": "true" }, topicEmoji(unit.title)),
+    el("div", { class: "absolute top-2 right-2 text-4xl sm:text-5xl opacity-25 group-hover:opacity-40 group-hover:scale-110 transition duration-300 select-none", "aria-hidden": "true" }, topicEmoji(unit.title)),
     // 5) Sheen que barre al pasar el mouse (dinamismo premium).
     el("div", { class: "card-sheen absolute inset-0", "aria-hidden": "true" }),
     // 6) Sombra SOLO abajo (scrim) -> el color brilla arriba y el texto se lee.
@@ -103,7 +103,7 @@ function unitTile(unit, progressMap, i) {
           ? el("span", { class: "w-6 h-6 rounded-full bg-emerald-400/90 text-slate-900 flex items-center justify-center shadow", html: ICONS.check })
           : null),
       el("div", { class: "flex-1 flex items-end" },
-        el("h3", { class: "text-white font-extrabold text-base sm:text-lg leading-tight drop-shadow-lg" }, unit.title)),
+        el("h3", { class: "text-white font-extrabold text-sm sm:text-base leading-tight drop-shadow-lg" }, unit.title)),
       el("div", { class: "mt-2" },
         el("div", { class: "flex items-center justify-between mb-1" },
           el("p", { class: "text-[11px] font-semibold text-white/90" }, `${done}/${total} lecciones`),
