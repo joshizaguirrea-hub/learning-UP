@@ -19,13 +19,17 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
-/** Puntaje 0..1 comparando lo dicho con la frase objetivo (por palabras). */
-function scoreSpeech(target, heard) {
-  const want = normalize(target).split(" ").filter(Boolean);
+/**
+ * Coach avanzado: marca palabra por palabra si se reconocio o no.
+ * @returns {{score:number, marks:Array<{word:string, hit:boolean}>}}
+ */
+function scoreDetail(target, heard) {
+  const wantRaw = String(target).split(/\s+/).filter(Boolean);
   const got = new Set(normalize(heard).split(" ").filter(Boolean));
-  if (!want.length) return 0;
-  const hits = want.filter((w) => got.has(w)).length;
-  return hits / want.length;
+  const marks = wantRaw.map((w) => ({ word: w, hit: got.has(normalize(w)) }));
+  const norm = marks.filter((m) => normalize(m.word)); // ignora signos sueltos
+  const hits = norm.filter((m) => m.hit).length;
+  return { score: norm.length ? hits / norm.length : 0, marks };
 }
 
 /** Frases modelo de la unidad (ejemplos de vocab con texto en ingles). */
@@ -89,17 +93,31 @@ export function openSpeaking(unit) {
     }, idx === phrases.length - 1 ? "Terminar" : "Siguiente frase ->");
 
     function grade(heard) {
-      const s = scoreSpeech(target, heard);
+      const { score: s, marks } = scoreDetail(target, heard);
       const ok = s >= PASS;
       if (ok) passed++;
       ok ? playCorrect() : playWrong();
+      // Frase coloreada palabra por palabra (coach visual).
+      const colored = el("p", { class: "mt-2 leading-relaxed" }, ...marks.map((m) => el("span", {
+        class: (m.hit ? "text-emerald-300" : "text-amber-300 underline decoration-amber-400/70") + " mr-1",
+      }, m.word + " ")));
+      // Palabras a repasar (tocar = oir lento).
+      const missed = marks.filter((m) => !m.hit && normalize(m.word));
+      const drill = missed.length ? el("div", { class: "mt-2" },
+        el("p", { class: "text-xs opacity-90" }, "Toca para o\u00edrlas lento:"),
+        el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missed.slice(0, 6).map((m) => el("button", {
+          type: "button",
+          class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
+          onclick: () => speak(m.word, "en-US", { rate: 0.65 }),
+        }, m.word)))) : null;
       fb.replaceChildren(el("div", {
         class: "rounded-xl px-4 py-3 text-sm " + (ok
           ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-200"
           : "bg-amber-500/15 border border-amber-500/40 text-amber-200"),
       },
         el("p", { class: "font-semibold" }, ok ? "\u00a1Muy bien! " + Math.round(s * 100) + "% de acierto" : "Casi... " + Math.round(s * 100) + "% de acierto"),
-        el("p", { class: "mt-1 opacity-90" }, ok ? "Tu pronunciacion se entendio bien." : "Vuelve a intentarlo: escucha el modelo y habla claro y sin prisa.")));
+        colored,
+        drill || el("p", { class: "mt-1 opacity-90" }, "Tu pronunciaci\u00f3n se entendi\u00f3 muy bien.")));
       nextBtn.classList.remove("hidden");
     }
 

@@ -120,8 +120,8 @@ function detectLang(text) {
  * @param {string} text
  * @returns {function} cancel()
  */
-export function speakBilingual(text) {
-  if (!text) return () => {};
+export function speakBilingual(text, onDone) {
+  if (!text) { if (typeof onDone === "function") onDone(); return () => {}; }
   // 1) Trocea en segmentos: lo entrecomillado (" " o “ ”) va aparte como INGLES.
   const raw = String(text).replace(/\s+/g, " ").trim();
   const segs = [];
@@ -147,7 +147,7 @@ export function speakBilingual(text) {
       rawItems.push({ text: p, lang: detectLang(p) === "es" ? "es-MX" : "en-US" });
     }
   }
-  if (!rawItems.length) return () => {};
+  if (!rawItems.length) { if (typeof onDone === "function") onDone(); return () => {}; }
 
   // 2b) FUSIONA trozos SEGUIDOS del mismo idioma en uno solo -> menos cortes y
   //     menos peticiones (una frase completa por idioma suena mas fluida).
@@ -168,7 +168,7 @@ export function speakBilingual(text) {
     prefetchCloud(isEs ? fixSpanishAccents(it.text) : it.text, isEs ? "es" : "en");
   }
 
-  return speakSequence(items);
+  return speakSequence(items, null, onDone);
 }
 
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
