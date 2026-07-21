@@ -19,6 +19,7 @@ import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { ICONS } from "../ui/icons.js";
 import { recordSpeakingScore, scoreLabel } from "../core/speaking-score.js";
+import { recordInterview, setNextAppointment, downloadIcs, lastImprovements } from "../core/interview-log.js";
 
 const MAX_TURNS = 12; // memoria: ultimos turnos que viajan al Worker
 
@@ -151,10 +152,14 @@ export function openInterview(opts = {}) {
   function startInterview(cfg) {
     const { role, company, seniority, details, useVoice } = cfg;
     const history = [];
+    // El coach retoma tus debilidades de la entrevista anterior (rol de entrenador).
+    const prevFocus = lastImprovements(userId);
     const topic = "Puesto: " + role +
       (company ? " | Empresa: " + company : "") +
       (seniority ? " | Seniority: " + seniority : "") +
       (details ? " | Detalles de la vacante: " + details : "") +
+      (prevFocus ? " | NOTA DEL COACH (entrevista anterior, areas a mejorar): " + prevFocus +
+        ". Al inicio mencionalo en una frase y durante la entrevista verifica si mejoro en eso." : "") +
       " | Objetivo: simulacro de entrevista de trabajo REAL y exigente, especifica del puesto y la empresa, para preparar al candidato.";
 
     let paused = false;
@@ -292,7 +297,7 @@ export function openInterview(opts = {}) {
       const { answer, error } = await askBymax({ mode: "interview", topic, level, question: "[FEEDBACK]", history: history.slice(-MAX_TURNS) });
       if (ended) return;
       if (error || !answer) { status.textContent = "\u26a0\ufe0f No pude generar el feedback: " + (error || ""); return; }
-      renderFeedback(answer, () => startInterview(cfg));
+      renderFeedback(answer, cfg, () => startInterview(cfg));
     }
 
     body.replaceChildren(
@@ -311,11 +316,16 @@ export function openInterview(opts = {}) {
       el("p", { class: "mt-4 text-slate-300" }, name + " est\u00e1 evaluando tu entrevista...")));
   }
 
-  // ---- Paso 3: feedback + Speaking Score -----------------------------------
-  function renderFeedback(raw, onRetry) {
+  // ---- Paso 3: feedback + Speaking Score + entrenador -----------------------
+  function renderFeedback(raw, cfg, onRetry) {
     const { score, sections } = parseFeedback(raw);
     const info = scoreLabel(score);
     const saved = recordSpeakingScore(userId, score);
+    const improvements = sectionBody(sections, "A mejorar");
+    const tip = sectionBody(sections, "Consejo final");
+    const { prev } = recordInterview(userId, {
+      role: cfg.role, company: cfg.company, seniority: cfg.seniority, score, improvements, tip,
+    });
 
     const ring = el("div", {
       class: "relative w-28 h-28 rounded-full grid place-items-center mx-auto",
@@ -326,6 +336,15 @@ export function openInterview(opts = {}) {
           el("p", { class: "text-3xl font-extrabold text-sky-300 leading-none" }, String(score)),
           el("p", { class: "text-[10px] text-slate-400 uppercase tracking-wide mt-0.5" }, "de 100"))));
 
+    // Progreso vs entrevista anterior (rol de entrenador).
+    let progress = null;
+    if (prev && typeof prev.score === "number") {
+      const diff = score - prev.score;
+      const up = diff >= 0;
+      progress = el("p", { class: "mt-1 text-sm font-semibold " + (up ? "text-emerald-400" : "text-amber-400") },
+        (up ? "\u25b2 +" : "\u25bc ") + diff + " pts vs tu entrevista anterior (" + prev.score + ")");
+    }
+
     const sectionEls = sections.map((s) =>
       el("div", { class: "mt-3" },
         el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold" }, s.title),
@@ -335,10 +354,12 @@ export function openInterview(opts = {}) {
       el("div", { class: "text-center" },
         ring,
         el("p", { class: "mt-3 text-lg font-bold text-slate-100" }, info.label),
+        progress,
         el("p", { class: "text-xs text-slate-400 mt-1" },
           "Speaking Score \u00b7 mejor: " + saved.best + " \u00b7 promedio: " + saved.avg + " \u00b7 sesiones: " + saved.sessions)),
       el("div", { class: "mt-5 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
         sectionEls.length ? sectionEls : el("p", { class: "text-sm text-slate-200 whitespace-pre-line" }, raw)),
+      appointmentBox(cfg, improvements),
       el("div", { class: "mt-5 flex gap-2" },
         el("button", {
           type: "button",
@@ -350,6 +371,41 @@ export function openInterview(opts = {}) {
           class: "px-4 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-white",
           onclick: close,
         }, "Cerrar"))));
+  }
+
+  /** Caja "Agenda tu proxima cita de entrenamiento" (coach personal). */
+  function appointmentBox(cfg, improvements) {
+    const box = el("div", { class: "mt-5 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 p-4" });
+    const confirm = el("p", { class: "mt-2 text-sm text-emerald-300 hidden" }, "");
+
+    const schedule = (days, label) => {
+      const d = new Date();
+      d.setDate(d.getDate() + days);
+      d.setHours(18, 0, 0, 0); // 6pm por defecto
+      const iso = d.toISOString();
+      setNextAppointment(userId, iso);
+      downloadIcs({
+        startIso: iso,
+        title: "Entrenamiento de entrevista con Bymax" + (cfg.role ? " (" + cfg.role + ")" : ""),
+        description: "Tu cita de practica de entrevista en Learning UP. A trabajar en: " +
+          (improvements || "tus areas de mejora") + ". Abre la app -> Coach de Habla -> Entrevista.",
+      });
+      confirm.textContent = "\u2705 Cita agendada para " + fmtDate(iso) + ". Descargamos tu recordatorio (.ics).";
+      confirm.classList.remove("hidden");
+    };
+
+    const pill = (days, label) => el("button", {
+      type: "button",
+      class: "px-3 py-2 rounded-xl border border-indigo-400/40 bg-white/5 text-indigo-100 text-sm font-semibold hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-300",
+      onclick: () => schedule(days, label),
+    }, label);
+
+    box.append(
+      el("p", { class: "font-bold text-indigo-200" }, "\uD83D\uDCC5 Agenda tu pr\u00f3xima cita"),
+      el("p", { class: "text-xs text-slate-400 mt-0.5" }, "Como un coach: te recordamos volver a practicar y medimos tu progreso."),
+      el("div", { class: "mt-3 flex flex-wrap gap-2" }, pill(1, "Ma\u00f1ana"), pill(3, "En 3 d\u00edas"), pill(7, "En 1 semana")),
+      confirm);
+    return box;
   }
 }
 
@@ -369,6 +425,23 @@ function paintPills(pills) {
     p.className = "flex-1 px-3 py-2 rounded-xl border text-sm font-semibold transition " +
       (on ? "bg-sky-500/20 border-sky-400 text-sky-200" : "bg-white/5 border-white/15 text-slate-300 hover:bg-white/10");
   });
+}
+
+/** Devuelve el cuerpo de una seccion del feedback por su titulo (o ""). */
+function sectionBody(sections, title) {
+  const s = (sections || []).find((x) => x.title === title);
+  return s ? s.body : "";
+}
+
+/** Formatea una fecha ISO a algo legible en espanol. */
+function fmtDate(iso) {
+  try {
+    return new Date(iso).toLocaleDateString("es-MX", {
+      weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
 }
 
 /**
