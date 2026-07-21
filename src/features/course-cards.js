@@ -9,6 +9,7 @@
  */
 import { ICONS } from "../ui/icons.js";
 import { el } from "../ui/dom.js";
+import { unlockedUnitIds } from "../core/progression.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -56,16 +57,39 @@ function topicEmoji(title = "") {
  * @param {Object} progressMap - id de leccion -> { status }
  */
 export function courseCards(units, progressMap) {
+  // Sendero secuencial: cada unidad se desbloquea al completar la anterior.
+  const completed = new Set(
+    Object.entries(progressMap).filter(([, v]) => v?.status === "done").map(([id]) => id));
+  const unlocked = unlockedUnitIds(units, completed);
+
   const tiles = units.length
-    ? units.map((u, i) => unitTile(u, progressMap, i))
+    ? units.map((u, i) => unlocked.has(u.id) ? unitTile(u, progressMap, i) : lockedTile(u, i))
     : [el("p", { class: "text-sm text-slate-400" }, "Pronto habra mas unidades para tu nivel.")];
 
   return el("section", { class: PANEL + " p-5" },
     el("div", { class: "flex items-center justify-between flex-wrap gap-2" },
       el("h2", { class: "text-lg font-bold" }, "Tu curso"),
       el("span", { class: "text-xs text-slate-500" }, `${units.length} temas`)),
-    el("p", { class: "text-slate-400 text-sm mt-1" }, "Toca un tema para ver su contenido y avanzar de nivel."),
+    el("p", { class: "text-slate-400 text-sm mt-1" }, "Completa una unidad para desbloquear la siguiente."),
     el("div", { class: "mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" }, ...tiles));
+}
+
+/** Tarjeta BLOQUEADA: mismo tama\u00f1o, en gris, con candado y sin enlace. */
+function lockedTile(unit, i) {
+  return el("div", {
+    class: "relative aspect-[4/3] rounded-2xl overflow-hidden shadow-inner bg-slate-800/60 border border-slate-700/60 cursor-not-allowed",
+    "aria-label": `${unit.title}, bloqueada. Completa la unidad anterior para desbloquearla.`,
+    "aria-disabled": "true",
+    title: "Completa la unidad anterior para desbloquear",
+  },
+    el("div", { class: "absolute inset-0 grid place-items-center" },
+      el("div", { class: "w-12 h-12 rounded-full bg-slate-900/70 grid place-items-center text-slate-400", html: ICONS.lock })),
+    el("div", { class: "relative h-full p-3 sm:p-4 flex flex-col" },
+      el("div", { class: "flex items-center justify-between" },
+        el("span", { class: "text-[10px] font-mono font-bold bg-black/40 text-slate-400 px-2 py-0.5 rounded-md" }, unit.level),
+        null),
+      el("div", { class: "flex-1" }),
+      el("h3", { class: "text-slate-400 font-bold text-sm sm:text-base leading-tight" }, unit.title)));
 }
 
 /** Una tarjeta CUADRADA de unidad (tema), enlazada a su pantalla completa. */

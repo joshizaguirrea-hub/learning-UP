@@ -6,10 +6,12 @@
  * reading, writing, listening, speaking), los bonos de verbos y la conversacion
  * con IA (todo via unit-content.js), mas el repaso SRS del dia.
  */
-import { unitById } from "../data/units/index.js";
+import { unitById, unitsForLevel } from "../data/units/index.js";
 import { getCourseProgress } from "../services/course.js";
 import { countDue } from "../services/srs.js";
+import { isUnitUnlocked } from "../core/progression.js";
 import { el, mount } from "../ui/dom.js";
+import { ICONS } from "../ui/icons.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { unitContent } from "./unit-content.js";
@@ -23,6 +25,23 @@ export async function renderUnit(container, params, user) {
     return;
   }
   const [progress, due] = await Promise.all([getCourseProgress(user.id), countDue(user.id)]);
+
+  // Guardia del sendero: no dejar entrar a una unidad bloqueada (aunque peguen la URL).
+  const completed = new Set(
+    Object.entries(progress).filter(([, v]) => v?.status === "done").map(([id]) => id));
+  if (!isUnitUnlocked(unit.id, unitsForLevel(unit.level), completed)) {
+    mount(container, el("div", { class: "max-w-lg mx-auto " + CARD + " text-center" },
+      el("div", { class: "w-14 h-14 mx-auto rounded-full bg-slate-800 grid place-items-center text-slate-400", html: ICONS.lock }),
+      el("h1", { class: "text-xl font-bold mt-4" }, "Unidad bloqueada"),
+      el("p", { class: "mt-2 text-slate-400" }, `Completa la unidad anterior para desbloquear \u201c${unit.title}\u201d.`),
+      el("button", {
+        class: "mt-6 bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-6 py-2.5 rounded-lg hover:from-indigo-400 hover:to-fuchsia-400",
+        onclick: () => go("/student"),
+      }, "Volver al inicio")));
+    focusMainHeading(container);
+    return;
+  }
+
   const doneCount = unit.lessons.filter((l) => progress[l.id]?.status === "done").length;
   const pct = Math.round((doneCount / unit.lessons.length) * 100);
 
