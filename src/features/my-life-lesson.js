@@ -52,9 +52,10 @@ export function openMyLifeLesson() {
     buildBtn.disabled = true;
     status.textContent = name + " est\u00e1 creando tu lecci\u00f3n...";
     const question = "Eres profe de ingl\u00e9s para hispanohablantes. A partir de ESTE texto del alumno: \"" +
-      text.slice(0, 800) + "\". Devuelve en espa\u00f1ol (con los ejemplos en ingl\u00e9s entre comillas): " +
-      "1) 5 palabras o frases clave en ingl\u00e9s con su significado; 2) un consejo breve; " +
-      "3) una pregunta de comprensi\u00f3n en ingl\u00e9s. Sin markdown ni asteriscos, usa saltos de l\u00ednea.";
+      text.slice(0, 800) + "\". Devuelve TODO en espa\u00f1ol, y CADA palabra o frase en ingl\u00e9s SIEMPRE entre comillas dobles " +
+      "(prohibido el spanglish: no mezcles idiomas dentro de una oraci\u00f3n). Estructura: " +
+      "1) 5 palabras o frases clave en ingl\u00e9s (entre comillas) con su significado en espa\u00f1ol; 2) un consejo breve; " +
+      "3) una pregunta de comprensi\u00f3n (la pregunta en ingl\u00e9s entre comillas). Sin markdown ni asteriscos, usa saltos de l\u00ednea.";
     const { answer, error } = await askBymax({ mode: "chat", topic: "personal", level: "B1", question });
     buildBtn.disabled = false;
     if (error || !answer) { status.textContent = "\u26a0\ufe0f " + (error || "No pude ahora."); offlineWords(text); return; }
