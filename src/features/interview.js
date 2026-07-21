@@ -112,6 +112,25 @@ export function openInterview(opts = {}) {
       placeholder: "Opcional: pega la descripci\u00f3n de la vacante o responsabilidades clave. Cuanto m\u00e1s detalle, m\u00e1s realista la entrevista.",
     });
 
+    // Modo preguntas trampa: activa las clasicas dificiles de descarte.
+    let curveballs = false;
+    const curveToggle = el("button", {
+      type: "button",
+      "aria-pressed": "false",
+      onclick: () => { curveballs = !curveballs; syncCurve(); },
+    }, "");
+    function syncCurve() {
+      curveToggle.setAttribute("aria-pressed", String(curveballs));
+      curveToggle.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition " +
+        (curveballs ? "bg-amber-500/15 border-amber-400/50" : "bg-white/5 border-white/15 hover:bg-white/10");
+      curveToggle.replaceChildren(
+        el("span", { class: "text-2xl", "aria-hidden": "true" }, curveballs ? "\uD83D\uDD25" : "\uD83E\uDDCA"),
+        el("span", { class: "flex-1" },
+          el("span", { class: "block font-semibold text-slate-100" }, "Preguntas trampa"),
+          el("span", { class: "block text-xs text-slate-400" }, "Debilidades, expectativa salarial, \u201c\u00bfpor qu\u00e9 t\u00fa?\u201d y m\u00e1s")),
+        el("span", { class: "text-xs font-bold " + (curveballs ? "text-amber-300" : "text-slate-500") }, curveballs ? "ON" : "OFF"));
+    }
+
     const startBtn = el("button", {
       type: "button",
       class: "mt-5 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-sky-300",
@@ -120,7 +139,7 @@ export function openInterview(opts = {}) {
         if (!role) { err.classList.remove("hidden"); roleInput.focus(); return; }
         startInterview({
           role, company: companyInput.value.trim(), seniority,
-          details: detailsInput.value.trim(), useVoice: modeVoice && canVoice,
+          details: detailsInput.value.trim(), curveballs, useVoice: modeVoice && canVoice,
         });
       },
     }, "Comenzar entrevista \u2192");
@@ -139,6 +158,7 @@ export function openInterview(opts = {}) {
       el("div", { class: "flex flex-wrap gap-2" }, ...senPills),
       el("label", { class: "block mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Detalles de la vacante"),
       detailsInput,
+      el("div", { class: "mt-3" }, curveToggle),
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "\u00bfC\u00f3mo quieres responder?"),
       el("div", { class: "flex gap-2" }, voiceBtn, textBtn),
       canVoice ? null : el("p", { class: "mt-1 text-xs text-amber-300" }, "Tu navegador no permite micr\u00f3fono; usar\u00e1s texto. (Chrome en PC/Android para voz.)"),
@@ -146,11 +166,12 @@ export function openInterview(opts = {}) {
     setTimeout(() => roleInput.focus(), 50);
     syncMode();
     syncSen();
+    syncCurve();
   }
 
   // ---- Paso 2: la entrevista ------------------------------------------------
   function startInterview(cfg) {
-    const { role, company, seniority, details, useVoice } = cfg;
+    const { role, company, seniority, details, curveballs, useVoice } = cfg;
     const history = [];
     // El coach retoma tus debilidades de la entrevista anterior (rol de entrenador).
     const prevFocus = lastImprovements(userId);
@@ -158,6 +179,7 @@ export function openInterview(opts = {}) {
       (company ? " | Empresa: " + company : "") +
       (seniority ? " | Seniority: " + seniority : "") +
       (details ? " | Detalles de la vacante: " + details : "") +
+      (curveballs ? " | PREGUNTAS TRAMPA: si" : "") +
       (prevFocus ? " | NOTA DEL COACH (entrevista anterior, areas a mejorar): " + prevFocus +
         ". Al inicio mencionalo en una frase y durante la entrevista verifica si mejoro en eso." : "") +
       " | Objetivo: simulacro de entrevista de trabajo REAL y exigente, especifica del puesto y la empresa, para preparar al candidato.";
@@ -318,13 +340,13 @@ export function openInterview(opts = {}) {
 
   // ---- Paso 3: feedback + Speaking Score + entrenador -----------------------
   function renderFeedback(raw, cfg, onRetry) {
-    const { score, sections } = parseFeedback(raw);
+    const { score, areas, sections } = parseFeedback(raw);
     const info = scoreLabel(score);
     const saved = recordSpeakingScore(userId, score);
     const improvements = sectionBody(sections, "A mejorar");
     const tip = sectionBody(sections, "Consejo final");
     const { prev } = recordInterview(userId, {
-      role: cfg.role, company: cfg.company, seniority: cfg.seniority, score, improvements, tip,
+      role: cfg.role, company: cfg.company, seniority: cfg.seniority, score, areas, improvements, tip,
     });
 
     const ring = el("div", {
@@ -359,6 +381,7 @@ export function openInterview(opts = {}) {
           "Speaking Score \u00b7 mejor: " + saved.best + " \u00b7 promedio: " + saved.avg + " \u00b7 sesiones: " + saved.sessions)),
       el("div", { class: "mt-5 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
         sectionEls.length ? sectionEls : el("p", { class: "text-sm text-slate-200 whitespace-pre-line" }, raw)),
+      areasBox(areas),
       appointmentBox(cfg, improvements),
       el("div", { class: "mt-5 flex gap-2" },
         el("button", {
@@ -433,6 +456,29 @@ function sectionBody(sections, title) {
   return s ? s.body : "";
 }
 
+/** Caja con las 3 barras de puntaje por area (o null si el Worker no las manda). */
+function areasBox(areas) {
+  if (!areas) return null;
+  const ROWS = [
+    { key: "fluidez", label: "Fluidez", grad: "from-sky-400 to-cyan-400" },
+    { key: "contenido", label: "Contenido", grad: "from-indigo-400 to-violet-400" },
+    { key: "estructura", label: "Estructura (STAR)", grad: "from-fuchsia-400 to-pink-400" },
+  ];
+  const bar = (r) => {
+    const v = Math.max(0, Math.min(100, Math.round(Number(areas[r.key]) || 0)));
+    return el("div", { class: "mt-2" },
+      el("div", { class: "flex justify-between text-xs mb-1" },
+        el("span", { class: "text-slate-300 font-medium" }, r.label),
+        el("span", { class: "text-slate-400" }, v + "/100")),
+      el("div", { class: "w-full bg-slate-700/60 rounded-full h-2", role: "progressbar",
+        "aria-valuenow": String(v), "aria-valuemin": "0", "aria-valuemax": "100", "aria-label": r.label },
+        el("div", { class: "bg-gradient-to-r " + r.grad + " h-2 rounded-full transition-all", style: "width:" + v + "%" })));
+  };
+  return el("div", { class: "mt-5 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
+    el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold" }, "Puntaje por \u00e1rea"),
+    ...ROWS.map(bar));
+}
+
 /** Formatea una fecha ISO a algo legible en espanol. */
 function fmtDate(iso) {
   try {
@@ -447,12 +493,24 @@ function fmtDate(iso) {
 /**
  * Interpreta el feedback del Worker. Extrae PUNTAJE y separa secciones por sus
  * encabezados conocidos. Si el formato cambia, cae a texto plano (score 60).
- * @returns {{score:number, sections:Array<{title,body}>}}
+ * @returns {{score:number, areas:object|null, sections:Array<{title,body}>}}
  */
 function parseFeedback(text) {
   const raw = String(text || "");
   const m = raw.match(/PUNTAJE:\s*(\d{1,3})/i);
   const score = m ? Math.max(0, Math.min(100, parseInt(m[1], 10))) : 60;
+
+  // Puntajes por area (si el Worker nuevo los incluye; si no, areas = null).
+  const areaVal = (label) => {
+    const mm = raw.match(new RegExp(label + ":\\s*(\\d{1,3})", "i"));
+    return mm ? Math.max(0, Math.min(100, parseInt(mm[1], 10))) : null;
+  };
+  const fluidez = areaVal("FLUIDEZ");
+  const contenido = areaVal("CONTENIDO");
+  const estructura = areaVal("ESTRUCTURA");
+  const areas = (fluidez != null || contenido != null || estructura != null)
+    ? { fluidez: fluidez ?? score, contenido: contenido ?? score, estructura: estructura ?? score }
+    : null;
 
   const HEADERS = [
     { key: "LO QUE HICISTE BIEN", title: "Lo que hiciste bien" },
@@ -474,5 +532,5 @@ function parseFeedback(text) {
     const bodyTxt = raw.slice(from, end).replace(/^[:\s]+/, "").trim();
     if (bodyTxt) sections.push({ title: HEADERS[i].title, body: bodyTxt });
   }
-  return { score, sections };
+  return { score, areas, sections };
 }
