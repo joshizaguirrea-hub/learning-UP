@@ -29,4 +29,6 @@ export const ICONS = {
   chevron: wrap('<path d="M6 9l6 6 6-6"/>'),
   mic: wrap('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0"/><path d="M12 18v3"/>'),
   micOff: wrap('<path d="M9 9v-3a3 3 0 015.5-1.7"/><path d="M15 11.5V6"/><path d="M17 16.95A7 7 0 015 11"/><path d="M12 18v3"/><path d="M3 3l18 18"/>'),
+  briefcase: wrap('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M3 12h18"/>'),
+  target: wrap('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
 };

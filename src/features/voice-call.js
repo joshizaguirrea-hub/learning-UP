@@ -30,12 +30,16 @@ const TOPIC_IDEAS = [
  * @param {string} [opts.title] - tema fijo (si viene, no muestra selector)
  * @param {string} [opts.level] - nivel MCER del alumno
  * @param {boolean} [opts.chooseTopic] - forzar selector de tema
+ * @param {string} [opts.mode] - modo IA: "conversation" (def) o "roleplay"
+ * @param {string} [opts.label] - palabra para el titulo (def "Llamada")
  */
 export function openVoiceCall(opts = {}) {
   const name = robotName();
   const level = opts.level || "B1";
   const fixedTopic = opts.title;
   const chooseTopic = opts.chooseTopic || !fixedTopic;
+  const mode = opts.mode || "conversation";
+  const callWord = opts.label || "Llamada";
 
   let ended = false;
   let dictation = null;
@@ -46,7 +50,7 @@ export function openVoiceCall(opts = {}) {
 
   // Contenedor de la tarjeta: primero el selector (o directo la llamada).
   const body = el("div", { class: "mt-4" });
-  const heading = el("p", { class: "font-bold text-emerald-300" }, "Llamada con " + name);
+  const heading = el("p", { class: "font-bold text-emerald-300" }, callWord + " con " + name);
 
   const card = el("div", {
     class: "robot-pop max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center",
@@ -123,7 +127,7 @@ export function openVoiceCall(opts = {}) {
     const history = [];
     const MAX = 10;
 
-    heading.textContent = "Llamada \u00b7 " + topic;
+    heading.textContent = callWord + " \u00b7 " + topic;
 
     const status = el("p", { class: "mt-4 text-sm text-slate-300 min-h-[1.25rem]", role: "status" }, "");
     const heard = el("p", { class: "mt-1 text-xs text-slate-500 italic min-h-[1rem]" }, "");
@@ -136,7 +140,7 @@ export function openVoiceCall(opts = {}) {
       if (ended) return;
       setState(name + " esta pensando...", false);
       bymaxEmote("think");
-      const { answer, error } = await askBymax({ mode: "conversation", topic, level, question: q, history: history.slice(-MAX) });
+      const { answer, error } = await askBymax({ mode, topic, level, question: q, history: history.slice(-MAX) });
       if (ended) return;
       if (error || !answer) { setState("\u26a0\ufe0f " + (error || "No pude responder."), false); showRetry(); return; }
       history.push({ role: "user", text: q }, { role: "model", text: answer });

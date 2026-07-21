@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning UP · Comparativa de Contenido y Mercado</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .chart-box { position: relative; height: 340px; }
+  .chart-box-sm { position: relative; height: 300px; }
+  .glow { box-shadow: 0 20px 60px -20px rgba(99,102,241,.55); }
+  th, td { text-align: left; }
+  .tick { color:#34d399; font-weight:700; }
+  .cross { color:#fb7185; font-weight:700; }
+  .partial { color:#fbbf24; font-weight:700; }
+</style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+
+  <!-- HEADER -->
+  <header class="text-center mb-10">
+    <p class="text-xs uppercase tracking-[0.3em] text-indigo-400 font-semibold">Learning UP · Análisis estratégico</p>
+    <h1 class="mt-2 text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-cyan-300 bg-clip-text text-transparent">
+      ¿Somos competitivos? Contenido, mercado y la estrella
+    </h1>
+    <p class="mt-3 text-slate-400 max-w-2xl mx-auto">Comparativa a nivel de unidades (vs. academias y CEFR) y de la app completa (vs. el mercado). Datos reales del repositorio, auditados unidad por unidad.</p>
+    <p class="mt-2 text-xs text-slate-600">Generado por Horus  · 2026-07-18</p>
+  </header>
+
+  <!-- EXECUTIVE SUMMARY TOP -->
+  <section class="mb-12 grid sm:grid-cols-3 gap-4">
+    <div class="rounded-2xl bg-gradient-to-br from-indigo-900/60 to-slate-900 border border-indigo-500/30 p-5 glow">
+      <p class="text-4xl font-extrabold text-indigo-300">56</p>
+      <p class="mt-1 text-sm text-slate-300">unidades temáticas, <b>A1 → C2 completo</b>. La mayoría de apps masivas ni llegan a C1.</p>
+    </div>
+    <div class="rounded-2xl bg-gradient-to-br from-fuchsia-900/60 to-slate-900 border border-fuchsia-500/30 p-5 glow">
+      <p class="text-4xl font-extrabold text-fuchsia-300">~1,600+</p>
+      <p class="mt-1 text-sm text-slate-300">ejercicios auto-corregibles + IA conversacional + speaking con puntaje. Ecosistema, no una demo.</p>
+    </div>
+    <div class="rounded-2xl bg-gradient-to-br from-cyan-900/60 to-slate-900 border border-cyan-500/30 p-5 glow">
+      <p class="text-4xl font-extrabold text-cyan-300">100%</p>
+      <p class="mt-1 text-sm text-slate-300">enfoque <b>español-primero</b> (explica en tu idioma) + motor anti-spanglish. Nadie grande lo hace así.</p>
+    </div>
+  </section>
+
+  <!-- VEREDICTO -->
+  <section class="mb-14 rounded-2xl border border-slate-700 bg-slate-900/60 p-6">
+    <h2 class="text-xl font-bold text-white mb-3"> Veredicto rápido (lo honesto)</h2>
+    <ul class="space-y-2 text-slate-300 text-sm">
+      <li> <b>Tu contenido SÍ es de nivel academia.</b> Cobertura CEFR completa, can-do statements, gramática con tablas y errores comunes, 4 competencias por unidad. Esto le gana en <b>profundidad</b> a Duolingo.</li>
+      <li> <b>Tu foso (moat) es la pedagogía español-primero + anti-spanglish + IA.</b> Es difícil de copiar para un gigante global.</li>
+      <li> <b>Pero "hablar con la IA" ya no es único.</b> Duolingo Max (Video Call), Speak, TalkPal, ELSA... todos venden IA. Es necesario, no suficiente.</li>
+      <li> <b>La estrella que falta:</b> convertir el speaking en el <b>producto</b>, no en un extra. Ver la sección final.</li>
+    </ul>
+  </section>
+
+  <!-- 1. CONTENIDO POR NIVEL -->
+  <section class="mb-14">
+    <h2 class="text-2xl font-bold text-white mb-1">1 · Contenido por nivel CEFR</h2>
+    <p class="text-slate-400 text-sm mb-5">Cuántas unidades tenemos en cada nivel — y hasta dónde llega la competencia.</p>
+    <div class="grid lg:grid-cols-2 gap-6">
+      <div class="rounded-2xl bg-slate-900/60 border border-slate-700 p-5">
+        <h3 class="font-semibold text-slate-200 mb-3">Unidades por nivel (Learning UP)</h3>
+        <div class="chart-box"><canvas id="levelsChart"></canvas></div>
+      </div>
+      <div class="rounded-2xl bg-slate-900/60 border border-slate-700 p-5">
+        <h3 class="font-semibold text-slate-200 mb-3">¿Hasta qué nivel llega cada uno?</h3>
+        <div class="chart-box"><canvas id="reachChart"></canvas></div>
+        <p class="mt-3 text-xs text-slate-500">Duolingo/Babbel se concentran en A1–B1/B2. Nosotros y las academias serias llegamos a C1–C2.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. ANATOMÍA DE UNA UNIDAD -->
+  <section class="mb-14">
+    <h2 class="text-2xl font-bold text-white mb-1">2 · Anatomía de UNA unidad</h2>
+    <p class="text-slate-400 text-sm mb-5">Esto es lo que un alumno recibe en <b>cada</b> una de las 56 unidades. Aquí es donde ganamos en seriedad.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-indigo-300"> Reading</p><p class="text-slate-400 mt-1">2 textos nivelados + glosario + 6 preguntas de comprensión.</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-fuchsia-300"> Vocabulary + SRS</p><p class="text-slate-400 mt-1">~12 términos con ejemplo, repaso espaciado (memoria a largo plazo).</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-cyan-300"> Grammar</p><p class="text-slate-400 mt-1">Tabla visual, regla, ejemplos traducidos y <b>errores comunes</b>.</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-emerald-300"> Writing</p><p class="text-slate-400 mt-1">Producción guiada frase por frase.</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-amber-300"> Listening</p><p class="text-slate-400 mt-1">Audio con voz humana (Chirp3-HD) + comprensión.</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-rose-300"> Speaking</p><p class="text-slate-400 mt-1">Repite al micro, puntaje palabra por palabra.</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-violet-300"> IA (Bymax)</p><p class="text-slate-400 mt-1">Conversación, llamada de voz, cuento IA, "lecciones desde tu vida".</p></div>
+      <div class="rounded-xl bg-slate-900/60 border border-slate-700 p-4"><p class="font-bold text-lime-300"> Test final</p><p class="text-slate-400 mt-1">Examen auto-generado + cloze con distractores tramposos.</p></div>
+    </div>
+  </section>
+
+  <!-- 3. COMPARATIVA APP vs MERCADO -->
+  <section class="mb-14">
+    <h2 class="text-2xl font-bold text-white mb-1">3 · Learning UP vs. el mercado</h2>
+    <p class="text-slate-400 text-sm mb-5">Matriz honesta de funciones. <span class="tick"></span> = sí · <span class="partial">~</span> = parcial/de pago · <span class="cross"></span> = no.</p>
+    <div class="overflow-x-auto rounded-2xl border border-slate-700">
+      <table class="w-full text-sm min-w-[720px]">
+        <thead class="bg-slate-800/80 text-slate-200">
+          <tr>
+            <th class="p-3">Función</th>
+            <th class="p-3 text-center bg-indigo-900/50">Learning UP</th>
+            <th class="p-3 text-center">Duolingo</th>
+            <th class="p-3 text-center">Babbel</th>
+            <th class="p-3 text-center">Busuu</th>
+            <th class="p-3 text-center">ELSA</th>
+            <th class="p-3 text-center">Cambly</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-800" id="matrixBody"></tbody>
+      </table>
+    </div>
+    <p class="mt-3 text-xs text-slate-500">Estimación a jul-2026 con fines estratégicos. Los competidores cambian rápido; verifica antes de usar en marketing público.</p>
+  </section>
+
+  <!-- 4. RADAR -->
+  <section class="mb-14">
+    <h2 class="text-2xl font-bold text-white mb-1">4 · Posicionamiento (dónde brillamos)</h2>
+    <p class="text-slate-400 text-sm mb-5">Nuestra forma es distinta: profundos en contenido y español-primero; el reto es la escala de marca.</p>
+    <div class="rounded-2xl bg-slate-900/60 border border-slate-700 p-5">
+      <div class="chart-box"><canvas id="radarChart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- 5. LA ESTRELLA -->
+  <section class="mb-14">
+    <h2 class="text-2xl font-bold text-white mb-4">5 ·  La estrella: lo que la gente REALMENTE busca</h2>
+    <div class="rounded-2xl border border-fuchsia-500/40 bg-gradient-to-br from-fuchsia-950/50 to-slate-900 p-6 glow">
+      <p class="text-slate-300">La gente (sobre todo hispanohablantes) no busca "más lecciones" ni "certificados". Busca resolver <b>un miedo</b>:</p>
+      <p class="my-4 text-center text-2xl font-extrabold text-fuchsia-200">"Puedo leerlo… pero <span class="underline decoration-fuchsia-400">no puedo hablarlo</span> y me da pena."</p>
+      <p class="text-slate-300">Ese es el dolor #1. Y tú ya tienes el 80% construido (mic, IA, voz humana, puntaje). La estrella es <b>empaquetar el speaking como EL producto</b>:</p>
+
+      <div class="mt-5 grid sm:grid-cols-3 gap-4 text-sm">
+        <div class="rounded-xl bg-slate-900/70 border border-fuchsia-500/30 p-4">
+          <p class="font-bold text-fuchsia-300"> Coach de Fluidez con IA</p>
+          <p class="text-slate-400 mt-1">Hablas de un tema, la IA te <b>escucha, te entiende y te corrige en español</b> con calidez. Ya casi lo tienes.</p>
+        </div>
+        <div class="rounded-xl bg-slate-900/70 border border-fuchsia-500/30 p-4">
+          <p class="font-bold text-fuchsia-300"> "Speaking Score"</p>
+          <p class="text-slate-400 mt-1">Un número que SUBE: pronunciación + fluidez + confianza. Medible, adictivo, compartible. Es tu métrica estrella.</p>
+        </div>
+        <div class="rounded-xl bg-slate-900/70 border border-fuchsia-500/30 p-4">
+          <p class="font-bold text-fuchsia-300"> Roleplay de la vida real</p>
+          <p class="text-slate-400 mt-1">Entrevista de trabajo, pedir en un restaurante, aeropuerto… escenarios que la gente teme, con IA que actúa.</p>
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-xl bg-black/30 border border-slate-700 p-4">
+        <p class="text-sm text-slate-300"><b>Posicionamiento de una frase:</b></p>
+        <p class="mt-1 text-lg font-bold text-cyan-200">“Aprende a HABLAR inglés sin miedo — con un profe de IA que te escucha, te corrige y te entiende. En español.”</p>
+        <p class="mt-2 text-xs text-slate-500">Duolingo = juego · Babbel = guiones · Cambly = caro/humanos · ELSA = solo pronunciación en inglés. <b>Nadie</b> une: español-primero + contenido CEFR completo + coach de habla con IA. Ese hueco es tuyo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. INSIGHTS / ROADMAP -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-bold text-white mb-4">6 · Recomendaciones ejecutivas</h2>
+    <div class="grid sm:grid-cols-2 gap-4 text-sm">
+      <div class="rounded-xl bg-slate-900/60 border border-emerald-600/40 p-5">
+        <p class="font-bold text-emerald-300 mb-2">Fortalezas a explotar YA</p>
+        <ul class="space-y-1 text-slate-300 list-disc list-inside">
+          <li>Contenido CEFR completo A1–C2 (raro y valioso).</li>
+          <li>Español-primero + anti-spanglish (moat real).</li>
+          <li>IA integrada (chat, voz, cuento, tu vida).</li>
+          <li>Gratis / bajo costo vs. Cambly y Babbel.</li>
+        </ul>
+      </div>
+      <div class="rounded-xl bg-slate-900/60 border border-amber-600/40 p-5">
+        <p class="font-bold text-amber-300 mb-2">Huecos a cerrar (prioridad)</p>
+        <ul class="space-y-1 text-slate-300 list-disc list-inside">
+          <li><b>Speaking Score</b> como métrica estrella y pantalla principal.</li>
+          <li>Roleplays de escenarios reales con IA.</li>
+          <li>Feedback de pronunciación más fino (ya hay base).</li>
+          <li>Prueba social: testimonios "ya hablo con confianza".</li>
+        </ul>
+      </div>
+    </div>
+    <div class="mt-6 rounded-xl bg-indigo-950/40 border border-indigo-500/30 p-5">
+      <p class="font-bold text-indigo-200 mb-2"> Siguiente jugada sugerida</p>
+      <p class="text-slate-300 text-sm">Construir la <b>pantalla "Coach de Habla"</b>: eliges un escenario o tema → hablas con la IA → recibes tu <b>Speaking Score</b> con correcciones en español y palabras a mejorar. Reutiliza <code class="text-cyan-300">speaking.js</code>, <code class="text-cyan-300">voice-call.js</code> y el motor anti-spanglish. Es la estrella, y ya tienes las piezas.</p>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-slate-600 border-t border-slate-800 pt-6">
+    Learning UP · Comparativa estratégica · datos auditados del repositorio · Horus 
+  </footer>
+</div>
+
+<script>
+const GRID = "rgba(148,163,184,.15)";
+const TICK = "#94a3b8";
+
+// 1. Unidades por nivel
+new Chart(document.getElementById("levelsChart"), {
+  type: "bar",
+  data: {
+    labels: ["A1","A2","B1","B2","C1","C2"],
+    datasets: [{
+      label: "Unidades",
+      data: [8,8,12,10,10,8],
+      backgroundColor: ["#818cf8","#a78bfa","#c084fc","#e879f9","#22d3ee","#34d399"],
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display:false } },
+    scales: { x:{grid:{color:GRID},ticks:{color:TICK}}, y:{grid:{color:GRID},ticks:{color:TICK},beginAtZero:true} }
+  }
+});
+
+// 2. Alcance CEFR por app (0=A1 ... 5=C2)
+new Chart(document.getElementById("reachChart"), {
+  type: "bar",
+  data: {
+    labels: ["Learning UP","Academia (Cambridge)","Busuu","Babbel","Duolingo","ELSA"],
+    datasets: [{
+      label: "Nivel máximo alcanzado",
+      data: [6,6,4,4,4,3],
+      backgroundColor: ["#e879f9","#34d399","#38bdf8","#38bdf8","#38bdf8","#fbbf24"],
+      borderRadius: 8,
+    }]
+  },
+  options: {
+    indexAxis: "y",
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display:false },
+      tooltip: { callbacks: { label: (c)=> ["","","A1","A2","B1","B2","C1","C2"][c.raw+2] + " (tope)" } } },
+    scales: {
+      x: { grid:{color:GRID}, min:0, max:6,
+           ticks:{ color:TICK, stepSize:1, callback:(v)=>["A1","A2","B1","B2","C1","C2","C2+"][v] } },
+      y: { grid:{color:GRID}, ticks:{color:TICK} }
+    }
+  }
+});
+
+// 3. Matriz de funciones
+const rows = [
+  ["Contenido CEFR A1–C2 completo", "tick","cross","partial","partial","cross","partial"],
+  ["Explica en español (L1-primero)", "tick","cross","tick","partial","cross","partial"],
+  ["Motor anti-spanglish (voz)", "tick","cross","cross","cross","cross","cross"],
+  ["Conversación con IA", "tick","partial","cross","partial","cross","cross"],
+  ["Llamada de voz con IA", "tick","partial","cross","cross","cross","cross"],
+  ["Speaking con puntaje", "tick","partial","partial","partial","tick","cross"],
+  ["Repaso espaciado (SRS)", "tick","partial","tick","tick","cross","cross"],
+  ["Cuentos / contenido IA", "tick","cross","cross","cross","cross","cross"],
+  ["Clases con humanos", "cross","cross","cross","cross","cross","tick"],
+  ["Gratis / bajo costo", "tick","tick","cross","partial","partial","cross"],
+];
+const sym = { tick:'<span class="tick"></span>', cross:'<span class="cross"></span>', partial:'<span class="partial">~</span>' };
+document.getElementById("matrixBody").innerHTML = rows.map(r => {
+  const cells = r.slice(1).map((v,i)=>`<td class="p-3 text-center ${i===0?'bg-indigo-900/30':''}">${sym[v]}</td>`).join("");
+  return `<tr class="hover:bg-slate-800/40"><td class="p-3 text-slate-300">${r[0]}</td>${cells}</tr>`;
+}).join("");
+
+// 4. Radar de posicionamiento
+new Chart(document.getElementById("radarChart"), {
+  type: "radar",
+  data: {
+    labels: ["Profundidad\nde contenido","Español-\nprimero","IA para\nhablar","Pronunciación","Precio\naccesible","Marca /\nescala"],
+    datasets: [
+      { label:"Learning UP", data:[9,10,8,7,9,3],
+        backgroundColor:"rgba(232,121,249,.2)", borderColor:"#e879f9", pointBackgroundColor:"#e879f9" },
+      { label:"Duolingo", data:[5,3,5,5,8,10],
+        backgroundColor:"rgba(56,189,248,.15)", borderColor:"#38bdf8", pointBackgroundColor:"#38bdf8" },
+      { label:"Babbel", data:[7,6,3,5,4,8],
+        backgroundColor:"rgba(52,211,153,.12)", borderColor:"#34d399", pointBackgroundColor:"#34d399" },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ labels:{ color:TICK } } },
+    scales:{ r:{
+      angleLines:{color:GRID}, grid:{color:GRID},
+      pointLabels:{ color:"#cbd5e1", font:{size:11} },
+      ticks:{ display:false, stepSize:2 }, min:0, max:10
+    } }
+  }
+});
+</script>
+</body>
+</html>

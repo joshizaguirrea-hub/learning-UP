@@ -24,6 +24,7 @@ import { renderCompetency } from "./features/competency.js";
 import { renderProfile } from "./features/profile.js";
 import { renderProfileEdit } from "./features/profile-edit.js";
 import { renderBonus, renderBonusDeck } from "./features/bonus.js";
+import { renderSpeakingCoach } from "./features/speaking-coach.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
@@ -92,6 +93,7 @@ function setupRoutes() {
   on("/perfil/editar", () => requireAuth((u) => renderProfileEdit(app, u)));
   on("/bonus", () => requireAuth((u) => renderBonus(app, u)));
   on("/bonus/:id", (params) => requireAuth((u) => renderBonusDeck(app, params, u)));
+  on("/coach", () => requireAuth((u) => renderSpeakingCoach(app, u)));
   onNotFound(renderHome);
 }
 
