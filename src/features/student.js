@@ -70,23 +70,23 @@ function profileHeader(name, profile, xp) {
 
   return el("section", { class: PANEL + " overflow-hidden" },
     el("h1", { class: "sr-only" }, `Perfil de ${name}`),
-    el("div", { class: `relative h-20 bg-gradient-to-r ${accent.grad} overflow-hidden` },
+    el("div", { class: `relative h-24 bg-gradient-to-r ${accent.grad} overflow-hidden` },
       el("div", { class: "absolute -top-1/2 -left-8 w-1/2 h-[200%] bg-white/25 blur-2xl opacity-60", "aria-hidden": "true" }),
-      el("div", { class: "absolute -bottom-8 right-6 w-24 h-24 rounded-full border-8 border-white/10", "aria-hidden": "true" })),
-    el("div", { class: "px-5 pb-5" },
-      el("a", { href: "#/perfil", class: "flex items-end gap-4 -mt-8 group", "aria-label": "Ver mi perfil" },
-        el("div", { class: `w-20 h-20 rounded-full bg-gradient-to-br ${accent.grad} border-4 border-slate-900 flex items-center justify-center text-2xl font-extrabold text-white shrink-0` }, initials || "?"),
-        el("div", { class: "pb-1 min-w-0" },
-          el("p", { class: "text-lg font-bold leading-tight truncate group-hover:text-indigo-300" }, name),
-          el("p", { class: "text-sm text-slate-400" },
+      el("div", { class: "absolute -bottom-10 right-8 w-28 h-28 rounded-full border-8 border-white/10", "aria-hidden": "true" })),
+    el("div", { class: "px-6 pb-6" },
+      el("a", { href: "#/perfil", class: "flex items-end gap-5 -mt-8 group", "aria-label": "Ver mi perfil" },
+        el("div", { class: `w-24 h-24 rounded-full bg-gradient-to-br ${accent.grad} border-4 border-slate-900 shadow-lg flex items-center justify-center text-3xl font-extrabold text-white shrink-0` }, initials || "?"),
+        el("div", { class: "pb-2 min-w-0" },
+          el("p", { class: "text-xl font-bold leading-tight truncate group-hover:text-indigo-300" }, name),
+          el("p", { class: "text-sm text-slate-400 mt-0.5" },
             `Nivel ${profile.cefr_level} - ${info.label || ""}`))),
-      el("div", { class: "mt-4" },
-        el("div", { class: "flex justify-between text-xs text-slate-400 mb-1" },
+      el("div", { class: "mt-6" },
+        el("div", { class: "flex justify-between text-xs text-slate-400 mb-1.5" },
           el("span", {}, "Experiencia"),
           el("span", {}, `${into}/100 XP`)),
-        el("div", { class: "w-full bg-slate-800 rounded-full h-2", role: "progressbar",
+        el("div", { class: "w-full bg-slate-800 rounded-full h-2.5", role: "progressbar",
           "aria-valuenow": String(into), "aria-valuemin": "0", "aria-valuemax": "100" },
-          el("div", { class: "bg-gradient-to-r from-indigo-400 to-fuchsia-400 h-2 rounded-full", style: `width:${into}%` })))));
+          el("div", { class: "bg-gradient-to-r from-indigo-400 to-fuchsia-400 h-2.5 rounded-full transition-all", style: `width:${into}%` })))));
 }
 
 // --------------------------------------------------------------------------
