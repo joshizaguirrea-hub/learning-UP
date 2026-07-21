@@ -30,6 +30,7 @@ export async function completeLesson(userId, lessonId, score) {
 
 /** Borra TODO el progreso de lecciones del usuario (reinicio del curso). */
 export async function resetCourseProgress(userId) {
-  const { error } = await supabase.from("course_progress").delete().eq("user_id", userId);
-  return error ? { ok: false, error: error.message } : { ok: true };
+  const { data, error } = await supabase
+    .from("course_progress").delete().eq("user_id", userId).select("lesson_id");
+  return error ? { ok: false, error: error.message } : { ok: true, count: (data || []).length };
 }
