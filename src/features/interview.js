@@ -91,13 +91,36 @@ export function openInterview(opts = {}) {
 
     const err = el("p", { class: "text-rose-400 text-sm mt-1 hidden" }, "Escribe al menos el puesto.");
 
+    // Seniority: calibra la profundidad de las preguntas.
+    const SENIORITIES = ["Junior", "Semi-senior", "Senior", "Gerencial"];
+    let seniority = "Semi-senior";
+    const senPills = SENIORITIES.map((s) => {
+      const p = choicePill(s, s === seniority, () => { seniority = s; syncSen(); });
+      return p;
+    });
+    function syncSen() {
+      senPills.forEach((p, i) => { p.dataset.on = String(SENIORITIES[i] === seniority); });
+      paintPills(senPills);
+    }
+
+    // Descripcion de la vacante (opcional): oro puro para preguntas especificas.
+    const detailsInput = el("textarea", {
+      id: "iv-details", rows: "3", maxlength: "600",
+      class: "w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 " +
+        "placeholder:text-slate-500 focus:outline focus:outline-2 focus:outline-sky-400 resize-none",
+      placeholder: "Opcional: pega la descripci\u00f3n de la vacante o responsabilidades clave. Cuanto m\u00e1s detalle, m\u00e1s realista la entrevista.",
+    });
+
     const startBtn = el("button", {
       type: "button",
       class: "mt-5 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-sky-300",
       onclick: () => {
         const role = roleInput.value.trim();
         if (!role) { err.classList.remove("hidden"); roleInput.focus(); return; }
-        startInterview(role, companyInput.value.trim(), modeVoice && canVoice);
+        startInterview({
+          role, company: companyInput.value.trim(), seniority,
+          details: detailsInput.value.trim(), useVoice: modeVoice && canVoice,
+        });
       },
     }, "Comenzar entrevista \u2192");
 
@@ -105,25 +128,34 @@ export function openInterview(opts = {}) {
 
     body.replaceChildren(
       el("p", { class: "text-sm text-slate-400" },
-        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutador y te entrevistar\u00e1 en ingl\u00e9s, en serio, para prepararte."),
+        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutador senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
       el("label", { class: "block mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Puesto"),
       roleInput,
       el("label", { class: "block mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Empresa"),
       companyInput,
       err,
+      el("p", { class: "mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Nivel del puesto"),
+      el("div", { class: "flex flex-wrap gap-2" }, ...senPills),
+      el("label", { class: "block mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Detalles de la vacante"),
+      detailsInput,
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "\u00bfC\u00f3mo quieres responder?"),
       el("div", { class: "flex gap-2" }, voiceBtn, textBtn),
       canVoice ? null : el("p", { class: "mt-1 text-xs text-amber-300" }, "Tu navegador no permite micr\u00f3fono; usar\u00e1s texto. (Chrome en PC/Android para voz.)"),
       startBtn);
     setTimeout(() => roleInput.focus(), 50);
     syncMode();
+    syncSen();
   }
 
   // ---- Paso 2: la entrevista ------------------------------------------------
-  function startInterview(role, company, useVoice) {
+  function startInterview(cfg) {
+    const { role, company, seniority, details, useVoice } = cfg;
     const history = [];
-    const topic = "Puesto: " + role + (company ? " | Empresa: " + company : "") +
-      " | Objetivo: simulacro de entrevista de trabajo real para preparar al candidato.";
+    const topic = "Puesto: " + role +
+      (company ? " | Empresa: " + company : "") +
+      (seniority ? " | Seniority: " + seniority : "") +
+      (details ? " | Detalles de la vacante: " + details : "") +
+      " | Objetivo: simulacro de entrevista de trabajo REAL y exigente, especifica del puesto y la empresa, para preparar al candidato.";
 
     let paused = false;
     let waiting = false; // esperando respuesta de la IA
@@ -260,7 +292,7 @@ export function openInterview(opts = {}) {
       const { answer, error } = await askBymax({ mode: "interview", topic, level, question: "[FEEDBACK]", history: history.slice(-MAX_TURNS) });
       if (ended) return;
       if (error || !answer) { status.textContent = "\u26a0\ufe0f No pude generar el feedback: " + (error || ""); return; }
-      renderFeedback(answer, () => startInterview(role, company, useVoice));
+      renderFeedback(answer, () => startInterview(cfg));
     }
 
     body.replaceChildren(
