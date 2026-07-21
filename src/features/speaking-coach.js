@@ -14,6 +14,7 @@ import { ICONS } from "../ui/icons.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { getStudentProfile } from "../services/profiles.js";
 import { getSpeakingScore, scoreLabel } from "../core/speaking-score.js";
+import { getInterviewLog, clearNextAppointment } from "../core/interview-log.js";
 import { openInterview } from "./interview.js";
 import { openVoiceCall } from "./voice-call.js";
 import { openSpeaking } from "./speaking.js";
@@ -50,14 +51,75 @@ export async function renderSpeakingCoach(container, user) {
   const profile = await getStudentProfile(user.id).catch(() => null);
   const level = profile?.cefr_level || "B1";
   const score = getSpeakingScore(user.id);
+  const log = getInterviewLog(user.id);
+
+  const rerender = () => renderSpeakingCoach(container, user);
 
   mount(container, el("div", { class: "space-y-6 max-w-3xl mx-auto" },
     header(),
+    appointmentReminder(log, level, user.id, rerender),
     scoreCard(score),
     interviewHero(level, user.id),
+    interviewHistory(log),
     scenesSection(level),
     pronunciationCard(level)));
   focusMainHeading(container);
+}
+
+/** Recordatorio de la proxima cita de entrenamiento (rol de coach). */
+function appointmentReminder(log, level, userId, rerender) {
+  if (!log.nextAt) return null;
+  const when = new Date(log.nextAt);
+  if (isNaN(when.getTime())) return null;
+  const now = new Date();
+  const msLeft = when.getTime() - now.getTime();
+  const days = Math.ceil(msLeft / 86400000);
+  const due = msLeft <= 0;
+  const whenTxt = when.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+  const countdown = due ? "\u00a1Es hora de tu entrenamiento!" : (days <= 1 ? "Es muy pronto" : "Faltan " + days + " d\u00edas");
+
+  return el("section", { class: "rounded-2xl p-5 flex items-center gap-4 flex-wrap " +
+    (due ? "bg-emerald-500/15 border border-emerald-500/40" : "bg-indigo-500/10 border border-indigo-500/30") },
+    el("span", { class: "w-11 h-11 rounded-xl bg-white/10 grid place-items-center text-2xl shrink-0", "aria-hidden": "true" }, "\uD83D\uDCC5"),
+    el("div", { class: "flex-1 min-w-[10rem]" },
+      el("p", { class: "font-bold " + (due ? "text-emerald-200" : "text-indigo-200") }, "Tu pr\u00f3xima cita de entrenamiento"),
+      el("p", { class: "text-sm text-slate-300 mt-0.5" }, whenTxt),
+      el("p", { class: "text-xs text-slate-400 mt-0.5" }, countdown)),
+    el("div", { class: "flex gap-2" },
+      el("button", {
+        type: "button",
+        class: "px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-sky-300",
+        onclick: () => openInterview({ level, userId }),
+      }, "Practicar ahora"),
+      el("button", {
+        type: "button",
+        class: "px-3 py-2.5 rounded-xl border border-white/15 bg-white/5 text-slate-300 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-white",
+        "aria-label": "Quitar cita",
+        onclick: () => { clearNextAppointment(userId); rerender(); },
+      }, "Quitar")));
+}
+
+/** Historial de entrevistas: el coach recuerda tus resultados y progreso. */
+function interviewHistory(log) {
+  const sessions = (log.sessions || []).slice(0, 5);
+  if (!sessions.length) return null;
+
+  const rows = sessions.map((s) => {
+    const info = scoreLabel(s.score);
+    const dt = new Date(s.at);
+    const dtTxt = isNaN(dt.getTime()) ? "" : dt.toLocaleDateString("es-MX", { day: "numeric", month: "short" });
+    const label = (s.role || "Entrevista") + (s.company ? " \u00b7 " + s.company : "");
+    return el("div", { class: PANEL + " p-3 flex items-center gap-3" },
+      el("div", { class: "w-11 h-11 rounded-full grid place-items-center font-extrabold text-sky-300 bg-sky-500/10 border border-sky-500/30 shrink-0" }, String(s.score)),
+      el("div", { class: "flex-1 min-w-0" },
+        el("p", { class: "font-semibold text-slate-100 truncate" }, label),
+        el("p", { class: "text-xs text-slate-400" }, dtTxt + " \u00b7 " + info.label)));
+  });
+
+  return el("section", {},
+    el("h2", { class: "text-lg font-bold text-slate-100 mb-1" }, "Tu historial de entrevistas"),
+    el("p", { class: "text-sm text-slate-400 mb-3" }, "Bymax recuerda tus resultados y en la siguiente entrevista revisa si mejoraste."),
+    el("div", { class: "space-y-2" }, ...rows));
 }
 
 function header() {
