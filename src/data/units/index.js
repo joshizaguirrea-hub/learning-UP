@@ -112,3 +112,8 @@ export function vocabById(vocabId) {
   }
   return null;
 }
+
+/** Todo el vocabulario de todas las unidades (util para distractores). */
+export function allVocab() {
+  return UNITS.flatMap((u) => u.vocab);
+}

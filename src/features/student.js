@@ -19,8 +19,9 @@ import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { courseCards } from "./course-cards.js";
 import { bymaxCard, dailyGreeting } from "./bymax-panel.js";
-import { openAntiErrors } from "./anti-errors.js";
 import { openMyLifeLesson } from "./my-life-lesson.js";
+import { openVoiceCall } from "./voice-call.js";
+import { REVIEW_SESSION } from "./review.js";
 import { actionBanner } from "../ui/banner.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
@@ -51,7 +52,7 @@ export async function renderStudent(container, user) {
     bymaxCard({ xp, streak: profile.streak || 0 }),
     nextActionHero(profile, units, completed, due),
     courseCards(units, progressMap),
-    antiErrorBanner(),
+    callBanner(profile.cefr_level),
     myLifeBanner(),
     statsRow(profile, srs.learned, lessonsDone),
     bonusBanner()));
@@ -124,7 +125,10 @@ function nextActionHero(profile, units, completed, due) {
 
 /** Decide la mejor accion siguiente (friccion cero). */
 function nextAction(units, completed, due) {
-  if (due > 0) return { label: `Repaso del dia: ${due} tarjetas`, cta: "Repasar", href: "#/repaso" };
+  if (due > 0) {
+    const batch = Math.min(due, REVIEW_SESSION);
+    return { label: `Repaso del dia: ${batch} tarjeta${batch === 1 ? "" : "s"}`, cta: "Repasar", href: "#/repaso" };
+  }
   for (const u of units) {
     for (const l of u.lessons) {
       if (!completed.has(l.id)) return { label: `${u.title}: ${l.title}`, cta: "Continuar", href: `#/leccion/${l.id}` };
@@ -137,12 +141,13 @@ function nextAction(units, completed, due) {
 // Tarjetas de dominio por competencia (estilo Fit Match)
 // --------------------------------------------------------------------------
 
-/** Banner del Modo Anti-errores (diferencial: trampas es->en). */
-function antiErrorBanner() {
+/** Banner de la llamada por voz con Bymax (inmersion total, en la principal). */
+function callBanner(level) {
   return actionBanner({
-    accent: "practice", icon: ICONS.bulb, cta: "Jugar", onClick: () => openAntiErrors(),
-    title: "Modo Anti-errores",
-    subtitle: "Vence las trampas t\u00edpicas del espa\u00f1ol al ingl\u00e9s (he/she, falsos amigos...)",
+    accent: "speak", icon: ICONS.mic, cta: "Llamar",
+    onClick: () => openVoiceCall({ title: "el d\u00eda a d\u00eda", level }),
+    title: "Llamada con Bymax",
+    subtitle: "Una llamada por voz, manos libres: inmersi\u00f3n total hablando en ingl\u00e9s",
   });
 }
 
