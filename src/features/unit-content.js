@@ -13,6 +13,7 @@ import { openConversation } from "./conversation.js";
 import { openSpeaking } from "./speaking.js";
 import { openStory } from "./story.js";
 import { openVoiceCall } from "./voice-call.js";
+import { openAntiErrors } from "./anti-errors.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 const BONUS_LINKS = [
@@ -81,12 +82,25 @@ export function unitContent(unit, progressMap) {
       el("p", { class: "text-white/85 text-sm" }, "Una llamada por voz con Bymax: inmersi\u00f3n total en ingl\u00e9s")),
     el("span", { class: "text-white/90 text-sm font-semibold" }, "Llamar ->"));
 
+  const antiErrors = el("button", {
+    type: "button",
+    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-rose-500 to-orange-600 " +
+      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
+    onclick: () => openAntiErrors(unit.level),
+  },
+    el("span", { class: "w-9 h-9 shrink-0", html: ICONS.bulb }),
+    el("div", { class: "flex-1 text-left" },
+      el("p", { class: "font-bold text-lg" }, "Modo Anti-errores"),
+      el("p", { class: "text-white/85 text-sm" }, `Trampas es->en de tu nivel (${unit.level}): falsos amigos, he/she, preposiciones...`)),
+    el("span", { class: "text-white/90 text-sm font-semibold" }, "Jugar ->"));
+
   return el("div", {},
     el("h2", { class: "font-bold text-lg mb-3" }, "Competencias"),
     skillGrid,
     bonusRow,
     convo,
     call,
+    antiErrors,
     story);
 }
 

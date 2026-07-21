@@ -14,8 +14,8 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 import { confettiBurst } from "../ui/confetti.js";
 import { pickAntiErrors } from "../data/anti-errors.js";
 
-export function openAntiErrors() {
-  const items = pickAntiErrors(8);
+export function openAntiErrors(level) {
+  const items = pickAntiErrors(8, level);
   let idx = 0;
   let correct = 0;
 
