@@ -114,14 +114,22 @@ export function renderSettings(container, user) {
     resetActions.replaceChildren(el("p", { class: "text-sm text-slate-400" }, "Reiniciando..."));
     const [c, s] = await Promise.all([resetCourseProgress(user.id), resetSrsCards(user.id)]);
     await updateStudentProfile(user.id, { streak: 0, last_active: null });
-    if (c.ok && s.ok) {
-      mount(resetMsg, msg(true, "Progreso reiniciado. \u00a1A empezar el B1 desde la unidad 1!"));
-      announce("Progreso reiniciado.");
-      resetActions.replaceChildren(el("button", { class: PRIMARY, onclick: () => go("/student") }, "Ir a mi curso"));
-    } else {
+    if (!c.ok || !s.ok) {
       mount(resetMsg, msg(false, (c.error || s.error || "No se pudo reiniciar.")));
       resetIdle();
+      return;
     }
+    const total = (c.count || 0) + (s.count || 0);
+    if (total === 0) {
+      // No hubo error pero no se borro nada -> casi siempre falta politica DELETE (RLS).
+      mount(resetMsg, msg(false,
+        "No se borro ninguna fila. Falta el permiso de BORRADO (RLS) en Supabase. Corre el SQL que te paso y reintenta."));
+      resetIdle();
+      return;
+    }
+    mount(resetMsg, msg(true, `Progreso reiniciado (${c.count} lecciones, ${s.count} tarjetas). \u00a1A empezar el B1 desde la unidad 1!`));
+    announce("Progreso reiniciado.");
+    resetActions.replaceChildren(el("button", { class: PRIMARY, onclick: () => go("/student") }, "Ir a mi curso"));
   }
 
   resetIdle();

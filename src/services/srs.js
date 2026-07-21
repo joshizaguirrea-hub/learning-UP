@@ -62,8 +62,9 @@ export async function saveCard(userId, vocabId, card) {
 
 /** Borra TODAS las tarjetas SRS del usuario (reinicio del progreso). */
 export async function resetSrsCards(userId) {
-  const { error } = await supabase.from("srs_cards").delete().eq("user_id", userId);
-  return error ? { ok: false, error: error.message } : { ok: true };
+  const { data, error } = await supabase
+    .from("srs_cards").delete().eq("user_id", userId).select("vocab_id");
+  return error ? { ok: false, error: error.message } : { ok: true, count: (data || []).length };
 }
 
 /** Estadisticas del SRS: total de tarjetas y cuantas ya se han repasado. */
