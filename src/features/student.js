@@ -50,6 +50,7 @@ export async function renderStudent(container, user) {
     dailyGreeting({ name, streak: profile.streak || 0 }),
     profileHeader(name, profile, xp),
     bymaxCard({ xp, streak: profile.streak || 0 }),
+    coachBanner(),
     nextActionHero(profile, units, completed, due),
     courseCards(units, progressMap),
     callBanner(profile.cefr_level),
@@ -140,6 +141,15 @@ function nextAction(units, completed, due) {
 // --------------------------------------------------------------------------
 // Tarjetas de dominio por competencia (estilo Fit Match)
 // --------------------------------------------------------------------------
+
+/** Banner ESTRELLA: Coach de Habla (entrevista de trabajo + roleplay + Speaking Score). */
+function coachBanner() {
+  return actionBanner({
+    accent: "speak", icon: ICONS.briefcase, cta: "Entrenar", href: "#/coach",
+    title: "Coach de Habla \u2b50",
+    subtitle: "Simula una entrevista de trabajo con IA, practica escenas reales y sube tu Speaking Score",
+  });
+}
 
 /** Banner de la llamada por voz con Bymax (inmersion total, en la principal). */
 function callBanner(level) {

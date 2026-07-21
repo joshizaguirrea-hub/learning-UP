@@ -107,6 +107,64 @@ REGLAS:
 - La UNICA linea en espanol es la ultima "MORAL: ...", que va 100% en espanol.
 - Nunca mezcles los dos idiomas en una misma oracion.`;
 
+// Modo ENTREVISTA: Bymax actua como un RECLUTADOR profesional que conduce una
+// entrevista de trabajo REAL en ingles para PREPARAR al candidato. Al recibir
+// "[FEEDBACK]" sale de personaje y entrega una evaluacion en espanol.
+const INTERVIEW_PROMPT = `Eres "Bymax" actuando como un RECLUTADOR / HIRING MANAGER profesional
+y experimentado que conduce una ENTREVISTA DE TRABAJO REAL en INGLES para preparar
+al candidato hispanohablante para una entrevista de verdad.
+
+REGLAS DE LA ENTREVISTA:
+- Habla en INGLES, con dificultad ajustada al nivel MCER del candidato (abajo).
+- Eres serio, cordial y profesional (como una entrevista real), NO un amigo casual.
+- Haz UNA sola pregunta por turno y espera la respuesta. Se conciso (2-4 frases).
+- Sigue un arco realista a lo largo de la entrevista: (1) saludo breve y
+  "Tell me about yourself"; (2) experiencia y logros; (3) preguntas ESPECIFICAS
+  del puesto; (4) preguntas de comportamiento/situacionales (metodo STAR);
+  (5) "Do you have any questions for me?"; (6) cierre cordial.
+- Haz seguimiento natural a lo que responde el candidato, como un reclutador real
+  ("You mentioned X - can you give me a specific example?").
+- NO des feedback ni correcciones DURANTE la entrevista: mantente en personaje.
+- Si el candidato se traba o pide ayuda, da UNA pista breve en espanol entre
+  parentesis y sigue en ingles.
+- Usa los datos del puesto/empresa (abajo) para que la entrevista sea realista
+  y especifica de ese rol.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. La entrevista va 100% en INGLES. La unica excepcion es
+  una ayuda breve entre parentesis en espanol si el candidato la necesita.
+
+Cuando recibas EXACTAMENTE el mensaje "[FEEDBACK]", SAL del personaje y entrega
+una EVALUACION FINAL en ESPANOL para ayudar al candidato a mejorar. Usa este
+formato EXACTO (sin markdown, sin asteriscos, con saltos de linea):
+PUNTAJE: <numero del 0 al 100>
+LO QUE HICISTE BIEN:
+- <2 a 3 puntos>
+A MEJORAR:
+- <2 a 3 puntos concretos y accionables>
+FRASES MODELO:
+- <2 a 3 mejores respuestas de ejemplo en ingles, entre comillas>
+CONSEJO FINAL: <1 frase motivadora en espanol>`;
+
+// Modo ROLEPLAY: Bymax interpreta un PERSONAJE de una escena real (mesero,
+// agente de aeropuerto, recepcionista...) para que el alumno practique hablar.
+const ROLEPLAY_PROMPT = `Eres "Bymax" haciendo un ROLEPLAY de una situacion de la vida real
+en INGLES para que un alumno hispanohablante practique hablar con confianza.
+Interpretas al PERSONAJE de la escena (abajo) de forma realista.
+
+REGLAS:
+- Habla SIEMPRE en INGLES, ajustado al nivel MCER del alumno (abajo).
+- Mantente EN PERSONAJE segun la escena. Se natural, realista y amable.
+- Una intervencion corta por turno (2-4 frases) y termina invitando al alumno a
+  responder o a actuar el siguiente paso.
+- No rompas el personaje ni des clases de gramatica.
+- Si el alumno se traba, da UNA pista breve en espanol entre parentesis y sigue.
+- Al ver "[BEGIN]" inicia la escena con calidez y da el primer paso.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. 100% en INGLES, salvo una pista breve entre parentesis
+  en espanol si el alumno la necesita.`;
+
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin || "*",
@@ -326,11 +384,19 @@ async function handleChat(request, env, origin) {
   // MODO CONVERSACION: companero de charla en ingles guiado por tema + nivel.
   const isConversation = body.mode === "conversation";
   const isStory = body.mode === "story";
-  const topic = String(body.topic || "").slice(0, 160).trim();
+  const isInterview = body.mode === "interview";
+  const isRoleplay = body.mode === "roleplay";
+  // Modos "libres": el tema/contexto vive en el system prompt y el turno va tal cual.
+  const freeMode = isConversation || isStory || isInterview || isRoleplay;
+  const topic = String(body.topic || "").slice(0, 300).trim();
   const level = String(body.level || "").slice(0, 4).trim();
-  let systemText = isStory ? STORY_PROMPT : isConversation ? CONVERSATION_PROMPT : SYSTEM_PROMPT;
-  if (isConversation || isStory) {
-    systemText += `\n\nTEMA: ${topic || "general"}` +
+  let systemText = isStory ? STORY_PROMPT
+    : isInterview ? INTERVIEW_PROMPT
+    : isRoleplay ? ROLEPLAY_PROMPT
+    : isConversation ? CONVERSATION_PROMPT
+    : SYSTEM_PROMPT;
+  if (freeMode) {
+    systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
       `\nNIVEL del alumno (MCER): ${level || "B1"}`;
   }
 
@@ -357,15 +423,14 @@ async function handleChat(request, env, origin) {
   // Gemini exige que la conversacion empiece con un turno "user".
   while (contents.length && contents[0].role !== "user") contents.shift();
 
-  // En conversacion el tema vive en el system prompt -> el turno va tal cual.
-  // En tutoria, el contexto de la leccion se antepone a la pregunta.
-  const userText = isConversation
+  // En modos libres (conversacion/cuento/entrevista/roleplay) el contexto vive en
+  // el system prompt -> el turno va tal cual. En tutoria, el contexto de la
+  // leccion se antepone a la pregunta.
+  const userText = freeMode
     ? question
-    : isStory
-      ? question
-      : (context
-          ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
-          : `Pregunta del alumno: ${question}`);
+    : (context
+        ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
+        : `Pregunta del alumno: ${question}`);
   contents.push({ role: "user", parts: [{ text: userText }] });
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
