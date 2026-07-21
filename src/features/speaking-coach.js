@@ -59,11 +59,41 @@ export async function renderSpeakingCoach(container, user) {
     header(),
     appointmentReminder(log, level, user.id, rerender),
     scoreCard(score),
+    progressChart(log),
     interviewHero(level, user.id),
     interviewHistory(log),
     scenesSection(level),
     pronunciationCard(level)));
   focusMainHeading(container);
+}
+
+/** Grafica de progreso: puntaje de las ultimas entrevistas (SVG puro). */
+function progressChart(log) {
+  const s = (log.sessions || []).slice(0, 8).reverse(); // de la mas vieja a la mas nueva
+  if (s.length < 2) return null;
+  const W = 320, H = 140, padB = 26, padT = 18, padX = 10;
+  const n = s.length;
+  const gap = (W - padX * 2) / n;
+  const bw = gap * 0.6;
+  const chartH = H - padB - padT;
+  const bars = s.map((it, i) => {
+    const x = padX + gap * i + (gap - bw) / 2;
+    const h = Math.max(2, (it.score / 100) * chartH);
+    const y = padT + (chartH - h);
+    const dt = new Date(it.at);
+    const label = isNaN(dt.getTime()) ? "" : (dt.getDate() + "/" + (dt.getMonth() + 1));
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="4" fill="url(#gcoach)"/>` +
+      `<text x="${x + bw / 2}" y="${y - 4}" text-anchor="middle" font-size="11" fill="#cbd5e1" font-weight="700">${it.score}</text>` +
+      `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" font-size="9" fill="#64748b">${label}</text>`;
+  }).join("");
+  const svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Progreso de tus ultimas entrevistas">` +
+    `<defs><linearGradient id="gcoach" x1="0" y1="0" x2="0" y2="1">` +
+    `<stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#6366f1"/></linearGradient></defs>` +
+    bars + `</svg>`;
+  return el("section", { class: PANEL + " p-5" },
+    el("h2", { class: "text-lg font-bold text-slate-100 mb-1" }, "Tu progreso"),
+    el("p", { class: "text-sm text-slate-400 mb-3" }, "Puntaje de tus \u00faltimas entrevistas. La meta: que la barra suba."),
+    el("div", { html: svg }));
 }
 
 /** Recordatorio de la proxima cita de entrenamiento (rol de coach). */

@@ -45,6 +45,7 @@ export function recordInterview(userId, s) {
     company: s.company || "",
     seniority: s.seniority || "",
     score: Math.max(0, Math.min(100, Math.round(Number(s.score) || 0))),
+    areas: s.areas || null,
     improvements: s.improvements || "",
     tip: s.tip || "",
   };
