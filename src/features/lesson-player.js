@@ -149,6 +149,11 @@ export async function renderLessonPlayer(container, params, user) {
         }
         state.checked.add(idxNum);
         lockNode(node);
+        // Feedback JUGOSO: el ejercicio hace pop (acierto) o shake (error).
+        node.classList.remove("answer-pop", "answer-shake");
+        void node.offsetWidth; // reinicia la animacion aunque se repita
+        node.classList.add(ok ? "answer-pop" : "answer-shake");
+        if (ok) floatXp(body);
         // Avisa a la actividad que ya se comprobo (ej. listening revela transcripcion).
         node.dispatchEvent(new CustomEvent("activity:checked", { detail: { ok } }));
         ok ? playCorrect() : playWrong();
@@ -165,6 +170,12 @@ export async function renderLessonPlayer(container, params, user) {
         announce(ok ? "Correcto" : "Incorrecto");
       },
     }, "Comprobar");
+
+    // El matching estilo Duolingo se autocompleta al emparejar todo -> dispara
+    // "Comprobar" solo (no hace falta boton para ese tipo).
+    node.addEventListener("activity:autocomplete", () => {
+      if (!state.checked.has(idxNum)) checkBtn.click();
+    });
 
     mount(footerHost, checkBtn);
     return { body, footer: footerHost };
@@ -315,6 +326,14 @@ function showCombo(host, streak) {
   }, "\uD83D\uDD25 Combo x" + streak + "!");
   host.append(badge);
   setTimeout(() => badge.remove(), 1400);
+}
+
+// +XP flotante que sube y se desvanece: recompensa visible en cada acierto.
+function floatXp(host, amount = 10) {
+  host.style.position = host.style.position || "relative";
+  const chip = el("div", { class: "xp-float" }, "+" + amount + " XP");
+  host.append(chip);
+  setTimeout(() => chip.remove(), 1200);
 }
 
 function topBar(unit, pct, state) {
@@ -479,85 +498,98 @@ function wordBankActivity(act, title) {
   return { node: el("fieldset", {}, title, answerArea, bank), getResponse: () => [...chosen] };
 }
 
+/**
+ * MATCHING estilo Duolingo: dos columnas de fichas. Tocas una ficha y su pareja;
+ * si aciertan se ponen VERDES con un pop y desaparecen; si fallan hacen SHAKE
+ * rojo y se sueltan. Cuando emparejas todas, la actividad se autocompleta.
+ * getResponse() devuelve null si falta emparejar (el motor pide terminar antes),
+ * o el mapeo correcto cuando ya esta completo -> siempre acierto (como Duolingo).
+ */
 function matchingActivity(act, title) {
   const pairs = act.payload.pairs;
-  const answers = new Array(pairs.length).fill(null); // right elegido por cada left
-  let selectedLeft = null;
-  const bankChips = [];
+  const total = pairs.length;
+  const matchedRight = new Array(total).fill(null); // right emparejado por cada left
+  let matchedCount = 0;
+  let sel = null;          // ficha seleccionada actualmente
+  let busy = false;        // bloquea taps durante la animacion de error
 
-  const leftRows = [];
-  const bank = el("div", { class: "mt-4 flex flex-wrap gap-2" });
+  const shuffle = (arr) => arr.map((x) => [Math.random(), x]).sort((a, b) => a[0] - b[0]).map((p) => p[1]);
 
-  function redraw() {
-    // Filas izquierda con su "slot".
-    pairs.forEach((p, i) => {
-      const row = leftRows[i];
-      const slot = row._slot;
-      const chosen = answers[i];
-      row.classList.toggle("border-indigo-400", selectedLeft === i);
-      row.classList.toggle("bg-indigo-500/15", selectedLeft === i);
-      if (chosen) {
-        slot.textContent = chosen;
-        slot.className = "ml-auto px-3 py-1.5 rounded-lg bg-emerald-500/25 text-emerald-100 border border-emerald-500/40";
-      } else {
-        slot.textContent = "Toca aqu\u00ed";
-        slot.className = "ml-auto px-3 py-1.5 rounded-lg bg-white/5 text-slate-500 border border-dashed border-white/20";
-      }
-    });
-    // Banco: deshabilita los rights ya usados.
-    bankChips.forEach((chip) => {
-      const used = answers.includes(chip.textContent);
-      chip.disabled = used;
-      chip.classList.toggle("opacity-30", used);
-    });
+  const TILE = "match-tile w-full px-3 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-100 " +
+    "font-medium text-center hover:bg-white/10 focus:outline focus:outline-2 focus:outline-indigo-400";
+
+  const fieldset = el("fieldset", {});
+
+  function makeTile(text, side, pairIdx) {
+    const btn = el("button", { type: "button", class: TILE }, text);
+    btn._side = side; btn._pairIdx = pairIdx; btn._done = false;
+    btn.onclick = () => onTap(btn);
+    return btn;
   }
 
-  pairs.forEach((p, i) => {
-    const slot = el("span", { class: "ml-auto" }, "");
-    const row = el("button", {
-      type: "button",
-      class: "w-full flex items-center gap-3 p-3 rounded-xl border border-white/10 bg-white/5 text-left " +
-        "hover:bg-white/10 transition focus:outline focus:outline-2 focus:outline-indigo-400",
-      onclick: () => {
-        if (answers[i]) {
-          // Si ya tenia respuesta, la libera de vuelta al banco.
-          answers[i] = null; selectedLeft = i;
-        } else {
-          selectedLeft = i;
-        }
-        redraw();
-      },
-    }, el("span", { class: "font-medium text-slate-100" }, p.left), slot);
-    row._slot = slot;
-    leftRows.push(row);
-  });
+  // Columna izquierda = pistas (en su orden); derecha = respuestas barajadas.
+  const leftTiles = pairs.map((p, i) => makeTile(p.left, "L", i));
+  const rightTiles = shuffle(pairs.map((p, i) => ({ t: p.right, i })))
+    .map((o) => makeTile(o.t, "R", o.i));
 
-  const rights = pairs.map((p) => p.right).sort(() => Math.random() - 0.5);
-  rights.forEach((r) => {
-    const chip = el("button", {
-      type: "button",
-      class: "px-3 py-2 rounded-lg border border-white/15 bg-white/5 text-slate-100 " +
-        "hover:bg-white/10 transition active:scale-95 focus:outline focus:outline-2 focus:outline-indigo-400",
-      onclick: () => {
-        // Coloca en el left seleccionado, o en el primer slot vacio.
-        let target = selectedLeft;
-        if (target == null || answers[target]) target = answers.findIndex((a) => !a);
-        if (target === -1 || target == null) return;
-        answers[target] = r;
-        selectedLeft = null;
-        redraw();
-      },
-    }, r);
-    bankChips.push(chip);
-  });
-  bank.append(...bankChips);
+  function clearSel() {
+    if (sel) { sel.classList.remove("match-sel"); sel = null; }
+  }
 
-  redraw();
+  function resolveOk(a, b) {
+    matchedRight[a._side === "L" ? a._pairIdx : b._pairIdx] = pairs[a._pairIdx].right;
+    matchedCount++;
+    [a, b].forEach((n) => {
+      n._done = true; n.disabled = true;
+      n.classList.remove("match-sel");
+      n.classList.add("match-ok");
+      // Tras el pop, se apaga y se vuelve invisible (deja el hueco).
+      setTimeout(() => { n.classList.add("match-done"); }, 40);
+    });
+    clearSel();
+    if (matchedCount === total) {
+      // Autocompleta: avisa al paso para que corra la correccion (siempre acierto).
+      setTimeout(() => fieldset.dispatchEvent(
+        new CustomEvent("activity:autocomplete", { bubbles: true })), 520);
+    }
+  }
+
+  function resolveBad(a, b) {
+    busy = true;
+    [a, b].forEach((n) => n.classList.add("match-bad"));
+    setTimeout(() => {
+      [a, b].forEach((n) => n.classList.remove("match-bad"));
+      clearSel();
+      busy = false;
+    }, 430);
+  }
+
+  function onTap(btn) {
+    if (busy || btn._done) return;
+    if (!sel) { sel = btn; btn.classList.add("match-sel"); return; }
+    if (sel === btn) { clearSel(); return; }               // toca la misma -> deselecciona
+    if (sel._side === btn._side) {                          // misma columna -> cambia seleccion
+      sel.classList.remove("match-sel");
+      sel = btn; btn.classList.add("match-sel");
+      return;
+    }
+    // Columnas opuestas: acierto si comparten indice de par.
+    if (sel._pairIdx === btn._pairIdx) resolveOk(sel, btn);
+    else resolveBad(sel, btn);
+  }
+
+  const colClass = "flex-1 flex flex-col gap-2";
+  fieldset.append(
+    title,
+    el("p", { class: "mt-1 text-xs text-slate-500" }, "Toca una ficha y luego su pareja."),
+    el("div", { class: "mt-4 flex gap-3" },
+      el("div", { class: colClass }, ...leftTiles),
+      el("div", { class: colClass }, ...rightTiles)));
+
   return {
-    node: el("fieldset", {}, title,
-      el("p", { class: "mt-1 text-xs text-slate-500" }, "Toca un elemento de la izquierda y luego su pareja abajo."),
-      el("div", { class: "mt-3 space-y-2" }, ...leftRows), bank),
-    getResponse: () => answers.map((a) => a || ""),
+    node: fieldset,
+    // null mientras falten parejas -> el motor pide "Responde primero".
+    getResponse: () => (matchedCount === total ? [...matchedRight] : null),
   };
 }
 
