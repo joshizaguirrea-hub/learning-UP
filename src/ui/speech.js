@@ -9,6 +9,7 @@
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { fixSpanishAccents } from "./es-accents.js";
+import { toBilingualItems } from "./bilingual.js";
 import { cloudSpeak, cancelCloud, cloudTtsEnabled, prefetchCloud } from "./cloud-tts.js";
 
 /** True si el navegador soporta sintesis de voz. */
@@ -91,9 +92,9 @@ export function speak(text, lang = "en-US", opts = {}) {
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
   if (!parts.length) return;
 
-  // Un item por parte; speakSequence lo divide por idioma (es/en) y le da a cada
-  // trozo su voz correcta (RAIZ anti-Spanglish). Cae al navegador solo en ingles.
-  speakSequence(parts.map((p) => ({ text: p, lang: base === "es" ? "es-MX" : "en-US", opts })));
+  // Cada parte se re-segmenta por idioma (garantia anti-Spanglish): aunque una
+  // parte traiga mezcla es/en, toBilingualItems le da a cada trozo su voz.
+  speakSequence(parts.flatMap((p) => toBilingualItems(p, lang).map((it) => ({ ...it, opts: { ...it.opts, ...opts } }))));
 }
 
 // --- Deteccion de idioma por frase (anti-Spanglish en respuestas MIXTAS) ---
@@ -123,46 +124,13 @@ function detectLang(text) {
 export function speakBilingual(text, onDone) {
   if (!text) { if (typeof onDone === "function") onDone(); return () => {}; }
   // 1) Trocea en segmentos: lo entrecomillado (" " o “ ”) va aparte como INGLES.
-  const raw = String(text).replace(/\s+/g, " ").trim();
-  const segs = [];
-  const re = /["\u201C\u201D]([^"\u201C\u201D]+)["\u201C\u201D]/g;
-  let last = 0, m;
-  while ((m = re.exec(raw))) {
-    if (m.index > last) segs.push({ text: raw.slice(last, m.index), quoted: false });
-    segs.push({ text: m[1], quoted: true });
-    last = re.lastIndex;
-  }
-  if (last < raw.length) segs.push({ text: raw.slice(last), quoted: false });
-
-  // 2) Cada segmento no entrecomillado se parte en frases; cada frase toma su
-  //    idioma detectado. Las entrecomilladas van forzadas a ingles.
-  const rawItems = [];
-  for (const s of segs) {
-    const clean = s.text.replace(/^[\s,.;:]+|[\s,.;:]+$/g, "").trim();
-    if (!clean) continue;
-    if (s.quoted) { rawItems.push({ text: clean, lang: "en-US" }); continue; }
-    for (const phrase of clean.split(/(?<=[.!?\u00A1\u00BF])\s+/)) {
-      const p = phrase.trim();
-      if (!p) continue;
-      rawItems.push({ text: p, lang: detectLang(p) === "es" ? "es-MX" : "en-US" });
-    }
-  }
-  if (!rawItems.length) { if (typeof onDone === "function") onDone(); return () => {}; }
-
-  // 2b) FUSIONA trozos SEGUIDOS del mismo idioma en uno solo -> menos cortes y
-  //     menos peticiones (una frase completa por idioma suena mas fluida).
-  const items = [];
-  for (const it of rawItems) {
-    const prev = items[items.length - 1];
-    if (prev && prev.lang === it.lang) prev.text += " " + it.text;
-    else items.push({ ...it });
-  }
+  // GARANTIA anti-Spanglish: toBilingualItems parte el texto por idioma a nivel
+  // de palabra/racha (comillas -> ingles), asi la voz NUNCA mezcla idiomas.
+  const items = toBilingualItems(text, "es");
+  if (!items.length) { if (typeof onDone === "function") onDone(); return () => {}; }
   // Gap corto entre idiomas: transicion viva, sin silencios que aburran.
   for (const it of items) it.gapAfter = 90;
-
-  // 3) PRE-DESCARGA en PARALELO todos los audios (warm cache) para que al
-  //    reproducir NO haya pausa de red entre el espanol y el ingles. La clave
-  //    debe coincidir con la que usa speakSequence (fixSpanishAccents en ES).
+  // Pre-descarga en paralelo (warm cache) con la MISMA clave que speakSequence.
   for (const it of items) {
     const isEs = String(it.lang).toLowerCase().startsWith("es");
     prefetchCloud(isEs ? fixSpanishAccents(it.text) : it.text, isEs ? "es" : "en");
@@ -230,12 +198,22 @@ export function speakSequence(items, onEach, onDone) {
   // de ESPANOL (explicaciones, preguntas, logica) no corta a ingles a media
   // frase; el profe de INGLES lee el contenido (ejemplos, dialogos, lecturas).
   // El idioma lo fija quien crea el item (lang: es-MX | en-US).
-  const expanded = items.map((it) => ({
-    text: String(it.text),
-    lang: String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es-MX" : "en-US",
-    opts: it.opts,
-    gapAfter: it.gapAfter,
-  }));
+  // GARANTIA anti-Spanglish (punto UNICO): cada item se re-segmenta por idioma a
+  // nivel de palabra/racha. Aunque un item traiga mezcla es/en (IA, contenido,
+  // reglas...), aqui se parte en trozos de UN idioma -> la voz NUNCA mezcla.
+  // El it.lang original es solo el idioma POR DEFECTO para palabras ambiguas.
+  // Las opts del item mandan sobre las del segmentador (rate/pitch del rol).
+  const expanded = items.flatMap((it) => {
+    const def = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en";
+    const subs = toBilingualItems(it.text, def);
+    if (!subs.length) return [];
+    return subs.map((s, k) => ({
+      text: s.text,
+      lang: s.lang,
+      opts: { ...s.opts, ...(it.opts || {}) },
+      gapAfter: k === subs.length - 1 ? it.gapAfter : 90,
+    }));
+  });
 
   let i = 0;
   let cancelled = false;
