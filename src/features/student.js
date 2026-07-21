@@ -145,9 +145,9 @@ function nextAction(units, completed, due) {
 function callBanner(level) {
   return actionBanner({
     accent: "speak", icon: ICONS.mic, cta: "Llamar",
-    onClick: () => openVoiceCall({ title: "el d\u00eda a d\u00eda", level }),
+    onClick: () => openVoiceCall({ level, chooseTopic: true }),
     title: "Llamada con Bymax",
-    subtitle: "Una llamada por voz, manos libres: inmersi\u00f3n total hablando en ingl\u00e9s",
+    subtitle: "Manos libres: t\u00fa eliges el tema (o Bymax te recomienda uno) y hablan en ingl\u00e9s",
   });
 }
 
