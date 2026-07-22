@@ -466,26 +466,34 @@ async function handleChat(request, env, origin) {
         : `Pregunta del alumno: ${question}`);
   contents.push({ role: "user", parts: [{ text: userText }] });
 
+  // BLINDAJE: Gemini exige roles ALTERNOS (user/model/user...). Si llegan dos
+  // turnos seguidos del mismo rol (historial raro, turno perdido), colapsamos la
+  // racha quedandonos con el ultimo -> nunca mandamos un hilo invalido (400).
+  const alt = [];
+  for (const c of contents) {
+    if (alt.length && alt[alt.length - 1].role === c.role) alt[alt.length - 1] = c;
+    else alt.push(c);
+  }
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
-  const payload = {
-    systemInstruction: { parts: [{ text: systemText }] },
-    contents,
-    generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 800,
-      // Gemini 2.5 "piensa" y ese pensamiento consume maxOutputTokens -> respuestas
-      // cortadas. Lo apagamos: Bymax da respuestas breves, no necesita razonar hondo.
-      thinkingConfig: { thinkingBudget: 0 },
-    },
-  };
+  // thinkingConfig SOLO lo aceptan los modelos "thinking" (Gemini 2.5). Como MODEL
+  // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
+  // 400 INVALID_ARGUMENT. Por eso, si hay 400, reintentamos SIN thinkingConfig.
+  const baseGen = { temperature: 0.7, maxOutputTokens: 800 };
+  const callGemini = (withThinking) => fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemText }] },
+      contents: alt,
+      generationConfig: withThinking ? { ...baseGen, thinkingConfig: { thinkingBudget: 0 } } : baseGen,
+    }),
+  });
 
   let res;
   try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+    res = await callGemini(true);
+    if (res.status === 400) res = await callGemini(false); // alias sin "thinking"
   } catch (e) {
     return json({ error: "No se pudo contactar a Gemini." }, 502, origin);
   }
