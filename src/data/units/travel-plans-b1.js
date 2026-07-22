@@ -167,6 +167,8 @@ export const TRAVEL_PLANS_B1 = {
       grammar: {
         title: "Futuro: going to vs will",
         form: "going to = decided plan · will = prediction or on-the-spot decision",
+        desc: "Para hablar del futuro: planes que ya decidiste antes, y decisiones o predicciones del momento.",
+        rule: "Usa 'going to + base' para planes e intenciones que YA decidiste antes de hablar (I'm going to visit Canada). Usa 'will + base' para decisiones que tomas en el momento, ofertas y predicciones (I think it will rain).",
         examples: ["I'm going to visit Canada. (ya lo decidi)", "It's cold, I'll take a jacket. (ahora)", "I think it will rain. (prediccion)"],
         explain: { tr: ["Voy a visitar Canad\u00e1. (ya lo decid\u00ed)", "Hace fr\u00edo, llevar\u00e9 una chaqueta. (ahora)", "Creo que va a llover. (predicci\u00f3n)"] },
         mistakes: [

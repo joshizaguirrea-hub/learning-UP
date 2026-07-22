@@ -168,6 +168,8 @@ export const WORK_WORLD_B2 = {
       grammar: {
         title: "Reported questions & commands",
         form: "question: asked + (if/whether/wh-) + subject + verb · order: told + person + to + base",
+        desc: "Para reportar preguntas y ordenes que alguien dijo.",
+        rule: "Preguntas reportadas: 'asked + (if/whether o palabra wh-) + sujeto + verbo', en orden de afirmacion, no de pregunta (She asked if I was ready). Ordenes reportadas: 'told + persona + to + base' (He told me to wait).",
         examples: ["'Do you work?' -> She asked if I worked.", "'Wait!' -> He told me to wait."],
         explain: { tr: ["'\u00bfTrabajas?' -> Ella pregunt\u00f3 si yo trabajaba.", "'\u00a1Espera!' -> \u00c9l me dijo que esperara."] },
         mistakes: [

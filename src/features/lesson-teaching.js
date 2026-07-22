@@ -320,15 +320,16 @@ export function grammarBox(g, robotLang = "es-MX", level) {
       el("ul", { class: "space-y-1.5" },
         ...examples.map((ex) => el("li", {
           class: "text-sm text-slate-200 flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2",
-        }, speakButton(ex.enPlain, { lang: "en-US" }), richText(ex.en))))) : null,
+        }, speakButton(ex.enPlain, { lang: "en-US" }), richText(ex.en))))) : null);
 
-    g.mistakes?.length ? el("div", { class: "mt-4" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Common mistakes"),
-      el("ul", { class: "space-y-1.5" }, ...g.mistakes.map((m) =>
-        el("li", { class: "text-sm flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-white/5 rounded-lg px-3 py-2" },
-          el("span", { class: "text-red-300/90 line-through" }, m.wrong),
-          el("span", { class: "text-emerald-400 font-bold" }, "\u2192"),
-          el("span", { class: "text-emerald-300 font-semibold" }, m.right))))) : null);
+  // Errores comunes: ingles, se muestra AL FINAL (repaso tras entender la regla).
+  const mistakesBlock = g.mistakes?.length ? el("div", { class: "mt-3 border border-white/10 bg-slate-950/40 rounded-2xl p-4" },
+    el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Common mistakes"),
+    el("ul", { class: "space-y-1.5" }, ...g.mistakes.map((m) =>
+      el("li", { class: "text-sm flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-white/5 rounded-lg px-3 py-2" },
+        el("span", { class: "text-red-300/90 line-through" }, m.wrong),
+        el("span", { class: "text-emerald-400 font-bold" }, "\u2192"),
+        el("span", { class: "text-emerald-300 font-semibold" }, m.right))))) : null;
 
   // --- ZONA PROFE: explicacion en espanol, voz espanol ----------------------
   const hasProfe = g.desc || g.rule || examples.some((e) => e.es);
@@ -367,6 +368,7 @@ export function grammarBox(g, robotLang = "es-MX", level) {
 
     englishZone,
     profeZone,
+    mistakesBlock,
 
     (g.form || g.examples?.length) ? el("button", {
       class: "mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 " +

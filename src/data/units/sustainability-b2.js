@@ -167,6 +167,8 @@ export const SUSTAINABILITY_B2 = {
       grammar: {
         title: "Future perfect & future continuous",
         form: "perfect: will have + past participle (finished before X) · continuous: will be + -ing (in progress)",
+        desc: "Para hablar del futuro con matiz: algo que estara terminado antes de cierto momento, o algo en progreso en el futuro.",
+        rule: "Future perfect: 'will have + participio' para algo que estara TERMINADO antes de un momento futuro (By 2030, we will have reduced emissions). Future continuous: 'will be + verbo-ing' para algo que estara EN PROGRESO en el futuro (This time tomorrow I will be flying).",
         examples: ["By 2050, we will have changed.", "Next year I will be living abroad."],
         explain: { tr: ["Para 2050, habremos cambiado.", "El pr\u00f3ximo a\u00f1o estar\u00e9 viviendo en el extranjero."] },
         mistakes: [
