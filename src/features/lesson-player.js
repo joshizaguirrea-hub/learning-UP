@@ -431,6 +431,10 @@ function renderActivity(act, idx) {
 
 function mcActivity(act, idx, title) {
   let selected = null;
+  // Idioma para pronunciar la opcion elegida: ingles por defecto; una pregunta
+  // cuyas opciones esten en espanol (ej. significado de un idiom) puede pedir
+  // payload.speakLang: "es-MX". null/"" desactiva el audio.
+  const speakLang = "speakLang" in act.payload ? act.payload.speakLang : "en-US";
   const opts = act.payload.choices.map((text, ci) => {
     const btn = el("button", {
       type: "button",
@@ -440,6 +444,7 @@ function mcActivity(act, idx, title) {
         selected = ci;
         [...btn.parentNode.children].forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/25"));
         btn.classList.add("border-indigo-400", "bg-indigo-500/25");
+        if (speakLang) speak(text, speakLang, { rate: 0.9 }); // escucha lo que elegiste
       },
     }, text);
     return btn;
@@ -504,7 +509,7 @@ function wordBankActivity(act, title) {
   shuffled.forEach((w) => {
     const btn = el("button", { type: "button",
       class: "px-3 py-1.5 border border-white/15 bg-white/5 rounded-lg text-slate-200 hover:bg-white/10 transition active:scale-95",
-      onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); } }, w);
+      onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); speak(w, "en-US", { rate: 0.9 }); } }, w);
     bank.append(btn);
   });
 
@@ -637,7 +642,7 @@ function listeningActivity(act, idx, title) {
   // Sub-actividad: MC o cloze, reusando los renderers existentes.
   const qLegend = el("legend", { class: "font-medium text-slate-100" }, richText(p.question || ""));
   const sub = Array.isArray(p.choices)
-    ? mcActivity({ payload: { choices: p.choices, answer: p.answer } }, idx, qLegend)
+    ? mcActivity({ payload: { choices: p.choices, answer: p.answer, speakLang: null } }, idx, qLegend)
     : clozeActivity({ payload: {} }, qLegend);
 
   // Transcripcion BLOQUEADA hasta responder (integridad del listening). Se

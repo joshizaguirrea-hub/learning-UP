@@ -104,7 +104,7 @@ function meaningQ(deckId, label) {
   return {
     type: "multiple_choice",
     prompt: `${label}: "${it.front}"`,
-    payload: { choices, answer: choices.indexOf(it.back) },
+    payload: { choices, answer: choices.indexOf(it.back), speakLang: "es-MX" },
     explain: `"${it.front}" = ${it.back}.`,
   };
 }
