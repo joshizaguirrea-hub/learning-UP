@@ -15,7 +15,10 @@ import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
+// IMPORTANTE: deben coincidir con lo que evalua el examen (data/test-gen.js) para
+// no preguntar en el examen algo que el alumno no vio ofrecido en la unidad.
 const BONUS_LINKS = [
+  { id: "irregular-verbs", label: "Verbos irregulares" },
   { id: "regular-past", label: "Pasado regular (-ed)" },
   { id: "past-time", label: "Expresiones de tiempo" },
   { id: "idioms", label: "Idioms (modismos)" },
