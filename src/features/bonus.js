@@ -26,6 +26,15 @@ const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl p-5";
 const BTN = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-6 py-2.5 rounded-lg " +
   "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
 
+// Vuelve a la pantalla anterior (la UNIDAD si entraste desde ahi, o la lista de
+// bonos si venias de /bonus). Si no hay historial (recarga directa en el mazo),
+// cae a la lista de bonos. Asi el boton "Volver" respeta de donde venias.
+function goBack() {
+  const before = location.hash;
+  history.back();
+  setTimeout(() => { if (location.hash === before) go("/bonus"); }, 80);
+}
+
 // Clases de color por nivel de dificultad de las practicas.
 const LEVEL_CLS = {
   Facil: "bg-emerald-500/20 text-emerald-300",
@@ -171,7 +180,7 @@ export async function renderBonusDeck(container, params, user) {
       el("button", { class: navCls, onclick: () => { index++; showCard(); } }, index === last ? "Terminar" : "Siguiente"));
 
     const cardEl = el("div", { class: PANEL + " text-center" },
-      el("a", { href: "#/bonus", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left" }, "< Volver a bonus"),
+      el("button", { type: "button", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded", onclick: goBack }, "< Volver"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       dotsHolder,
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
@@ -433,7 +442,7 @@ function itemDots(deck, cardMap, currentIndex) {
             el("p", { class: "mt-2 text-slate-400" }, `Llevas ${done}/${total} dominadas. Repite el mazo para ganar la medalla.`)),
       el("div", { class: "mt-6 flex gap-3 justify-center flex-wrap" },
         el("button", { class: BTN, onclick: () => { index = 0; recorded = true; showCard(); } }, "Repasar de nuevo"),
-        el("a", { href: "#/bonus", class: "bg-slate-800 border border-slate-700 text-slate-100 font-semibold px-6 py-2.5 rounded-lg hover:bg-slate-700" }, "Volver a bonus"))));
+        el("button", { type: "button", class: "bg-slate-800 border border-slate-700 text-slate-100 font-semibold px-6 py-2.5 rounded-lg hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-indigo-400", onclick: goBack }, "Volver"))));
     announce(mastered ? "Medalla ganada!" : "Mazo terminado.");
   }
 }
