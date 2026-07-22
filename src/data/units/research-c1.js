@@ -166,7 +166,7 @@ export const RESEARCH_C1 = {
       intro: "Competencia de GRAMATICA. Aprende a convertir verbos en sustantivos (estilo academico).",
       grammar: {
         title: "Nominalisation",
-        form: "verbo -> sustantivo: analyse -> the analysis · evaluate -> the evaluation · decide -> the decision",
+        form: "verb -> noun: analyse -> the analysis · evaluate -> the evaluation · decide -> the decision",
         desc: "Sirve para escribir de forma m\u00e1s formal y densa convirtiendo verbos en sustantivos.",
         rule: "Transforma el verbo en sustantivo: 'analyse -> the analysis', 'evaluate -> the evaluation', 'decide -> the decision'. As\u00ed la idea suena m\u00e1s acad\u00e9mica y objetiva.",
         examples: ["They analysed the data -> The analysis of the data...", "We evaluated it -> The evaluation showed..."],

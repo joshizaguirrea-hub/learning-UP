@@ -120,13 +120,19 @@ export function openRuleExplainer(grammar, level) {
   if (!parts.length) parts.push(stripMarkup(grammar.title || "Formula"));
   const partFns = explicit?.parts?.length ? explicit.parts.map((p) => p.fn) : [];
 
-  // TODOS los ejemplos sirven ahora (con su traduccion si existe).
+  // TODOS los ejemplos sirven ahora (con su traduccion si existe). Se separa el
+  // ingles de la glosa en espanol "(...)": el ejemplo se LEE y tokeniza SOLO en
+  // ingles (nada de spanglish); la traduccion (explain.tr o la glosa) va aparte.
   const trs = explicit?.tr || [];
-  const examples = (grammar.examples || []).map((ex, i) => ({
-    text: stripMarkup(ex),
-    tokens: tokenize(ex),
-    tr: trs[i] ? stripMarkup(trs[i]) : "",
-  }));
+  const examples = (grammar.examples || []).map((ex, i) => {
+    const enOnly = String(ex).replace(/\s*\([^)]*\)\s*$/, "").trim();
+    const gloss = (String(stripMarkup(ex)).match(/\(([^)]+)\)\s*$/) || [])[1] || "";
+    return {
+      text: stripMarkup(enOnly),
+      tokens: tokenize(enOnly),
+      tr: trs[i] ? stripMarkup(trs[i]) : gloss.trim(),
+    };
+  });
 
   let cancel = () => {};
   const close = () => { cancel(); overlay.remove(); };

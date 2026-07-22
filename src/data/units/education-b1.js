@@ -166,7 +166,7 @@ export const EDUCATION_B1 = {
       intro: "Competencia de GRAMATICA. Aprende who/which/that para dar detalles.",
       grammar: {
         title: "Relative clauses (who / which / that)",
-        form: "who = personas · which = cosas · that = personas o cosas",
+        form: "who = people · which = things · that = people or things",
         desc: "Sirve para unir dos ideas y dar informaci\u00f3n sobre una persona o cosa sin repetirla.",
         rule: "Usa 'who' para personas, 'which' para cosas y 'that' para personas o cosas. Van justo despu\u00e9s del sustantivo que describen: 'the teacher who helps me'.",
         examples: ["The teacher who helped me.", "The book which she wrote.", "The film that we saw."],

@@ -165,7 +165,7 @@ export const EXPERIENCES_B1 = {
       intro: "Competencia de GRAMATICA. Aprende have been + -ing con for/since.",
       grammar: {
         title: "Present perfect continuous (for / since)",
-        form: "have/has been + verbo-ing · for + periodo · since + punto de inicio",
+        form: "have/has been + verb-ing · for + period · since + starting point",
         desc: "Sirve para hablar de acciones que empezaron en el pasado y siguen hasta ahora.",
         rule: "'have/has been + verbo-ing' (has con he/she/it): I have been working. Usa 'for' para un periodo (for two years) y 'since' para un punto de inicio (since 2020).",
         examples: ["I have been working for five years.", "She has been studying since 2019."],

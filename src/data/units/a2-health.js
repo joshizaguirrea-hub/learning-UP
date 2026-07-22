@@ -165,7 +165,7 @@ export const A2_HEALTH = {
       intro: "Competencia de GRAMATICA. Aprende a aconsejar y obligar y practicalo.",
       grammar: {
         title: "should / must / have to",
-        form: "sujeto + should/must + base · sujeto + have/has to + base · negativo: shouldn't",
+        form: "subject + should/must + base · subject + have/has to + base · negative: shouldn't",
         desc: "Sirve para dar consejos y hablar de obligaciones (lo que debes o tienes que hacer).",
         rule: "'should' es consejo, 'must' es obligaci\u00f3n fuerte, 'have to/has to' es obligaci\u00f3n (con he/she/it: 'has to'). Todos van con el verbo en base. El negativo de consejo es 'shouldn't'.",
         examples: ["You should rest.", "You must take the medicine.", "She has to sleep well.", "You shouldn't work."],

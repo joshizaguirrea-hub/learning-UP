@@ -166,7 +166,7 @@ export const MEDIA_B1 = {
       intro: "Competencia de GRAMATICA. Aprende a contar lo que alguien dijo (reported speech).",
       grammar: {
         title: "Reported speech (basico)",
-        form: "say -> said (that) · tell -> told (someone) · el verbo retrocede en el tiempo",
+        form: "say -> said (that) · tell -> told (someone) · the verb shifts back in time",
         desc: "Sirve para contar lo que otra persona dijo, sin repetir sus palabras exactas.",
         rule: "Usa 'say' -> 'said (that)' y 'tell' -> 'told (someone)'. Al reportar, el verbo retrocede un tiempo: el presente pasa a pasado (I am -> he said he was).",
         examples: ["'I am tired' -> He said he was tired.", "'I will go' -> She said she would go."],

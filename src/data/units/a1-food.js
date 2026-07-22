@@ -165,7 +165,7 @@ export const A1_FOOD = {
       intro: "Competencia de GRAMATICA. Aprende some/any y like/don't like y practicalos.",
       grammar: {
         title: "some / any y like / don't like",
-        form: "some (afirmativo) · any (negativo/pregunta) · don't/doesn't like + sustantivo",
+        form: "some (affirmative) · any (negative/question) · don't/doesn't like + noun",
         desc: "Sirve para hablar de cantidades sin n\u00famero exacto y decir qu\u00e9 comida te gusta o no.",
         rule: "Usa 'some' en frases afirmativas y 'any' en preguntas y negaciones. Para lo que no te gusta: 'don't like' (I/you/we/they) y 'doesn't like' (he/she/it); tras 'doesn't' el verbo va en base.",
         examples: ["There is some bread.", "Is there any milk?", "I don't like fish.", "He doesn't like coffee."],

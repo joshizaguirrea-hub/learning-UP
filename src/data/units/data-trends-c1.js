@@ -165,7 +165,7 @@ export const DATA_TRENDS_C1 = {
       intro: "Competencia de GRAMATICA. Aprende 'the more..., the more...'.",
       grammar: {
         title: "Double comparatives",
-        form: "The + comparativo + ..., the + comparativo + ...",
+        form: "The + comparative + ..., the + comparative + ...",
         desc: "Sirve para expresar que dos cosas cambian juntas (a m\u00e1s de una, m\u00e1s de la otra).",
         rule: "Estructura 'The + comparativo..., the + comparativo...': 'The more you practice, the better you get'. La primera parte es la condici\u00f3n y la segunda el resultado proporcional.",
         examples: ["The more you practise, the better you get.", "The higher the price, the lower the demand."],

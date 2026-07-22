@@ -165,7 +165,7 @@ export const DECISIONS_B1 = {
       intro: "Competencia de GRAMATICA. Aprende cuando usar el primer y el segundo condicional.",
       grammar: {
         title: "First vs second conditional",
-        form: "1st (real): If + present, will + base · 2nd (imaginario): If + past, would + base",
+        form: "1st (real): If + present, will + base · 2nd (imaginary): If + past, would + base",
         desc: "Sirve para hablar de situaciones con condici\u00f3n: unas reales y otras imaginarias.",
         rule: "Primer condicional (real/probable): 'If + presente, will + base' (If I study, I will pass). Segundo condicional (imaginario): 'If + pasado simple, would + base' (If I studied, I would pass).",
         examples: ["If I accept, I will earn more. (probable)", "If I moved, I would miss my family. (imaginario)"],

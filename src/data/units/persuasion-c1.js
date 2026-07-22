@@ -165,7 +165,7 @@ export const PERSUASION_C1 = {
       intro: "Competencia de GRAMATICA. Aprende a enfatizar con cleft sentences.",
       grammar: {
         title: "Cleft sentences",
-        form: "What + clausula + is/was + enfasis · It + is/was + enfasis + that/who + resto",
+        form: "What + clause + is/was + emphasis · It + is/was + emphasis + that/who + rest",
         desc: "Sirve para resaltar una parte de la frase y persuadir con \u00e9nfasis.",
         rule: "Oraciones hendidas: 'What + cl\u00e1usula + is/was + \u00e9nfasis' (What I need is time) e 'It + is/was + \u00e9nfasis + that/who + resto' (It was Ana who called).",
         examples: ["What I need is time.", "It was John who called.", "What she did was apologise."],

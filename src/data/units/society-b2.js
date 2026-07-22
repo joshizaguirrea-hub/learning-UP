@@ -166,7 +166,7 @@ export const SOCIETY_B2 = {
       intro: "Competencia de GRAMATICA. Aprende el tercer condicional (pasado hipotetico).",
       grammar: {
         title: "Third conditional",
-        form: "If + had + participio, ... would have + participio",
+        form: "If + had + past participle, ... would have + past participle",
         desc: "Sirve para imaginar un pasado distinto y su resultado (tambi\u00e9n pasado) que no ocurri\u00f3.",
         rule: "Tercer condicional: 'If + had + participio, ... would have + participio'. Todo es hipot\u00e9tico y pasado: 'If I had studied, I would have passed'.",
         examples: ["If they hadn't protested, laws wouldn't have changed.", "If I had studied, I would have passed."],

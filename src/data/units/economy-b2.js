@@ -166,7 +166,7 @@ export const ECONOMY_B2 = {
       intro: "Competencia de GRAMATICA. Aprende past perfect y past perfect continuous.",
       grammar: {
         title: "Narrative tenses (past perfect / continuous)",
-        form: "past perfect: had + participio · past perfect continuous: had been + -ing",
+        form: "past perfect: had + past participle · past perfect continuous: had been + -ing",
         desc: "Sirve para hablar de una acci\u00f3n que pas\u00f3 ANTES de otra acci\u00f3n del pasado.",
         rule: "Past perfect: 'had + participio' (had finished) para lo que ocurri\u00f3 primero. Past perfect continuous: 'had been + verbo-ing' (had been waiting) para algo que dur\u00f3 antes de otro momento pasado.",
         examples: ["She had saved for years before she opened it.", "He had been working all day when I called."],

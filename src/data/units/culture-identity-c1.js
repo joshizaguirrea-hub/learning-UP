@@ -165,7 +165,7 @@ export const CULTURE_IDENTITY_C1 = {
       intro: "Competencia de GRAMATICA. Aprende a evitar repeticiones con elipsis/sustitucion.",
       grammar: {
         title: "Ellipsis & substitution",
-        form: "so/neither + auxiliar + sujeto · do/one como sustitutos · respuestas cortas (Yes, I do)",
+        form: "so/neither + auxiliary + subject · do/one as substitutes · short answers (Yes, I do)",
         desc: "Sirve para mostrar acuerdo, evitar repetir y responder de forma natural.",
         rule: "'So + auxiliar + sujeto' para coincidir en afirmativo (So do I) y 'neither + auxiliar + sujeto' en negativo (Neither do I). Usa 'do' y 'one' para no repetir; en respuestas cortas repite el auxiliar (Yes, I do).",
         examples: ["I love it, and so does she.", "I don't, and neither does he.", "Do you? Yes, I do."],
