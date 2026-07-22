@@ -16,6 +16,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
+import { completeLesson } from "../services/course.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
@@ -43,8 +44,12 @@ function phrasesOf(unit) {
 /**
  * Abre la practica de speaking (pronunciacion) para una unidad.
  * @param {object} unit - { title, level, vocab }
+ * @param {object} [opts] - { userId, progressId, onComplete } para GUARDAR que se
+ *   completo la competencia Speaking de la unidad (y marcar su check). Opcional:
+ *   desde el mapa o el modo supervivencia se abre sin persistir.
  */
-export function openSpeaking(unit) {
+export function openSpeaking(unit, opts = {}) {
+  const { userId, progressId, onComplete } = opts;
   const phrases = phrasesOf(unit);
   const supported = speechSupported();
   let idx = 0;
@@ -153,6 +158,13 @@ export function openSpeaking(unit) {
   function renderDone() {
     progress.firstChild.style.width = "100%";
     const pct = Math.round((passed / Math.max(1, phrases.length)) * 100);
+    // GUARDA que se completo la practica de Speaking de la unidad (upsert
+    // idempotente). Terminar la practica basta para el check (el reconocimiento
+    // de voz del navegador es exigente; no penalizamos al alumno por el mic).
+    if (userId && progressId) {
+      completeLesson(userId, progressId, pct).catch(() => {});
+    }
+    if (typeof onComplete === "function") onComplete(pct);
     stage.replaceChildren(el("div", { class: "text-center py-6" },
       el("div", { class: "text-5xl mb-2" }, pct >= 60 ? "\uD83C\uDF89" : "\uD83D\uDCAA"),
       el("h3", { class: "text-xl font-bold text-slate-100" }, "\u00a1Practica terminada!"),
