@@ -65,7 +65,7 @@ export async function renderUnit(container, params, user) {
     el("ul", { class: "mt-3 space-y-1 text-sm text-slate-300" },
       ...unit.cando.map((c) => el("li", { class: "flex gap-2" }, el("span", { class: "text-emerald-400" }, "+"), c))));
 
-  const content = el("section", { class: CARD }, unitContent(unit, progress));
+  const content = el("section", { class: CARD }, unitContent(unit, progress, user));
 
   const review = el("section", { class: CARD + " flex items-center justify-between flex-wrap gap-3" },
     el("div", {},

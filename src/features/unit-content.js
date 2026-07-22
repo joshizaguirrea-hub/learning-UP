@@ -25,8 +25,9 @@ const BONUS_LINKS = [
  * Bloque de contenido de la unidad: competencias + bonos + conversacion.
  * @param {object} unit - unidad del curso
  * @param {Object} progressMap - id de leccion -> { status }
+ * @param {object} [user] - usuario actual (para guardar el progreso de Speaking)
  */
-export function unitContent(unit, progressMap) {
+export function unitContent(unit, progressMap, user) {
   // Mapa competencia -> primera leccion de la unidad que la entrena.
   const bySkill = {};
   for (const l of unit.lessons) {
@@ -34,7 +35,7 @@ export function unitContent(unit, progressMap) {
   }
 
   const skillGrid = el("div", { class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" },
-    ...Object.keys(SKILL_META).map((key) => skillChip(key, unit, bySkill[key], progressMap)));
+    ...Object.keys(SKILL_META).map((key) => skillChip(key, unit, bySkill[key], progressMap, user)));
 
   const bonusRow = el("section", { class: "mt-6" },
     el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos de verbos"),
@@ -94,20 +95,28 @@ export function unitContent(unit, progressMap) {
  * Chip de una competencia. "speaking" abre la practica de pronunciacion; el
  * resto enlaza a su leccion. Si la unidad no tiene esa competencia, "proximamente".
  */
-function skillChip(key, unit, lesson, progressMap) {
+function skillChip(key, unit, lesson, progressMap, user) {
   const meta = SKILL_META[key];
   const iconBox = el("span", { class: "w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0", html: meta.icon });
   const label = el("span", { class: "flex-1 min-w-0 font-bold text-white truncate" }, meta.label);
 
   // Speaking = practica de PRONUNCIACION (escucha y repite), distinta de la
-  // conversacion libre con IA. Siempre disponible.
+  // conversacion libre con IA. Siempre disponible. Su progreso se guarda con un
+  // id sintetico "speaking-<unidad>" (lesson_id es TEXT) para marcar su check.
   if (key === "speaking") {
+    const progressId = "speaking-" + unit.id;
+    const done = progressMap[progressId]?.status === "done";
+    const check = el("span", { class: "w-6 h-6 text-white shrink-0" + (done ? "" : " hidden"), html: ICONS.check });
     return el("button", {
       type: "button",
       class: `flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r ${meta.gradient} shadow-lg ` +
         "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60 text-left",
-      onclick: () => openSpeaking(unit),
-    }, iconBox, label);
+      onclick: () => openSpeaking(unit, {
+        userId: user?.id,
+        progressId,
+        onComplete: () => check.classList.remove("hidden"),
+      }),
+    }, iconBox, label, check);
   }
 
   // Competencia con leccion en esta unidad -> enlace a la leccion.
