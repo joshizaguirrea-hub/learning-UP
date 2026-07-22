@@ -167,6 +167,8 @@ export const TECHNOLOGY_B1 = {
       grammar: {
         title: "used to (habitos del pasado)",
         form: "used to + base (affirm) · didn't use to + base (neg) · Did ... use to...? (question)",
+        desc: "Para hablar de habitos y estados del pasado que ya no ocurren.",
+        rule: "'used to + verbo base' describe algo que era habitual en el pasado pero ya no (I used to play soccer). Negativo: 'didn't use to + base'. Pregunta: 'Did + sujeto + use to...?'. Ojo: tras 'didn't/did' se escribe 'use to' (sin -d).",
         examples: ["I used to write letters.", "They didn't use to have phones.", "Did you use to play outside?"],
         explain: { tr: ["Sol\u00eda escribir cartas.", "Ellos no sol\u00edan tener tel\u00e9fonos.", "\u00bfSol\u00edas jugar afuera?"] },
         mistakes: [

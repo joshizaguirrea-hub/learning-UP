@@ -186,6 +186,8 @@ export const WORK_CAREER_B1 = {
       grammar: {
         title: "in charge of / responsible for + have experience",
         form: "*be* + **in charge of** / **responsible for** + (noun | -ing) - *have* + **X years of experience** (in/with)",
+        desc: "Para describir tus responsabilidades y tu experiencia en el trabajo.",
+        rule: "Usa 'be in charge of' o 'be responsible for' + sustantivo o verbo-ing para decir de que te encargas (I'm in charge of hiring). Para la experiencia: 'have + X years of experience' + in/with (I have five years of experience in sales).",
         table: {
           headers: ["Estructura", "Cuando se usa", "Ejemplo"],
           rows: [
