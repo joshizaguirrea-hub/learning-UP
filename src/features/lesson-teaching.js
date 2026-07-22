@@ -291,10 +291,71 @@ export function grammarChart(chart) {
 }
 
 /**
- * Caja de gramatica REDISENADA: encabezado, cuadro visual, formula, tabla
- * comparativa, ejemplos (con audio) y errores comunes (antes/despues).
+ * Caja de gramatica REDISENADA (anti-spanglish). Dos zonas que NUNCA se mezclan:
+ *  1) Zona INGLES: formula, tabla, ejemplos y errores -> SOLO ingles, voz ingles.
+ *  2) Zona "El profe te explica": para que sirve, como funciona y la traduccion
+ *     de cada ejemplo -> SOLO espanol, voz espanol.
+ * Asi el alumno ve/oye el ingles limpio y, por separado, al profe explicando en
+ * espanol como en una clase de verdad.
  */
 export function grammarBox(g, robotLang = "es-MX", level) {
+  const examples = (g.examples || []).map((ex, i) => splitExample(ex, g.explain?.tr?.[i]));
+
+  // --- ZONA INGLES: lo que se aprende, en ingles puro -----------------------
+  const englishZone = el("div", { class: "mt-3 border border-white/10 bg-slate-950/40 rounded-2xl p-4" },
+    el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/70 mb-2" }, "English"),
+
+    g.form ? el("div", {},
+      el("div", { class: "flex items-center gap-2 mb-1" },
+        el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400" }, "Formula"),
+        speakButton(stripMarkup(g.form), { lang: "en-US" })),
+      el("p", { class: "font-mono text-sm text-indigo-100 bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2" }, richText(g.form))) : null,
+
+    g.table?.headers?.length ? el("div", { class: "mt-4" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Examples table"),
+      grammarTable(g.table)) : null,
+
+    examples.length ? el("div", { class: "mt-4" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Examples"),
+      el("ul", { class: "space-y-1.5" },
+        ...examples.map((ex) => el("li", {
+          class: "text-sm text-slate-200 flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2",
+        }, speakButton(ex.enPlain, { lang: "en-US" }), richText(ex.en))))) : null,
+
+    g.mistakes?.length ? el("div", { class: "mt-4" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Common mistakes"),
+      el("ul", { class: "space-y-1.5" }, ...g.mistakes.map((m) =>
+        el("li", { class: "text-sm flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-white/5 rounded-lg px-3 py-2" },
+          el("span", { class: "text-red-300/90 line-through" }, m.wrong),
+          el("span", { class: "text-emerald-400 font-bold" }, "\u2192"),
+          el("span", { class: "text-emerald-300 font-semibold" }, m.right))))) : null);
+
+  // --- ZONA PROFE: explicacion en espanol, voz espanol ----------------------
+  const hasProfe = g.desc || g.rule || examples.some((e) => e.es);
+  const profeZone = hasProfe ? el("div", { class: "mt-3 border border-emerald-400/30 bg-emerald-500/5 rounded-2xl p-4" },
+    el("div", { class: "flex items-center gap-2 mb-1" },
+      el("span", { class: "text-lg", "aria-hidden": "true" }, "\uD83E\uDDD1\u200D\uD83C\uDFEB"),
+      el("p", { class: "text-[11px] uppercase tracking-widest text-emerald-300/80" }, "El profe te explica (espanol)")),
+
+    g.desc ? el("div", { class: "mt-2" },
+      el("div", { class: "flex items-center gap-2 mb-0.5" },
+        el("p", { class: "text-[11px] uppercase tracking-wide text-emerald-300/70" }, "\u00bfPara que sirve?"),
+        speakButton(g.desc, { lang: "es-MX" })),
+      el("p", { class: "text-sm text-slate-200 leading-relaxed" }, g.desc)) : null,
+
+    g.rule ? el("div", { class: "mt-3" },
+      el("div", { class: "flex items-center gap-2 mb-0.5" },
+        el("p", { class: "text-[11px] uppercase tracking-wide text-emerald-300/70" }, "\u00bfC\u00f3mo funciona?"),
+        speakButton(g.rule, { lang: "es-MX" })),
+      el("p", { class: "text-sm text-slate-200 leading-relaxed" }, richText(g.rule))) : null,
+
+    examples.some((e) => e.es) ? el("div", { class: "mt-3" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-emerald-300/70 mb-1" }, "Traduccion de los ejemplos"),
+      el("ul", { class: "space-y-1.5" },
+        ...examples.filter((e) => e.es).map((ex) => el("li", {
+          class: "text-sm text-slate-300 flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2",
+        }, speakButton(ex.es, { lang: "es-MX" }), el("span", {}, ex.es))))) : null) : null;
+
   return el("section", { class: "border border-indigo-500/30 bg-indigo-500/10 rounded-2xl p-5" },
     el("div", { class: "flex items-center gap-2" },
       chip("\u2728"),
@@ -302,48 +363,27 @@ export function grammarBox(g, robotLang = "es-MX", level) {
         el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/80" }, "Las reglas"),
         el("h2", { class: "font-bold text-lg text-indigo-100 leading-tight" }, g.title))),
 
-    g.desc ? el("div", { class: "mt-3 border-l-2 border-fuchsia-400/60 bg-fuchsia-500/5 rounded-r-lg px-3 py-2" },
-      el("div", { class: "flex items-center gap-2 mb-0.5" },
-        el("p", { class: "text-[11px] uppercase tracking-wide text-fuchsia-300/80" }, "\u00bfPara que sirve?"),
-        speakButton(g.desc, { lang: "es-MX" })),
-      el("p", { class: "text-sm text-slate-200 leading-relaxed" }, g.desc)) : null,
+    g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
 
-    g.rule ? el("div", { class: "mt-3 border-l-2 border-emerald-400/60 bg-emerald-500/5 rounded-r-lg px-3 py-2" },
-      el("div", { class: "flex items-center gap-2 mb-0.5" },
-        el("p", { class: "text-[11px] uppercase tracking-wide text-emerald-300/80" }, "\u00bfC\u00f3mo funciona?"),
-        speakButton(g.rule, { lang: "es-MX" })),
-      el("p", { class: "text-sm text-slate-200 leading-relaxed" }, richText(g.rule))) : null,
+    englishZone,
+    profeZone,
 
     (g.form || g.examples?.length) ? el("button", {
       class: "mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-fuchsia-500 " +
         "text-white font-semibold px-4 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]",
       onclick: () => openRuleExplainer(g, level),
-    }, el("span", { class: "text-lg" }, "\uD83E\uDD16"), "Yo, " + robotName() + ", te explico la regla") : null,
+    }, el("span", { class: "text-lg" }, "\uD83E\uDD16"), "Yo, " + robotName() + ", te explico la regla") : null);
+}
 
-    g.chart?.groups?.length ? el("div", { class: "mt-4" }, grammarChart(g.chart)) : null,
-
-    g.form ? el("div", { class: "mt-4" },
-      el("div", { class: "flex items-center gap-2 mb-1" },
-        el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400" }, "Formula"),
-        speakButton(stripMarkup(g.form))),
-      el("p", { class: "font-mono text-sm text-indigo-100 bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2" }, richText(g.form))) : null,
-
-    g.table?.headers?.length ? el("div", { class: "mt-4" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Comparacion"),
-      grammarTable(g.table)) : null,
-
-    g.examples?.length ? el("div", { class: "mt-4" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Ejemplos"),
-      el("ul", { class: "space-y-1.5" },
-        ...g.examples.map((ex) => el("li", {
-          class: "text-sm text-slate-200 flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2",
-        }, speakButton(stripMarkup(ex)), richText(ex))))) : null,
-
-    g.mistakes?.length ? el("div", { class: "mt-4" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400 mb-1" }, "Errores comunes"),
-      el("ul", { class: "space-y-1.5" }, ...g.mistakes.map((m) =>
-        el("li", { class: "text-sm flex flex-wrap items-center gap-x-2 gap-y-0.5 bg-white/5 rounded-lg px-3 py-2" },
-          el("span", { class: "text-red-300/90 line-through" }, m.wrong),
-          el("span", { class: "text-emerald-400 font-bold" }, "\u2192"),
-          el("span", { class: "text-emerald-300 font-semibold" }, m.right))))) : null);
+/**
+ * Parte un ejemplo "English sentence. (glosa en espanol)" en sus dos idiomas.
+ * @returns {{en, enPlain, es}} en=ingles con markup, enPlain=ingles sin markup
+ *   (para la voz), es=traduccion espanola (usa explain.tr si viene, si no la glosa).
+ */
+function splitExample(ex, tr) {
+  const en = String(ex).replace(/\s*\([^)]*\)\s*$/, "").trim(); // quita la glosa final
+  const plain = stripMarkup(ex);
+  const glossMatch = plain.match(/\(([^)]+)\)\s*$/);
+  const es = (tr && String(tr).trim()) || (glossMatch ? glossMatch[1].trim() : "");
+  return { en, enPlain: stripMarkup(en), es };
 }

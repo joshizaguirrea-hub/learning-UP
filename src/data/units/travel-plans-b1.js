@@ -166,7 +166,7 @@ export const TRAVEL_PLANS_B1 = {
       intro: "Competencia de GRAMATICA. Aprende la diferencia entre 'going to' y 'will'.",
       grammar: {
         title: "Futuro: going to vs will",
-        form: "going to = plan decidido · will = prediccion o decision del momento",
+        form: "going to = decided plan · will = prediction or on-the-spot decision",
         examples: ["I'm going to visit Canada. (ya lo decidi)", "It's cold, I'll take a jacket. (ahora)", "I think it will rain. (prediccion)"],
         explain: { tr: ["Voy a visitar Canad\u00e1. (ya lo decid\u00ed)", "Hace fr\u00edo, llevar\u00e9 una chaqueta. (ahora)", "Creo que va a llover. (predicci\u00f3n)"] },
         mistakes: [

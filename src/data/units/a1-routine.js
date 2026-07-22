@@ -165,7 +165,7 @@ export const A1_ROUTINE = {
       intro: "Competencia de GRAMATICA. Aprende el present simple y practicalo.",
       grammar: {
         title: "Present simple (rutinas)",
-        form: "I/you/we/they + verbo · he/she/it + verbo + s · adverbio de frecuencia ANTES del verbo",
+        form: "I/you/we/they + verb · he/she/it + verb + s · frequency adverb BEFORE the verb",
         desc: "Sirve para hablar de tu rutina y de lo que haces siempre, a veces o nunca.",
         rule: "En presente simple, con he/she/it el verbo lleva -s: 'she works'. Los adverbios de frecuencia (always, usually, sometimes, never) van ANTES del verbo: 'I always study'.",
         examples: ["I work in a hospital.", "She works in a hospital.", "He always gets up early.", "We never eat late."],

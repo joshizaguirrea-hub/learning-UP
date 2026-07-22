@@ -167,7 +167,7 @@ export const ENVIRONMENT_B1 = {
       intro: "Competencia de GRAMATICA. Aprende la voz pasiva (presente y pasado).",
       grammar: {
         title: "Voz pasiva (present y past)",
-        form: "presente: is/are + participio · pasado: was/were + participio · (by + agente, opcional)",
+        form: "present: is/are + past participle · past: was/were + past participle · (by + agent, optional)",
         desc: "Sirve para enfocar la acci\u00f3n o el resultado cuando no importa qui\u00e9n lo hace.",
         rule: "Voz pasiva: 'to be' + participio. Presente: 'is/are + participio' (is made). Pasado: 'was/were + participio' (was built). Si quieres decir qui\u00e9n lo hizo, a\u00f1ade 'by + agente' (opcional).",
         examples: ["Paper is recycled.", "The river was polluted.", "Trees are planted every year."],

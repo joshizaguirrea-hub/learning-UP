@@ -166,7 +166,7 @@ export const IDIOM_C2 = {
       intro: "Competencia de GRAMATICA. Aprende separables e inseparables y su orden.",
       grammar: {
         title: "Phrasal verbs (separables / inseparables)",
-        form: "separable: turn it off · inseparable: look after him · con pronombre va en medio (separables)",
+        form: "separable: turn it off · inseparable: look after him · pronoun goes in the middle (separables)",
         desc: "Sirve para usar phrasal verbs correctamente seg\u00fan si se pueden separar o no.",
         rule: "Separables: el objeto puede ir en medio (turn the TV off / turn it off). Inseparables: el objeto va despu\u00e9s (look after him). Con pronombre, los separables van EN MEDIO obligatoriamente: 'turn it off', nunca 'turn off it'.",
         examples: ["Turn the light off. / Turn it off.", "I look after my sister. / I look after her."],

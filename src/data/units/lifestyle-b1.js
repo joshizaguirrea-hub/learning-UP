@@ -165,7 +165,7 @@ export const LIFESTYLE_B1 = {
       intro: "Competencia de GRAMATICA. Aprende must/might/can't y too/enough.",
       grammar: {
         title: "Modales de deduccion + too / enough",
-        form: "must (seguro) / might (posible) / can't (imposible) + base · too + adj · adj + enough",
+        form: "must (certain) / might (possible) / can't (impossible) + base · too + adj · adj + enough",
         desc: "Sirve para hacer deducciones (qu\u00e9 tan seguro es algo) y hablar de cantidad suficiente o excesiva.",
         rule: "'must' = seguro, 'might' = posible, 'can't' = imposible, todos con el verbo en base. 'too + adjetivo' = demasiado (too hot); 'adjetivo + enough' = suficiente (good enough).",
         examples: ["He must be tired.", "She might be sick.", "It's too difficult.", "It's not easy enough."],

@@ -165,7 +165,7 @@ export const GLOBAL_ISSUES_C1 = {
       intro: "Competencia de GRAMATICA. Aprende el subjuntivo en propuestas y demandas.",
       grammar: {
         title: "The subjunctive",
-        form: "suggest/demand/insist/recommend + that + sujeto + verbo BASE (be, tackle, go...)",
+        form: "suggest/demand/insist/recommend + that + subject + BASE verb (be, tackle, go...)",
         desc: "Sirve para expresar sugerencias, exigencias o recomendaciones en registro formal.",
         rule: "Tras 'suggest, demand, insist, recommend + that', el verbo va en BASE para todas las personas (be, tackle, go), sin -s: 'I suggest that he be present'.",
         examples: ["I suggest that he be present.", "They demand that aid be sent.", "It is essential that she attend."],

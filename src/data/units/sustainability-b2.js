@@ -166,7 +166,7 @@ export const SUSTAINABILITY_B2 = {
       intro: "Competencia de GRAMATICA. Aprende will have done y will be doing.",
       grammar: {
         title: "Future perfect & future continuous",
-        form: "perfect: will have + participio (terminado antes de X) · continuous: will be + -ing (en progreso)",
+        form: "perfect: will have + past participle (finished before X) · continuous: will be + -ing (in progress)",
         examples: ["By 2050, we will have changed.", "Next year I will be living abroad."],
         explain: { tr: ["Para 2050, habremos cambiado.", "El pr\u00f3ximo a\u00f1o estar\u00e9 viviendo en el extranjero."] },
         mistakes: [

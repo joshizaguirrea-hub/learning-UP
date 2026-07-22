@@ -165,7 +165,7 @@ export const A2_COMPARISONS = {
       intro: "Competencia de GRAMATICA. Aprende a formar comparativos y superlativos.",
       grammar: {
         title: "Comparativo y superlativo",
-        form: "corto: adj+er ... than / the adj+est · largo: more adj than / the most adj · irregular: good/better/best",
+        form: "short: adj+er ... than / the adj+est · long: more adj than / the most adj · irregular: good/better/best",
         desc: "Sirve para comparar dos o m\u00e1s cosas y decir cu\u00e1l es la mejor o la m\u00e1s grande.",
         rule: "Con adjetivos cortos a\u00f1ade -er para comparar (taller than) y -est para el superlativo (the tallest). Con adjetivos largos usa 'more' (more expensive than) y 'the most' (the most expensive). Irregulares: good/better/best.",
         examples: ["The train is faster than the bus.", "It's the most popular beach.", "This is the best cafe."],

@@ -166,7 +166,7 @@ export const WORKPLACE_C1 = {
       intro: "Competencia de GRAMATICA. Aprende conectores del discurso avanzados.",
       grammar: {
         title: "Advanced discourse markers",
-        form: "contraste: whereas / nevertheless · causa: consequently · adicion: moreover · aclaracion: in other words",
+        form: "contrast: whereas / nevertheless · cause: consequently · addition: moreover · clarification: in other words",
         examples: ["Whereas he agrees, she doesn't.", "It rained; nevertheless, we went.", "Consequently, sales rose."],
         explain: { tr: ["Mientras que \u00e9l est\u00e1 de acuerdo, ella no.", "Llovi\u00f3; sin embargo, fuimos.", "En consecuencia, las ventas subieron."] },
         mistakes: [

@@ -166,7 +166,7 @@ export const ACADEMIC_C1 = {
       intro: "Competencia de GRAMATICA. Aprende la inversion enfatica.",
       grammar: {
         title: "Inversion (enfasis)",
-        form: "adverbio negativo + auxiliar + sujeto + verbo: Never have I..., Not only did he...",
+        form: "negative adverb + auxiliary + subject + verb: Never have I..., Not only did he...",
         desc: "Sirve para dar \u00e9nfasis formal al inicio de una frase en registro culto o escrito.",
         rule: "Al empezar con un adverbio negativo, el orden se INVIERTE como en pregunta: 'adverbio negativo + auxiliar + sujeto + verbo'. Ej: 'Never have I seen...', 'Not only did he...'.",
         examples: ["Never have I seen such a thing.", "Not only did she win, but she also broke a record.", "Rarely do we see this."],

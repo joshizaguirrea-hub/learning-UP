@@ -165,7 +165,7 @@ export const SCIENCE_B2 = {
       intro: "Competencia de GRAMATICA. Aprende pasiva en varios tiempos y el causative.",
       grammar: {
         title: "Passive (all tenses) + causative",
-        form: "pasiva: be (en su tiempo) + participio · causative: have/get + objeto + participio",
+        form: "passive: be (in its tense) + past participle · causative: have/get + object + past participle",
         desc: "Sirve para enfocar la acci\u00f3n en cualquier tiempo y para decir que mandas hacer algo.",
         rule: "Pasiva: 'be' (en el tiempo que toque) + participio (has been developed, will be published). Causativo: 'have/get + objeto + participio' cuando otro lo hace por ti (I had my car repaired).",
         examples: ["It has been developed.", "It will be published.", "I had my car repaired."],

@@ -165,7 +165,7 @@ export const REGISTER_C2 = {
       intro: "Competencia de GRAMATICA. Aprende el fronting para enfasis estilistico.",
       grammar: {
         title: "Fronting (marked word order)",
-        form: "elemento inusual al inicio (+ inversion si es negativo/adverbial)",
+        form: "unusual element at the start (+ inversion if it is negative/adverbial)",
         desc: "Sirve para dar \u00e9nfasis o estilo colocando al inicio un elemento que normalmente ir\u00eda despu\u00e9s.",
         rule: "En el 'fronting' llevas al inicio un elemento inusual; si es negativo o adverbial, el sujeto y el verbo se INVIERTEN: 'So beautiful was the view...', 'Little did they know'.",
         examples: ["So beautiful was the view that we stayed.", "Down came the rain.", "Little did they know."],

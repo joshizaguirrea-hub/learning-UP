@@ -165,7 +165,7 @@ export const ADVANCED_WRITING_C2 = {
       intro: "Competencia de GRAMATICA. Aprende however / whatever / no matter.",
       grammar: {
         title: "Concessive clauses",
-        form: "However + adj/adv + sujeto + verbo · Whatever/Whoever/Wherever · No matter how/what...",
+        form: "However + adj/adv + subject + verb · Whatever/Whoever/Wherever · No matter how/what...",
         desc: "Sirve para conceder algo y sonar flexible pero firme en escritura avanzada.",
         rule: "'However + adjetivo/adverbio + sujeto + verbo' (However hard he tries...). 'Whatever/Whoever/Wherever' y 'No matter how/what' significan 'sin importar...': 'No matter what happens, we continue'.",
         examples: ["However hard it is, keep going.", "Whatever you do, be honest.", "No matter what happens, I'll help."],

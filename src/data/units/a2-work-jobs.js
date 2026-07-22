@@ -165,7 +165,7 @@ export const A2_WORK_JOBS = {
       intro: "Competencia de GRAMATICA. Aprende el present perfect para experiencias.",
       grammar: {
         title: "Present perfect (experiencias)",
-        form: "have/has + participio · Have you ever...? · never / just / already / not ... yet",
+        form: "have/has + past participle · Have you ever...? · never / just / already / not ... yet",
         desc: "Sirve para hablar de experiencias de vida y acciones recientes sin decir cu\u00e1ndo exactamente.",
         rule: "'have/has + participio' (has con he/she/it). 'Have you ever...?' pregunta por experiencias; 'never' = nunca; 'just' = reci\u00e9n; 'already' = ya; 'not ... yet' = todav\u00eda no.",
         examples: ["I have worked as a waiter.", "Have you ever been to London?", "She hasn't finished yet."],
