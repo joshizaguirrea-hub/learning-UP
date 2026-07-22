@@ -60,6 +60,26 @@ export function grade(activity, response) {
       return accepted.some((a) => normalize(a) === normalize(response ?? ""));
     }
 
+    case "writing": {
+      // Escritura libre (sin IA): aprueba con un minimo de palabras y usando al
+      // menos 2 de las palabras clave del tema. Fomenta producir, no memorizar.
+      const p = activity.payload || {};
+      const text = String(response ?? "").trim();
+      const words = text ? text.split(/\s+/).filter(Boolean) : [];
+      if (words.length < (p.minWords || 20)) return false;
+      const kw = (p.keywords || []).map((k) => normalize(k));
+      if (!kw.length) return true;
+      const norm = normalize(text);
+      const hits = kw.filter((k) => norm.includes(k)).length;
+      return hits >= Math.min(2, kw.length);
+    }
+
+    case "speaking": {
+      // Pronunciacion (escucha y repite): la practica corre en su propia UI y
+      // solo reporta si se completo. `response === true` => seccion superada.
+      return response === true;
+    }
+
     default:
       return false;
   }

@@ -28,6 +28,8 @@ import { confettiBurst } from "../ui/confetti.js";
 import { celebrate } from "../ui/celebrate.js";
 import { getCourseProgress } from "../services/course.js";
 import { line } from "../ui/robot-lines.js";
+import { openSpeaking } from "./speaking.js";
+import { openConversation } from "./conversation.js";
 
 const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
   "rounded-3xl p-6 sm:p-8 min-h-[68vh] flex flex-col";
@@ -241,8 +243,13 @@ export async function renderLessonPlayer(container, params, user) {
     mount(container, el("div", { class: CARD },
       topBar(unit, 100, state),
       body,
-      el("div", { class: "mt-6" },
-        el("button", { class: OK_BTN, onclick: () => go("/unidad/" + unit.id) }, "Volver a la unidad"))));
+      el("div", { class: "mt-6 space-y-3" },
+        lesson.kind === "test" ? el("button", {
+          class: "w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 " +
+            "text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300 transition",
+          onclick: () => openConversation(unit),
+        }, el("span", { class: "w-5 h-5", html: ICONS.chat || ICONS.sound }), "Charla final con Bymax (opcional)") : null,
+        el("button", { class: lesson.kind === "test" ? PRIMARY : OK_BTN, onclick: () => go("/unidad/" + unit.id) }, "Volver a la unidad"))));
     focusMainHeading(container);
     playFanfare();
     confettiBurst();
@@ -362,6 +369,9 @@ function topBar(unit, pct, state) {
 // ---------------------------------------------------------------------------
 function feedbackBanner(ok, act, grammar = null, lang = "es-MX", level) {
   const answerText = correctAnswerText(act);
+  // Writing/speaking no tienen "respuesta correcta": damos pista, no solucion.
+  const openEnded = act.type === "writing" || act.type === "speaking";
+  const tip = act.type === "writing" ? (act.payload?.hint || "Escribe un poco mas y usa las palabras clave.") : null;
   return el("div", {
     class: "mt-4 rounded-xl p-4 border " +
       (ok ? "border-emerald-600/60 bg-emerald-900/25" : "border-red-700/60 bg-red-900/25"),
@@ -370,9 +380,10 @@ function feedbackBanner(ok, act, grammar = null, lang = "es-MX", level) {
       robotAvatar("md"),
       el("p", { class: "font-bold text-lg " + (ok ? "text-emerald-300" : "text-red-300") },
         ok ? "\u2714 \u00a1Correcto!" : "\u2716 No exactamente")),
-    !ok ? el("p", { class: "mt-2 text-sm text-slate-200" }, "Respuesta: " + answerText) : null,
+    (!ok && !openEnded && answerText) ? el("p", { class: "mt-2 text-sm text-slate-200" }, "Respuesta: " + answerText) : null,
+    (!ok && tip) ? el("p", { class: "mt-2 text-sm text-slate-200" }, tip) : null,
     act.explain ? el("p", { class: "mt-2 text-sm text-slate-300" }, "Por que: " + act.explain) : null,
-    !ok ? el("button", {
+    (!ok && !openEnded) ? el("button", {
       class: "mt-3 flex items-center gap-2 text-sm text-indigo-200 border border-indigo-500/40 " +
         "bg-indigo-500/10 rounded-xl px-3 py-2 hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
       onclick: () => openWhyWrong(grammar, act, answerText, lang, level),
@@ -412,6 +423,8 @@ function renderActivity(act, idx) {
     case "word_bank": return wordBankActivity(act, title);
     case "matching": return matchingActivity(act, title);
     case "listening": return listeningActivity(act, idx, title);
+    case "writing": return writingActivity(act, title);
+    case "speaking": return speakingActivity(act, title);
     default: return { node: el("p", {}, "Tipo no soportado."), getResponse: () => null };
   }
 }
@@ -653,6 +666,72 @@ function listeningActivity(act, idx, title) {
   setTimeout(() => play(0.9), 350);
 
   return { node, getResponse: sub.getResponse };
+}
+
+/**
+ * WRITING: escritura libre con contador de palabras en vivo y palabras clave
+ * sugeridas. Se aprueba con el minimo de palabras + al menos 2 palabras clave
+ * (ver core/activities.js). Sin IA -> sin costo.
+ */
+function writingActivity(act, title) {
+  const p = act.payload || {};
+  const minWords = p.minWords || 20;
+  const area = el("textarea", {
+    rows: "6",
+    class: "mt-3 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-500 resize-y",
+    placeholder: "Write your text in English here...",
+  });
+  const counter = el("span", { class: "tabular-nums" }, "0");
+  const status = el("p", { class: "mt-2 text-xs text-slate-400" },
+    "Palabras: ", counter, " / " + minWords + " minimo");
+  const chips = (p.keywords || []).length
+    ? el("div", { class: "mt-3" },
+        el("p", { class: "text-xs text-slate-500 mb-1" }, "Usa al menos 2 de estas palabras:"),
+        el("div", { class: "flex flex-wrap gap-1.5" },
+          ...p.keywords.map((k) => el("span", {
+            class: "text-xs px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-200",
+          }, k))))
+    : null;
+  area.addEventListener("input", () => {
+    const n = area.value.trim() ? area.value.trim().split(/\s+/).filter(Boolean).length : 0;
+    counter.textContent = String(n);
+    counter.className = "tabular-nums " + (n >= minWords ? "text-emerald-400 font-bold" : "");
+  });
+  const hint = p.hint ? el("p", { class: "mt-2 text-xs text-slate-500 italic" }, p.hint) : null;
+  return {
+    node: el("fieldset", {}, title, hint, area, status, chips),
+    getResponse: () => area.value,
+  };
+}
+
+/**
+ * SPEAKING: la practica de pronunciacion (escucha y repite) corre en su propia
+ * ventana (openSpeaking). Al terminarla, la seccion queda aprobada y se dispara
+ * la autocompletacion del paso. getResponse() devuelve true solo si se completo.
+ */
+function speakingActivity(act, title) {
+  const p = act.payload || {};
+  let completed = false;
+  const status = el("p", { class: "mt-3 text-sm text-slate-400" }, "Aun no has hecho la practica.");
+  const node = el("fieldset", {}, title,
+    el("p", { class: "mt-1 text-sm text-slate-400" }, "Escucha cada frase modelo y repitela en voz alta. Al terminar, esta seccion queda aprobada."));
+  const startBtn = el("button", {
+    type: "button",
+    class: "mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white " +
+      "font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-fuchsia-300 transition",
+    onclick: () => openSpeaking(p.speakingUnit || {}, {
+      onComplete: () => {
+        completed = true;
+        status.textContent = "Practica de pronunciacion completada.";
+        status.className = "mt-3 text-sm text-emerald-400 font-semibold";
+        node.dispatchEvent(new CustomEvent("activity:autocomplete", { bubbles: true }));
+      },
+    }),
+  }, el("span", { class: "w-5 h-5", html: ICONS.mic || ICONS.sound }), "Empezar practica de pronunciacion");
+  node.append(startBtn, status);
+  // null mientras no complete -> el motor pide "Responde primero" (no lo marca mal).
+  return { node, getResponse: () => (completed ? true : null) };
 }
 
 // ---------------------------------------------------------------------------
