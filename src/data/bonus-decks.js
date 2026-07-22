@@ -10,11 +10,18 @@
  *
  * Los ejemplos son nivel B1-B2 (frases reales, phrasal verbs, modismos) para
  * que el estudiante vea el verbo en uso autentico, no en frases de juguete.
+ *
+ * Los 4 mazos de aqui son "nucleo" (gramatica). Los mazos de VOCABULARIO por
+ * nivel (sinonimos, antonimos, confusables, homografos) viven en vocab-decks.js
+ * y se fusionan abajo en el export unico BONUS_DECKS.
  */
 
-export const BONUS_DECKS = [
+import { VOCAB_DECKS } from "./vocab-decks.js";
+
+const CORE_BONUS_DECKS = [
   {
     id: "irregular-verbs",
+    level: "A2",
     title: "Verbos irregulares",
     subtitle: "Base - pasado - participio",
     recall: "Di el PASADO y el PARTICIPIO",
@@ -107,6 +114,7 @@ export const BONUS_DECKS = [
   },
   {
     id: "regular-past",
+    level: "A2",
     title: "Pasado regular (-ed)",
     subtitle: "Verbos regulares en pasado",
     recall: "Di el PASADO (-ed)",
@@ -155,6 +163,7 @@ export const BONUS_DECKS = [
   },
   {
     id: "past-time",
+    level: "A2",
     title: "Expresiones de tiempo (pasado)",
     subtitle: "Cuando paso algo",
     recall: "Di el SIGNIFICADO en espanol",
@@ -186,6 +195,7 @@ export const BONUS_DECKS = [
   },
   {
     id: "idioms",
+    level: "B1",
     title: "Idioms (modismos)",
     subtitle: "Frases hechas del ingles real",
     recall: "Di el SIGNIFICADO en espanol",
@@ -220,6 +230,9 @@ export const BONUS_DECKS = [
     ],
   },
 ];
+
+/** Todos los mazos bonus: los 4 nucleo (gramatica) + los de vocabulario por nivel. */
+export const BONUS_DECKS = [...CORE_BONUS_DECKS, ...VOCAB_DECKS];
 
 /** Devuelve un mazo por id (o null). */
 export function bonusDeckById(id) {

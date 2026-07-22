@@ -7,6 +7,7 @@
  * el boton estrella de CONVERSACION REAL con la IA sobre el tema de la unidad.
  */
 import { SKILL_META } from "../data/skill-meta.js";
+import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { ICONS } from "../ui/icons.js";
 import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
@@ -85,10 +86,24 @@ export function unitContent(unit, progressMap, user) {
       el("p", { class: "text-white/85 text-sm" }, `Trampas es->en de tu nivel (${unit.level}): falsos amigos, he/she, preposiciones...`)),
     el("span", { class: "text-white/90 text-sm font-semibold" }, "Jugar ->"));
 
+  // Bonos de VOCABULARIO cuyo nivel coincide con el de la unidad (sinonimos,
+  // antonimos, y -segun el nivel- confusables y homografos). Se derivan de los
+  // datos, sin listas duplicadas: DRY.
+  const vocabDecks = VOCAB_DECKS.filter((d) => d.level === unit.level);
+  const vocabRow = vocabDecks.length ? el("section", { class: "mt-4" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos de vocabulario (" + unit.level + ")"),
+    el("div", { class: "flex flex-wrap gap-2" },
+      ...vocabDecks.map((d) => el("a", {
+        href: `#/bonus/${d.id}`,
+        class: "text-sm px-4 py-2 rounded-full bg-sky-500/15 text-sky-200 border border-sky-500/30 " +
+          "hover:bg-sky-500/25 focus:outline focus:outline-2 focus:outline-sky-400",
+      }, d.title)))) : null;
+
   return el("div", {},
     el("h2", { class: "font-bold text-lg mb-3" }, "Competencias"),
     skillGrid,
     bonusRow,
+    vocabRow,
     convo,
     antiErrors,
     story);

@@ -14,6 +14,7 @@ import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { generateTips } from "../core/verb-tips.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
+import { CEFR_ORDER } from "../data/cefr.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay, getGenLevel, setGenLevel } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
@@ -57,8 +58,23 @@ export async function renderBonus(container, user) {
       el("div", { class: "grid grid-cols-2 sm:grid-cols-3 gap-3" }, ...decks.map(medalCard))),
     el("section", {},
       el("h2", { class: "text-lg font-bold mb-3" }, "Mazos de estudio"),
-      el("div", { class: "grid sm:grid-cols-2 gap-3" }, ...decks.map(deckCard)))));
+      ...levelGroups(decks))));
   focusMainHeading(container);
+}
+
+// Agrupa las tarjetas de mazo por nivel CEFR, con un encabezado por grupo.
+function levelGroups(decks) {
+  const byLevel = new Map();
+  decks.forEach((d) => {
+    const lv = d.deck.level || "Otros";
+    if (!byLevel.has(lv)) byLevel.set(lv, []);
+    byLevel.get(lv).push(d);
+  });
+  const order = [...CEFR_ORDER, "Otros"];
+  return order.filter((lv) => byLevel.has(lv)).map((lv) =>
+    el("div", { class: "mb-5" },
+      el("h3", { class: "text-sm font-bold text-indigo-300 uppercase tracking-wide mb-2" }, "Nivel " + lv),
+      el("div", { class: "grid sm:grid-cols-2 gap-3" }, ...byLevel.get(lv).map(deckCard))));
 }
 
 function medalCard(d) {
