@@ -41,10 +41,12 @@ export function openInterview(opts = {}) {
   const close = () => { ended = true; dictation?.abort(); stopAudio(); overlay.remove(); };
 
   const heading = el("p", { class: "font-bold text-sky-300" }, "Entrevista con " + name);
-  const body = el("div", { class: "mt-4" });
+  // min-h-0 + overflow-y-auto: en celular el contenido scrollea DENTRO del modal
+  // (el header con la X queda fijo) para que nunca se corten los controles ni Salir.
+  const body = el("div", { class: "mt-4 flex-1 min-h-0 overflow-y-auto" });
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh]",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh] min-h-0",
     role: "dialog", "aria-label": "Entrevista de trabajo con Bymax", "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
