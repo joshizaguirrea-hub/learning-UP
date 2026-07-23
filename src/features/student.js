@@ -46,10 +46,9 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" },
-    el("div", {},
-      el("h1", { class: "text-2xl sm:text-3xl font-extrabold" }, `Hola, ${firstName(name)}!`),
-      el("p", { class: "text-slate-400" }, "Que quieres hacer hoy?")),
+  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-4" },
+    // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
+    el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
     continueBar(profile, units, completed, due),
     hubGrid(profile, pct)));
