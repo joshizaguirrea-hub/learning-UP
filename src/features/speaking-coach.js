@@ -18,6 +18,7 @@ import { getInterviewLog, clearNextAppointment } from "../core/interview-log.js"
 import { openInterview } from "./interview.js";
 import { openVoiceCall } from "./voice-call.js";
 import { openSpeaking } from "./speaking.js";
+import { backHome } from "../ui/hub-ui.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -56,6 +57,7 @@ export async function renderSpeakingCoach(container, user) {
   const rerender = () => renderSpeakingCoach(container, user);
 
   mount(container, el("div", { class: "space-y-6 max-w-3xl mx-auto" },
+    backHome("text-emerald-300 hover:text-emerald-200"),
     header(),
     appointmentReminder(log, level, user.id, rerender),
     scoreCard(score),
