@@ -3,9 +3,17 @@
   "short_name": "Learning UP",
   "description": "Aprende ingles con examen de ubicacion MCER, plan personalizado, contenido con IA y profesores.",
   "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#f8fafc",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
   "theme_color": "#4338ca",
   "lang": "es",
-  "icons": []
+  "categories": ["education"],
+  "icons": [
+    { "src": "assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "assets/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
