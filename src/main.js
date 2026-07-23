@@ -35,6 +35,7 @@ import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
 import { applyTextSize, applyContrast } from "./ui/prefs.js";
 import { mountDictionary } from "./features/dictionary.js";
+import "./ui/install.js"; // registra los listeners de instalacion (PWA) al arrancar
 const app = qs("#app");
 
 /** Vista simple de bienvenida cuando no hay sesion. */
