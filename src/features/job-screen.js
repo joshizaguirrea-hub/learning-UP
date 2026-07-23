@@ -17,7 +17,7 @@ export async function renderJob(container) {
       icon: ICONS.briefcase, grad: "from-emerald-500 via-teal-600 to-teal-800",
       title: "Prepara tu entrevista laboral", subtitle: "Simulacro con IA y tu CV en ingles",
     }),
-    el("div", { class: "grid grid-cols-1 sm:grid-cols-2 gap-4" },
+    el("div", { class: "grid grid-cols-2 gap-3 sm:gap-4" },
       hubCard({
         href: "#/coach", grad: accentGrad("speak"), icon: ICONS.briefcase,
         title: "Coach de Habla", subtitle: "Simula la entrevista con IA y sube tu Speaking Score", badge: "TOP",

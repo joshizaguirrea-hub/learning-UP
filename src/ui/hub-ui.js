@@ -33,21 +33,21 @@ export function hubCard({ href, onClick, grad, icon, title, subtitle, badge, ext
     el("div", { class: "card-sheen absolute inset-0", "aria-hidden": "true" }),
     el("div", { class: "absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/55 via-black/15 to-transparent", "aria-hidden": "true" }),
     badge
-      ? el("span", { class: "absolute top-3 right-3 flex items-center gap-1 bg-black/30 backdrop-blur px-2 py-1 rounded-full" },
-          el("span", { class: "w-3 h-3 text-amber-300", html: ICONS.star }),
-          el("span", { class: "text-[10px] font-black tracking-widest text-white" }, badge))
+      ? el("span", { class: "absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center gap-1 bg-black/30 backdrop-blur px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full" },
+          el("span", { class: "w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300", html: ICONS.star }),
+          el("span", { class: "text-[8px] sm:text-[10px] font-black tracking-widest text-white" }, badge))
       : null,
-    el("div", { class: "relative h-full p-5 flex flex-col" },
-      el("span", { class: "w-14 h-14 grid place-items-center rounded-2xl bg-white/20 backdrop-blur text-white shrink-0", html: icon }),
-      el("div", { class: "flex-1 min-h-[1.5rem]" }),
+    el("div", { class: "relative h-full p-2.5 sm:p-5 flex flex-col" },
+      el("span", { class: "w-9 h-9 sm:w-14 sm:h-14 grid place-items-center rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur text-white shrink-0", html: icon }),
+      el("div", { class: "flex-1 min-h-[0.75rem]" }),
       el("div", {},
-        el("h2", { class: "text-xl font-black text-white leading-tight drop-shadow" }, title),
-        el("p", { class: "text-white/85 text-sm mt-1" }, subtitle),
+        el("h2", { class: "text-[13px] sm:text-xl font-black text-white leading-tight drop-shadow" }, title),
+        el("p", { class: "text-white/85 text-[10px] sm:text-sm mt-0.5 sm:mt-1 leading-snug line-clamp-2" }, subtitle),
         extra || null)),
   ];
 
   const cls =
-    "group relative overflow-hidden rounded-3xl shadow-xl sm:aspect-square min-h-[12rem] " +
+    "group relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl aspect-square " +
     "transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl will-change-transform " +
     "focus:outline focus:outline-2 focus:outline-white/70";
 
