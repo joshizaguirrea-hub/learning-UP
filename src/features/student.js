@@ -10,7 +10,7 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
-import { countDue, srsStats } from "../services/srs.js";
+import { srsStats } from "../services/srs.js";
 import { unitsForLevel } from "../data/units/index.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { ICONS } from "../ui/icons.js";
@@ -21,7 +21,6 @@ import { accentGrad } from "../ui/theme.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { hubCard } from "../ui/hub-ui.js";
-import { REVIEW_SESSION } from "./review.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -35,8 +34,8 @@ export async function renderStudent(container, user) {
     return;
   }
 
-  const [progressMap, due, srs] = await Promise.all([
-    getCourseProgress(user.id), countDue(user.id), srsStats(user.id),
+  const [progressMap, srs] = await Promise.all([
+    getCourseProgress(user.id), srsStats(user.id),
   ]);
 
   const completed = new Set(
@@ -46,11 +45,10 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-4" },
+  mount(container, el("div", { class: "max-w-5xl mx-auto space-y-4" },
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
-    continueBar(profile, units, completed, due),
     hubGrid(profile, pct)));
   focusMainHeading(container);
 }
@@ -92,34 +90,6 @@ function miniStat(value, label, color) {
   return el("div", { class: "text-center" },
     el("p", { class: `text-base font-black leading-none ${color}` }, String(value)),
     el("p", { class: "text-[9px] text-slate-400" }, label));
-}
-
-// --------------------------------------------------------------------------
-// Barra "Continua" (friccion cero)
-// --------------------------------------------------------------------------
-function continueBar(profile, units, completed, due) {
-  const action = nextAction(units, completed, due);
-  return el("a", { href: action.href,
-    class: "flex items-center gap-3 rounded-2xl px-4 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg " +
-      "transition hover:-translate-y-0.5 focus:outline focus:outline-2 focus:outline-white/70" },
-    el("span", { class: "w-9 h-9 grid place-items-center rounded-xl bg-white/20 shrink-0 text-white", html: ICONS.play }),
-    el("div", { class: "flex-1 min-w-0" },
-      el("p", { class: "text-[11px] uppercase tracking-wide text-white/70 font-bold" }, "Continua donde ibas"),
-      el("p", { class: "font-bold text-white truncate" }, action.label)),
-    el("span", { class: "text-white font-black shrink-0" }, action.cta));
-}
-
-function nextAction(units, completed, due) {
-  if (due > 0) {
-    const batch = Math.min(due, REVIEW_SESSION);
-    return { label: `Repaso del dia: ${batch} tarjeta${batch === 1 ? "" : "s"}`, cta: "Repasar", href: "#/repaso" };
-  }
-  for (const u of units) {
-    for (const l of u.lessons) {
-      if (!completed.has(l.id)) return { label: `${u.title}: ${l.title}`, cta: "Seguir", href: `#/leccion/${l.id}` };
-    }
-  }
-  return { label: "Vas al dia. Explora tu mapa!", cta: "Mapa", href: "#/plan" };
 }
 
 // --------------------------------------------------------------------------
