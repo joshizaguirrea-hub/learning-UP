@@ -1,9 +1,12 @@
 /**
- * features/student.js — Dashboard del estudiante (estilo "Fit Match", tema oscuro).
+ * features/student.js — Pantalla de INICIO (hub) del estudiante.
  *
- * Capa de feature: arma el perfil gamificado (avatar, XP, nivel), el CURSO como
- * protagonista (mosaico de temas) y el repaso. Los calculos viven en
- * core/gamification (puro); aqui solo se orquesta y pinta.
+ * Modelo "hub + pantallas": el inicio es un tablero limpio con el PERFIL y TRES
+ * puertas grandes (Curso, Habla con Bymax, Entrevista laboral). Cada puerta
+ * navega a su propia pantalla exclusiva (features/course-screen, speaking-screen,
+ * job-screen). Los bonos viven DENTRO del curso, no sueltos. Menos ruido, mas foco.
+ *
+ * Los calculos viven en core/*; aqui solo se orquesta y pinta.
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
@@ -11,18 +14,14 @@ import { countDue, srsStats } from "../services/srs.js";
 import { unitsForLevel } from "../data/units/index.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { ICONS } from "../ui/icons.js";
-import { didToday } from "../core/streak.js";
 import { totalXp, xpToNext } from "../core/gamification.js";
 import { el, mount } from "../ui/dom.js";
 import { getAccent } from "../ui/prefs.js";
+import { accentGrad } from "../ui/theme.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
-import { courseCards } from "./course-cards.js";
-import { bymaxCard, dailyGreeting } from "./bymax-panel.js";
-import { openMyLifeLesson } from "./my-life-lesson.js";
-import { openVoiceCall } from "./voice-call.js";
+import { hubCard } from "../ui/hub-ui.js";
 import { REVIEW_SESSION } from "./review.js";
-import { actionBanner } from "../ui/banner.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -45,86 +44,72 @@ export async function renderStudent(container, user) {
   const lessonsDone = completed.size;
   const units = unitsForLevel(profile.cefr_level);
   const xp = totalXp(lessonsDone, srs.learned);
+  const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "space-y-6" },
-    dailyGreeting({ name, streak: profile.streak || 0 }),
-    profileHeader(name, profile, xp),
-    bymaxCard({ xp, streak: profile.streak || 0 }),
-    coachBanner(),
-    nextActionHero(profile, units, completed, due),
-    courseCards(units, progressMap),
-    callBanner(profile.cefr_level),
-    myLifeBanner(),
-    statsRow(profile, srs.learned, lessonsDone),
-    bonusBanner()));
+  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" },
+    el("div", {},
+      el("h1", { class: "text-2xl sm:text-3xl font-extrabold" }, `Hola, ${firstName(name)}!`),
+      el("p", { class: "text-slate-400" }, "Que quieres hacer hoy?")),
+    profileCard(name, profile, xp, srs.learned, lessonsDone),
+    continueBar(profile, units, completed, due),
+    hubGrid(profile, pct),
+    secondaryLinks()));
   focusMainHeading(container);
 }
 
 // --------------------------------------------------------------------------
-// Perfil (banner con gradiente + avatar + barra de XP)
+// Perfil: avatar con anillo de XP + nivel + barra + stats
 // --------------------------------------------------------------------------
-function profileHeader(name, profile, xp) {
+function profileCard(name, profile, xp, vocab, lessons) {
   const initials = name.trim().split(/\s+/).slice(0, 2).map((w) => w[0]?.toUpperCase() || "").join("");
   const info = CEFR_INFO[profile.cefr_level] || {};
   const { into } = xpToNext(xp);
   const accent = getAccent();
 
-  return el("section", { class: PANEL + " overflow-hidden" },
-    el("h1", { class: "sr-only" }, `Perfil de ${name}`),
-    el("div", { class: `relative h-24 bg-gradient-to-r ${accent.grad} overflow-hidden` },
-      el("div", { class: "absolute -top-1/2 -left-8 w-1/2 h-[200%] bg-white/25 blur-2xl opacity-60", "aria-hidden": "true" }),
-      el("div", { class: "absolute -bottom-10 right-8 w-28 h-28 rounded-full border-8 border-white/10", "aria-hidden": "true" })),
-    el("div", { class: "px-6 pb-6" },
-      el("a", { href: "#/perfil", class: "flex items-end gap-5 -mt-8 group", "aria-label": "Ver mi perfil" },
-        el("div", { class: `w-24 h-24 rounded-full bg-gradient-to-br ${accent.grad} border-4 border-slate-900 shadow-lg flex items-center justify-center text-3xl font-extrabold text-white shrink-0` }, initials || "?"),
-        el("div", { class: "pb-2 min-w-0" },
-          el("p", { class: "text-xl font-bold leading-tight truncate group-hover:text-indigo-300" }, name),
-          el("p", { class: "text-sm text-slate-400 mt-0.5" },
-            `Nivel ${profile.cefr_level} - ${info.label || ""}`))),
-      el("div", { class: "mt-6" },
-        el("div", { class: "flex justify-between text-xs text-slate-400 mb-1.5" },
-          el("span", {}, "Experiencia"),
-          el("span", {}, `${into}/100 XP`)),
-        el("div", { class: "w-full bg-slate-800 rounded-full h-2.5", role: "progressbar",
-          "aria-valuenow": String(into), "aria-valuemin": "0", "aria-valuemax": "100" },
-          el("div", { class: "bg-gradient-to-r from-indigo-400 to-fuchsia-400 h-2.5 rounded-full transition-all", style: `width:${into}%` })))));
-}
-
-// --------------------------------------------------------------------------
-// Fila de estadisticas
-// --------------------------------------------------------------------------
-function statsRow(profile, vocab, lessons) {
-  const stat = (value, label) =>
-    el("div", { class: PANEL + " p-4 text-center" },
-      el("p", { class: "text-2xl font-extrabold text-indigo-300" }, String(value)),
-      el("p", { class: "text-xs text-slate-400 mt-1" }, label));
-  return el("section", { class: "grid grid-cols-2 sm:grid-cols-4 gap-3" },
-    stat(profile.cefr_level, "Tu nivel"), stat(profile.streak || 0, "Racha (dias)"),
-    stat(vocab, "Palabras"), stat(lessons, "Lecciones"));
-}
-
-/** Tarjeta "Continua aqui": friccion cero + racha + meta de hoy (retencion). */
-function nextActionHero(profile, units, completed, due) {
-  const action = nextAction(units, completed, due);
-  const goalDone = didToday(profile.last_active);
-  const streak = profile.streak || 0;
-
-  return el("section", { class: "rounded-2xl overflow-hidden bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 shadow-lg" },
-    el("div", { class: "p-5 flex items-center gap-4 flex-wrap" },
-      el("div", { class: "flex items-center gap-2" },
-        el("span", { class: "w-9 h-9 text-amber-300", html: ICONS.flame }),
-        el("div", {},
-          el("p", { class: "text-2xl font-extrabold text-white leading-none" }, String(streak)),
-          el("p", { class: "text-[10px] text-white/80 uppercase tracking-wide" }, "dias de racha"))),
+  return el("a", { href: "#/perfil", class: PANEL + " block p-5 overflow-hidden group", "aria-label": "Ver mi perfil" },
+    el("div", { class: "flex items-center gap-5 flex-wrap" },
+      // Avatar con anillo de XP (conic via style).
+      el("div", { class: "relative w-20 h-20 rounded-full grid place-items-center shrink-0",
+        style: `background:conic-gradient(#a78bfa ${into * 3.6}deg, rgba(255,255,255,.08) 0)` },
+        el("div", { class: "w-[68px] h-[68px] rounded-full bg-slate-900 grid place-items-center" },
+          el("div", { class: `w-14 h-14 rounded-full bg-gradient-to-br ${accent.grad} grid place-items-center text-xl font-black text-white` }, initials || "?"))),
       el("div", { class: "flex-1 min-w-[12rem]" },
-        el("p", { class: "text-white/80 text-sm" }, goalDone ? "Meta de hoy cumplida. Sigue asi!" : "Meta de hoy: estudia algo"),
-        el("p", { class: "text-white font-bold text-lg" }, action.label)),
-      el("a", { href: action.href,
-        class: "flex items-center gap-2 bg-white text-indigo-700 font-bold px-5 py-3 rounded-xl hover:bg-indigo-50 focus:outline focus:outline-2 focus:outline-white" },
-        el("span", { class: "w-5 h-5", html: ICONS.play }), action.cta)));
+        el("div", { class: "flex items-center gap-2 flex-wrap" },
+          el("p", { class: "text-xl font-extrabold group-hover:text-indigo-300" }, name),
+          el("span", { class: "text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30" },
+            `${profile.cefr_level} - ${info.label || ""}`)),
+        el("div", { class: "mt-2 flex items-center gap-2" },
+          el("div", { class: "flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden", role: "progressbar",
+            "aria-valuenow": String(into), "aria-valuemin": "0", "aria-valuemax": "100" },
+            el("div", { class: "h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400", style: `width:${into}%` })),
+          el("span", { class: "text-xs text-slate-300 font-bold whitespace-nowrap" }, `${into}/100 XP`)),
+        el("div", { class: "mt-3 flex gap-5" },
+          miniStat(profile.streak || 0, "racha", "text-amber-300"),
+          miniStat(vocab, "palabras", "text-sky-300"),
+          miniStat(lessons, "lecciones", "text-emerald-300")))));
 }
 
-/** Decide la mejor accion siguiente (friccion cero). */
+function miniStat(value, label, color) {
+  return el("div", {},
+    el("p", { class: `text-lg font-black leading-none ${color}` }, String(value)),
+    el("p", { class: "text-[10px] text-slate-400" }, label));
+}
+
+// --------------------------------------------------------------------------
+// Barra "Continua" (friccion cero)
+// --------------------------------------------------------------------------
+function continueBar(profile, units, completed, due) {
+  const action = nextAction(units, completed, due);
+  return el("a", { href: action.href,
+    class: "flex items-center gap-3 rounded-2xl px-4 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg " +
+      "transition hover:-translate-y-0.5 focus:outline focus:outline-2 focus:outline-white/70" },
+    el("span", { class: "w-9 h-9 grid place-items-center rounded-xl bg-white/20 shrink-0 text-white", html: ICONS.play }),
+    el("div", { class: "flex-1 min-w-0" },
+      el("p", { class: "text-[11px] uppercase tracking-wide text-white/70 font-bold" }, "Continua donde ibas"),
+      el("p", { class: "font-bold text-white truncate" }, action.label)),
+    el("span", { class: "text-white font-black shrink-0" }, action.cta));
+}
+
 function nextAction(units, completed, due) {
   if (due > 0) {
     const batch = Math.min(due, REVIEW_SESSION);
@@ -132,61 +117,66 @@ function nextAction(units, completed, due) {
   }
   for (const u of units) {
     for (const l of u.lessons) {
-      if (!completed.has(l.id)) return { label: `${u.title}: ${l.title}`, cta: "Continuar", href: `#/leccion/${l.id}` };
+      if (!completed.has(l.id)) return { label: `${u.title}: ${l.title}`, cta: "Seguir", href: `#/leccion/${l.id}` };
     }
   }
-  return { label: "Vas al dia. Explora tu mapa!", cta: "Ver mapa", href: "#/plan" };
+  return { label: "Vas al dia. Explora tu mapa!", cta: "Mapa", href: "#/plan" };
 }
 
 // --------------------------------------------------------------------------
-// Tarjetas de dominio por competencia (estilo Fit Match)
+// Las 3 puertas grandes
 // --------------------------------------------------------------------------
-
-/** Banner ESTRELLA: Coach de Habla (entrevista de trabajo + roleplay + Speaking Score). */
-function coachBanner() {
-  return actionBanner({
-    accent: "speak", icon: ICONS.briefcase, cta: "Entrenar", href: "#/coach",
-    title: "Coach de Habla \u2b50",
-    subtitle: "Simula una entrevista de trabajo con IA, practica escenas reales y sube tu Speaking Score",
-  });
+function hubGrid(profile, pct) {
+  return el("section", { class: "grid grid-cols-1 sm:grid-cols-3 gap-4" },
+    hubCard({
+      href: "#/curso", grad: accentGrad("brand"), icon: ICONS.book,
+      title: "Tu curso", subtitle: "Unidades, lecciones y bonos",
+      extra: el("div", { class: "mt-2 h-1.5 rounded-full bg-white/25 overflow-hidden" },
+        el("div", { class: "h-full bg-white rounded-full transition-all", style: `width:${pct}%` })),
+    }),
+    hubCard({
+      href: "#/hablar", grad: accentGrad("speak"), icon: ICONS.mic,
+      title: "Habla con Bymax", subtitle: "Speaking, llamada y pronunciacion",
+    }),
+    hubCard({
+      href: "#/trabajo", grad: "from-emerald-500 via-teal-600 to-teal-800", icon: ICONS.briefcase,
+      title: "Prepara tu entrevista", subtitle: "Simulacro con IA + CV Coach", badge: "TOP",
+    }));
 }
 
-/** Banner de la llamada por voz con Bymax (inmersion total, en la principal). */
-function callBanner(level) {
-  return actionBanner({
-    accent: "speak", icon: ICONS.mic, cta: "Llamar",
-    onClick: () => openVoiceCall({ level, chooseTopic: true }),
-    title: "Llamada con Bymax",
-    subtitle: "Manos libres: t\u00fa eliges el tema (o Bymax te recomienda uno) y hablan en ingl\u00e9s",
-  });
+// Accesos secundarios (para no dejar huerfanas estas secciones).
+function secondaryLinks() {
+  const link = (href, icon, label) =>
+    el("a", { href, class: "flex flex-col items-center gap-1 py-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/5 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-400" },
+      el("span", { class: "w-6 h-6", html: icon }),
+      el("span", { class: "text-[11px] font-medium" }, label));
+  return el("section", { class: PANEL + " p-2 grid grid-cols-4 gap-1" },
+    link("#/plan", ICONS.map, "Mi Plan"),
+    link("#/profesores", ICONS.teachers, "Profesores"),
+    link("#/calendario", ICONS.calendar, "Agenda"),
+    link("#/chat", ICONS.chat, "Chat"));
 }
 
-/** Banner "Lecciones desde tu vida" (aprende con tu propio contenido). */
-function myLifeBanner() {
-  return actionBanner({
-    accent: "brand", icon: ICONS.bulb, cta: "Probar", onClick: () => openMyLifeLesson(),
-    title: "Lecciones desde tu vida",
-    subtitle: "Pega un mensaje o la letra de una canci\u00f3n y Bymax lo vuelve tu lecci\u00f3n",
-  });
-}
+// --------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------
+function firstName(name) { return name.trim().split(/\s+/)[0] || name; }
 
-/** Banner de acceso a los mazos Bonus + medallas. */
-function bonusBanner() {
-  return actionBanner({
-    accent: "reward", icon: ICONS.star, cta: "Ir", href: "#/bonus",
-    title: "Bonus: gana medallas",
-    subtitle: "Domina verbos irregulares, pasados y mas. Contenido de memorizar.",
-  });
+function coursePct(units, completed) {
+  let total = 0, done = 0;
+  for (const u of units) for (const l of u.lessons) { total++; if (completed.has(l.id)) done++; }
+  return total ? Math.round((done / total) * 100) : 0;
 }
 
 // --------------------------------------------------------------------------
 // Estado sin examen: hero para hacer el examen de ubicacion
 // --------------------------------------------------------------------------
 function placementHero(name) {
-  return el("section", { class: PANEL + " overflow-hidden" },
+  return el("section", { class: PANEL + " overflow-hidden max-w-2xl mx-auto" },
     el("div", { class: "h-24 bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600" }),
     el("div", { class: "p-6 -mt-8" },
-      el("h1", { class: "text-2xl font-bold" }, `Hola, ${name}`),
+      el("h1", { class: "text-2xl font-bold" }, `Hola, ${firstName(name)}`),
       el("p", { class: "mt-2 text-slate-400" },
         "Descubre tu nivel (MCER) con un examen corto y desbloquea tu curso personalizado."),
       el("button", {
