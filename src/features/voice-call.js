@@ -49,11 +49,11 @@ export function openVoiceCall(opts = {}) {
   const close = () => { ended = true; dictation?.abort(); stopAudio(); overlay.remove(); };
 
   // Contenedor de la tarjeta: primero el selector (o directo la llamada).
-  const body = el("div", { class: "mt-4" });
+  const body = el("div", { class: "mt-4 flex-1 min-h-0 overflow-y-auto" });
   const heading = el("p", { class: "font-bold text-emerald-300" }, callWord + " con " + name);
 
   const card = el("div", {
-    class: "robot-pop max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center",
+    class: "robot-pop max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center flex flex-col max-h-[90vh]",
     role: "dialog", "aria-label": "Llamada con Bymax", "aria-modal": "true",
   },
     el("div", { class: "flex items-center justify-between" },

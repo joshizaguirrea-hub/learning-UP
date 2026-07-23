@@ -60,7 +60,7 @@ export function openSpeaking(unit, opts = {}) {
   const close = () => { dictation?.abort(); cancelCloud(); overlay.remove(); };
 
   // --- Zona dinamica (una frase a la vez) ---------------------------------
-  const stage = el("div", { class: "mt-4" });
+  const stage = el("div", { class: "mt-4 flex-1 min-h-0 overflow-y-auto" });
 
   const progress = el("div", { class: "w-full bg-black/25 rounded-full h-2 mt-3" },
     el("div", { class: "bg-gradient-to-r from-purple-400 to-fuchsia-500 h-2 rounded-full transition-all", style: "width:0%" }));
@@ -176,7 +176,7 @@ export function openSpeaking(unit, opts = {}) {
   }
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] min-h-0",
     role: "dialog", "aria-label": "Practica de pronunciacion", "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },

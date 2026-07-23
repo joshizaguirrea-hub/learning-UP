@@ -224,7 +224,7 @@ export function openConversation(unit) {
   }
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] min-h-0",
     role: "dialog", "aria-label": "Conversacion con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
@@ -234,7 +234,7 @@ export function openConversation(unit) {
         el("p", { class: "text-xs text-slate-400" }, "Practica hablando en ingles \u00b7 nivel " + level)),
       el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
 
-    el("div", { class: "mt-3 border-t border-slate-800 pt-2" }, log),
+    el("div", { class: "mt-3 border-t border-slate-800 pt-2 flex-1 min-h-0 overflow-y-auto" }, log),
 
     el("div", { class: "mt-2 flex justify-end" }, helpBtn),
     el("div", { class: "mt-2 flex gap-2" }, ...(speechSupported() ? [micBtn] : []), input, sendBtn));
