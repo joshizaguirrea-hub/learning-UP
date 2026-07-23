@@ -17,6 +17,7 @@ import { focusMainHeading, announce } from "../ui/a11y.js";
 import { backHome, screenHeader } from "../ui/hub-ui.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
+import { extractTextFromFile } from "../ui/file-text.js";
 
 // Prefijo comun: define el idioma de salida y el estilo (sin spanglish, sin markdown).
 const PREFIX =
@@ -127,6 +128,35 @@ export const CV_MODES = [
 
 function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
 
+/** Bloque de resultado (copiar + texto) reutilizado por el flujo Pro y los modos. */
+function buildResultBlock(text) {
+  const pre = el("div", { class: "rounded-2xl bg-slate-950/60 border border-slate-800 p-4 whitespace-pre-wrap text-slate-100 text-sm leading-relaxed" }, text);
+  const copyBtn = el("button", { type: "button",
+    class: "inline-flex items-center gap-2 border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 px-3 py-2 rounded-xl hover:bg-indigo-500/20",
+    onclick: async () => {
+      try { await navigator.clipboard.writeText(text); copyBtn.lastChild.textContent = "Copiado!"; setTimeout(() => (copyBtn.lastChild.textContent = "Copiar"), 1500); }
+      catch { copyBtn.lastChild.textContent = "No se pudo"; }
+    } },
+    el("span", { class: "w-5 h-5", html: ICONS.check }), el("span", {}, "Copiar"));
+  return el("div", { class: "space-y-2" }, el("div", { class: "flex justify-end" }, copyBtn), pre);
+}
+
+/** Prompt del flujo estrella: CV completo de alta calidad, listo para ATS. */
+function buildPro(v) {
+  return PREFIX +
+    "MISION: Actua como reclutador senior y experto en ATS. Con el CV base, el puesto objetivo y las skills " +
+    "requeridas, ENTREGA UN CV COMPLETO DE ALTA CALIDAD en ingles, listo para aplicar, optimizado para ATS y " +
+    "con estandares actuales.\n" +
+    "ESTRUCTURA (en este orden, una sola columna, sin tablas ni iconos para que el ATS lo lea):\n" +
+    "1) Nombre + headline (puesto objetivo)\n2) Contacto (usa placeholders [Email] [Telefono] [LinkedIn] [Ciudad] si faltan)\n" +
+    "3) Professional Summary (3-4 lineas, orientado a resultados)\n4) Core Skills (agrupadas; incluye NATURALMENTE las skills requeridas)\n" +
+    "5) Professional Experience (bullets con verbos de accion y metricas; usa [X%] o [N] donde falten datos)\n" +
+    "6) Education\n7) Certifications / Extras si aplica\n" +
+    "REGLAS ATS: integra keywords del puesto y de las skills de forma natural; fechas claras; sin graficos ni caracteres raros.\n" +
+    "Al final, en 'Notas:' (espanol): (a) que keywords agregaste, (b) 3 cosas que el candidato debe completar, (c) puntaje ATS estimado 0-100.\n\n" +
+    "Puesto objetivo:\n" + v.jobTitle + "\n\nSkills requeridas:\n" + (v.skills || "(no especificadas)") + "\n\nCV base del candidato:\n" + v.cv;
+}
+
 export async function renderCvCoach(container, user) {
   const profile = await getStudentProfile(user.id).catch(() => null);
   const level = profile?.cefr_level || "B2";
@@ -154,7 +184,103 @@ export async function renderCvCoach(container, user) {
             "Bymax IA no esta activo ahora mismo. Intenta mas tarde.")
         : null,
       el("p", { class: "text-sm text-slate-400" }, "Elige que quieres trabajar:"),
+      featuredProCard(),
+      el("p", { class: "text-sm text-slate-400 pt-1" }, "O trabaja una parte especifica:"),
       el("div", { class: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, ...cards)));
+    focusMainHeading(container);
+  }
+
+  /** Tarjeta grande destacada -> flujo "CV de alta calidad". */
+  function featuredProCard() {
+    return el("button", { type: "button",
+      class: "w-full text-left relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br from-emerald-500 via-teal-600 to-teal-800 " +
+        "shadow-xl hover:-translate-y-0.5 transition focus:outline focus:outline-2 focus:outline-white/70",
+      onclick: showPro },
+      el("span", { class: "absolute top-3 right-3 text-[10px] font-black tracking-widest bg-black/25 text-white px-2 py-1 rounded-full" }, "RECOMENDADO"),
+      el("div", { class: "flex items-start gap-3" },
+        el("span", { class: "w-12 h-12 shrink-0 grid place-items-center rounded-2xl bg-white/20 text-white", html: ICONS.briefcase || ICONS.book }),
+        el("div", { class: "min-w-0" },
+          el("p", { class: "text-lg font-black text-white" }, "CV de alta calidad (todo en uno)"),
+          el("p", { class: "text-white/90 text-sm mt-0.5" },
+            "Sube tu CV, di el puesto y las skills requeridas. Bymax, como reclutador experto, te devuelve un CV completo optimizado para ATS."))));
+  }
+
+  // ---- Vista Pro: subir CV + puesto + skills -> CV de alta calidad ---------
+  function showPro() {
+    const cvInput = el("textarea", {
+      class: "w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2.5 text-slate-100 resize-y " +
+        "focus:outline focus:outline-2 focus:outline-indigo-500",
+      rows: "8", maxlength: "12000", placeholder: "Se llena solo al subir tu archivo, o pega aqui el texto de tu CV..." });
+    const jobInput = el("input", { type: "text", maxlength: "160", autocomplete: "off",
+      class: "w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2.5 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
+      placeholder: "Ej. Data Analyst en Fintech" });
+    const skillsInput = el("textarea", {
+      class: "w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2.5 text-slate-100 resize-y focus:outline focus:outline-2 focus:outline-indigo-500",
+      rows: "3", maxlength: "600", placeholder: "Ej. SQL, Python, Power BI, storytelling con datos, ingles B2..." });
+
+    const fileStatus = el("span", { class: "text-xs text-slate-400", role: "status" }, "");
+    const fileInput = el("input", { type: "file", accept: ".pdf,.docx,.txt,.md", class: "sr-only",
+      onchange: async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        fileStatus.textContent = "Leyendo " + file.name + "...";
+        try {
+          const text = await extractTextFromFile(file);
+          cvInput.value = text;
+          fileStatus.textContent = "Listo: " + file.name + " (" + text.length + " caracteres). Revisa el texto abajo.";
+        } catch (err) {
+          fileStatus.textContent = "";
+          status.textContent = err.message || "No pude leer el archivo.";
+        }
+      } });
+    const uploadLabel = el("label", {
+      class: "inline-flex items-center gap-2 cursor-pointer border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 " +
+        "px-4 py-2.5 rounded-xl hover:bg-indigo-500/20 focus-within:outline focus-within:outline-2 focus-within:outline-indigo-400" },
+      el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.book }),
+      el("span", {}, "Subir CV (PDF, DOCX o TXT)"), fileInput);
+
+    const status = el("p", { class: "mt-2 text-xs text-slate-500 min-h-[1rem]", role: "status" }, "");
+    const out = el("div", { class: "mt-3" });
+
+    const genBtn = el("button", { type: "button",
+      class: "mt-3 w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold px-5 py-3 rounded-xl " +
+        "hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-400 disabled:opacity-50",
+      onclick: run }, "Crear mi CV de alta calidad");
+
+    async function run() {
+      const v = { cv: cvInput.value.trim(), jobTitle: jobInput.value.trim(), skills: skillsInput.value.trim() };
+      if (!v.cv) { status.textContent = "Sube tu CV o pega su texto primero."; return; }
+      if (!v.jobTitle) { status.textContent = "Dime el puesto al que aplicas."; return; }
+      if (!bymaxAiEnabled) { status.textContent = "Bymax IA no esta activo ahora."; return; }
+
+      genBtn.disabled = true;
+      status.textContent = "Bymax esta creando tu CV (esto puede tardar unos segundos)...";
+      out.replaceChildren();
+      announce("Generando CV");
+
+      const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question: buildPro(v) });
+      genBtn.disabled = false;
+      if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }
+      status.textContent = "Listo. Revisa, ajusta los placeholders y copialo.";
+      out.replaceChildren(buildResultBlock(stripMd(answer)));
+    }
+
+    const backBtn = el("button", { type: "button",
+      class: "mb-1 inline-flex items-center gap-1.5 font-semibold text-fuchsia-300 hover:text-fuchsia-200 focus:outline focus:outline-2 focus:outline-indigo-400 rounded",
+      onclick: showList },
+      el("span", { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><path d="M15 18l-6-6 6-6"/></svg>' }),
+      "Volver");
+
+    mount(container, el("div", { class: "max-w-2xl mx-auto space-y-4" },
+      backBtn,
+      screenHeader({ icon: ICONS.briefcase || ICONS.book, grad: "from-emerald-500 to-teal-600",
+        title: "CV de alta calidad", subtitle: "Subir CV + puesto + skills -> CV listo para ATS" }),
+      privacyNote(),
+      el("div", { class: "flex flex-wrap items-center gap-3" }, uploadLabel, fileStatus),
+      el("label", { class: "block" }, el("span", { class: "text-sm font-semibold text-slate-300" }, "Tu CV (texto)"), el("div", { class: "mt-1" }, cvInput)),
+      el("label", { class: "block" }, el("span", { class: "text-sm font-semibold text-slate-300" }, "Puesto al que aplicas"), el("div", { class: "mt-1" }, jobInput)),
+      el("label", { class: "block" }, el("span", { class: "text-sm font-semibold text-slate-300" }, "Skills requeridas por la vacante"), el("div", { class: "mt-1" }, skillsInput)),
+      genBtn, status, out));
     focusMainHeading(container);
   }
 
@@ -205,20 +331,7 @@ export async function renderCvCoach(container, user) {
 
       if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }
       status.textContent = "Listo. Revisa y ajusta a tu gusto.";
-      renderResult(stripMd(answer));
-    }
-
-    function renderResult(text) {
-      const pre = el("div", { class: "rounded-2xl bg-slate-950/60 border border-slate-800 p-4 whitespace-pre-wrap text-slate-100 text-sm leading-relaxed" }, text);
-      const copyBtn = el("button", { type: "button",
-        class: "inline-flex items-center gap-2 border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 px-3 py-2 rounded-xl hover:bg-indigo-500/20",
-        onclick: async () => {
-          try { await navigator.clipboard.writeText(text); copyBtn.lastChild.textContent = "Copiado!"; setTimeout(() => (copyBtn.lastChild.textContent = "Copiar"), 1500); }
-          catch { copyBtn.lastChild.textContent = "No se pudo"; }
-        } },
-        el("span", { class: "w-5 h-5", html: ICONS.check }), el("span", {}, "Copiar"));
-      out.replaceChildren(el("div", { class: "space-y-2" },
-        el("div", { class: "flex justify-end" }, copyBtn), pre));
+      out.replaceChildren(buildResultBlock(stripMd(answer)));
     }
 
     const backBtn = el("button", { type: "button",
