@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { path: "/curso", label: "Curso", icon: ICONS.book },
   { path: "/hablar", label: "Speaking", icon: ICONS.mic },
   { path: "/trabajo", label: "Trabajo", icon: ICONS.briefcase },
-  { path: "/ajustes", label: "Ajustes", icon: ICONS.settings },
+  { path: "/mas", label: "Mas", icon: ICONS.grid },
 ];
 
 /** Muestra u oculta la barra inferior (segun haya sesion). */
@@ -27,6 +27,7 @@ export function setNavVisible(visible) {
 const NAV_ALIASES = {
   "/trabajo": ["/coach", "/cv"],
   "/curso": ["/bonus", "/unidad", "/leccion"],
+  "/mas": ["/plan", "/profesores", "/calendario", "/chat", "/ajustes", "/perfil"],
 };
 
 /** Renderiza la barra inferior marcando la ruta activa. */

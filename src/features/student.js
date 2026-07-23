@@ -52,8 +52,7 @@ export async function renderStudent(container, user) {
       el("p", { class: "text-slate-400" }, "Que quieres hacer hoy?")),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
     continueBar(profile, units, completed, due),
-    hubGrid(profile, pct),
-    secondaryLinks()));
+    hubGrid(profile, pct)));
   focusMainHeading(container);
 }
 
@@ -144,19 +143,8 @@ function hubGrid(profile, pct) {
     }));
 }
 
-// Accesos secundarios (para no dejar huerfanas estas secciones).
-function secondaryLinks() {
-  const link = (href, icon, label) =>
-    el("a", { href, class: "flex flex-col items-center gap-1 py-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/5 " +
-      "focus:outline focus:outline-2 focus:outline-indigo-400" },
-      el("span", { class: "w-6 h-6", html: icon }),
-      el("span", { class: "text-[11px] font-medium" }, label));
-  return el("section", { class: PANEL + " p-2 grid grid-cols-4 gap-1" },
-    link("#/plan", ICONS.map, "Mi Plan"),
-    link("#/profesores", ICONS.teachers, "Profesores"),
-    link("#/calendario", ICONS.calendar, "Agenda"),
-    link("#/chat", ICONS.chat, "Chat"));
-}
+// Accesos secundarios (Plan, Profesores, Agenda, Chat) ahora viven en el menu
+// inferior bajo "Mas" (ver features/more-screen.js) para NO tener dos menus.
 
 // --------------------------------------------------------------------------
 // Helpers
