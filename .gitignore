@@ -15,6 +15,7 @@ node_modules/
 
 # Restos del prototipo previo (Python) por si quedan
 .venv/
+.venv-tools/
 venv/
 __pycache__/
 *.py[cod]
