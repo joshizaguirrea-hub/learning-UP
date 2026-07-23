@@ -65,33 +65,34 @@ function profileCard(name, profile, xp, vocab, lessons) {
   const { into } = xpToNext(xp);
   const accent = getAccent();
 
-  return el("a", { href: "#/perfil", class: PANEL + " block p-5 overflow-hidden group", "aria-label": "Ver mi perfil" },
-    el("div", { class: "flex items-center gap-5 flex-wrap" },
+  return el("a", { href: "#/perfil", class: PANEL + " block p-3 sm:p-4 overflow-hidden group", "aria-label": "Ver mi perfil" },
+    el("div", { class: "flex items-center gap-3 sm:gap-4" },
       // Avatar con anillo de XP (conic via style).
-      el("div", { class: "relative w-20 h-20 rounded-full grid place-items-center shrink-0",
+      el("div", { class: "relative w-14 h-14 rounded-full grid place-items-center shrink-0",
         style: `background:conic-gradient(#a78bfa ${into * 3.6}deg, rgba(255,255,255,.08) 0)` },
-        el("div", { class: "w-[68px] h-[68px] rounded-full bg-slate-900 grid place-items-center" },
-          el("div", { class: `w-14 h-14 rounded-full bg-gradient-to-br ${accent.grad} grid place-items-center text-xl font-black text-white` }, initials || "?"))),
-      el("div", { class: "flex-1 min-w-[12rem]" },
+        el("div", { class: "w-[48px] h-[48px] rounded-full bg-slate-900 grid place-items-center" },
+          el("div", { class: `w-10 h-10 rounded-full bg-gradient-to-br ${accent.grad} grid place-items-center text-base font-black text-white` }, initials || "?"))),
+      el("div", { class: "flex-1 min-w-0" },
         el("div", { class: "flex items-center gap-2 flex-wrap" },
-          el("p", { class: "text-xl font-extrabold group-hover:text-indigo-300" }, name),
-          el("span", { class: "text-xs font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30" },
+          el("p", { class: "text-base font-extrabold group-hover:text-indigo-300 truncate" }, name),
+          el("span", { class: "text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30" },
             `${profile.cefr_level} - ${info.label || ""}`)),
-        el("div", { class: "mt-2 flex items-center gap-2" },
-          el("div", { class: "flex-1 h-2.5 rounded-full bg-white/10 overflow-hidden", role: "progressbar",
+        el("div", { class: "mt-1.5 flex items-center gap-2" },
+          el("div", { class: "flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden", role: "progressbar",
             "aria-valuenow": String(into), "aria-valuemin": "0", "aria-valuemax": "100" },
             el("div", { class: "h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400", style: `width:${into}%` })),
-          el("span", { class: "text-xs text-slate-300 font-bold whitespace-nowrap" }, `${into}/100 XP`)),
-        el("div", { class: "mt-3 flex gap-5" },
-          miniStat(profile.streak || 0, "racha", "text-amber-300"),
-          miniStat(vocab, "palabras", "text-sky-300"),
-          miniStat(lessons, "lecciones", "text-emerald-300")))));
+          el("span", { class: "text-[10px] text-slate-300 font-bold whitespace-nowrap" }, `${into}/100 XP`))),
+      // Stats a la derecha (compactos, en columna estrecha).
+      el("div", { class: "flex gap-3 sm:gap-4 shrink-0" },
+        miniStat(profile.streak || 0, "racha", "text-amber-300"),
+        miniStat(vocab, "palabras", "text-sky-300"),
+        miniStat(lessons, "lecciones", "text-emerald-300"))));
 }
 
 function miniStat(value, label, color) {
-  return el("div", {},
-    el("p", { class: `text-lg font-black leading-none ${color}` }, String(value)),
-    el("p", { class: "text-[10px] text-slate-400" }, label));
+  return el("div", { class: "text-center" },
+    el("p", { class: `text-base font-black leading-none ${color}` }, String(value)),
+    el("p", { class: "text-[9px] text-slate-400" }, label));
 }
 
 // --------------------------------------------------------------------------
