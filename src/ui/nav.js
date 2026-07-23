@@ -11,10 +11,9 @@ import { LANGUAGES } from "../data/languages.js";
 
 const NAV_ITEMS = [
   { path: "/student", label: "Inicio", icon: ICONS.home },
-  { path: "/plan", label: "Mi Plan", icon: ICONS.map },
-  { path: "/profesores", label: "Profesores", icon: ICONS.teachers },
-  { path: "/calendario", label: "Agenda", icon: ICONS.calendar },
-  { path: "/chat", label: "Chat", icon: ICONS.chat },
+  { path: "/curso", label: "Curso", icon: ICONS.book },
+  { path: "/hablar", label: "Speaking", icon: ICONS.mic },
+  { path: "/trabajo", label: "Trabajo", icon: ICONS.briefcase },
   { path: "/ajustes", label: "Ajustes", icon: ICONS.settings },
 ];
 
@@ -24,6 +23,12 @@ export function setNavVisible(visible) {
   if (nav) nav.classList.toggle("hidden", !visible);
 }
 
+// Rutas "hijas" que resaltan una seccion del hub aunque su path difiera.
+const NAV_ALIASES = {
+  "/trabajo": ["/coach", "/cv"],
+  "/curso": ["/bonus", "/unidad", "/leccion"],
+};
+
 /** Renderiza la barra inferior marcando la ruta activa. */
 export function renderBottomNav() {
   const nav = qs("#bottom-nav");
@@ -31,7 +36,9 @@ export function renderBottomNav() {
   const here = currentPath();
 
   const items = NAV_ITEMS.map((it) => {
-    const active = here === it.path || here.startsWith(it.path + "/");
+    const aliases = NAV_ALIASES[it.path] || [];
+    const active = here === it.path || here.startsWith(it.path + "/") ||
+      aliases.some((a) => here === a || here.startsWith(a + "/"));
     return el("button", {
       class: "flex-1 flex flex-col items-center gap-0.5 py-2 min-w-0 " +
         (active ? "text-indigo-400" : "text-slate-400 hover:text-slate-200") +
