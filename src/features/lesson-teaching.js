@@ -137,7 +137,13 @@ function parseDialogTurns(text) {
 /** Un turno -> item de voz con nombre (pausa tras el nombre) y voz por genero. */
 function turnItem(t, cast) {
   const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
-  const text = who ? who + ". " + t.line : t.line; // el punto crea la pausa
+  // El nombre se une a la frase con COMA (pausa breve natural), NO con punto:
+  // asi respeta el corte del ":" en pantalla pero la voz continua sin cortar la
+  // frase ("Maria, Of course..."). Ademas se le quita el acento al nombre hablado
+  // para que no dispare la voz espanola (anti-Spanglish): el turno entero se lee
+  // en UNA sola voz (la inglesa del personaje), sin interrupcion ni cambio de voz.
+  const spokenWho = who ? who.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+  const text = spokenWho ? spokenWho + ", " + t.line : t.line;
   const v = (cast.voices && t.speaker && cast.voices[t.speaker]) || {};
   return {
     text, lang: "en-US",
