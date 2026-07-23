@@ -12,6 +12,7 @@ import { renderStudent } from "./features/student.js";
 import { renderCourse } from "./features/course-screen.js";
 import { renderSpeaking } from "./features/speaking-screen.js";
 import { renderJob, renderCvCoach } from "./features/job-screen.js";
+import { renderMore } from "./features/more-screen.js";
 import { renderTeacher } from "./features/teacher.js";
 import { renderPlacement } from "./features/placement.js";
 import { renderUnit } from "./features/unit.js";
@@ -84,6 +85,7 @@ function setupRoutes() {
   on("/hablar", () => requireAuth((u) => renderSpeaking(app, u)));
   on("/trabajo", () => requireAuth(() => renderJob(app)));
   on("/cv", () => requireAuth(() => renderCvCoach(app)));
+  on("/mas", () => requireAuth(() => renderMore(app)));
   on("/teacher", () => requireAuth((u) => renderTeacher(app, u)));
   on("/examen", () => requireAuth((u) => renderPlacement(app, u)));
   on("/unidad/:id", (params) => requireAuth((u) => renderUnit(app, params, u)));

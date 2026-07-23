@@ -31,4 +31,6 @@ export const ICONS = {
   micOff: wrap('<path d="M9 9v-3a3 3 0 015.5-1.7"/><path d="M15 11.5V6"/><path d="M17 16.95A7 7 0 015 11"/><path d="M12 18v3"/><path d="M3 3l18 18"/>'),
   briefcase: wrap('<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M3 12h18"/>'),
   target: wrap('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>'),
+  grid: wrap('<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>'),
+  user: wrap('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>'),
 };
