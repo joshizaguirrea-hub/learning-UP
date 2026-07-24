@@ -12,9 +12,11 @@
  */
 import { el } from "./dom.js";
 
-// SVG del personaje. Colores de la marca Bymax (indigo/violeta + ojos cian).
-// La boca lleva class "bymax-mouth" para animarse al hablar (ver app.css).
-const MASCOT_SVG = `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-hidden="true">
+// SVG del personaje: Bymax con CUERPO DE PERRITO (robo-cachorro sentado).
+// Colores de la marca Bymax (indigo/violeta + ojos cian). Orejas floppy, cuatro
+// paticas y colita (class "bymax-tail" para menearse). La boca lleva class
+// "bymax-mouth" para animarse al hablar (ver app.css).
+const MASCOT_SVG = `<svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-hidden="true">
   <defs>
     <linearGradient id="byBody" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6d28d9"/>
@@ -28,56 +30,60 @@ const MASCOT_SVG = `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg
   </defs>
 
   <!-- sombra flotante suave -->
-  <ellipse cx="60" cy="142" rx="26" ry="5" fill="#0f172a" opacity="0.18"/>
+  <ellipse cx="70" cy="143" rx="42" ry="6" fill="#0f172a" opacity="0.18"/>
 
-  <!-- piernitas -->
-  <rect x="46" y="120" width="11" height="16" rx="5" fill="#6d28d9"/>
-  <rect x="63" y="120" width="11" height="16" rx="5" fill="#6d28d9"/>
-  <ellipse cx="51.5" cy="137" rx="8" ry="4" fill="#4c1d95"/>
-  <ellipse cx="68.5" cy="137" rx="8" ry="4" fill="#4c1d95"/>
+  <!-- colita meneable (se anima con .bymax-tail) -->
+  <path class="bymax-tail" d="M102 106 Q128 100 124 76 Q113 90 98 94 Z" fill="#6d28d9"/>
 
-  <!-- bracitos -->
-  <rect x="18" y="78" width="12" height="30" rx="6" fill="#818cf8"/>
-  <rect x="90" y="78" width="12" height="30" rx="6" fill="#818cf8"/>
-  <circle cx="24" cy="110" r="7" fill="#a5b4fc"/>
-  <circle cx="96" cy="110" r="7" fill="#a5b4fc"/>
+  <!-- patas traseras (sentado) -->
+  <ellipse cx="41" cy="120" rx="16" ry="18" fill="#6d28d9"/>
+  <ellipse cx="99" cy="120" rx="16" ry="18" fill="#6d28d9"/>
 
-  <!-- cuerpo -->
-  <rect x="30" y="74" width="60" height="50" rx="18" fill="url(#byBody)"/>
-  <rect x="30" y="74" width="60" height="50" rx="18" fill="none" stroke="#312e81" stroke-width="1.5" opacity="0.5"/>
+  <!-- cuerpo sentado -->
+  <ellipse cx="70" cy="106" rx="33" ry="35" fill="url(#byBody)"/>
+  <ellipse cx="70" cy="106" rx="33" ry="35" fill="none" stroke="#312e81" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- patitas delanteras -->
+  <rect x="53" y="116" width="14" height="27" rx="7" fill="#818cf8"/>
+  <rect x="73" y="116" width="14" height="27" rx="7" fill="#818cf8"/>
+  <ellipse cx="60" cy="142" rx="9" ry="4.5" fill="#4c1d95"/>
+  <ellipse cx="80" cy="142" rx="9" ry="4.5" fill="#4c1d95"/>
+  <circle cx="57" cy="142" r="1.3" fill="#c7d2fe"/><circle cx="60" cy="143" r="1.3" fill="#c7d2fe"/><circle cx="63" cy="142" r="1.3" fill="#c7d2fe"/>
+  <circle cx="77" cy="142" r="1.3" fill="#c7d2fe"/><circle cx="80" cy="143" r="1.3" fill="#c7d2fe"/><circle cx="83" cy="142" r="1.3" fill="#c7d2fe"/>
+
   <!-- panel/corazon del pecho -->
-  <circle cx="60" cy="96" r="9" fill="#0f172a"/>
-  <circle cx="60" cy="96" r="5" fill="#34d399"/>
-  <circle cx="46" cy="112" r="2" fill="#c7d2fe"/><circle cx="54" cy="112" r="2" fill="#c7d2fe"/>
-  <circle cx="62" cy="112" r="2" fill="#c7d2fe"/><circle cx="70" cy="112" r="2" fill="#c7d2fe"/>
+  <circle cx="70" cy="102" r="9" fill="#0f172a"/>
+  <circle cx="70" cy="102" r="5" fill="#34d399"/>
 
   <!-- antena -->
-  <line x1="60" y1="30" x2="60" y2="15" stroke="#a5b4fc" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="60" cy="11" r="5" fill="#f472b6"/>
-  <circle cx="60" cy="11" r="2" fill="#fce7f3"/>
+  <line x1="70" y1="22" x2="70" y2="8" stroke="#a5b4fc" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="70" cy="6" r="4.5" fill="#f472b6"/>
+  <circle cx="70" cy="6" r="1.8" fill="#fce7f3"/>
 
   <!-- cabeza -->
-  <rect x="26" y="28" width="68" height="50" rx="20" fill="url(#byHead)"/>
-  <rect x="26" y="28" width="68" height="50" rx="20" fill="none" stroke="#3730a3" stroke-width="1.5" opacity="0.5"/>
-  <!-- orejitas -->
-  <rect x="20" y="44" width="7" height="16" rx="3.5" fill="#6366f1"/>
-  <rect x="93" y="44" width="7" height="16" rx="3.5" fill="#6366f1"/>
+  <rect x="40" y="20" width="60" height="52" rx="22" fill="url(#byHead)"/>
+  <rect x="40" y="20" width="60" height="52" rx="22" fill="none" stroke="#3730a3" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- orejas floppy de perrito -->
+  <path d="M47 24 Q29 26 27 52 Q30 62 41 58 Q46 43 51 31 Z" fill="#6366f1"/>
+  <path d="M93 24 Q111 26 113 52 Q110 62 99 58 Q94 43 89 31 Z" fill="#6366f1"/>
 
   <!-- pantalla/cara -->
-  <rect x="33" y="36" width="54" height="34" rx="14" fill="#0f172a"/>
+  <rect x="47" y="30" width="46" height="34" rx="14" fill="#0f172a"/>
   <!-- ojos -->
-  <circle cx="49" cy="52" r="6" fill="url(#byEye)"/>
-  <circle cx="71" cy="52" r="6" fill="url(#byEye)"/>
-  <circle cx="47" cy="50" r="1.8" fill="#ffffff"/>
-  <circle cx="69" cy="50" r="1.8" fill="#ffffff"/>
+  <circle cx="60" cy="45" r="6" fill="url(#byEye)"/>
+  <circle cx="80" cy="45" r="6" fill="url(#byEye)"/>
+  <circle cx="58" cy="43" r="1.8" fill="#ffffff"/>
+  <circle cx="78" cy="43" r="1.8" fill="#ffffff"/>
   <!-- cachetes -->
-  <ellipse cx="40" cy="61" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
-  <ellipse cx="80" cy="61" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
-  <!-- boca (se anima al hablar) -->
-  <rect class="bymax-mouth" x="52" y="61" width="16" height="4" rx="2" fill="#67e8f9"/>
+  <ellipse cx="51" cy="55" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
+  <ellipse cx="89" cy="55" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
+  <!-- naricita + boca (se anima al hablar) -->
+  <ellipse cx="70" cy="52" rx="3" ry="2.2" fill="#f472b6"/>
+  <rect class="bymax-mouth" x="63" y="57" width="14" height="4" rx="2" fill="#67e8f9"/>
 </svg>`;
 
-const SIZES = { sm: "w-14", md: "w-20", lg: "w-28", xl: "w-36" };
+const SIZES = { sm: "w-16", md: "w-24", lg: "w-32", xl: "w-40" };
 
 /**
  * Nodo de la mascota de Bymax.
