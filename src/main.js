@@ -136,11 +136,14 @@ function init() {
   applyTextSize(); // aplica el tamano de texto guardado (accesibilidad)
   applyContrast(); // aplica el modo alto contraste guardado
   // Si el usuario dejo 'Sistema', reacciona a los cambios del SO en vivo.
-  if (window.matchMedia) {
-    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
-      if (getTheme() === "system") applyTheme();
-    });
-  }
+  // Blindado: en Safari/iOS viejos matchMedia no tiene addEventListener; nunca
+  // debe tumbar el arranque de la app.
+  try {
+    const mq = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)");
+    const onChange = () => { if (getTheme() === "system") applyTheme(); };
+    if (mq && mq.addEventListener) mq.addEventListener("change", onChange);
+    else if (mq && mq.addListener) mq.addListener(onChange); // fallback legacy
+  } catch (e) { /* no critico */ }
   mountDictionary(); // diccionario flotante disponible en toda la app
   if (!isConfigured) { renderConfigWarning(); return; }
   setupRoutes();
