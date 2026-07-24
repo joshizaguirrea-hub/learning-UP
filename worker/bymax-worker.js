@@ -385,6 +385,39 @@ async function googleTts(text) {
   return abToBase64(all.buffer);
 }
 
+// VOZ MULTILINGUE (Camino 3, estilo Lerna): UNA sola voz que lee texto MIXTO
+// espanol+ingles en UNA peticion y cambia de idioma sola (sin pegar audios ->
+// sin micro-pausas). Usa Azure Speech (voces *MultilingualNeural). Requiere
+// secrets AZURE_TTS_KEY + AZURE_TTS_REGION. Devuelve base64 mp3.
+const AZURE_VOICE = "en-US-AvaMultilingualNeural"; // habla 40+ idiomas, code-switching natural
+function xmlEscape(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+async function azureTts(text, env, rate) {
+  const key = env.AZURE_TTS_KEY;
+  const region = env.AZURE_TTS_REGION;
+  if (!key || !region) throw new Error("sin AZURE_TTS_KEY/REGION");
+  const url = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+  const useRate = rate >= 0.5 && rate <= 1.5;
+  const prosody = useRate
+    ? `<prosody rate="${Math.round((rate - 1) * 100)}%">${xmlEscape(text)}</prosody>`
+    : xmlEscape(text);
+  const ssml = `<speak version='1.0' xml:lang='en-US'>` +
+    `<voice name='${AZURE_VOICE}'>${prosody}</voice></speak>`;
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Ocp-Apim-Subscription-Key": key,
+      "Content-Type": "application/ssml+xml",
+      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
+      "User-Agent": "learning-up",
+    },
+    body: ssml,
+  });
+  if (!r.ok) throw new Error("azure " + r.status + " " + (await r.text().catch(() => "")).slice(0, 120));
+  return abToBase64(await r.arrayBuffer());
+}
+
 // ---- VOZ: texto -> audio -------------------------------------------------
 async function handleTts(request, env, origin) {
   let body;
@@ -433,6 +466,16 @@ async function handleTts(request, env, origin) {
   };
 
   try {
+    // VOZ MULTILINGUE (Azure): una sola voz para texto mixto es+en. Si no hay
+    // key configurada, avisamos (501) y el cliente cae a mono (una voz por idioma).
+    if (lang === "multi") {
+      if (!env.AZURE_TTS_KEY || !env.AZURE_TTS_REGION) {
+        return json({ error: "Voz multilingue no configurada (AZURE_TTS_KEY/REGION)." }, 501, origin);
+      }
+      const audio = await azureTts(text, env, rate);
+      if (!audio) return json({ error: "Azure sin audio." }, 502, origin);
+      return store({ audio, engine: "azure-multi", voice: AZURE_VOICE });
+    }
     if (isEn) {
       // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
       //    defecto TODO el ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
@@ -500,6 +543,29 @@ async function handleChat(request, env, origin) {
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
       `\nNIVEL del alumno (MCER): ${level || "B1"}`;
+  }
+
+  // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
+  //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
+  //    correccion o ayuda en espanol va en lineas "TIP:" que el alumno LEE (no se
+  //    hablan) -> el audio nunca mezcla idiomas = fluidez total.
+  //  - immersive=false (voz multilingue Azure activa): puede hablar en espanol e
+  //    ingles con naturalidad; una sola voz bilingue lee todo.
+  if (isClass || isConversation) {
+    const immersive = body.immersive !== false; // default: inmersion (sin Azure)
+    systemText += immersive
+      ? `\n\n[MODO INMERSION - VOZ]\n` +
+        `- HABLA (lo que se lee en voz alta) SIEMPRE en INGLES, a nivel del alumno.\n` +
+        `- Toda explicacion, traduccion, correccion o ayuda en ESPANOL va en lineas\n` +
+        `  aparte que empiezan EXACTAMENTE con "TIP:" (el alumno las LEE, no se hablan).\n` +
+        `- Ejemplo de formato:\n` +
+        `  Let's practice greetings. How do you say hello in the morning?\n` +
+        `  TIP: Recuerda que "Good morning" se usa antes del mediodia.\n` +
+        `- NUNCA metas espanol fuera de una linea "TIP:". El cuerpo hablado es 100% ingles.`
+      : `\n\n[MODO VOZ MULTILINGUE]\n` +
+        `- Puedes explicar en espanol y hacer practicar en ingles con naturalidad.\n` +
+        `- Si corriges, puedes usar una linea aparte que empiece con "TIP:".\n` +
+        `- Sigue la regla anti-Spanglish: no mezcles ambos idiomas dentro de una misma oracion.`;
   }
 
   // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`

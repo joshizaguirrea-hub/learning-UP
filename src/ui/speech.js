@@ -11,6 +11,7 @@ import { ICONS } from "./icons.js";
 import { fixSpanishAccents } from "./es-accents.js";
 import { toBilingualItems } from "./bilingual.js";
 import { cloudSpeak, cancelCloud, cloudTtsEnabled, prefetchCloud } from "./cloud-tts.js";
+import { multilingualEnabled } from "../config/bymax.js";
 
 /** True si el navegador soporta sintesis de voz. */
 export function isSpeechSupported() {
@@ -137,6 +138,74 @@ export function speakBilingual(text, onDone) {
   }
 
   return speakSequence(items, null, onDone);
+}
+
+// Fallback del navegador para UNA frase en UN idioma (sin re-segmentar).
+function browserSayOne(text, base, opts = {}, done) {
+  if (!isSpeechSupported()) { setTimeout(() => done?.(), 200); return; }
+  const isEs = base === "es";
+  // Candado anti-Spanglish: el navegador NUNCA lee espanol (solo nube). Si es
+  // espanol y no hay nube, mejor silencio que voz gringa.
+  if (isEs) { setTimeout(() => done?.(), 80); return; }
+  const v = pickVoice("en-US");
+  const u = new SpeechSynthesisUtterance(String(text));
+  u.lang = v?.lang || "en-US";
+  u.rate = opts.rate ?? 0.95;
+  u.pitch = opts.pitch ?? 1.05;
+  if (v) u.voice = v;
+  u.onend = () => done?.();
+  window.speechSynthesis.speak(u);
+}
+
+/**
+ * INMERSION (Camino 1): habla TODO el texto en UNA sola voz y UN idioma, en una
+ * sola peticion -> cero pegado de audios, fluidez total (estilo Lerna). Usar
+ * cuando la frase ya viene en un unico idioma (no re-segmenta por idioma).
+ * @param {string} text
+ * @param {string} [lang] "en" | "es" (o "en-US" | "es-MX")
+ * @param {object} [opts] { rate, pitch }
+ * @returns {function} cancel()
+ */
+export function speakMono(text, lang = "en", opts = {}) {
+  if (!text) return () => {};
+  cancelCloud();
+  if (isSpeechSupported()) window.speechSynthesis.cancel();
+  const isEs = String(lang).toLowerCase().startsWith("es");
+  const base = isEs ? "es" : "en";
+  if (cloudTtsEnabled()) {
+    const t = isEs ? fixSpanishAccents(String(text)) : String(text);
+    const o = (!isEs && opts.rate == null) ? { ...opts, rate: 0.95 } : opts;
+    cloudSpeak(t, base, o).catch(() => { if (!isEs) browserSayOne(text, base, o); });
+    return () => cancelCloud();
+  }
+  browserSayOne(text, base, opts);
+  return () => { if (isSpeechSupported()) window.speechSynthesis.cancel(); };
+}
+
+/**
+ * VOZ INTELIGENTE para la Clase/Conversacion:
+ *  - Si la voz MULTILINGUE (Azure) esta activa Y el texto mezcla es+en -> lo
+ *    manda como lang "multi": UNA sola voz lee ambos idiomas en una peticion.
+ *  - Si NO (default): usa speakMono en el idioma dominante -> una voz fluida.
+ * En inmersion el texto ya viene en ingles puro, asi que igual suena de una voz.
+ * @param {string} text  @param {object} [opts]
+ * @returns {function} cancel()
+ */
+export function speakSmart(text, opts = {}) {
+  if (!text) return () => {};
+  const hasEs = ES_CHARS.test(text) || ES_WORDS.test(text);
+  const hasEn = EN_WORDS.test(text);
+  const mixed = hasEs && hasEn;
+  if (multilingualEnabled() && mixed) {
+    cancelCloud();
+    if (isSpeechSupported()) window.speechSynthesis.cancel();
+    // El Worker enruta "multi" a Azure (una sola voz bilingue). Si falla, cae a
+    // mono del idioma dominante (mejor una voz que dos pegadas).
+    cloudSpeak(fixSpanishAccents(String(text)), "multi", opts)
+      .catch(() => speakMono(text, detectLang(text) === "es" ? "es" : "en", opts));
+    return () => cancelCloud();
+  }
+  return speakMono(text, detectLang(text) === "es" ? "es" : "en", opts);
 }
 
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */
