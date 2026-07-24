@@ -29,11 +29,10 @@ const BONUS_LINKS = [
   { id: "idioms", label: "Idioms (modismos)" },
 ];
 
-// Orden de las 6 competencias alrededor de Bymax (grid 3x3, centro = Bymax):
-//   grammar   vocabulary  reading
-//   writing   [ BYMAX ]   listening
-//   speaking  ( examen )  ( bonos )
-const RING = ["grammar", "vocabulary", "reading", "writing", "__center__", "listening", "speaking"];
+// Orden de las 6 competencias ORBITANDO a Bymax, en el sentido del reloj desde
+// arriba. Se posicionan con trigonometria sobre un circulo (ver orbit()).
+const ORBIT = ["grammar", "vocabulary", "reading", "listening", "speaking", "writing"];
+const ORBIT_RADIUS = 39; // radio en % del contenedor cuadrado
 
 /**
  * Bloque de contenido de la unidad: hub central con Bymax + POPs.
@@ -48,22 +47,20 @@ export function unitContent(unit, progressMap, user) {
   // pregunta que quiere practicar) -> el alumno "habla con Bymax para elegir".
   const center = el("button", {
     type: "button",
-    class: "group relative flex flex-col items-center justify-center gap-2 rounded-3xl p-4 " +
-      "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 shadow-xl " +
-      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70",
+    class: "flex flex-col items-center justify-center gap-1 rounded-full " +
+      "w-32 h-32 sm:w-40 sm:h-40 p-2 ring-4 ring-violet-400/40 " +
+      "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 shadow-2xl " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/80",
     onclick: () => openClass(unit),
     "aria-label": "Hablar con " + name + " para elegir que practicar",
   },
-    el("div", { class: "scale-125 sm:scale-150 my-2" }, avatarNode(getRobot().avatar, "lg")),
-    el("p", { class: "font-extrabold text-white leading-tight text-center" }, "Habla con " + name),
-    el("p", { class: "text-[11px] text-white/85 text-center" }, "Elige que practicar hoy"));
+    avatarNode(getRobot().avatar, "lg"),
+    el("p", { class: "font-extrabold text-white leading-none text-xs sm:text-sm text-center" }, "Hablame"));
 
-  // POPs de las 6 competencias alrededor del centro.
-  const cells = RING.map((key) => key === "__center__"
-    ? center
-    : skillPop(key, unit, progressMap, user));
-
-  const ring = el("div", { class: "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4" }, ...cells);
+  // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
+  // calculada con seno/coseno). Contenedor cuadrado y responsivo.
+  const ring = orbit(center,
+    ORBIT.map((key) => skillPop(key, unit, progressMap, user)));
 
   // Fila de POPs pequenos: examen, cuento, conversacion, anti-errores.
   const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" },
@@ -92,6 +89,31 @@ export function unitContent(unit, progressMap, user) {
 }
 
 /**
+ * Coloca los POPs de competencia en un CIRCULO real alrededor del centro.
+ * Contenedor cuadrado y responsivo; cada POP se posiciona con seno/coseno.
+ * @param {HTMLElement} center - POP central (Bymax)
+ * @param {HTMLElement[]} pops - POPs de competencia (en orden horario desde arriba)
+ */
+function orbit(center, pops) {
+  const n = pops.length;
+  const placed = pops.map((pop, i) => {
+    // Arranca arriba (-90 grados) y avanza en sentido horario.
+    const ang = (-90 + (360 / n) * i) * (Math.PI / 180);
+    const x = 50 + ORBIT_RADIUS * Math.cos(ang);
+    const y = 50 + ORBIT_RADIUS * Math.sin(ang);
+    return el("div", {
+      class: "absolute -translate-x-1/2 -translate-y-1/2",
+      style: `left:${x.toFixed(2)}%;top:${y.toFixed(2)}%`,
+    }, pop);
+  });
+  const centerWrap = el("div", {
+    class: "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
+  }, center);
+  return el("div", { class: "relative mx-auto w-full max-w-[420px] aspect-square my-2" },
+    centerWrap, ...placed);
+}
+
+/**
  * POP de una competencia. Al tocarlo, Bymax da la clase de esa skill con el
  * contenido real de la unidad. Muestra un check si ya se completo su leccion.
  */
@@ -104,17 +126,17 @@ function skillPop(key, unit, progressMap, user) {
 
   return el("button", {
     type: "button",
-    class: `relative flex flex-col items-center justify-center gap-2 rounded-2xl p-4 min-h-[128px] ` +
+    class: `relative flex flex-col items-center justify-center gap-1 rounded-full ` +
+      `w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] p-2 text-center ` +
       `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
-      "hover:brightness-110 hover:-translate-y-0.5 transition-transform " +
-      "focus:outline focus:outline-2 focus:outline-white/70",
+      "hover:brightness-110 hover:scale-105 transition-transform " +
+      "focus:outline focus:outline-2 focus:outline-white/80",
     onclick: () => openSkillClass(unit, key),
     "aria-label": "Clase de " + meta.label + " con " + robotName(),
   },
-    done ? el("span", { class: "absolute top-2 right-2 w-5 h-5 text-white/90", html: ICONS.check }) : null,
-    el("span", { class: "w-11 h-11 rounded-xl bg-white/15 grid place-items-center", html: meta.icon }),
-    el("span", { class: "font-bold leading-tight" }, meta.label),
-    el("span", { class: "text-[11px] text-white/80 text-center leading-tight" }, meta.subtitle));
+    done ? el("span", { class: "absolute top-1 right-1 w-5 h-5 text-white bg-emerald-600/80 rounded-full p-0.5", html: ICONS.check }) : null,
+    el("span", { class: "w-8 h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
+    el("span", { class: "font-bold text-xs leading-tight" }, meta.label));
 }
 
 /** POP del examen de unidad (paso final para desbloquear la siguiente). */
