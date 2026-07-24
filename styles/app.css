@@ -16,22 +16,37 @@
 }
 html[data-theme="light"] {
   /* Escala espejada: 50<->950, 100<->900, ... El texto (100-300) se oscurece y
-   * las superficies (800-950) se aclaran. Contrastes verificados AA. */
+   * las superficies (800-950) se aclaran. Contrastes verificados AA.
+   * --s-900 = BLANCO puro: es el fondo de las tarjetas (bg-slate-900). Asi
+   * resaltan sobre el fondo de pagina (un gris muy claro) + sombra (abajo). */
   --s-50: 2 6 23;       --s-100: 15 23 42;    --s-200: 30 41 59;
   --s-300: 51 65 85;    --s-400: 71 85 105;   --s-500: 100 116 139;
   --s-600: 148 163 184; --s-700: 203 213 225; --s-800: 226 232 240;
-  --s-900: 241 245 249; --s-950: 248 250 252;
+  --s-900: 255 255 255; --s-950: 248 250 252;
 }
 
-/* Fondo de pagina en modo claro: aurora suave y luminosa. */
+/* Fondo de pagina en modo claro: gris muy claro (no blanco) para que las
+ * tarjetas blancas se distingan, con aurora suave encima. */
 html[data-theme="light"] body {
   background:
     radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.10), transparent 60%),
     radial-gradient(900px 560px at 112% 4%, rgba(13,148,136,0.10), transparent 55%),
     radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.08), transparent 55%),
-    #eef2f7;
+    #e7ecf3;
   background-attachment: fixed;
 }
+
+/* ELEVACION en claro: las tarjetas blancas (bg-slate-900) reciben sombra suave
+ * y un borde apenas mas marcado -> se separan del fondo. */
+html[data-theme="light"] [class~="bg-slate-900"] {
+  box-shadow: 0 1px 2px rgba(15,23,42,.06), 0 10px 24px -14px rgba(15,23,42,.18);
+}
+html[data-theme="light"] [class~="border-slate-800"] { border-color: #dbe3ec; }
+
+/* Header y barra inferior: sombra para despegarlos del contenido en claro. */
+html[data-theme="light"] body > header,
+html[data-theme="light"] header[role="banner"] { box-shadow: 0 2px 12px -6px rgba(15,23,42,.15); }
+html[data-theme="light"] #bottom-nav { box-shadow: 0 -4px 18px -8px rgba(15,23,42,.20); }
 
 /* Acentos CLAROS (indigo-300, emerald-300...) fallan contraste sobre fondo
  * claro -> los oscurecemos a su tono -700 (todos AA sobre superficies claras). */
