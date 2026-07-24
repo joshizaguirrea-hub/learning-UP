@@ -237,6 +237,7 @@ body.lesson-mode::after {
 @media (prefers-reduced-motion: reduce) {
   .step-enter, .robot-float, .robot-pop, .combo-badge,
   .bymax-alive, .bymax-happy, .bymax-sad, .bymax-think,
+  .bymax-alive.is-talking .bymax-mouth,
   .celebrate-ring, .celebrate-card, .celebrate-overlay,
   body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
   .card-sheen::after { display: none !important; }
@@ -327,6 +328,14 @@ body.lesson-mode #app > * { animation: none; }
   50%     { transform: rotate(3deg); }
 }
 .bymax-think { animation: bymaxThink 1.1s ease-in-out infinite !important; }
+
+/* Boca que se mueve cuando Bymax habla (mascota de cuerpo completo). */
+@keyframes bymaxTalk {
+  0%, 100% { transform: scaleY(0.35); }
+  50%      { transform: scaleY(1.15); }
+}
+.bymax-mouth { transform-box: fill-box; transform-origin: center; }
+.bymax-alive.is-talking .bymax-mouth { animation: bymaxTalk 0.24s ease-in-out infinite; }
 
 /* ---------------------------------------------------------------------------
  * FONDO AURORA GLOBAL (fuera de la leccion): sensacion premium y con vida.

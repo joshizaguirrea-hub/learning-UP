@@ -10,7 +10,9 @@
  * Sin dependencias raras: fetch nativo. La key vive en el Worker, no aqui.
  */
 import { el } from "../ui/dom.js";
-import { robotAvatar, robotName } from "../ui/robot.js";
+import { robotName } from "../ui/robot.js";
+import { bymaxMascot, setBymaxTalking } from "../ui/bymax-mascot.js";
+import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
@@ -41,9 +43,19 @@ export function openConversation(unit) {
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
   function stopAudio() {
     cancelCloud();
+    setBymaxTalking(false);
     if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
   }
   robotChirp();
+
+  // La mascota "habla" un rato proporcional al largo del texto (aprox. al TTS).
+  let talkTimer = null;
+  function talkFor(text) {
+    clearTimeout(talkTimer);
+    setBymaxTalking(true);
+    const ms = Math.min(12000, Math.max(1600, (text ? text.length : 0) * 55));
+    talkTimer = setTimeout(() => setBymaxTalking(false), ms);
+  }
 
   // MEMORIA: turnos previos { role:"user"|"model", text }. Cap 10 (5 intercambios).
   const history = [];
@@ -88,6 +100,9 @@ export function openConversation(unit) {
     // La IA suele hablar en ingles, pero la ayuda va en espanol con ejemplos en
     // ingles entre comillas -> speakBilingual da a cada frase su voz correcta.
     speakBilingual(text);
+    // La mascota reacciona: brinco corto de alegria + boca en movimiento.
+    bymaxEmote("happy");
+    talkFor(text);
   }
 
   /**
@@ -103,6 +118,7 @@ export function openConversation(unit) {
     const thinking = bubble(name + " is thinking...", "bot");
     log.append(thinking);
     log.scrollTop = log.scrollHeight;
+    bymaxEmote("think"); // la mascota se pone pensativa mientras carga
 
     // SOLO el fetch decide si hubo error de RED. Todo lo demas (pintar, hablar)
     // va aparte para NO disfrazar un bug de UI/voz como "sin internet".
@@ -126,9 +142,11 @@ export function openConversation(unit) {
     thinking.remove();
 
     if (netError) {
+      bymaxEmote("sad");
       push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
         "intenta en un momento. (Detalle en consola F12).", "bot");
     } else if (!data || !data.answer) {
+      bymaxEmote("sad");
       const why = [data && data.error, data && data.detail, data && data._status]
         .filter(Boolean).join(" | ");
       push(why ? ("\u26A0\uFE0F " + why) : "Ups, no pude responder ahora. Intenta de nuevo.", "bot");
@@ -228,9 +246,9 @@ export function openConversation(unit) {
     role: "dialog", "aria-label": "Conversacion con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      robotAvatar("md"),
+      bymaxMascot("md"),
       el("div", { class: "flex-1" },
-        el("p", { class: "font-bold text-emerald-300" }, "Conversation \u00b7 " + topic),
+        el("p", { class: "font-bold text-emerald-300" }, name + " \u00b7 " + topic),
         el("p", { class: "text-xs text-slate-400" }, "Practica hablando en ingles \u00b7 nivel " + level)),
       el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
 
