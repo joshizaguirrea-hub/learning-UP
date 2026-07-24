@@ -12,11 +12,11 @@ import { el } from "../ui/dom.js";
 import { robotName } from "../ui/robot.js";
 import { bymaxMascot, setBymaxTalking } from "../ui/bymax-mascot.js";
 import { bymaxEmote } from "../ui/avatars.js";
-import { speakBilingual, robotChirp } from "../ui/speech.js";
+import { speakSmart, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
-import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
+import { BYMAX_WORKER_URL, bymaxAiEnabled, multilingualEnabled } from "../config/bymax.js";
 
 /** Burbuja de mensaje (alumno o Bymax). */
 function bubble(text, who) {
@@ -95,23 +95,49 @@ export function openBymaxSession(cfg) {
     log.scrollTop = log.scrollHeight;
   }
 
-  /** Muestra la respuesta del bot con boton de audio (voz bilingue). */
+  /**
+   * Separa la respuesta en lo que se DICE (voz, una sola voz fluida) y lo que
+   * se MUESTRA como ayuda/correccion (lineas que empiezan con "TIP:"). Asi el
+   * audio nunca mezcla idiomas -> fluidez estilo Lerna.
+   */
+  function splitSayTip(text) {
+    const say = [];
+    const tips = [];
+    for (const line of String(text).split(/\n/)) {
+      const m = line.match(/^\s*(?:TIP|AYUDA|CORRECCION|CORRECCI\u00D3N)\s*:\s*(.*)$/i);
+      if (m) { if (m[1].trim()) tips.push(m[1].trim()); }
+      else if (line.trim()) say.push(line.trim());
+    }
+    return { say: say.join("\n"), tips };
+  }
+
+  /** Muestra la respuesta del bot con boton de audio (voz de una sola voz). */
   function pushBot(text) {
+    const { say, tips } = splitSayTip(text);
+    const speakText = say || text;
     const row = el("div", { class: "flex items-start gap-2 justify-start" },
-      bubble(text, "bot"),
+      bubble(say || text, "bot"),
       el("button", {
         type: "button",
         class: "shrink-0 mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-emerald-300 hover:bg-emerald-500/20",
         "aria-label": "Escuchar respuesta", title: "Escuchar",
-        onclick: () => speakBilingual(text), html: ICONS.sound,
+        onclick: () => speakSmart(speakText), html: ICONS.sound,
       }));
     log.append(row);
+    // Correcciones/ayuda: TEXTO abajo (NO se hablan -> no rompen la fluidez).
+    for (const tip of tips) {
+      log.append(el("div", { class: "flex justify-start" },
+        el("div", { class: "max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed " +
+          "bg-amber-500/10 border border-amber-500/30 text-amber-200 flex items-start gap-2" },
+          el("span", { class: "shrink-0 font-black text-[10px] tracking-widest mt-0.5" }, "TIP"),
+          el("span", {}, tip))));
+    }
     log.scrollTop = log.scrollHeight;
-    // speakBilingual da a cada frase su voz correcta (espanol o ingles).
-    speakBilingual(text);
+    // speakSmart: una sola voz fluida (multilingue Azure si esta activa, o mono).
+    speakSmart(speakText);
     // La mascota reacciona: brinco corto de alegria + boca en movimiento.
     bymaxEmote("happy");
-    talkFor(text);
+    talkFor(speakText);
   }
 
   /**
@@ -139,6 +165,7 @@ export function openBymaxSession(cfg) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode, topic, level,
+          immersive: !multilingualEnabled(), // inmersion salvo que Azure este activo
           question: q, history: history.slice(-MAX_TURNS),
         }),
       });
