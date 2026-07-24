@@ -33,7 +33,7 @@ import { renderSpeakingCoach } from "./features/speaking-coach.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
-import { applyTextSize, applyContrast } from "./ui/prefs.js";
+import { applyTextSize, applyContrast, applyTheme, getTheme } from "./ui/prefs.js";
 import { mountDictionary } from "./features/dictionary.js";
 import "./ui/install.js"; // registra los listeners de instalacion (PWA) al arrancar
 const app = qs("#app");
@@ -132,8 +132,15 @@ function updateChrome() {
 }
 
 function init() {
+  applyTheme();    // aplica el tema claro/oscuro guardado
   applyTextSize(); // aplica el tamano de texto guardado (accesibilidad)
   applyContrast(); // aplica el modo alto contraste guardado
+  // Si el usuario dejo 'Sistema', reacciona a los cambios del SO en vivo.
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
+      if (getTheme() === "system") applyTheme();
+    });
+  }
   mountDictionary(); // diccionario flotante disponible en toda la app
   if (!isConfigured) { renderConfigWarning(); return; }
   setupRoutes();

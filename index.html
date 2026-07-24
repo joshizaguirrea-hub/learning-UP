@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#0b1220">
+  <script>
+    /* Aplica el tema ANTES de pintar (evita el flash claro/oscuro). */
+    (function () {
+      try {
+        var t = localStorage.getItem("linguapath.theme") || "system";
+        var light = t === "light" ||
+          (t === "system" && window.matchMedia("(prefers-color-scheme: light)").matches);
+        if (light) document.documentElement.setAttribute("data-theme", "light");
+      } catch (e) { /* localStorage bloqueado: se queda en oscuro */ }
+    })();
+  </script>
   <title>Learning UP - Aprende idiomas</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
@@ -14,8 +25,29 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles/app.css?v=0.189.0">
+  <link rel="stylesheet" href="styles/app.css?v=0.190.0">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    /* Remapea la escala 'slate' a variables CSS para poder invertirla en modo
+     * claro SIN tocar los componentes. Los tonos oscuros/claros viven en
+     * app.css (:root y html[data-theme="light"]). darkMode por clase no se usa;
+     * el tema se controla con data-theme + variables. */
+    tailwind.config = {
+      theme: { extend: { colors: { slate: {
+        50:  "rgb(var(--s-50) / <alpha-value>)",
+        100: "rgb(var(--s-100) / <alpha-value>)",
+        200: "rgb(var(--s-200) / <alpha-value>)",
+        300: "rgb(var(--s-300) / <alpha-value>)",
+        400: "rgb(var(--s-400) / <alpha-value>)",
+        500: "rgb(var(--s-500) / <alpha-value>)",
+        600: "rgb(var(--s-600) / <alpha-value>)",
+        700: "rgb(var(--s-700) / <alpha-value>)",
+        800: "rgb(var(--s-800) / <alpha-value>)",
+        900: "rgb(var(--s-900) / <alpha-value>)",
+        950: "rgb(var(--s-950) / <alpha-value>)",
+      } } } },
+    };
+  </script>
 </head>
 <body class="min-h-screen text-slate-100 flex flex-col">
   <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-20">
@@ -33,7 +65,7 @@
 
   <footer class="border-t border-slate-800 text-slate-500 text-sm">
     <div class="max-w-7xl mx-auto px-4 py-4 text-center">
-      Learning UP (MVP) &middot; Aprende ingles a tu ritmo &middot; <span class="text-slate-600">v0.189.0</span>
+      Learning UP (MVP) &middot; Aprende ingles a tu ritmo &middot; <span class="text-slate-600">v0.190.0</span>
     </div>
   </footer>
 
@@ -41,7 +73,7 @@
   <nav id="bottom-nav" class="hidden fixed bottom-0 inset-x-0 z-20 bg-slate-900/95 backdrop-blur border-t border-slate-800" aria-label="Navegacion principal"></nav>
 
   <!-- Unico punto de entrada: ES Modules, sin build -->
-  <script type="module" src="src/main.js?v=0.189.0"></script>
+  <script type="module" src="src/main.js?v=0.190.0"></script>
   <script>
     // Registro del Service Worker (PWA). updateViaCache:'none' evita que el
     // navegador sirva un sw.js viejo desde su cache (causa de updates atorados).

@@ -16,7 +16,7 @@
 export const ACCENTS = {
   brand:    "from-indigo-500 via-purple-600 to-fuchsia-600",
   speak:    "from-emerald-400 via-teal-500 to-cyan-600",
-  practice: "from-rose-500 via-red-500 to-orange-600",
+  practice: "from-orange-400 via-orange-500 to-rose-500",
   reward:   "from-amber-400 via-amber-500 to-orange-600",
   story:    "from-indigo-500 via-violet-600 to-fuchsia-700",
   share:    "from-fuchsia-500 via-purple-600 to-violet-700",

@@ -8,6 +8,7 @@ const ACCENT_KEY = "linguapath.accent";
 const TEXT_SIZE_KEY = "linguapath.textsize";
 const CONTRAST_KEY = "linguapath.contrast";
 const AUTOPLAY_KEY = "linguapath.autoplay";
+const THEME_KEY = "linguapath.theme";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -28,6 +29,44 @@ export function getAccent() {
 /** Guarda el acento por su id. */
 export function setAccent(id) {
   localStorage.setItem(ACCENT_KEY, id);
+}
+
+// --- Tema claro / oscuro ----------------------------------------------------
+
+/** Opciones de tema. 'system' sigue la preferencia del dispositivo. */
+export const THEMES = [
+  { id: "system", label: "Sistema", desc: "Sigue tu dispositivo" },
+  { id: "light", label: "Claro", desc: "Fondo luminoso" },
+  { id: "dark", label: "Oscuro", desc: "Fondo oscuro" },
+];
+
+/** Devuelve el id del tema elegido. Default: system. */
+export function getTheme() {
+  return localStorage.getItem(THEME_KEY) || "system";
+}
+
+/** True si el tema efectivo (resolviendo 'system') es claro. */
+function isLightTheme(id) {
+  if (id === "light") return true;
+  if (id === "dark") return false;
+  return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+}
+
+/** Guarda el tema y lo aplica al instante. */
+export function setTheme(id) {
+  localStorage.setItem(THEME_KEY, id);
+  applyTheme();
+}
+
+/** Aplica el tema guardado al documento (llamar al arrancar). */
+export function applyTheme() {
+  const root = document.documentElement;
+  const light = isLightTheme(getTheme());
+  if (light) root.setAttribute("data-theme", "light");
+  else root.removeAttribute("data-theme");
+  // Sincroniza el color de la barra del navegador/PWA.
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", light ? "#eef2f7" : "#0a1120");
 }
 
 // --- Tamano de texto (accesibilidad) ---------------------------------------

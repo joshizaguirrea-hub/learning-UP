@@ -1,5 +1,85 @@
 /* styles/app.css — Estilos propios sobre Tailwind (CDN). */
 
+/* ---------------------------------------------------------------------------
+ * TEMA CLARO / OSCURO (A+B Hibrido).
+ * La escala 'slate' esta remapeada a estas variables (ver tailwind.config en
+ * index.html). En OSCURO valen lo de siempre (cero cambio visual). En CLARO se
+ * INVIERTE la escala -> toda la app cambia de tema sin tocar los componentes.
+ * Formato "R G B" (canales) para que funcionen los modificadores de opacidad
+ * de Tailwind, p.ej. bg-slate-800/50.
+ * ------------------------------------------------------------------------- */
+:root {
+  --s-50: 248 250 252;  --s-100: 241 245 249; --s-200: 226 232 240;
+  --s-300: 203 213 225; --s-400: 148 163 184; --s-500: 100 116 139;
+  --s-600: 71 85 105;   --s-700: 51 65 85;    --s-800: 30 41 59;
+  --s-900: 15 23 42;    --s-950: 2 6 23;
+}
+html[data-theme="light"] {
+  /* Escala espejada: 50<->950, 100<->900, ... El texto (100-300) se oscurece y
+   * las superficies (800-950) se aclaran. Contrastes verificados AA. */
+  --s-50: 2 6 23;       --s-100: 15 23 42;    --s-200: 30 41 59;
+  --s-300: 51 65 85;    --s-400: 71 85 105;   --s-500: 100 116 139;
+  --s-600: 148 163 184; --s-700: 203 213 225; --s-800: 226 232 240;
+  --s-900: 241 245 249; --s-950: 248 250 252;
+}
+
+/* Fondo de pagina en modo claro: aurora suave y luminosa. */
+html[data-theme="light"] body {
+  background:
+    radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.10), transparent 60%),
+    radial-gradient(900px 560px at 112% 4%, rgba(13,148,136,0.10), transparent 55%),
+    radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.08), transparent 55%),
+    #eef2f7;
+  background-attachment: fixed;
+}
+
+/* Acentos CLAROS (indigo-300, emerald-300...) fallan contraste sobre fondo
+ * claro -> los oscurecemos a su tono -700 (todos AA sobre superficies claras). */
+html[data-theme="light"] .text-indigo-200,
+html[data-theme="light"] .text-indigo-300,
+html[data-theme="light"] .text-indigo-400 { color: #4338ca; }
+html[data-theme="light"] .text-fuchsia-200,
+html[data-theme="light"] .text-fuchsia-300,
+html[data-theme="light"] .text-fuchsia-400 { color: #a21caf; }
+html[data-theme="light"] .text-violet-200,
+html[data-theme="light"] .text-violet-300,
+html[data-theme="light"] .text-violet-400 { color: #6d28d9; }
+html[data-theme="light"] .text-purple-200,
+html[data-theme="light"] .text-purple-300,
+html[data-theme="light"] .text-purple-400 { color: #7e22ce; }
+html[data-theme="light"] .text-emerald-200,
+html[data-theme="light"] .text-emerald-300,
+html[data-theme="light"] .text-emerald-400 { color: #047857; }
+html[data-theme="light"] .text-teal-200,
+html[data-theme="light"] .text-teal-300,
+html[data-theme="light"] .text-teal-400 { color: #0f766e; }
+html[data-theme="light"] .text-cyan-200,
+html[data-theme="light"] .text-cyan-300,
+html[data-theme="light"] .text-cyan-400 { color: #0e7490; }
+html[data-theme="light"] .text-sky-200,
+html[data-theme="light"] .text-sky-300,
+html[data-theme="light"] .text-sky-400 { color: #0369a1; }
+html[data-theme="light"] .text-amber-200,
+html[data-theme="light"] .text-amber-300,
+html[data-theme="light"] .text-amber-400 { color: #b45309; }
+html[data-theme="light"] .text-orange-200,
+html[data-theme="light"] .text-orange-300,
+html[data-theme="light"] .text-orange-400 { color: #c2410c; }
+html[data-theme="light"] .text-rose-200,
+html[data-theme="light"] .text-rose-300,
+html[data-theme="light"] .text-rose-400 { color: #be123c; }
+html[data-theme="light"] .text-red-200,
+html[data-theme="light"] .text-red-300,
+html[data-theme="light"] .text-red-400 { color: #b91c1c; }
+html[data-theme="light"] .text-pink-200,
+html[data-theme="light"] .text-pink-300,
+html[data-theme="light"] .text-pink-400 { color: #be185d; }
+
+/* Resaltados de aprendizaje: mas oscuros en claro para leerse sobre blanco. */
+html[data-theme="light"] .hl-verb { color: #047857; }
+html[data-theme="light"] .hl-focus { color: #6d28d9; text-decoration-color: #7c3aed; }
+html[data-theme="light"] .xp-float { color: #b45309; text-shadow: none; }
+
 /* Legibilidad base (accesibilidad). Tailwind usa rem, asi que subir la raiz
  * agranda TODO. Con clamp la letra CRECE en pantallas grandes y no queda
  * diminuta en monitores anchos. min - ideal(segun ancho) - max. */
@@ -238,10 +318,10 @@ body.lesson-mode #app > * { animation: none; }
  * ------------------------------------------------------------------------- */
 body {
   background:
-    radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.28), transparent 60%),
-    radial-gradient(900px 560px at 112% 4%, rgba(217,70,239,0.22), transparent 55%),
-    radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.16), transparent 55%),
-    #0b1020;
+    radial-gradient(1000px 560px at 8% -12%, rgba(99,102,241,0.26), transparent 60%),
+    radial-gradient(900px 560px at 112% 4%, rgba(13,148,136,0.20), transparent 55%),
+    radial-gradient(820px 640px at 50% 118%, rgba(16,185,129,0.15), transparent 55%),
+    #0a1120;
   background-attachment: fixed;
 }
 
