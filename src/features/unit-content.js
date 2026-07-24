@@ -1,25 +1,27 @@
 /**
- * features/unit-content.js — Contenido de una unidad (competencias + bonos + IA).
+ * features/unit-content.js — Hub de la unidad: Bymax al CENTRO, skills en POPs.
  *
- * Capa de feature (presentacion). Bloque reutilizable que se muestra en la
- * pantalla completa de la unidad: las 6 competencias como chips enlazados a su
- * leccion ("speaking" abre la practica de PRONUNCIACION), los bonos de verbos y
- * el boton estrella de CONVERSACION REAL con la IA sobre el tema de la unidad.
+ * Capa de feature (presentacion). Rediseno "vivo": la mascota de Bymax queda al
+ * centro mirando al alumno, rodeada por las 6 competencias en POPs (grid 3x3).
+ * Al tocar un POP, Bymax DA la clase de esa competencia con el contenido real de
+ * la unidad (features/skill-class.js). Alrededor, POPs pequenos para el examen,
+ * el cuento, la conversacion, anti-errores y los bonos. Mas dinamico y personal.
  */
 import { SKILL_META } from "../data/skill-meta.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { ICONS } from "../ui/icons.js";
 import { robotName } from "../ui/robot.js";
+import { avatarNode } from "../ui/avatars.js";
+import { getRobot } from "../ui/robot-prefs.js";
 import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
 import { openClass } from "./class-tutor.js";
-import { openSpeaking } from "./speaking.js";
 import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
+import { openSkillClass, lessonForSkill } from "./skill-class.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
-// IMPORTANTE: deben coincidir con lo que evalua el examen (data/test-gen.js) para
-// no preguntar en el examen algo que el alumno no vio ofrecido en la unidad.
+// Deben coincidir con lo que evalua el examen (data/test-gen.js).
 const BONUS_LINKS = [
   { id: "irregular-verbs", label: "Verbos irregulares" },
   { id: "regular-past", label: "Pasado regular (-ed)" },
@@ -27,172 +29,134 @@ const BONUS_LINKS = [
   { id: "idioms", label: "Idioms (modismos)" },
 ];
 
+// Orden de las 6 competencias alrededor de Bymax (grid 3x3, centro = Bymax):
+//   grammar   vocabulary  reading
+//   writing   [ BYMAX ]   listening
+//   speaking  ( examen )  ( bonos )
+const RING = ["grammar", "vocabulary", "reading", "writing", "__center__", "listening", "speaking"];
+
 /**
- * Bloque de contenido de la unidad: competencias + bonos + conversacion.
+ * Bloque de contenido de la unidad: hub central con Bymax + POPs.
  * @param {object} unit - unidad del curso
  * @param {Object} progressMap - id de leccion -> { status }
- * @param {object} [user] - usuario actual (para guardar el progreso de Speaking)
+ * @param {object} [user] - usuario actual
  */
 export function unitContent(unit, progressMap, user) {
-  // Mapa competencia -> primera leccion de la unidad que la entrena.
-  const bySkill = {};
-  for (const l of unit.lessons) {
-    for (const s of l.skills || []) if (!bySkill[s]) bySkill[s] = l;
-  }
+  const name = robotName();
 
-  const skillGrid = el("div", { class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" },
-    ...Object.keys(SKILL_META).map((key) => skillChip(key, unit, bySkill[key], progressMap, user)));
-
-  // EXAMEN DE UNIDAD: la leccion kind:"test" (generada por withTest) es el PASO
-  // FINAL. Aprobarla (>=60%) es lo que desbloquea la siguiente unidad, pero antes
-  // no se mostraba en ningun lado -> el alumno quedaba "atorado" con todos los
-  // checks. Aqui la exponemos con un mensaje claro de que es lo que falta.
-  const testLesson = (unit.lessons || []).find((l) => l.kind === "test");
-  const testDone = !!(testLesson && progressMap[testLesson.id]?.status === "done");
-  const examCard = testLesson ? el("a", {
-    href: `#/leccion/${testLesson.id}`,
-    class: "mt-6 w-full flex items-center gap-3 rounded-2xl p-5 shadow-lg text-white " +
-      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 " +
-      (testDone ? "bg-gradient-to-r from-emerald-500 to-teal-600" : "bg-gradient-to-r from-amber-500 to-orange-600"),
-    "aria-label": testDone ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
-  },
-    el("span", { class: "w-9 h-9 shrink-0", html: testDone ? ICONS.check : ICONS.star }),
-    el("div", { class: "flex-1 text-left" },
-      el("p", { class: "font-bold text-lg flex items-center gap-2 flex-wrap" }, "Examen de unidad",
-        el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
-          testDone ? "APROBADO" : "PARA PASAR")),
-      el("p", { class: "text-white/90 text-sm" }, testDone
-        ? "Aprobado. Ya puedes avanzar a la siguiente unidad."
-        : "Es el PASO FINAL para pasar: aprueba con 60% y se desbloquea la siguiente unidad.")),
-    el("span", { class: "text-white/90 text-sm font-semibold shrink-0" }, testDone ? "Repasar ->" : "Rendir ->")) : null;
-
-  const bonusRow = el("section", { class: "mt-6" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos de verbos"),
-    el("div", { class: "flex flex-wrap gap-2" },
-      ...BONUS_LINKS.map((b) => el("a", {
-        href: `#/bonus/${b.id}`,
-        class: "text-sm px-4 py-2 rounded-full bg-amber-500/15 text-amber-200 border border-amber-500/30 " +
-          "hover:bg-amber-500/25 focus:outline focus:outline-2 focus:outline-amber-400",
-      }, b.label))));
-
-  const klass = el("button", {
+  // POP central: Bymax mirando al alumno. Al tocarlo, abre la clase 1 a 1 (Bymax
+  // pregunta que quiere practicar) -> el alumno "habla con Bymax para elegir".
+  const center = el("button", {
     type: "button",
-    class: "mt-6 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-violet-500 to-fuchsia-600 " +
-      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-fuchsia-300",
+    class: "group relative flex flex-col items-center justify-center gap-2 rounded-3xl p-4 " +
+      "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 shadow-xl " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70",
     onclick: () => openClass(unit),
+    "aria-label": "Hablar con " + name + " para elegir que practicar",
   },
-    el("span", { class: "w-9 h-9 shrink-0", html: SKILL_META.speaking.icon }),
-    el("div", { class: "flex-1 text-left" },
-      el("p", { class: "font-bold text-lg flex items-center gap-2 flex-wrap" }, "Clase 1 a 1 con " + robotName(),
-        el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" }, "NUEVO")),
-      el("p", { class: "text-white/85 text-sm" }, "Tu profe te ensena y te corrige al instante (espanol + ingles)")),
-    el("span", { class: "text-white/90 text-sm font-semibold" }, "Empezar ->"));
+    el("div", { class: "scale-125 sm:scale-150 my-2" }, avatarNode(getRobot().avatar, "lg")),
+    el("p", { class: "font-extrabold text-white leading-tight text-center" }, "Habla con " + name),
+    el("p", { class: "text-[11px] text-white/85 text-center" }, "Elige que practicar hoy"));
 
-  const convo = el("button", {
-    type: "button",
-    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-emerald-500 to-teal-600 " +
-      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
-    onclick: () => openConversation(unit),
-  },
-    el("span", { class: "w-9 h-9 shrink-0", html: SKILL_META.speaking.icon }),
-    el("div", { class: "flex-1 text-left" },
-      el("p", { class: "font-bold text-lg" }, "Conversacion con la IA"),
-      el("p", { class: "text-white/85 text-sm" }, `Practica hablando de "${unit.title}" en ingles`)),
-    el("span", { class: "text-white/90 text-sm font-semibold" }, "Empezar ->"));
+  // POPs de las 6 competencias alrededor del centro.
+  const cells = RING.map((key) => key === "__center__"
+    ? center
+    : skillPop(key, unit, progressMap, user));
 
-  const story = el("button", {
-    type: "button",
-    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-indigo-500 to-fuchsia-600 " +
-      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-300",
-    onclick: () => openStory(unit),
-  },
-    el("span", { class: "w-9 h-9 shrink-0", html: ICONS.book }),
-    el("div", { class: "flex-1 text-left" },
-      el("p", { class: "font-bold text-lg" }, "Cuento de la unidad"),
-      el("p", { class: "text-white/85 text-sm" }, "Lee y escucha un texto sobre \"" + unit.title + "\" (o crea uno con IA)")),
-    el("span", { class: "text-white/90 text-sm font-semibold" }, "Abrir ->"));
+  const ring = el("div", { class: "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4" }, ...cells);
 
-  const antiErrors = el("button", {
-    type: "button",
-    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-rose-500 to-orange-600 " +
-      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
-    onclick: () => openAntiErrors(unit.level),
-  },
-    el("span", { class: "w-9 h-9 shrink-0", html: ICONS.bulb }),
-    el("div", { class: "flex-1 text-left" },
-      el("p", { class: "font-bold text-lg" }, "Modo Anti-errores"),
-      el("p", { class: "text-white/85 text-sm" }, `Trampas es->en de tu nivel (${unit.level}): falsos amigos, he/she, preposiciones...`)),
-    el("span", { class: "text-white/90 text-sm font-semibold" }, "Jugar ->"));
+  // Fila de POPs pequenos: examen, cuento, conversacion, anti-errores.
+  const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" },
+    examPop(unit, progressMap),
+    miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
+    miniPop("Conversacion", "Charla libre", SKILL_META.speaking.icon, "from-emerald-500 to-teal-600", () => openConversation(unit)),
+    miniPop("Anti-errores", "Trampas es->en", ICONS.bulb, "from-rose-500 to-orange-600", () => openAntiErrors(unit.level)));
 
-  // Bonos de VOCABULARIO cuyo nivel coincide con el de la unidad (sinonimos,
-  // antonimos, y -segun el nivel- confusables y homografos). Se derivan de los
-  // datos, sin listas duplicadas: DRY.
+  // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.
   const vocabDecks = VOCAB_DECKS.filter((d) => d.level === unit.level);
-  const vocabRow = vocabDecks.length ? el("section", { class: "mt-4" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos de vocabulario (" + unit.level + ")"),
+  const bonusPops = el("section", { class: "mt-6" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos"),
     el("div", { class: "flex flex-wrap gap-2" },
-      ...vocabDecks.map((d) => el("a", {
-        href: `#/bonus/${d.id}`,
-        class: "text-sm px-4 py-2 rounded-full bg-sky-500/15 text-sky-200 border border-sky-500/30 " +
-          "hover:bg-sky-500/25 focus:outline focus:outline-2 focus:outline-sky-400",
-      }, d.title)))) : null;
+      ...BONUS_LINKS.map((b) => bonusPill(b.id, b.label, "amber")),
+      ...vocabDecks.map((d) => bonusPill(d.id, d.title, "sky"))));
 
   return el("div", {},
-    el("h2", { class: "font-bold text-lg mb-3" }, "Competencias"),
-    skillGrid,
-    examCard,
-    bonusRow,
-    vocabRow,
-    klass,
-    convo,
-    antiErrors,
-    story);
+    el("div", { class: "flex items-center gap-2 mb-3" },
+      el("h2", { class: "font-bold text-lg" }, "Tu clase con " + name),
+      el("span", { class: "text-[10px] font-black tracking-widest bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full" }, "NUEVO")),
+    el("p", { class: "text-sm text-slate-400 mb-4" },
+      "Toca a " + name + " para que te guie, o elige una competencia y te la explica al momento."),
+    ring,
+    extras,
+    bonusPops);
 }
 
 /**
- * Chip de una competencia. "speaking" abre la practica de pronunciacion; el
- * resto enlaza a su leccion. Si la unidad no tiene esa competencia, "proximamente".
+ * POP de una competencia. Al tocarlo, Bymax da la clase de esa skill con el
+ * contenido real de la unidad. Muestra un check si ya se completo su leccion.
  */
-function skillChip(key, unit, lesson, progressMap, user) {
+function skillPop(key, unit, progressMap, user) {
   const meta = SKILL_META[key];
-  const iconBox = el("span", { class: "w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0", html: meta.icon });
-  const label = el("span", { class: "flex-1 min-w-0 font-bold text-white truncate" }, meta.label);
+  const lesson = lessonForSkill(unit, key);
+  // Check: speaking usa id sintetico; el resto, el id de su leccion.
+  const doneId = key === "speaking" ? "speaking-" + unit.id : lesson?.id;
+  const done = doneId ? progressMap[doneId]?.status === "done" : false;
 
-  // Speaking = practica de PRONUNCIACION (escucha y repite), distinta de la
-  // conversacion libre con IA. Siempre disponible. Su progreso se guarda con un
-  // id sintetico "speaking-<unidad>" (lesson_id es TEXT) para marcar su check.
-  if (key === "speaking") {
-    const progressId = "speaking-" + unit.id;
-    const done = progressMap[progressId]?.status === "done";
-    const check = el("span", { class: "w-6 h-6 text-white shrink-0" + (done ? "" : " hidden"), html: ICONS.check });
-    return el("button", {
-      type: "button",
-      class: `flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r ${meta.gradient} shadow-lg ` +
-        "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60 text-left",
-      onclick: () => openSpeaking(unit, {
-        userId: user?.id,
-        progressId,
-        onComplete: () => check.classList.remove("hidden"),
-      }),
-    }, iconBox, label, check);
-  }
+  return el("button", {
+    type: "button",
+    class: `relative flex flex-col items-center justify-center gap-2 rounded-2xl p-4 min-h-[128px] ` +
+      `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
+      "hover:brightness-110 hover:-translate-y-0.5 transition-transform " +
+      "focus:outline focus:outline-2 focus:outline-white/70",
+    onclick: () => openSkillClass(unit, key),
+    "aria-label": "Clase de " + meta.label + " con " + robotName(),
+  },
+    done ? el("span", { class: "absolute top-2 right-2 w-5 h-5 text-white/90", html: ICONS.check }) : null,
+    el("span", { class: "w-11 h-11 rounded-xl bg-white/15 grid place-items-center", html: meta.icon }),
+    el("span", { class: "font-bold leading-tight" }, meta.label),
+    el("span", { class: "text-[11px] text-white/80 text-center leading-tight" }, meta.subtitle));
+}
 
-  // Competencia con leccion en esta unidad -> enlace a la leccion.
-  if (lesson) {
-    const done = progressMap[lesson.id]?.status === "done";
-    return el("a", {
-      href: `#/leccion/${lesson.id}`,
-      class: `flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r ${meta.gradient} shadow-lg ` +
-        "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/60",
-    },
-      iconBox, label,
-      done ? el("span", { class: "w-6 h-6 text-white shrink-0", html: ICONS.check }) : null);
-  }
+/** POP del examen de unidad (paso final para desbloquear la siguiente). */
+function examPop(unit, progressMap) {
+  const test = (unit.lessons || []).find((l) => l.kind === "test");
+  if (!test) return el("div");
+  const done = progressMap[test.id]?.status === "done";
+  return el("a", {
+    href: `#/leccion/${test.id}`,
+    class: "flex flex-col items-center justify-center gap-1 rounded-2xl p-3 min-h-[92px] text-white shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 text-center " +
+      (done ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-amber-500 to-orange-600"),
+    "aria-label": done ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
+  },
+    el("span", { class: "w-7 h-7", html: done ? ICONS.check : ICONS.star }),
+    el("span", { class: "font-bold text-sm leading-tight" }, "Examen"),
+    el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
+      done ? "APROBADO" : "PARA PASAR"));
+}
 
-  // Sin contenido aun (ej. listening en algunas unidades).
-  return el("div", { class: "flex items-center gap-3 p-4 rounded-2xl bg-slate-800/60 border border-slate-700 opacity-60" },
-    el("span", { class: "w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-500 shrink-0", html: meta.icon }),
-    el("div", { class: "flex-1 min-w-0" },
-      el("span", { class: "block font-bold text-slate-300 truncate" }, meta.label),
-      el("span", { class: "block text-[11px] text-slate-500" }, "Proximamente")));
+/** POP pequeno generico (cuento, conversacion, anti-errores). */
+function miniPop(label, sub, icon, gradient, onclick) {
+  return el("button", {
+    type: "button",
+    class: `flex flex-col items-center justify-center gap-1 rounded-2xl p-3 min-h-[92px] text-white shadow-lg ` +
+      `bg-gradient-to-br ${gradient} hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 text-center`,
+    onclick,
+    "aria-label": label + ": " + sub,
+  },
+    el("span", { class: "w-7 h-7", html: icon }),
+    el("span", { class: "font-bold text-sm leading-tight" }, label),
+    el("span", { class: "text-[10px] text-white/80 leading-tight" }, sub));
+}
+
+/** Pastilla de bono (verbos = ambar, vocabulario = azul). */
+function bonusPill(id, label, tone) {
+  const tones = {
+    amber: "bg-amber-500/15 text-amber-200 border-amber-500/30 hover:bg-amber-500/25 focus:outline-amber-400",
+    sky: "bg-sky-500/15 text-sky-200 border-sky-500/30 hover:bg-sky-500/25 focus:outline-sky-400",
+  };
+  return el("a", {
+    href: `#/bonus/${id}`,
+    class: "text-sm px-4 py-2 rounded-full border focus:outline focus:outline-2 " + (tones[tone] || tones.amber),
+  }, label);
 }
