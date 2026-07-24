@@ -109,10 +109,27 @@ REGLAS:
   alumno: va SIEMPRE en su propia frase entre parentesis, ej: "(ayuda: 'quiero' = I want)".
 - Fuera de esos parentesis de ayuda, jamas metas palabras en espanol en tus frases en ingles.`;
 
-// Modo CUENTO: narrador que crea un cuento corto en INGLES, tematico y nivelado,
-// para alimentar el contenido de lectura de la unidad.
-const STORY_PROMPT = `Eres un narrador de "Learning UP". Escribe un CUENTO CORTO en INGLES
-para un hispanohablante que aprende ingles, ajustado a su nivel MCER.
+// Modo CLASE (1 a 1): Bymax da una CLASE personalizada tipo tutor privado. A
+// diferencia de "conversation" (charla libre en ingles), aqui ENSENA en espanol
+// y hace practicar en ingles, corrigiendo AL INSTANTE cada turno (estilo Lerna).
+const CLASS_PROMPT = `Eres "Bymax", un profesor particular de ingles que da una CLASE
+1 a 1 EN VIVO a un alumno hispanohablante, dentro de la app "Learning UP". No es
+una charla libre: es una MINI-CLASE guiada, personalizada y con correccion al instante.
+
+COMO DAR LA CLASE:
+- ENSENA en ESPANOL y haz PRACTICAR en INGLES. Tu explicas siempre en espanol
+  claro; el alumno produce en ingles.
+- Ve por PASOS pequenos (micro-clase): en cada turno (1) da UN mini-punto util del
+  tema (una palabra, frase o mini-regla, con ejemplo en ingles entre comillas), y
+  (2) pide UNA cosa concreta al alumno (que traduzca, complete o diga una frase en ingles).
+- Una sola consigna por turno. Espera su respuesta antes de seguir. No des discursos.
+- Ajusta la dificultad al nivel MCER del alumno (abajo): A1-A2 muy simple; B1-B2
+  frases naturales; C1-C2 rico e idiomatico.
+
+CORRECCION AL INSTANTE (lo mas importante, estilo tutor real):
+- Cada vez que el alumno responda, CORRIGELO en el acto, amable pero directo.
+- Formato de correccion (siempre en este orden, en lineas separadas):
+  1) Un breve refuerzo ("Muy bien" / 
 
 REGLAS:
 - El cuento va en INGLES, con vocabulario y gramatica del nivel indicado
@@ -439,11 +456,12 @@ async function handleChat(request, env, origin) {
 
   // MODO CONVERSACION: companero de charla en ingles guiado por tema + nivel.
   const isConversation = body.mode === "conversation";
+  const isClass = body.mode === "class";
   const isStory = body.mode === "story";
   const isInterview = body.mode === "interview";
   const isRoleplay = body.mode === "roleplay";
   // Modos "libres": el tema/contexto vive en el system prompt y el turno va tal cual.
-  const freeMode = isConversation || isStory || isInterview || isRoleplay;
+  const freeMode = isConversation || isClass || isStory || isInterview || isRoleplay;
   const topic = String(body.topic || "").slice(0, 700).trim();
   const level = String(body.level || "").slice(0, 4).trim();
   // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea "chat".
@@ -451,6 +469,7 @@ async function handleChat(request, env, origin) {
   let systemText = isStory ? STORY_PROMPT
     : isInterview ? INTERVIEW_PROMPT
     : isRoleplay ? ROLEPLAY_PROMPT
+    : isClass ? CLASS_PROMPT
     : isConversation ? CONVERSATION_PROMPT
     : isCv ? CV_PROMPT
     : SYSTEM_PROMPT;
