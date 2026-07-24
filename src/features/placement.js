@@ -46,7 +46,7 @@ function showIntro(container, user) {
       onclick: () => startExam(container, user, lv.id) },
       el("div", { class: `w-12 h-12 rounded-xl bg-gradient-to-br ${lv.grad} grid place-items-center text-2xl mb-3` }, lv.emoji),
       el("p", { class: "text-lg font-bold text-slate-100" }, lv.title),
-      el("p", { class: "text-sm text-slate-400 mt-1" }, lv.desc));
+      el("p", { class: "text-sm text-slate-400 mt-1" }, lv.desc)));
 
   const view = el("div", { class: CARD },
     el("h1", { class: "text-2xl font-extrabold" }, "Cuanto sabes de ingles?"),
