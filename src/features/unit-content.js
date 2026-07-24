@@ -41,6 +41,29 @@ export function unitContent(unit, progressMap, user) {
   const skillGrid = el("div", { class: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" },
     ...Object.keys(SKILL_META).map((key) => skillChip(key, unit, bySkill[key], progressMap, user)));
 
+  // EXAMEN DE UNIDAD: la leccion kind:"test" (generada por withTest) es el PASO
+  // FINAL. Aprobarla (>=60%) es lo que desbloquea la siguiente unidad, pero antes
+  // no se mostraba en ningun lado -> el alumno quedaba "atorado" con todos los
+  // checks. Aqui la exponemos con un mensaje claro de que es lo que falta.
+  const testLesson = (unit.lessons || []).find((l) => l.kind === "test");
+  const testDone = !!(testLesson && progressMap[testLesson.id]?.status === "done");
+  const examCard = testLesson ? el("a", {
+    href: `#/leccion/${testLesson.id}`,
+    class: "mt-6 w-full flex items-center gap-3 rounded-2xl p-5 shadow-lg text-white " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 " +
+      (testDone ? "bg-gradient-to-r from-emerald-500 to-teal-600" : "bg-gradient-to-r from-amber-500 to-orange-600"),
+    "aria-label": testDone ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
+  },
+    el("span", { class: "w-9 h-9 shrink-0", html: testDone ? ICONS.check : ICONS.star }),
+    el("div", { class: "flex-1 text-left" },
+      el("p", { class: "font-bold text-lg flex items-center gap-2 flex-wrap" }, "Examen de unidad",
+        el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
+          testDone ? "APROBADO" : "PARA PASAR")),
+      el("p", { class: "text-white/90 text-sm" }, testDone
+        ? "Aprobado. Ya puedes avanzar a la siguiente unidad."
+        : "Es el PASO FINAL para pasar: aprueba con 60% y se desbloquea la siguiente unidad.")),
+    el("span", { class: "text-white/90 text-sm font-semibold shrink-0" }, testDone ? "Repasar ->" : "Rendir ->")) : null;
+
   const bonusRow = el("section", { class: "mt-6" },
     el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos de verbos"),
     el("div", { class: "flex flex-wrap gap-2" },
@@ -102,6 +125,7 @@ export function unitContent(unit, progressMap, user) {
   return el("div", {},
     el("h2", { class: "font-bold text-lg mb-3" }, "Competencias"),
     skillGrid,
+    examCard,
     bonusRow,
     vocabRow,
     convo,
