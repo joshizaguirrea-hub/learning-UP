@@ -27,7 +27,7 @@ export const bymaxAiEnabled = /^https?:\/\//.test(BYMAX_WORKER_URL);
  * Mientras este en false, la Clase/Conversacion usan INMERSION (Bymax habla en
  * UN idioma con una voz fluida; las correcciones salen como TEXTO TIP:).
  */
-export const BYMAX_MULTILINGUAL = false;
+export const BYMAX_MULTILINGUAL = true;
 
 /** True si debemos intentar la voz multilingue de una sola voz (Azure). */
 export const multilingualEnabled = () => bymaxAiEnabled && BYMAX_MULTILINGUAL;
