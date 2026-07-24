@@ -418,6 +418,38 @@ async function azureTts(text, env, rate) {
   return abToBase64(await r.arrayBuffer());
 }
 
+// VOZ MULTILINGUE alternativa 1: OpenAI TTS (gpt-4o-mini-tts). Una sola voz muy
+// natural que lee texto mixto es+en y cambia de idioma sola. Requiere secret
+// OPENAI_API_KEY. Devuelve base64 mp3.
+const OPENAI_VOICE = "alloy"; // alloy/echo/fable/nova/shimmer/onyx (todas multilingues)
+async function openaiTts(text, env, rate) {
+  const key = env.OPENAI_API_KEY;
+  if (!key) throw new Error("sin OPENAI_API_KEY");
+  const body = {
+    model: "gpt-4o-mini-tts",
+    voice: OPENAI_VOICE,
+    input: String(text),
+    response_format: "mp3",
+  };
+  if (rate >= 0.5 && rate <= 1.5) body.speed = rate;
+  const r = await fetch("https://api.openai.com/v1/audio/speech", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error("openai " + r.status + " " + (await r.text().catch(() => "")).slice(0, 120));
+  return abToBase64(await r.arrayBuffer());
+}
+
+// VOZ MULTILINGUE alternativa 2 (SIN key nueva): Google Chirp3-HD. NO hace
+// code-switching perfecto, PERO lee TODO el texto mixto con UNA sola voz (misma
+// persona) en UNA peticion -> sin pegar dos audios = fluido. Reusa GOOGLE_TTS_KEY.
+const GMULTI_VOICE = "es-US-Chirp3-HD-Aoede"; // misma persona que el espanol de la app
+async function googleMultiTts(text, env, rate) {
+  const gc = await gctts(text, env.GOOGLE_TTS_KEY, "es-US", [GMULTI_VOICE, "en-US-Chirp3-HD-Aoede"], rate);
+  return gc && gc.audio ? gc.audio : null;
+}
+
 // ---- VOZ: texto -> audio -------------------------------------------------
 async function handleTts(request, env, origin) {
   let body;
@@ -466,15 +498,25 @@ async function handleTts(request, env, origin) {
   };
 
   try {
-    // VOZ MULTILINGUE (Azure): una sola voz para texto mixto es+en. Si no hay
-    // key configurada, avisamos (501) y el cliente cae a mono (una voz por idioma).
+    // VOZ MULTILINGUE (una sola voz para texto mixto es+en). Cadena de motores
+    // por orden de calidad; usa el PRIMERO que este configurado:
+    //   1) Azure (AZURE_TTS_KEY+REGION)  2) OpenAI (OPENAI_API_KEY)
+    //   3) Google Chirp3-HD (GOOGLE_TTS_KEY, misma persona, SIN key nueva).
+    // Si ninguno esta, 501 -> el cliente cae a mono (una voz por idioma).
     if (lang === "multi") {
-      if (!env.AZURE_TTS_KEY || !env.AZURE_TTS_REGION) {
-        return json({ error: "Voz multilingue no configurada (AZURE_TTS_KEY/REGION)." }, 501, origin);
+      if (env.AZURE_TTS_KEY && env.AZURE_TTS_REGION) {
+        const audio = await azureTts(text, env, rate);
+        if (audio) return store({ audio, engine: "azure-multi", voice: AZURE_VOICE });
       }
-      const audio = await azureTts(text, env, rate);
-      if (!audio) return json({ error: "Azure sin audio." }, 502, origin);
-      return store({ audio, engine: "azure-multi", voice: AZURE_VOICE });
+      if (env.OPENAI_API_KEY) {
+        const audio = await openaiTts(text, env, rate);
+        if (audio) return store({ audio, engine: "openai-multi", voice: OPENAI_VOICE });
+      }
+      if (env.GOOGLE_TTS_KEY) {
+        const audio = await googleMultiTts(text, env, rate);
+        if (audio) return store({ audio, engine: "google-multi", voice: GMULTI_VOICE });
+      }
+      return json({ error: "Voz multilingue no configurada (Azure/OpenAI/Google)." }, 501, origin);
     }
     if (isEn) {
       // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
