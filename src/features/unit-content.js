@@ -9,8 +9,10 @@
 import { SKILL_META } from "../data/skill-meta.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { ICONS } from "../ui/icons.js";
+import { robotName } from "../ui/robot.js";
 import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
+import { openClass } from "./class-tutor.js";
 import { openSpeaking } from "./speaking.js";
 import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
@@ -73,9 +75,22 @@ export function unitContent(unit, progressMap, user) {
           "hover:bg-amber-500/25 focus:outline focus:outline-2 focus:outline-amber-400",
       }, b.label))));
 
+  const klass = el("button", {
+    type: "button",
+    class: "mt-6 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-violet-500 to-fuchsia-600 " +
+      "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-fuchsia-300",
+    onclick: () => openClass(unit),
+  },
+    el("span", { class: "w-9 h-9 shrink-0", html: SKILL_META.speaking.icon }),
+    el("div", { class: "flex-1 text-left" },
+      el("p", { class: "font-bold text-lg flex items-center gap-2 flex-wrap" }, "Clase 1 a 1 con " + robotName(),
+        el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" }, "NUEVO")),
+      el("p", { class: "text-white/85 text-sm" }, "Tu profe te ensena y te corrige al instante (espanol + ingles)")),
+    el("span", { class: "text-white/90 text-sm font-semibold" }, "Empezar ->"));
+
   const convo = el("button", {
     type: "button",
-    class: "mt-6 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-emerald-500 to-teal-600 " +
+    class: "mt-3 w-full flex items-center gap-3 rounded-2xl p-5 bg-gradient-to-r from-emerald-500 to-teal-600 " +
       "text-white shadow-lg hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
     onclick: () => openConversation(unit),
   },
@@ -128,6 +143,7 @@ export function unitContent(unit, progressMap, user) {
     examCard,
     bonusRow,
     vocabRow,
+    klass,
     convo,
     antiErrors,
     story);
