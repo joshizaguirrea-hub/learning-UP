@@ -45,7 +45,7 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "max-w-[90rem] mx-auto space-y-5 sm:space-y-7" },
+  mount(container, el("div", { class: "max-w-[90rem] mx-auto pt-2 sm:pt-6 space-y-8 sm:space-y-14" },
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
