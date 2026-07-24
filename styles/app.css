@@ -238,6 +238,7 @@ body.lesson-mode::after {
   .step-enter, .robot-float, .robot-pop, .combo-badge,
   .bymax-alive, .bymax-happy, .bymax-sad, .bymax-think,
   .bymax-alive.is-talking .bymax-mouth,
+  .bymax-tail,
   .celebrate-ring, .celebrate-card, .celebrate-overlay,
   body.lesson-mode::before, body.lesson-mode::after { animation: none !important; }
   .card-sheen::after { display: none !important; }
@@ -336,6 +337,14 @@ body.lesson-mode #app > * { animation: none; }
 }
 .bymax-mouth { transform-box: fill-box; transform-origin: center; }
 .bymax-alive.is-talking .bymax-mouth { animation: bymaxTalk 0.24s ease-in-out infinite; }
+
+/* Colita meneable del robo-perrito Bymax (pivota donde se une al cuerpo). */
+@keyframes bymaxWag {
+  0%, 100% { transform: rotate(-9deg); }
+  50%      { transform: rotate(15deg); }
+}
+.bymax-tail { transform-box: fill-box; transform-origin: 0% 100%; animation: bymaxWag 0.75s ease-in-out infinite; }
+.bymax-alive.is-talking .bymax-tail { animation-duration: 0.4s; } /* menea mas rapido al hablar */
 
 /* ---------------------------------------------------------------------------
  * FONDO AURORA GLOBAL (fuera de la leccion): sensacion premium y con vida.

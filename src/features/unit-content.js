@@ -11,8 +11,7 @@ import { SKILL_META } from "../data/skill-meta.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { ICONS } from "../ui/icons.js";
 import { robotName } from "../ui/robot.js";
-import { avatarNode } from "../ui/avatars.js";
-import { getRobot } from "../ui/robot-prefs.js";
+import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { el } from "../ui/dom.js";
 import { openConversation } from "./conversation.js";
 import { openClass } from "./class-tutor.js";
@@ -32,7 +31,7 @@ const BONUS_LINKS = [
 // Orden de las 6 competencias ORBITANDO a Bymax, en el sentido del reloj desde
 // arriba. Se posicionan con trigonometria sobre un circulo (ver orbit()).
 const ORBIT = ["grammar", "vocabulary", "reading", "listening", "speaking", "writing"];
-const ORBIT_RADIUS = 39; // radio en % del contenedor cuadrado
+const ORBIT_RADIUS = 44; // radio en % del contenedor cuadrado
 
 /**
  * Bloque de contenido de la unidad: hub central con Bymax + POPs.
@@ -43,19 +42,16 @@ const ORBIT_RADIUS = 39; // radio en % del contenedor cuadrado
 export function unitContent(unit, progressMap, user) {
   const name = robotName();
 
-  // POP central: Bymax mirando al alumno. Al tocarlo, abre la clase 1 a 1 (Bymax
-  // pregunta que quiere practicar) -> el alumno "habla con Bymax para elegir".
+  // POP central: Bymax (robo-perrito) mirando al alumno. Al tocarlo, abre la
+  // clase 1 a 1 (Bymax pregunta que practicar) -> "habla con Bymax para elegir".
   const center = el("button", {
     type: "button",
-    class: "flex flex-col items-center justify-center gap-1 rounded-full " +
-      "w-32 h-32 sm:w-40 sm:h-40 p-2 ring-4 ring-violet-400/40 " +
-      "bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 shadow-2xl " +
-      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/80",
+    class: "grid place-items-center rounded-full w-[132px] h-[132px] sm:w-[164px] sm:h-[164px] " +
+      "bg-violet-500/15 ring-2 ring-violet-400/40 backdrop-blur-sm " +
+      "hover:bg-violet-500/25 focus:outline focus:outline-2 focus:outline-white/80",
     onclick: () => openClass(unit),
     "aria-label": "Hablar con " + name + " para elegir que practicar",
-  },
-    avatarNode(getRobot().avatar, "lg"),
-    el("p", { class: "font-extrabold text-white leading-none text-xs sm:text-sm text-center" }, "Hablame"));
+  }, bymaxMascot("lg"));
 
   // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
   // calculada con seno/coseno). Contenedor cuadrado y responsivo.
@@ -127,7 +123,7 @@ function skillPop(key, unit, progressMap, user) {
   return el("button", {
     type: "button",
     class: `relative flex flex-col items-center justify-center gap-1 rounded-full ` +
-      `w-[88px] h-[88px] sm:w-[104px] sm:h-[104px] p-2 text-center ` +
+      `w-[78px] h-[78px] sm:w-[100px] sm:h-[100px] p-2 text-center ` +
       `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
