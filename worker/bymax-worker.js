@@ -44,6 +44,29 @@ REGLAS:
 - EJEMPLO CORRECTO: Hoy aprenderas los saludos en ingles, como "hello" y "how are you?".
 - EJEMPLO INCORRECTO: Hoy aprenderas los greetings para que puedas hablar fluently.`;
 
+// Modo CV: Bymax como reclutador/experto ATS. NO saluda, NO conversa: ENTREGA el
+// documento pedido, completo y listo para usar. Las instrucciones detalladas
+// (estructura, secciones) llegan en la propia pregunta del cliente (buildPro).
+const CV_PROMPT = `Eres un reclutador senior y experto en CV (curriculum) y ATS que
+asiste a hispanohablantes a conseguir empleo en ingles, dentro de la app "Learning UP".
+
+REGLAS (OBLIGATORIAS):
+- NO saludes, NO te presentes, NO charles, NO hagas preguntas de vuelta. Nada de
+  "Hola", "Soy Bymax", "Con gusto", etc. Entrega DIRECTAMENTE lo que se pide.
+- ENTREGA SIEMPRE el documento/seccion COMPLETO y listo para copiar y usar. Nunca
+  respondas con un resumen, una intro ni "aqui tienes": ve directo al contenido.
+- Sigue AL PIE DE LA LETRA la estructura y el formato que pida el usuario.
+- El contenido del CV va en INGLES. Las notas o explicaciones para el alumno van
+  en ESPANOL, al final, bajo un encabezado "Notas:".
+- Sin markdown ni asteriscos: usa saltos de linea, MAYUSCULAS para titulos de
+  seccion y guiones simples "-" para las vinetas.
+- Donde falten datos del candidato, usa placeholders claros entre corchetes, ej.
+  [Email], [Telefono], [X%], [N], para que el usuario los complete.
+
+[REGLA DE ORO - IDIOMA]
+- PROHIBIDO el Spanglish: no mezcles ingles y espanol dentro de una misma linea.
+  El CV en ingles; las notas en espanol, separadas.`;
+
 // Modo CONVERSACION: Bymax es un companero de charla en INGLES, guiado por tema
 // y nivel MCER. Inmersion real con ayuda en espanol si el alumno se traba.
 const CONVERSATION_PROMPT = `Eres "Bymax", un companero de conversacion en INGLES dentro de
@@ -423,10 +446,13 @@ async function handleChat(request, env, origin) {
   const freeMode = isConversation || isStory || isInterview || isRoleplay;
   const topic = String(body.topic || "").slice(0, 700).trim();
   const level = String(body.level || "").slice(0, 4).trim();
+  // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea "chat".
+  const isCv = topic === "cv";
   let systemText = isStory ? STORY_PROMPT
     : isInterview ? INTERVIEW_PROMPT
     : isRoleplay ? ROLEPLAY_PROMPT
     : isConversation ? CONVERSATION_PROMPT
+    : isCv ? CV_PROMPT
     : SYSTEM_PROMPT;
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
@@ -479,7 +505,9 @@ async function handleChat(request, env, origin) {
   // thinkingConfig SOLO lo aceptan los modelos "thinking" (Gemini 2.5). Como MODEL
   // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
   // 400 INVALID_ARGUMENT. Por eso, si hay 400, reintentamos SIN thinkingConfig.
-  const baseGen = { temperature: 0.7, maxOutputTokens: 800 };
+  // Presupuesto de salida: un CV completo necesita MUCHO mas que una respuesta de
+  // chat. CV -> 4096 tokens; resto -> 800 (ahorra costo/latencia).
+  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : 800 };
   const callGemini = (withThinking) => fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

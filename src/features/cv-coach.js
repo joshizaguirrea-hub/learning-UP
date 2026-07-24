@@ -128,7 +128,7 @@ export const CV_MODES = [
 
 function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
 
-/** Bloque de resultado (copiar + texto) reutilizado por el flujo Pro y los modos. */
+/** Bloque de resultado (copiar + descargar + texto) reutilizado por Pro y modos. */
 function buildResultBlock(text) {
   const pre = el("div", { class: "rounded-2xl bg-slate-950/60 border border-slate-800 p-4 whitespace-pre-wrap text-slate-100 text-sm leading-relaxed" }, text);
   const copyBtn = el("button", { type: "button",
@@ -138,7 +138,20 @@ function buildResultBlock(text) {
       catch { copyBtn.lastChild.textContent = "No se pudo"; }
     } },
     el("span", { class: "w-5 h-5", html: ICONS.check }), el("span", {}, "Copiar"));
-  return el("div", { class: "space-y-2" }, el("div", { class: "flex justify-end" }, copyBtn), pre);
+  const dlBtn = el("button", { type: "button",
+    class: "inline-flex items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 px-3 py-2 rounded-xl hover:bg-emerald-500/20",
+    onclick: () => {
+      // Descarga efimera: genera el .txt en el navegador; el CV nunca sale del equipo.
+      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = el("a", { href: url, download: "CV_Learning_UP.txt" });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      dlBtn.lastChild.textContent = "Descargado!"; setTimeout(() => (dlBtn.lastChild.textContent = "Descargar (.txt)"), 1500);
+    } },
+    el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.check }), el("span", {}, "Descargar (.txt)"));
+  return el("div", { class: "space-y-2" },
+    el("div", { class: "flex flex-wrap justify-end gap-2" }, dlBtn, copyBtn), pre);
 }
 
 /** Prompt del flujo estrella: CV completo de alta calidad, listo para ATS. */
