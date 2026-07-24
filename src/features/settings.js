@@ -9,7 +9,8 @@ import { resetCourseProgress } from "../services/course.js";
 import { resetSrsCards } from "../services/srs.js";
 import { updateStudentProfile } from "../services/profiles.js";
 import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
-  getHighContrast, setHighContrast, getAutoplay, setAutoplay } from "../ui/prefs.js";
+  getHighContrast, setHighContrast, getAutoplay, setAutoplay,
+  getTheme, setTheme, THEMES } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
@@ -59,6 +60,25 @@ export function renderSettings(container, user) {
     el("h2", { class: "font-bold text-lg" }, "Color de tu perfil"),
     el("p", { class: "text-sm text-slate-400 mt-1" }, "Elige el color de tu avatar y detalles."),
     swatches);
+
+  // Selector de tema (apariencia claro/oscuro/sistema).
+  const currentTheme = getTheme();
+  const themeButtons = el("div", { class: "mt-4 flex flex-wrap gap-3" }, ...THEMES.map((t) => {
+    const selected = t.id === currentTheme;
+    return el("button", {
+      class: "px-5 py-3 rounded-lg border font-bold text-left " +
+        (selected ? "bg-indigo-500/20 border-indigo-400 text-indigo-200" : "bg-slate-800 border-slate-700 text-slate-200 hover:bg-slate-700") +
+        " focus:outline focus:outline-2 focus:outline-indigo-400",
+      "aria-pressed": selected ? "true" : "false",
+      "aria-label": `Tema ${t.label}${selected ? " (seleccionado)" : ""}`,
+      onclick: () => { setTheme(t.id); announce(`Tema: ${t.label}.`); renderSettings(container, user); },
+    }, el("span", { class: "block" }, t.label), el("span", { class: "text-xs font-normal text-slate-400" }, t.desc));
+  }));
+
+  const themeCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Apariencia"),
+    el("p", { class: "text-sm text-slate-400 mt-1" }, "Elige tema claro u oscuro. Colores pensados para estudiar comodo."),
+    themeButtons);
 
   // Selector de tamano de texto (accesibilidad).
   const currentSize = getTextSize();
@@ -165,7 +185,7 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, robotCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
+    nameCard, robotCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
   focusMainHeading(container);
 }
 
