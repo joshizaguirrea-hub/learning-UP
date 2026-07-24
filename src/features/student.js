@@ -45,7 +45,7 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "max-w-5xl mx-auto space-y-4" },
+  mount(container, el("div", { class: "max-w-7xl mx-auto space-y-5 sm:space-y-7" },
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
@@ -62,7 +62,7 @@ function profileCard(name, profile, xp, vocab, lessons) {
   const { into } = xpToNext(xp);
   const accent = getAccent();
 
-  return el("a", { href: "#/perfil", class: PANEL + " block p-3 sm:p-4 overflow-hidden group", "aria-label": "Ver mi perfil" },
+  return el("a", { href: "#/perfil", class: PANEL + " block p-4 sm:p-5 lg:p-6 overflow-hidden group", "aria-label": "Ver mi perfil" },
     el("div", { class: "flex items-center gap-3 sm:gap-4" },
       // Avatar con anillo de XP (conic via style).
       el("div", { class: "relative w-14 h-14 rounded-full grid place-items-center shrink-0",
@@ -96,7 +96,7 @@ function miniStat(value, label, color) {
 // Las 3 puertas grandes
 // --------------------------------------------------------------------------
 function hubGrid(profile, pct) {
-  return el("section", { class: "grid grid-cols-3 gap-2 sm:gap-4" },
+  return el("section", { class: "grid grid-cols-3 gap-3 sm:gap-5 lg:gap-6" },
     hubCard({
       href: "#/curso", grad: accentGrad("brand"), icon: ICONS.book,
       title: "Tu curso", subtitle: "Unidades, lecciones y bonos",
