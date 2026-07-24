@@ -37,17 +37,17 @@ export function hubCard({ href, onClick, grad, icon, title, subtitle, badge, ext
           el("span", { class: "w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-300", html: ICONS.star }),
           el("span", { class: "text-[8px] sm:text-[10px] font-black tracking-widest text-white" }, badge))
       : null,
-    el("div", { class: "relative h-full p-5 sm:p-6 lg:p-7 flex flex-col" },
-      el("span", { class: "w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 grid place-items-center rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur text-white shrink-0", html: icon }),
+    el("div", { class: "relative h-full p-3 sm:p-5 lg:p-7 flex flex-col" },
+      el("span", { class: "w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 grid place-items-center rounded-xl sm:rounded-2xl bg-white/20 backdrop-blur text-white shrink-0", html: icon }),
       el("div", { class: "flex-1 min-h-[0.75rem]" }),
       el("div", {},
-        el("h2", { class: "text-xl sm:text-2xl lg:text-2xl font-black text-white leading-tight drop-shadow" }, title),
-        el("p", { class: "text-white/85 text-sm sm:text-base mt-1 leading-snug line-clamp-2" }, subtitle),
+        el("h2", { class: "text-sm sm:text-xl lg:text-2xl font-black text-white leading-tight drop-shadow" }, title),
+        el("p", { class: "text-white/85 text-[11px] sm:text-sm lg:text-base mt-0.5 sm:mt-1 leading-snug line-clamp-2" }, subtitle),
         extra || null)),
   ];
 
   const cls =
-    "group relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl aspect-[16/10] lg:aspect-square " +
+    "group relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl aspect-[3/5] sm:aspect-square " +
     "transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl will-change-transform " +
     "focus:outline focus:outline-2 focus:outline-white/70";
 
