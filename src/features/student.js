@@ -45,7 +45,7 @@ export async function renderStudent(container, user) {
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 
-  mount(container, el("div", { class: "max-w-7xl mx-auto space-y-5 sm:space-y-7" },
+  mount(container, el("div", { class: "max-w-[90rem] mx-auto space-y-5 sm:space-y-7" },
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
@@ -96,7 +96,7 @@ function miniStat(value, label, color) {
 // Las 3 puertas grandes
 // --------------------------------------------------------------------------
 function hubGrid(profile, pct) {
-  return el("section", { class: "grid grid-cols-3 gap-3 sm:gap-5 lg:gap-6" },
+  return el("section", { class: "grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6" },
     hubCard({
       href: "#/curso", grad: accentGrad("brand"), icon: ICONS.book,
       title: "Tu curso", subtitle: "Unidades, lecciones y bonos",
