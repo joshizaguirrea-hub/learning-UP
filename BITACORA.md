@@ -279,6 +279,15 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] FIX SPEAKING - faltaba el boton para HABLAR (2026-07-25, v0.226.0). El POP
+      Speaking abre en modo 'escucha y repite' (repeat:true) y ese modo hacia
+      return ANTES del codigo del microfono -> solo se veian 'Escuchar a Bymax',
+      'Repetir' y 'La dije bien' (autoevaluacion); NUNCA aparecia el boton de
+      hablar ni habia calificacion real. FIX: extraje el cableado del mic a
+      wireMic() (DRY) y ahora el modo repeat TAMBIEN muestra 'Toca y habla' (si
+      el navegador soporta mic) con calificacion palabra por palabra (coachView);
+      'La dije bien' queda como respaldo si no hay mic. Se quito el boton 'Repetir'
+      redundante (ya esta 'Escuchar a Bymax'). Ambos validadores en verde.
 
 ---
 

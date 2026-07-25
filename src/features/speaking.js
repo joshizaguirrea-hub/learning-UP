@@ -143,42 +143,13 @@ export function openSpeaking(unit, opts = {}) {
       nextBtn.classList.remove("hidden");
     }
 
-    // --- MODO ESCUCHA Y REPITE (autoevaluacion, sin depender del mic) --------
-    if (repeat) {
-      const goodBtn = el("button", {
-        type: "button",
-        class: "inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white " +
-          "font-semibold px-5 py-2.5 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
-        onclick: () => {
-          passed++;
-          playCorrect();
-          speakRobot("Muy bien!", "es-MX");
-          fb.replaceChildren(el("div", { class: "rounded-xl px-4 py-3 text-sm bg-emerald-500/15 border border-emerald-500/40 text-emerald-200" },
-            el("p", { class: "font-semibold" }, "\u00a1Bien hecho! Sigue con la siguiente.")));
-          goodBtn.disabled = true; againBtn.disabled = true;
-          nextBtn.classList.remove("hidden");
-        },
-      }, el("span", { class: "w-5 h-5", html: ICONS.check }), "La dije bien");
-      var againBtn = el("button", {
-        type: "button",
-        class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
-          "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-fuchsia-400",
-        onclick: () => speakMono(target, "en"),
-      }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Repetir");
-
-      stage.replaceChildren(
-        el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
-        el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText,
-          el("p", { class: "mt-2 text-sm text-slate-400" }, "Escucha a " + robotName() + ", repite en voz alta y marca como te salio.")),
-        el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, againBtn, goodBtn),
-        fb, nextBtn);
-      setTimeout(() => speakMono(target, "en"), 300);
-      return;
-    }
-
-    if (supported) {
+    // Cablea el boton "Toca y habla": graba por microfono, transcribe y CALIFICA
+    // la pronunciacion (coachView). Compartido por ambos modos (DRY).
+    function wireMic() {
       micBtn.onclick = () => {
         if (listening) { dictation?.stop(); return; }
+        cancelCloud(); // que el mic no capture la voz de Bymax
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
         heardBox.textContent = "";
         dictation = createDictation({
           lang: "en-US",
@@ -194,6 +165,43 @@ export function openSpeaking(unit, opts = {}) {
         dictation.start();
       };
     }
+
+    // --- MODO ESCUCHA Y REPITE: habla al mic (si hay) y te califica; "La dije
+    //     bien" queda como respaldo (autoevaluacion) si no hay mic o falla. -----
+    if (repeat) {
+      const goodBtn = el("button", {
+        type: "button",
+        class: "inline-flex items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 " +
+          "px-4 py-2.5 rounded-xl hover:bg-emerald-500/20 focus:outline focus:outline-2 focus:outline-emerald-300",
+        onclick: () => {
+          passed++;
+          playCorrect();
+          speakRobot("Muy bien!", "es-MX");
+          fb.replaceChildren(el("div", { class: "rounded-xl px-4 py-3 text-sm bg-emerald-500/15 border border-emerald-500/40 text-emerald-200" },
+            el("p", { class: "font-semibold" }, "\u00a1Bien hecho! Sigue con la siguiente.")));
+          goodBtn.disabled = true;
+          nextBtn.classList.remove("hidden");
+        },
+      }, el("span", { class: "w-5 h-5", html: ICONS.check }), "La dije bien");
+
+      const instr = supported
+        ? "Escucha a " + robotName() + ", toca \"Toca y habla\" y dila. " + robotName() + " te califica la pronunciacion."
+        : "Escucha a " + robotName() + ", repite en voz alta y marca como te salio.";
+
+      if (supported) wireMic();
+
+      stage.replaceChildren(
+        el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
+        el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText,
+          el("p", { class: "mt-2 text-sm text-slate-400" }, instr), heardBox),
+        el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, ...(supported ? [micBtn] : []), goodBtn),
+        supported ? null : el("p", { class: "mt-3 text-xs text-amber-300" }, "Tu navegador no soporta microfono. Usa Chrome (PC/Android) para que te califique al hablar."),
+        fb, nextBtn);
+      setTimeout(() => speakMono(target, "en"), 300);
+      return;
+    }
+
+    if (supported) wireMic();
 
     stage.replaceChildren(
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
