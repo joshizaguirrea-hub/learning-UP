@@ -45,6 +45,28 @@ const face = () => `
 const tail = (c) => `<path class="bymax-tail" d="M102 106 Q128 100 124 76 Q113 90 98 94 Z" fill="${c}"/>`;
 const spikeTail = (c) => `<path class="bymax-tail" d="M100 108 Q126 104 128 82 L121 87 L123 77 L115 84 L117 73 L108 82 L100 96 Z" fill="${c}"/>`;
 
+// --- Detalles ROBOT compartidos (antena, tornillos, juntas, costuras) -------
+// Antena con lucecita rosa que parpadea (va detras: la cabeza/orejas la tapan
+// por la base y la bolita asoma arriba).
+const antenna = (c) => `<rect x="68.5" y="5" width="3" height="17" rx="1.5" fill="${c}"/>` +
+  `<circle cx="70" cy="4" r="3.6" fill="#f472b6"><animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite"/></circle>`;
+
+// Herrajes del CUERPO: cuello atornillado, juntas de hombros, linea central,
+// tornillos en las ancas.
+const robotBody = (c) => `
+  <rect x="60" y="70" width="20" height="7" rx="3.5" fill="${c}"/>
+  <circle cx="64" cy="73.5" r="1.3" fill="#0f172a" opacity="0.5"/><circle cx="76" cy="73.5" r="1.3" fill="#0f172a" opacity="0.5"/>
+  <circle cx="47" cy="99" r="4.5" fill="${c}"/><circle cx="47" cy="99" r="1.8" fill="#0f172a" opacity="0.5"/>
+  <circle cx="93" cy="99" r="4.5" fill="${c}"/><circle cx="93" cy="99" r="1.8" fill="#0f172a" opacity="0.5"/>
+  <path d="M70 92 v15" stroke="${c}" stroke-width="1.6" opacity="0.6"/>
+  <circle cx="55" cy="128" r="1.6" fill="#0f172a" opacity="0.35"/><circle cx="85" cy="128" r="1.6" fill="#0f172a" opacity="0.35"/>`;
+
+// Herrajes de la CABEZA: costura del panel + remaches en las esquinas.
+const robotHead = () => `
+  <path d="M44 34 h52" stroke="#0f172a" stroke-width="1" opacity="0.22"/>
+  <circle cx="45" cy="30" r="1.6" fill="#0f172a" opacity="0.4"/><circle cx="95" cy="30" r="1.6" fill="#0f172a" opacity="0.4"/>
+  <circle cx="45" cy="62" r="1.6" fill="#0f172a" opacity="0.4"/><circle cx="95" cy="62" r="1.6" fill="#0f172a" opacity="0.4"/>`;
+
 // Rasgos por animal (orejas/cuernos/melena). "behind" va detras de la cabeza.
 const ears = {
   pointy: (c) => `<path d="M46 26 L40 8 L59 22 Z" fill="${c}"/><path d="M94 26 L100 8 L81 22 Z" fill="${c}"/>`,
@@ -68,9 +90,11 @@ const sideEars = (c) => `<ellipse cx="34" cy="44" rx="14" ry="18" fill="${c}"/><
 const svg = (inner) =>
   `<svg viewBox="6 0 140 150" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-hidden="true">${DEFS}${inner}</svg>`;
 
-// Ensambla: sombra/cola (detras) + cuerpo + [detras-cabeza] + cabeza + rasgos + cara + [extra].
+// Ensambla: sombra/cola (detras) + antena + cuerpo + herrajes + [detras-cabeza]
+// + cabeza + herrajes-cabeza + rasgos + cara + [extra].
 function build({ c1, c2, hc, tl, behind = "", top = "", extra = "" }) {
-  return svg(tl + body(c1, c2) + behind + head(hc) + top + face() + extra);
+  return svg(tl + antenna(c2) + body(c1, c2) + robotBody(c2) + behind +
+    head(hc) + robotHead() + top + face() + extra);
 }
 
 // Bigotes de gato (encima de la cara).
