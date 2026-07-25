@@ -215,6 +215,19 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       IA -> gratis y offline. Sintaxis validada con tools/check_js.py (OK).
       PENDIENTE: correr en la compu personal `node tests/shadowing.test.mjs` (aqui
       no hay Node) y probar el flujo con mic en el navegador.
+- [x] FIX BUG completado de GRAMMAR/VOCABULARY no se guardaba (2026-07-25,
+      v0.222.0). Sintoma: al terminar la clase de gramatica y tocar "Completa la
+      practica" no aparecia el check ni contaba el progreso. CAUSA: skill-class.js
+      usaba completeLesson() en onFinish pero NUNCA lo importaba -> ReferenceError
+      que bymax-session.finish() se tragaba en su try/catch (solo console.error),
+      ademas ponia finished=true ANTES de llamar -> ni reintentando. Afectaba a
+      TODAS las clases via openSkillClass (grammar y vocabulary). FIX: agregar
+      import { completeLesson } from services/course.js. RED DE SEGURIDAD nueva:
+      tools/check_imports.py (tree-sitter) caza identificadores LLAMADOS pero no
+      importados/declarados (check_js.py solo ve sintaxis, no referencias); corre
+      limpio en todo src/. NOTA para el usuario: las clases completadas ANTES del
+      fix no quedaron guardadas -> hay que rehacer esa clase de grammar UNA vez
+      (o usar el POP Caza-errores, que si guardaba) para que aparezca el check.
 
 ---
 

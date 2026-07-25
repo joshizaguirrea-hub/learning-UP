@@ -10,6 +10,7 @@
 import { openBymaxSession } from "./bymax-session.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { robotName } from "../ui/robot.js";
+import { completeLesson } from "../services/course.js";
 
 /** Primera leccion de la unidad que entrena la competencia `key` (o null). */
 export function lessonForSkill(unit, key) {
