@@ -12,30 +12,41 @@ const DEFS = `<defs>
   <radialGradient id="amEye" cx="0.35" cy="0.35" r="0.75">
     <stop offset="0" stop-color="#ecfeff"/><stop offset="0.5" stop-color="#67e8f9"/><stop offset="1" stop-color="#06b6d4"/>
   </radialGradient>
+  <linearGradient id="amSheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+  </linearGradient>
 </defs>`;
 
-// Cuerpo sentado compartido (sombra + ancas + cuerpo + patas + panel del pecho).
+// Cuerpo sentado compartido (sombra + ancas + cuerpo + patas + panel del pecho
+// con MEDIDOR de LEDs tipo bateria + brillo metalico).
 const body = (c1, c2) => `
   <ellipse cx="70" cy="143" rx="42" ry="6" fill="#0f172a" opacity="0.18"/>
   <ellipse cx="41" cy="120" rx="16" ry="18" fill="${c2}"/>
   <ellipse cx="99" cy="120" rx="16" ry="18" fill="${c2}"/>
   <ellipse cx="70" cy="106" rx="33" ry="35" fill="${c1}"/>
+  <ellipse cx="60" cy="88" rx="18" ry="11" fill="url(#amSheen)"/>
   <rect x="53" y="116" width="14" height="27" rx="7" fill="${c1}"/>
   <rect x="73" y="116" width="14" height="27" rx="7" fill="${c1}"/>
   <ellipse cx="60" cy="142" rx="9" ry="4.5" fill="${c2}"/>
   <ellipse cx="80" cy="142" rx="9" ry="4.5" fill="${c2}"/>
-  <circle cx="70" cy="102" r="9" fill="#0f172a"/>
-  <circle cx="70" cy="102" r="5" fill="#34d399"/>`;
+  <circle cx="70" cy="100" r="10" fill="#0f172a"/>
+  <circle cx="70" cy="100" r="5.5" fill="#34d399"><animate attributeName="opacity" values="1;0.5;1" dur="2.4s" repeatCount="indefinite"/></circle>
+  <rect x="60" y="114" width="20" height="5" rx="2.5" fill="#0f172a"/>
+  <circle cx="65" cy="116.5" r="1.5" fill="#22d3ee"/><circle cx="70" cy="116.5" r="1.5" fill="#34d399"/><circle cx="75" cy="116.5" r="1.5" fill="#fbbf24"/>`;
 
 // Cabeza base (rectangulo redondeado) del color del animal.
 const head = (c) => `<rect x="40" y="20" width="60" height="52" rx="22" fill="${c}"/>` +
   `<rect x="40" y="20" width="60" height="52" rx="22" fill="none" stroke="#0f172a" stroke-width="1.2" opacity="0.35"/>`;
 
-// Cara compartida (pantalla + ojos cian + cachetes + naricita + boca animada).
+// Cara compartida (pantalla + visor con resplandor + escaner + ojos cian +
+// cachetes + naricita + boca animada).
 const face = () => `
   <rect x="47" y="30" width="46" height="34" rx="14" fill="#0f172a"/>
+  <rect x="49" y="32" width="42" height="30" rx="12" fill="none" stroke="#1e293b" stroke-width="1"/>
+  <circle cx="60" cy="45" r="9" fill="#22d3ee" opacity="0.14"/><circle cx="80" cy="45" r="9" fill="#22d3ee" opacity="0.14"/>
   <circle cx="60" cy="45" r="6" fill="url(#amEye)"/><circle cx="80" cy="45" r="6" fill="url(#amEye)"/>
   <circle cx="58" cy="43" r="1.8" fill="#fff"/><circle cx="78" cy="43" r="1.8" fill="#fff"/>
+  <rect x="49" y="38" width="42" height="1" fill="#67e8f9" opacity="0.16"><animate attributeName="y" values="36;58;36" dur="3.2s" repeatCount="indefinite"/></rect>
   <ellipse cx="51" cy="55" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
   <ellipse cx="89" cy="55" rx="4" ry="2.5" fill="#f472b6" opacity="0.55"/>
   <ellipse cx="70" cy="52" rx="3" ry="2.2" fill="#f472b6"/>
