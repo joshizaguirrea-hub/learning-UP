@@ -261,6 +261,24 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       movio a un mini-POP 'Videollamada'. Ambos validadores en verde. PENDIENTE
       probar en navegador. PROXIMO del roadmap: Vocabulary 2.0 (SRS graduado +
       colocaciones + trampa auditiva).
+- [x] VOCAB LAB - Vocabulary 2.0 (2026-07-25, v0.225.0). #3 del roadmap. Antes el
+      POP Vocabulary abria openSkillClass (clase IA) y el repaso (review.js) era
+      SOLO reconocer traduccion. NUEVO src/core/vocab-lab.js (puro): escalera de
+      recuperacion graduada en RONDAS -> nivel1 reconocer (MC en->es), nivel2
+      pista (traduccion+inicial via firstHint, escribes), nivel3 colocacion
+      (clozeExample: completas la palabra DENTRO de su frase = chunk/Lexical
+      Approach), nivel4 produccion (solo traduccion, sin pista), nivel5 trampa
+      auditiva (confusable via editDistance/Levenshtein: oyes y eliges entre pares
+      parecidos). Helpers: cleanTerm, acceptsFor (acepta con/sin 'to'), buildVocabLadder
+      (ordena por niveles crecientes, intercala palabras), scorePct. NUEVO
+      tests/vocab-lab.test.mjs (11 pruebas, validadas en Python; 22 ejercicios para
+      6 palabras). NUEVO src/features/vocab-lab.js (openVocabLab): corre la escalera
+      con feedback + al terminar ALIMENTA EL SRS (ensureCards+getCardsByIds+saveCard
+      con review de core/srs.js: >=60% aciertos por palabra -> 'good', si no 'again')
+      -> cierra el circulo repaso espaciado. unit-content.js: POP Vocabulary abre
+      openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
+      ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
+      futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
 
 ---
 
