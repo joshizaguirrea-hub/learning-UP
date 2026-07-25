@@ -67,8 +67,10 @@ function skillFocus(unit, key, lesson) {
  * Abre la clase interactiva de una competencia con Bymax.
  * @param {object} unit - unidad del curso { title, subtitle, level, lessons }
  * @param {string} key - competencia (grammar|vocabulary|reading|listening|writing|speaking)
+ * @param {object} [opts] - { userId, onComplete } para MARCAR la leccion completada
+ *   al terminar la clase (asi avanza el progreso de la unidad).
  */
-export function openSkillClass(unit, key) {
+export function openSkillClass(unit, key, opts = {}) {
   const meta = SKILL_META[key] || { label: key, subtitle: "" };
   const lesson = lessonForSkill(unit, key);
   const focus = skillFocus(unit, key, lesson);
@@ -77,10 +79,18 @@ export function openSkillClass(unit, key) {
     `Enfoque de la clase: ${meta.label} (${meta.subtitle}).\n${focus}`).slice(0, 695);
   const name = robotName();
 
+  // Al terminar la clase, marca la leccion como hecha (si existe y hay usuario)
+  // -> el check aparece y la unidad puede completarse. DRY: usa completeLesson.
+  const onFinish = (lesson?.id && opts.userId) ? () => {
+    completeLesson(opts.userId, lesson.id, 100).catch(() => {});
+    if (typeof opts.onComplete === "function") opts.onComplete();
+  } : (typeof opts.onComplete === "function" ? opts.onComplete : null);
+
   openBymaxSession({
     mode: "class",
     topic,
     level,
+    onFinish,
     title: name + " ensena: " + meta.label,
     subtitle: (unit?.title || "") + " \u00b7 " + meta.subtitle + " \u00b7 nivel " + level,
     placeholder: "Responde a " + name + " (o di 'ayuda')...",

@@ -140,9 +140,15 @@ function skillPop(key, unit, progressMap, user) {
       onComplete: () => check.classList.remove("hidden"),
     });
   } else if (key === "listening") {
-    onclick = () => openListening(unit);
+    onclick = () => openListening(unit, {
+      userId: user?.id,
+      onComplete: () => check.classList.remove("hidden"),
+    });
   } else {
-    onclick = () => openSkillClass(unit, key);
+    onclick = () => openSkillClass(unit, key, {
+      userId: user?.id,
+      onComplete: () => check.classList.remove("hidden"),
+    });
   }
 
   return el("button", {
