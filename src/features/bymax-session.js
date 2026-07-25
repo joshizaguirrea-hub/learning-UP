@@ -46,6 +46,12 @@ export function openBymaxSession(cfg) {
   // Listening (videollamada): Bymax HABLA pero NO se muestra su texto (ni tips),
   // para entrenar el oido. El alumno responde por voz o escribiendo.
   const hideBotText = cfg?.hideBotText === true;
+  // onFinish: callback para MARCAR la clase como completada (progreso). Si viene,
+  // se muestra un boton "Terminar y guardar" y ademas se auto-completa tras varios
+  // turnos (para que el alumno no se quede sin registrar el avance).
+  const onFinish = typeof cfg?.onFinish === "function" ? cfg.onFinish : null;
+  let finished = false;
+  function finish() { if (finished) return; finished = true; try { onFinish && onFinish(); } catch (e) { console.error(e); } }
   const name = robotName();
   const title = cfg?.title || (name + " \u00b7 " + topic);
   const subtitle = cfg?.subtitle || ("Practica en ingles \u00b7 nivel " + level);
@@ -214,6 +220,11 @@ export function openBymaxSession(cfg) {
       catch (e) { console.error("[Bymax] error al pintar/hablar la respuesta:", e); push(data.answer, "bot"); }
       history.push({ role: "user", text: q }, { role: "model", text: data.answer });
       if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
+      // Auto-completar: tras 3 intercambios reales, marca la clase como hecha.
+      if (onFinish && !finished && history.filter((h) => h.role === "user").length >= 3) {
+        finish();
+        if (finishBtn) { finishBtn.textContent = "Completada \u2713"; finishBtn.classList.add("opacity-70"); }
+      }
     }
     busy = false;
     sendBtn.disabled = false;
@@ -290,6 +301,14 @@ export function openBymaxSession(cfg) {
     onclick: () => send("I'm stuck. Can you help me in Spanish and give me an example answer?", true),
   }, "Ayuda (en espanol)");
 
+  // Boton para marcar la clase como completada (solo si hay onFinish).
+  const finishBtn = onFinish ? el("button", {
+    type: "button",
+    class: "text-xs px-3 py-1.5 rounded-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-200 " +
+      "hover:bg-emerald-600/30 focus:outline focus:outline-2 focus:outline-emerald-400",
+    onclick: () => { finish(); close(); },
+  }, "Terminar y guardar \u2713") : null;
+
   // Arranque: la IA saluda y hace la primera pregunta (no mostramos "[BEGIN]").
   if (bymaxAiEnabled) {
     send("[BEGIN]", false);
@@ -310,7 +329,8 @@ export function openBymaxSession(cfg) {
 
     el("div", { class: "mt-3 border-t border-slate-800 pt-2 flex-1 min-h-0 overflow-y-auto" }, log),
 
-    el("div", { class: "mt-2 flex justify-end" }, helpBtn),
+    el("div", { class: "mt-2 flex justify-between gap-2" },
+      finishBtn || el("span"), helpBtn),
     el("div", { class: "mt-2 flex gap-2" }, ...(speechSupported() ? [micBtn] : []), input, sendBtn));
 
   const overlay = el("div", {
