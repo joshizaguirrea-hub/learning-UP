@@ -18,14 +18,12 @@ export const bymaxAiEnabled = /^https?:\/\//.test(BYMAX_WORKER_URL);
 /**
  * VOZ MULTILINGUE (Camino 3, estilo Lerna): una SOLA voz que lee texto mixto
  * espanol+ingles en UNA sola peticion (sin pegar dos audios -> sin micro-pausas).
- * El Worker usa el PRIMER motor que tengas configurado, por calidad:
- *   1) Azure Speech   (secrets AZURE_TTS_KEY + AZURE_TTS_REGION) - 500k chars/mes gratis
- *   2) OpenAI TTS     (secret OPENAI_API_KEY)                    - calidad premium
- *   3) Google Chirp3-HD (tu GOOGLE_TTS_KEY actual, SIN key nueva) - una sola persona
+ * MOTOR PRINCIPAL: OpenAI TTS (secret OPENAI_API_KEY) -> se usa para ingles,
+ * espanol y texto mixto en TODA la app (Reading, Speaking, Listening, chat).
+ * Respaldos si OpenAI falla o no esta: Azure, Google Chirp3-HD, Aura.
  *
- * -> Si ya tienes GOOGLE_TTS_KEY en el Worker, solo pon esto en true y funciona.
- * Mientras este en false, la Clase/Conversacion usan INMERSION (Bymax habla en
- * UN idioma con una voz fluida; las correcciones salen como TEXTO TIP:).
+ * -> Solo necesitas OPENAI_API_KEY en el Worker. Mientras esto este en false, la
+ * Clase/Conversacion usan INMERSION (Bymax habla en UN idioma con voz fluida).
  */
 export const BYMAX_MULTILINGUAL = true;
 

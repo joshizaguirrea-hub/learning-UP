@@ -474,8 +474,9 @@ async function handleTts(request, env, origin) {
 
   // 1) CACHE HIT: si hay binding KV y ya generamos este audio, lo servimos ya.
   //    La clave incluye la voz REAL usada (HD o Aura) y el rate (afectan el audio).
+  //    Si OpenAI esta activo, la clave se namespacea a su voz -> audio consistente.
   const kv = env.AUDIO_KV;
-  const keyVoice = (isEn ? (hdEn || voice) : "es") + "@" + (rate || "n");
+  const keyVoice = (env.OPENAI_API_KEY ? "openai:" + OPENAI_VOICE : (isEn ? (hdEn || voice) : "es")) + "@" + (rate || "n");
   let key = null;
   if (kv) {
     try {
@@ -498,6 +499,17 @@ async function handleTts(request, env, origin) {
   };
 
   try {
+    // MOTOR PRINCIPAL: OpenAI TTS (gpt-4o-mini-tts). Es la voz que queremos en
+    // TODA la app: ingles, espanol y texto mixto, con UNA sola voz natural. Si
+    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE; los demas motores
+    // (Azure/Google/Aura) quedan solo de respaldo si OpenAI falla o no esta.
+    if (env.OPENAI_API_KEY) {
+      try {
+        const audio = await openaiTts(text, env, rate);
+        if (audio) return store({ audio, engine: "openai", voice: OPENAI_VOICE });
+      } catch (e) { /* cae a los motores de respaldo abajo */ }
+    }
+
     // VOZ MULTILINGUE (una sola voz para texto mixto es+en). Cadena de motores
     // por orden de calidad; usa el PRIMERO que este configurado:
     //   1) Azure (AZURE_TTS_KEY+REGION)  2) OpenAI (OPENAI_API_KEY)
