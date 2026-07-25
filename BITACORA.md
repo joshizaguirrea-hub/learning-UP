@@ -228,6 +228,24 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       limpio en todo src/. NOTA para el usuario: las clases completadas ANTES del
       fix no quedaron guardadas -> hay que rehacer esa clase de grammar UNA vez
       (o usar el POP Caza-errores, que si guardaba) para que aparezca el check.
+- [x] READING LAB - comprension lectora con feedback (2026-07-25, v0.223.0).
+      Peticion del usuario: leer cuento/dialogo Y RECIBIR FEEDBACK. Diagnostico:
+      el POP de Reading del hub abria openReadingAloud (solo PRONUNCIACION), y
+      cada unidad YA traia content.check (preguntas de comprension autoradas) que
+      quedaban HUERFANAS en el hub nuevo (solo las usaba el lesson-player viejo).
+      NUEVO src/core/reading-lab.js (logica pura, testeable): splitTexts (parte
+      por 'TEXT n - titulo'), vocabInText (vocab que REALMENTE aparece en el
+      texto), buildQuestions (reusa content.check + autogenera 'palabra en
+      contexto' con distractores del propio vocab -> DRY, deterministico), scorePct.
+      NUEVO tests/reading-lab.test.mjs (8 pruebas; validadas en Python porque no
+      hay Node en la laptop de trabajo). NUEVO src/features/reading-lab.js
+      (openReadingLab): Paso 1 leer+escuchar (speakSequence + glosario tocable),
+      Paso 2 preguntas en capas con feedback inmediato verde/rojo + explicacion,
+      Paso 3 puntaje -> completeLesson + celebrate + boton 'ahora leelo en voz
+      alta' que reusa openReadingAloud (capa de pronunciacion). unit-content.js:
+      el POP Reading ahora abre openReadingLab (antes openReadingAloud). Ambos
+      validadores (check_js + check_imports) en verde. PENDIENTE probar en
+      navegador (personal). PROXIMO del roadmap: Dictogloss (listening).
 
 ---
 

@@ -18,7 +18,7 @@ import { openClass } from "./class-tutor.js";
 import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
-import { openReadingAloud } from "./reading-aloud.js";
+import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openListening } from "./listening.js";
 import { openWriting } from "./writing.js";
@@ -135,7 +135,7 @@ function skillPop(key, unit, progressMap, user) {
   // El resto de competencias = clase interactiva con Bymax.
   let onclick;
   if (key === "reading") {
-    onclick = () => openReadingAloud(unit, {
+    onclick = () => openReadingLab(unit, {
       userId: user?.id, progressId: lesson?.id,
       onComplete: () => check.classList.remove("hidden"),
     });
@@ -169,7 +169,7 @@ function skillPop(key, unit, progressMap, user) {
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Lectura en voz alta de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening videollamada: " : key === "writing" ? "Escritura: " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening videollamada: " : key === "writing" ? "Escritura: " : "Clase de ") + meta.label + " con " + robotName(),
   },
     check,
     el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
