@@ -22,6 +22,9 @@ import { openReadingAloud } from "./reading-aloud.js";
 import { openSpeaking } from "./speaking.js";
 import { openListening } from "./listening.js";
 import { openWriting } from "./writing.js";
+import { genCazaErrores } from "../data/writing-drills.js";
+import { openDrillDeck } from "./writing-drills-player.js";
+import { completeLesson } from "../services/course.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -68,6 +71,7 @@ export function unitContent(unit, progressMap, user) {
     examPop(unit, progressMap),
     miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop("Conversacion", "Charla libre", SKILL_META.speaking.icon, "from-emerald-500 to-teal-600", () => openConversation(unit)),
+    cazaErroresPop(unit, user),
     miniPop("Anti-errores", "Trampas es->en", ICONS.bulb, "from-rose-500 to-orange-600", () => openAntiErrors(unit.level)));
 
   // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.
@@ -188,6 +192,25 @@ function examPop(unit, progressMap) {
     el("span", { class: "font-bold text-sm leading-tight" }, "Examen"),
     el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
       done ? "APROBADO" : "PARA PASAR"));
+}
+
+/** POP de CAZA-ERRORES: practica determinista compartida con Grammar (misma data
+ * grammar.mistakes, mismo player). Si la unidad no trae errores, cae a anti-errores. */
+function cazaErroresPop(unit, user) {
+  const grammarLesson = lessonForSkill(unit, "grammar");
+  const onclick = () => {
+    const drills = genCazaErrores(unit);
+    if (!drills.length) { openAntiErrors(unit.level); return; }
+    openDrillDeck({
+      title: robotName() + " \u00b7 Caza-errores",
+      subtitle: unit.title + " \u00b7 gram\u00e1tica",
+      drills,
+      onFinish: () => {
+        if (grammarLesson?.id && user?.id) completeLesson(user.id, grammarLesson.id, 100).catch(() => {});
+      },
+    });
+  };
+  return miniPop("Caza-errores", "Corrige el fallo", ICONS.bulb, "from-purple-500 to-indigo-600", onclick);
 }
 
 /** POP pequeno generico (cuento, conversacion, anti-errores). */
