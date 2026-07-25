@@ -563,6 +563,28 @@ async function handleTts(request, env, origin) {
 }
 
 // ---- CHAT: dudas de ingles con Gemini ------------------------------------
+
+// CEREBRO alternativo: OpenAI Chat (gpt-4o-mini). Se usa para las CLASES; el
+// resto (llamadas con Bymax, entrevistas...) sigue con Gemini. Convierte el hilo
+// estilo Gemini (role user/model, parts[{text}]) al formato de OpenAI.
+async function openaiChat(systemText, alt, env, maxTokens) {
+  const messages = [{ role: "system", content: systemText }];
+  for (const c of alt) {
+    const text = (c.parts || []).map((p) => p.text).join("");
+    messages.push({ role: c.role === "model" ? "assistant" : "user", content: text });
+  }
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + env.OPENAI_API_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: "gpt-4o-mini", messages, temperature: 0.7, max_tokens: maxTokens || 800 }),
+  });
+  if (!r.ok) throw new Error("openai-chat " + r.status + " " + (await r.text().catch(() => "")).slice(0, 160));
+  const data = await r.json().catch(() => null);
+  const answer = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+  if (!answer || !answer.trim()) throw new Error("openai-chat sin respuesta");
+  return answer.trim();
+}
+
 async function handleChat(request, env, origin) {
   if (!env.GEMINI_API_KEY) {
     return json({ error: "Falta configurar GEMINI_API_KEY en el Worker." }, 500, origin);
@@ -664,6 +686,16 @@ async function handleChat(request, env, origin) {
     else alt.push(c);
   }
 
+  // CEREBRO por actividad: las CLASES usan OpenAI (GPT-4o-mini); las llamadas con
+  // Bymax (conversacion/listening) y las entrevistas usan Gemini. Si OpenAI falla
+  // en una clase, caemos a Gemini (el alumno nunca se queda sin respuesta).
+  if (isClass && env.OPENAI_API_KEY) {
+    try {
+      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
+      return json({ answer, brain: "openai" }, 200, origin);
+    } catch (e) { /* respaldo: Gemini abajo */ }
+  }
+
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
   // thinkingConfig SOLO lo aceptan los modelos "thinking" (Gemini 2.5). Como MODEL
   // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
@@ -698,7 +730,7 @@ async function handleChat(request, env, origin) {
   const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
   if (!answer) return json({ error: "Bymax no pudo responder esta vez." }, 502, origin);
 
-  return json({ answer }, 200, origin);
+  return json({ answer, brain: "gemini" }, 200, origin);
 }
 
 export default {
