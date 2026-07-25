@@ -18,6 +18,7 @@ import { openClass } from "./class-tutor.js";
 import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
+import { openReadingAloud } from "./reading-aloud.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -119,6 +120,17 @@ function skillPop(key, unit, progressMap, user) {
   // Check: speaking usa id sintetico; el resto, el id de su leccion.
   const doneId = key === "speaking" ? "speaking-" + unit.id : lesson?.id;
   const done = doneId ? progressMap[doneId]?.status === "done" : false;
+  const check = el("span", { class: "absolute top-1 right-1 w-5 h-5 text-white bg-emerald-600/80 rounded-full p-0.5" + (done ? "" : " hidden"), html: ICONS.check });
+
+  // Reading = lectura en voz alta con feedback de pronunciacion de Bymax.
+  // El resto de competencias = clase interactiva con Bymax.
+  const onclick = key === "reading"
+    ? () => openReadingAloud(unit, {
+        userId: user?.id,
+        progressId: lesson?.id,
+        onComplete: () => check.classList.remove("hidden"),
+      })
+    : () => openSkillClass(unit, key);
 
   return el("button", {
     type: "button",
@@ -127,10 +139,10 @@ function skillPop(key, unit, progressMap, user) {
       `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
-    onclick: () => openSkillClass(unit, key),
-    "aria-label": "Clase de " + meta.label + " con " + robotName(),
+    onclick,
+    "aria-label": (key === "reading" ? "Lectura en voz alta de " : "Clase de ") + meta.label + " con " + robotName(),
   },
-    done ? el("span", { class: "absolute top-1 right-1 w-5 h-5 text-white bg-emerald-600/80 rounded-full p-0.5", html: ICONS.check }) : null,
+    check,
     el("span", { class: "w-8 h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
     el("span", { class: "font-bold text-xs leading-tight" }, meta.label));
 }

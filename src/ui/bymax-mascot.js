@@ -16,7 +16,7 @@ import { el } from "./dom.js";
 // Colores de la marca Bymax (indigo/violeta + ojos cian). Orejas floppy, cuatro
 // paticas y colita (class "bymax-tail" para menearse). La boca lleva class
 // "bymax-mouth" para animarse al hablar (ver app.css).
-const MASCOT_SVG = `<svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-hidden="true">
+const MASCOT_SVG = `<svg viewBox="6 0 140 150" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" role="img" aria-hidden="true">
   <defs>
     <linearGradient id="byBody" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#818cf8"/><stop offset="1" stop-color="#6d28d9"/>
