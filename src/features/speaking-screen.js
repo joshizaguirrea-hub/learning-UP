@@ -17,6 +17,7 @@ import { backHome, screenHeader, hubCard } from "../ui/hub-ui.js";
 import { openVoiceCall } from "./voice-call.js";
 import { openMyLifeLesson } from "./my-life-lesson.js";
 import { openSpeaking } from "./speaking.js";
+import { openShadowing } from "./shadowing.js";
 
 export async function renderSpeaking(container, user) {
   const [profile, progressMap] = await Promise.all([
@@ -43,6 +44,12 @@ export async function renderSpeaking(container, user) {
         title: "Pronunciacion",
         subtitle: pronUnit ? "Escucha y repite frases" : "Avanza en tu curso para desbloquear",
         onClick: pronUnit ? () => openSpeaking(pronUnit) : undefined,
+      }),
+      hubCard({
+        grad: accentGrad("practice"), icon: ICONS.target,
+        title: "Shadowing",
+        subtitle: pronUnit ? "Haz eco e imita el ritmo (sube tu Speaking Score)" : "Avanza en tu curso para desbloquear",
+        onClick: pronUnit ? () => openShadowing(pronUnit, { userId: user.id }) : undefined,
       }),
       hubCard({
         grad: accentGrad("brand"), icon: ICONS.bulb,
