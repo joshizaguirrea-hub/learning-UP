@@ -11,12 +11,13 @@
  */
 import { el } from "../ui/dom.js";
 import { normalize } from "../core/activities.js";
-import { speak } from "../ui/speech.js";
+import { speak, speakMono, speakRobot } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { completeLesson } from "../services/course.js";
+import { robotName } from "../ui/robot.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
@@ -53,6 +54,10 @@ export function openSpeaking(unit, opts = {}) {
   const { userId, progressId, onComplete } = opts;
   const phrases = phrasesOf(unit);
   const supported = speechSupported();
+  // Modo "escucha y repite": Bymax dice la frase, el alumno la repite a su ritmo
+  // y se AUTOEVALUA (sin depender del microfono, que falla mucho). El mic queda
+  // como extra opcional. Es el modo por defecto del hub; forzado si no hay mic.
+  const repeat = opts.repeat === true || !supported;
   let idx = 0;
   let passed = 0;
   let dictation = null;
@@ -82,8 +87,8 @@ export function openSpeaking(unit, opts = {}) {
       type: "button",
       class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
         "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-fuchsia-400 transition",
-      onclick: () => speak(target, "en-US", { rate: 0.9 }),
-    }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Escuchar modelo");
+      onclick: () => speakMono(target, "en"),
+    }, el("span", { class: "w-5 h-5", html: ICONS.sound }), repeat ? "Escuchar a Bymax" : "Escuchar modelo");
 
     const micBtn = el("button", {
       type: "button",
@@ -127,6 +132,39 @@ export function openSpeaking(unit, opts = {}) {
       nextBtn.classList.remove("hidden");
     }
 
+    // --- MODO ESCUCHA Y REPITE (autoevaluacion, sin depender del mic) --------
+    if (repeat) {
+      const goodBtn = el("button", {
+        type: "button",
+        class: "inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white " +
+          "font-semibold px-5 py-2.5 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
+        onclick: () => {
+          passed++;
+          playCorrect();
+          speakRobot("Muy bien!", "es-MX");
+          fb.replaceChildren(el("div", { class: "rounded-xl px-4 py-3 text-sm bg-emerald-500/15 border border-emerald-500/40 text-emerald-200" },
+            el("p", { class: "font-semibold" }, "\u00a1Bien hecho! Sigue con la siguiente.")));
+          goodBtn.disabled = true; againBtn.disabled = true;
+          nextBtn.classList.remove("hidden");
+        },
+      }, el("span", { class: "w-5 h-5", html: ICONS.check }), "La dije bien");
+      var againBtn = el("button", {
+        type: "button",
+        class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
+          "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-fuchsia-400",
+        onclick: () => speakMono(target, "en"),
+      }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Repetir");
+
+      stage.replaceChildren(
+        el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
+        el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText,
+          el("p", { class: "mt-2 text-sm text-slate-400" }, "Escucha a " + robotName() + ", repite en voz alta y marca como te salio.")),
+        el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, againBtn, goodBtn),
+        fb, nextBtn);
+      setTimeout(() => speakMono(target, "en"), 300);
+      return;
+    }
+
     if (supported) {
       micBtn.onclick = () => {
         if (listening) { dictation?.stop(); return; }
@@ -153,7 +191,7 @@ export function openSpeaking(unit, opts = {}) {
       supported ? null : el("p", { class: "mt-3 text-sm text-amber-300" }, "Tu navegador no soporta microfono. Usa Chrome en PC o Android para practicar hablando. Igual puedes escuchar el modelo y repetir en voz alta."),
       fb, nextBtn);
     // Escucha el modelo automaticamente al mostrar la frase.
-    setTimeout(() => speak(target, "en-US", { rate: 0.9 }), 300);
+    setTimeout(() => speakMono(target, "en"), 300);
   }
 
   function renderDone() {
@@ -177,7 +215,7 @@ export function openSpeaking(unit, opts = {}) {
   }
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] min-h-0",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92dvh] min-h-0",
     role: "dialog", "aria-label": "Practica de pronunciacion", "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
@@ -189,7 +227,7 @@ export function openSpeaking(unit, opts = {}) {
     progress, stage);
 
   const overlay = el("div", {
-    class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4",
+    class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
     onclick: (e) => { if (e.target === overlay) close(); },
   }, card);
 

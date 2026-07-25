@@ -19,6 +19,7 @@ import { openStory } from "./story.js";
 import { openAntiErrors } from "./anti-errors.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
+import { openSpeaking } from "./speaking.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -32,7 +33,7 @@ const BONUS_LINKS = [
 // Orden de las 6 competencias ORBITANDO a Bymax, en el sentido del reloj desde
 // arriba. Se posicionan con trigonometria sobre un circulo (ver orbit()).
 const ORBIT = ["grammar", "vocabulary", "reading", "listening", "speaking", "writing"];
-const ORBIT_RADIUS = 44; // radio en % del contenedor cuadrado
+const ORBIT_RADIUS = 46; // radio en % del contenedor cuadrado
 
 /**
  * Bloque de contenido de la unidad: hub central con Bymax + POPs.
@@ -43,16 +44,17 @@ const ORBIT_RADIUS = 44; // radio en % del contenedor cuadrado
 export function unitContent(unit, progressMap, user) {
   const name = robotName();
 
-  // POP central: Bymax (robo-perrito) mirando al alumno. Al tocarlo, abre la
-  // clase 1 a 1 (Bymax pregunta que practicar) -> "habla con Bymax para elegir".
+  // POP central: Bymax (robo-perrito) mirando al alumno. El circulo lo CUBRE por
+  // completo (glow suave detras). Al tocarlo, abre la clase 1 a 1.
   const center = el("button", {
     type: "button",
-    class: "grid place-items-center rounded-full w-[132px] h-[132px] sm:w-[164px] sm:h-[164px] " +
-      "bg-violet-500/15 ring-2 ring-violet-400/40 backdrop-blur-sm " +
-      "hover:bg-violet-500/25 focus:outline focus:outline-2 focus:outline-white/80",
+    class: "grid place-items-center rounded-full overflow-hidden w-[150px] h-[150px] sm:w-[176px] sm:h-[176px] " +
+      "bg-[radial-gradient(circle_at_50%_42%,rgba(167,139,250,0.35),rgba(139,92,246,0.12)_62%,transparent_72%)] " +
+      "ring-2 ring-violet-400/40 hover:ring-violet-300/70 " +
+      "focus:outline focus:outline-2 focus:outline-white/80",
     onclick: () => openClass(unit),
     "aria-label": "Hablar con " + name + " para elegir que practicar",
-  }, bymaxMascot("lg"));
+  }, el("div", { class: "translate-y-1" }, bymaxMascot("lg")));
 
   // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
   // calculada con seno/coseno). Contenedor cuadrado y responsivo.
@@ -106,7 +108,7 @@ function orbit(center, pops) {
   const centerWrap = el("div", {
     class: "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
   }, center);
-  return el("div", { class: "relative mx-auto w-full max-w-[420px] aspect-square my-2" },
+  return el("div", { class: "relative mx-auto w-full max-w-[460px] aspect-square my-2" },
     centerWrap, ...placed);
 }
 
@@ -123,28 +125,36 @@ function skillPop(key, unit, progressMap, user) {
   const check = el("span", { class: "absolute top-1 right-1 w-5 h-5 text-white bg-emerald-600/80 rounded-full p-0.5" + (done ? "" : " hidden"), html: ICONS.check });
 
   // Reading = lectura en voz alta con feedback de pronunciacion de Bymax.
+  // Speaking = escucha y repite (Bymax dice, tu repites; autoevaluacion sin mic).
   // El resto de competencias = clase interactiva con Bymax.
-  const onclick = key === "reading"
-    ? () => openReadingAloud(unit, {
-        userId: user?.id,
-        progressId: lesson?.id,
-        onComplete: () => check.classList.remove("hidden"),
-      })
-    : () => openSkillClass(unit, key);
+  let onclick;
+  if (key === "reading") {
+    onclick = () => openReadingAloud(unit, {
+      userId: user?.id, progressId: lesson?.id,
+      onComplete: () => check.classList.remove("hidden"),
+    });
+  } else if (key === "speaking") {
+    onclick = () => openSpeaking(unit, {
+      repeat: true, userId: user?.id, progressId: "speaking-" + unit.id,
+      onComplete: () => check.classList.remove("hidden"),
+    });
+  } else {
+    onclick = () => openSkillClass(unit, key);
+  }
 
   return el("button", {
     type: "button",
-    class: `relative flex flex-col items-center justify-center gap-1 rounded-full ` +
-      `w-[78px] h-[78px] sm:w-[100px] sm:h-[100px] p-2 text-center ` +
+    class: `relative flex flex-col items-center justify-center gap-0.5 rounded-full ` +
+      `w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] px-1 text-center ` +
       `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Lectura en voz alta de " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Lectura en voz alta de " : key === "speaking" ? "Escucha y repite: " : "Clase de ") + meta.label + " con " + robotName(),
   },
     check,
-    el("span", { class: "w-8 h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
-    el("span", { class: "font-bold text-xs leading-tight" }, meta.label));
+    el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
+    el("span", { class: "font-bold text-[10px] sm:text-xs leading-none" }, meta.label));
 }
 
 /** POP del examen de unidad (paso final para desbloquear la siguiente). */
