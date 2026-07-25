@@ -289,28 +289,33 @@ export function openRobotSetup(onDone) {
   }
   paintSwatches();
 
+  const saveBtn = el("button", {
+    class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
+    onclick: () => {
+      const name = nameInput.value.trim() || "Profe Robo";
+      setAccent(chosenAccent);
+      const cfg = setRobot({ name, avatar: chosen });
+      close();
+      if (typeof onDone === "function") onDone(cfg);
+    },
+  }, "Guardar y empezar");
+
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[92dvh] overflow-y-auto",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col max-h-[92dvh] overflow-hidden",
     role: "dialog", "aria-label": "Configura tu robot", "aria-modal": "true",
   },
-    el("h2", { class: "text-xl font-bold text-slate-100" }, "Conoce a tu profesor robot"),
-    el("p", { class: "mt-1 text-sm text-slate-400" }, "Elige su look y ponle el nombre que quieras. Te acompanara en cada clase."),
-    el("label", { class: "block mt-4 text-sm font-semibold text-slate-200" }, "Nombre de tu robot"),
-    nameInput,
-    el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Elige su avatar"),
-    grid,
-    el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Color de " + (current.name || "tu robot")),
-    swatches,
-    el("button", {
-      class: "mt-5 w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
-      onclick: () => {
-        const name = nameInput.value.trim() || "Profe Robo";
-        setAccent(chosenAccent);
-        const cfg = setRobot({ name, avatar: chosen });
-        close();
-        if (typeof onDone === "function") onDone(cfg);
-      },
-    }, "Guardar y empezar"));
+    // Zona con SCROLL (nombre + avatares + colores).
+    el("div", { class: "p-5 sm:p-6 overflow-y-auto" },
+      el("h2", { class: "text-xl font-bold text-slate-100" }, "Conoce a tu profesor robot"),
+      el("p", { class: "mt-1 text-sm text-slate-400" }, "Elige su look y ponle el nombre que quieras. Te acompanara en cada clase."),
+      el("label", { class: "block mt-4 text-sm font-semibold text-slate-200" }, "Nombre de tu robot"),
+      nameInput,
+      el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Elige su avatar"),
+      grid,
+      el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Color de " + (current.name || "tu robot")),
+      swatches),
+    // Pie FIJO: el boton Guardar siempre visible (aunque la lista tenga scroll).
+    el("div", { class: "shrink-0 border-t border-slate-800 p-4 bg-slate-900" }, saveBtn));
 
   const overlay = el("div", {
     class: "fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4",
