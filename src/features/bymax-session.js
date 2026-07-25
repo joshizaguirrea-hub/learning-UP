@@ -46,12 +46,24 @@ export function openBymaxSession(cfg) {
   // Listening (videollamada): Bymax HABLA pero NO se muestra su texto (ni tips),
   // para entrenar el oido. El alumno responde por voz o escribiendo.
   const hideBotText = cfg?.hideBotText === true;
-  // onFinish: callback para MARCAR la clase como completada (progreso). Si viene,
-  // se muestra un boton "Terminar y guardar" y ademas se auto-completa tras varios
-  // turnos (para que el alumno no se quede sin registrar el avance).
+  // onFinish: callback para MARCAR la clase como completada (progreso). El boton
+  // "Terminar y guardar" arranca DESHABILITADO y solo se habilita cuando el alumno
+  // completa la practica (finishGoal respuestas reales). NO se auto-completa: un
+  // solo audio no debe cerrar la clase.
   const onFinish = typeof cfg?.onFinish === "function" ? cfg.onFinish : null;
+  const finishGoal = Math.max(1, cfg?.finishGoal || 4);
   let finished = false;
   function finish() { if (finished) return; finished = true; try { onFinish && onFinish(); } catch (e) { console.error(e); } }
+  function userTurnCount() { return history.filter((h) => h.role === "user" && h.text !== "[BEGIN]").length; }
+  function refreshFinish() {
+    if (!finishBtn) return;
+    const ready = userTurnCount() >= finishGoal;
+    finishBtn.disabled = finished ? true : !ready;
+    finishBtn.textContent = finished
+      ? "Completada \u2713"
+      : ready ? "Terminar y guardar \u2713"
+      : "Completa la practica (faltan " + (finishGoal - userTurnCount()) + ")";
+  }
   const name = robotName();
   const title = cfg?.title || (name + " \u00b7 " + topic);
   const subtitle = cfg?.subtitle || ("Practica en ingles \u00b7 nivel " + level);
@@ -81,7 +93,7 @@ export function openBymaxSession(cfg) {
   const MAX_TURNS = 10;
   let busy = false;
 
-  const log = el("div", { class: "flex flex-col gap-2.5 overflow-y-auto px-1 py-2", style: "max-height:48vh" });
+  const log = el("div", { class: "flex flex-col gap-2.5 px-1 py-2" });
 
   const input = el("input", {
     type: "text", maxlength: "800", autocomplete: "off",
@@ -220,11 +232,8 @@ export function openBymaxSession(cfg) {
       catch (e) { console.error("[Bymax] error al pintar/hablar la respuesta:", e); push(data.answer, "bot"); }
       history.push({ role: "user", text: q }, { role: "model", text: data.answer });
       if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
-      // Auto-completar: tras 3 intercambios reales, marca la clase como hecha.
-      if (onFinish && !finished && history.filter((h) => h.role === "user").length >= 3) {
-        finish();
-        if (finishBtn) { finishBtn.textContent = "Completada \u2713"; finishBtn.classList.add("opacity-70"); }
-      }
+      // Habilita "Terminar y guardar" solo cuando se completa la practica.
+      refreshFinish();
     }
     busy = false;
     sendBtn.disabled = false;
@@ -301,13 +310,17 @@ export function openBymaxSession(cfg) {
     onclick: () => send("I'm stuck. Can you help me in Spanish and give me an example answer?", true),
   }, "Ayuda (en espanol)");
 
-  // Boton para marcar la clase como completada (solo si hay onFinish).
+  // Boton para marcar la clase como completada. Arranca DESHABILITADO; se habilita
+  // cuando el alumno completa la practica (finishGoal respuestas). Un audio suelto
+  // NO la completa.
   const finishBtn = onFinish ? el("button", {
     type: "button",
+    disabled: "true",
     class: "text-xs px-3 py-1.5 rounded-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-200 " +
-      "hover:bg-emerald-600/30 focus:outline focus:outline-2 focus:outline-emerald-400",
-    onclick: () => { finish(); close(); },
-  }, "Terminar y guardar \u2713") : null;
+      "hover:bg-emerald-600/30 focus:outline focus:outline-2 focus:outline-emerald-400 " +
+      "disabled:opacity-40 disabled:cursor-not-allowed",
+    onclick: () => { if (finishBtn.disabled) return; finish(); close(); },
+  }, "Completa la practica (faltan " + finishGoal + ")") : null;
 
   // Arranque: la IA saluda y hace la primera pregunta (no mostramos "[BEGIN]").
   if (bymaxAiEnabled) {
