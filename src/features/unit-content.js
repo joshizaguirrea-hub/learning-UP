@@ -21,6 +21,7 @@ import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openListening } from "./listening.js";
+import { openDictogloss } from "./dictogloss.js";
 import { openWriting } from "./writing.js";
 import { genCazaErrores } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
@@ -71,6 +72,7 @@ export function unitContent(unit, progressMap, user) {
     examPop(unit, progressMap),
     miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop("Conversacion", "Charla libre", SKILL_META.speaking.icon, "from-emerald-500 to-teal-600", () => openConversation(unit)),
+    miniPop("Videollamada", "Listening IA", SKILL_META.listening.icon, "from-sky-500 to-cyan-600", () => openListening(unit)),
     cazaErroresPop(unit, user),
     miniPop("Anti-errores", "Trampas es->en", ICONS.bulb, "from-rose-500 to-orange-600", () => openAntiErrors(unit.level)));
 
@@ -145,7 +147,7 @@ function skillPop(key, unit, progressMap, user) {
       onComplete: () => check.classList.remove("hidden"),
     });
   } else if (key === "listening") {
-    onclick = () => openListening(unit, {
+    onclick = () => openDictogloss(unit, {
       userId: user?.id,
       onComplete: () => check.classList.remove("hidden"),
     });
@@ -169,7 +171,7 @@ function skillPop(key, unit, progressMap, user) {
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening videollamada: " : key === "writing" ? "Escritura: " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Dictogloss (dictado): " : key === "writing" ? "Escritura: " : "Clase de ") + meta.label + " con " + robotName(),
   },
     check,
     el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),

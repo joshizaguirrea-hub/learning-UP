@@ -246,6 +246,21 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el POP Reading ahora abre openReadingLab (antes openReadingAloud). Ambos
       validadores (check_js + check_imports) en verde. PENDIENTE probar en
       navegador (personal). PROXIMO del roadmap: Dictogloss (listening).
+- [x] DICTOGLOSS - listening con feedback (2026-07-25, v0.224.0). #2 del roadmap.
+      Antes el POP Listening abria openListening (videollamada IA, requiere Worker,
+      NO da feedback determinista). NUEVO src/core/dictogloss.js (puro, testeable):
+      dictationSentences (frases aptas de vocab.example + respaldo del texto de
+      lectura; filtra largo 3-14 palabras, sin repetir), gradeDictation (compara
+      lo ESCRITO vs objetivo palabra x palabra por MULTICONJUNTO -> score, marks,
+      missing, extra; ignora puntuacion), sessionScore. NUEVO tests/dictogloss.
+      test.mjs (9 pruebas; validadas en Python). NUEVO src/features/dictogloss.js
+      (openDictogloss): por frase Escuchar/Mas lento (texto OCULTO) -> escribir ->
+      feedback palabra x palabra (verde/ambar) + chips de faltantes (se oyen lento)
+      + transcripcion -> sessionScore -> completeLesson. unit-content.js: POP
+      Listening ahora abre openDictogloss; la videollamada IA (openListening) se
+      movio a un mini-POP 'Videollamada'. Ambos validadores en verde. PENDIENTE
+      probar en navegador. PROXIMO del roadmap: Vocabulary 2.0 (SRS graduado +
+      colocaciones + trampa auditiva).
 
 ---
 
