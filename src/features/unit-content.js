@@ -20,6 +20,7 @@ import { openAntiErrors } from "./anti-errors.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
 import { openSpeaking } from "./speaking.js";
+import { openListening } from "./listening.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -138,6 +139,8 @@ function skillPop(key, unit, progressMap, user) {
       repeat: true, userId: user?.id, progressId: "speaking-" + unit.id,
       onComplete: () => check.classList.remove("hidden"),
     });
+  } else if (key === "listening") {
+    onclick = () => openListening(unit);
   } else {
     onclick = () => openSkillClass(unit, key);
   }
@@ -150,7 +153,7 @@ function skillPop(key, unit, progressMap, user) {
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Lectura en voz alta de " : key === "speaking" ? "Escucha y repite: " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Lectura en voz alta de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening videollamada: " : "Clase de ") + meta.label + " con " + robotName(),
   },
     check,
     el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),

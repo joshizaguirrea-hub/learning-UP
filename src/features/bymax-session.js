@@ -43,6 +43,9 @@ function bubble(text, who) {
  */
 export function openBymaxSession(cfg) {
   const { mode = "conversation", topic = "general", level = "B1" } = cfg || {};
+  // Listening (videollamada): Bymax HABLA pero NO se muestra su texto (ni tips),
+  // para entrenar el oido. El alumno responde por voz o escribiendo.
+  const hideBotText = cfg?.hideBotText === true;
   const name = robotName();
   const title = cfg?.title || (name + " \u00b7 " + topic);
   const subtitle = cfg?.subtitle || ("Practica en ingles \u00b7 nivel " + level);
@@ -115,6 +118,26 @@ export function openBymaxSession(cfg) {
   function pushBot(text) {
     const { say, tips } = splitSayTip(text);
     const speakText = say || text;
+
+    // MODO LISTENING (videollamada): sin texto, solo indicador de audio + repetir.
+    if (hideBotText) {
+      const row = el("div", { class: "flex justify-start" },
+        el("button", {
+          type: "button",
+          class: "inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 bg-slate-800/90 border " +
+            "border-slate-700 text-emerald-200 text-sm hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400",
+          "aria-label": "Escuchar de nuevo a " + name,
+          onclick: () => speakSmart(speakText),
+        }, el("span", { class: "w-5 h-5 shrink-0", html: ICONS.sound }),
+          name + " esta hablando... (toca para repetir)"));
+      log.append(row);
+      log.scrollTop = log.scrollHeight;
+      speakSmart(speakText);
+      bymaxEmote("happy");
+      talkFor(speakText);
+      return;
+    }
+
     const row = el("div", { class: "flex items-start gap-2 justify-start" },
       bubble(say || text, "bot"),
       el("button", {
