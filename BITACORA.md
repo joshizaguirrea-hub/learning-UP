@@ -198,6 +198,23 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       del Worker que la memoria (v0.126). Idea futura: registrar 'speaking' como
       leccion real para que cuente en el % de dominio (hoy la conversacion no marca
       progreso).
+- [x] SHADOWING determinista + Speaking Score real (2026-07-25, v0.221.0). Nueva
+      tecnica de speaking: escuchar la frase modelo (voz OpenAI) y repetirla como
+      ECO imitando ritmo/entonacion. Capas: Escuchar / Lento (rate 0.6) / Por
+      partes (chunks) / Sombrear (mic). NUEVOS: core/shadowing.js (LOGICA PURA
+      testeada -> chunkPhrase() parte frases largas en trozos de ~6 palabras
+      cortando por puntuacion y fusionando colas huerfanas de 1 palabra;
+      sessionScore() promedia a 0..100) + tests/shadowing.test.mjs (7 pruebas) +
+      features/shadowing.js (openShadowing). DRY: reuse phrasesOf() y coachView()
+      (feedback coloreado palabra-x-palabra) que EXTRAJE de speaking.js (antes
+      vivian inline en grade()); reuse chunking puro, speakMono/speakSequence y
+      mic.js. CLAVE: este modo SI registra el Speaking Score estrella via
+      recordSpeakingScore() -> la practica de Pronunciacion NUNCA lo registraba
+      (solo interview.js). Tarjeta nueva "Shadowing" en speaking-screen.js (accent
+      'practice', icono target). Sin mic: autoevaluacion generosa (0.85). NO usa
+      IA -> gratis y offline. Sintaxis validada con tools/check_js.py (OK).
+      PENDIENTE: correr en la compu personal `node tests/shadowing.test.mjs` (aqui
+      no hay Node) y probar el flujo con mic en el navegador.
 
 ---
 

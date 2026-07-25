@@ -35,8 +35,40 @@ export function scoreDetail(target, heard) {
   return { score: norm.length ? hits / norm.length : 0, marks };
 }
 
+/**
+ * Vista de coach reutilizable: dada la frase objetivo y lo que se escucho,
+ * devuelve el nodo de retroalimentacion (frase coloreada palabra por palabra +
+ * chips de palabras a repasar que se oyen lento al tocarlas). La comparten la
+ * pronunciacion y el shadowing (DRY: un solo coach visual).
+ * @returns {{score:number, ok:boolean, node:Node}}
+ */
+export function coachView(target, heard) {
+  const { score, marks } = scoreDetail(target, heard);
+  const ok = score >= PASS;
+  const colored = el("p", { class: "mt-2 leading-relaxed" }, ...marks.map((m) => el("span", {
+    class: (m.hit ? "text-emerald-300" : "text-amber-300 underline decoration-amber-400/70") + " mr-1",
+  }, m.word + " ")));
+  const missed = marks.filter((m) => !m.hit && normalize(m.word));
+  const drill = missed.length ? el("div", { class: "mt-2" },
+    el("p", { class: "text-xs opacity-90" }, "Toca para o\u00edrlas lento:"),
+    el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missed.slice(0, 6).map((m) => el("button", {
+      type: "button",
+      class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
+      onclick: () => speak(m.word, "en-US", { rate: 0.65 }),
+    }, m.word)))) : null;
+  const node = el("div", {
+    class: "rounded-xl px-4 py-3 text-sm " + (ok
+      ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-200"
+      : "bg-amber-500/15 border border-amber-500/40 text-amber-200"),
+  },
+    el("p", { class: "font-semibold" }, ok ? "\u00a1Muy bien! " + Math.round(score * 100) + "% de acierto" : "Casi... " + Math.round(score * 100) + "% de acierto"),
+    colored,
+    drill || el("p", { class: "mt-1 opacity-90" }, "Tu pronunciaci\u00f3n se entendi\u00f3 muy bien."));
+  return { score, ok, node };
+}
+
 /** Frases modelo de la unidad (ejemplos de vocab con texto en ingles). */
-function phrasesOf(unit) {
+export function phrasesOf(unit) {
   return (unit.vocab || [])
     .map((v) => v.example)
     .filter((t) => t && /[a-z]/i.test(t))
@@ -104,31 +136,10 @@ export function openSpeaking(unit, opts = {}) {
     }, idx === phrases.length - 1 ? "Terminar" : "Siguiente frase ->");
 
     function grade(heard) {
-      const { score: s, marks } = scoreDetail(target, heard);
-      const ok = s >= PASS;
+      const { ok, node } = coachView(target, heard);
       if (ok) passed++;
       ok ? playCorrect() : playWrong();
-      // Frase coloreada palabra por palabra (coach visual).
-      const colored = el("p", { class: "mt-2 leading-relaxed" }, ...marks.map((m) => el("span", {
-        class: (m.hit ? "text-emerald-300" : "text-amber-300 underline decoration-amber-400/70") + " mr-1",
-      }, m.word + " ")));
-      // Palabras a repasar (tocar = oir lento).
-      const missed = marks.filter((m) => !m.hit && normalize(m.word));
-      const drill = missed.length ? el("div", { class: "mt-2" },
-        el("p", { class: "text-xs opacity-90" }, "Toca para o\u00edrlas lento:"),
-        el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missed.slice(0, 6).map((m) => el("button", {
-          type: "button",
-          class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
-          onclick: () => speak(m.word, "en-US", { rate: 0.65 }),
-        }, m.word)))) : null;
-      fb.replaceChildren(el("div", {
-        class: "rounded-xl px-4 py-3 text-sm " + (ok
-          ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-200"
-          : "bg-amber-500/15 border border-amber-500/40 text-amber-200"),
-      },
-        el("p", { class: "font-semibold" }, ok ? "\u00a1Muy bien! " + Math.round(s * 100) + "% de acierto" : "Casi... " + Math.round(s * 100) + "% de acierto"),
-        colored,
-        drill || el("p", { class: "mt-1 opacity-90" }, "Tu pronunciaci\u00f3n se entendi\u00f3 muy bien.")));
+      fb.replaceChildren(node);
       nextBtn.classList.remove("hidden");
     }
 
