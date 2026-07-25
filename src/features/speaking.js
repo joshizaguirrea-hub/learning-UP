@@ -22,9 +22,10 @@ const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
 /**
  * Coach avanzado: marca palabra por palabra si se reconocio o no.
+ * Exportado para reutilizarse en la lectura en voz alta (reading-aloud.js): DRY.
  * @returns {{score:number, marks:Array<{word:string, hit:boolean}>}}
  */
-function scoreDetail(target, heard) {
+export function scoreDetail(target, heard) {
   const wantRaw = String(target).split(/\s+/).filter(Boolean);
   const got = new Set(normalize(heard).split(" ").filter(Boolean));
   const marks = wantRaw.map((w) => ({ word: w, hit: got.has(normalize(w)) }));
