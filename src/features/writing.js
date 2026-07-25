@@ -14,6 +14,8 @@ import { isAtLeast } from "../data/cefr.js";
 import { completeLesson } from "../services/course.js";
 import { openBymaxSession } from "./bymax-session.js";
 import { lessonForSkill } from "./skill-class.js";
+import { DRILL_TYPES } from "../data/writing-drills.js";
+import { openDrillDeck } from "./writing-drills-player.js";
 
 // Como debe comportarse Bymax en CUALQUIER ejercicio de escritura.
 const BEHAVIOR =
@@ -40,6 +42,8 @@ const GROUPS = [
         instr: "Sentence joining: give two simple sentences; the student combines them using a suitable connector." },
       { label: "Traducir frases", desc: "Traduce oraciones breves para fijar estructuras.",
         instr: "Translation: give a short Spanish sentence; the student translates it into English (or vice versa)." },
+      { label: "Escalera de oraciones", desc: "De 1 palabra a un mini-p\u00e1rrafo, paso a paso.",
+        instr: "Sentence ladder scaffold: advance ONE rung per turn using the unit vocabulary -> (1) ask for ONE word, (2) a short phrase with it, (3) a full sentence, (4) combine two sentences with a connector (because/although/however), (5) a 2-3 sentence mini-paragraph. Praise and correct softly at each rung." },
     ],
   },
   {
@@ -106,13 +110,32 @@ export function openWriting(unit, opts = {}) {
   const lesson = lessonForSkill(unit, "writing");
   const close = () => overlay.remove();
 
+  // Marca la leccion de writing como completa (compartido por drills e IA).
+  const markDone = () => {
+    if (lesson?.id && opts.userId) {
+      completeLesson(opts.userId, lesson.id, 100).catch(() => {});
+    }
+    if (typeof opts.onComplete === "function") opts.onComplete();
+  };
+
+  // NIVEL 1-2: practica DETERMINISTA (sin IA, gratis, offline). Genera la baraja
+  // del contenido real de la unidad y la corre en el player instantaneo.
+  function launchDrills(type) {
+    const drills = type.gen(unit);
+    if (!drills.length) return;
+    close();
+    openDrillDeck({
+      title: name + " \u00b7 " + type.label,
+      subtitle: title + " \u00b7 nivel " + level,
+      drills,
+      onFinish: markDone,
+    });
+  }
+
   function launch(item) {
     const topic = (`${BEHAVIOR}\nUnit: "${title}" (level ${level}).\n` +
       `EXERCISE: ${item.label} - ${item.instr}`).slice(0, 695);
-    const onFinish = (lesson?.id && opts.userId) ? () => {
-      completeLesson(opts.userId, lesson.id, 100).catch(() => {});
-      if (typeof opts.onComplete === "function") opts.onComplete();
-    } : (typeof opts.onComplete === "function" ? opts.onComplete : null);
+    const onFinish = markDone;
     close();
     openBymaxSession({
       mode: "class",
@@ -145,6 +168,27 @@ export function openWriting(unit, opts = {}) {
           el("p", { class: "text-xs text-white/85 mt-0.5 leading-snug" }, item.desc)))));
   }));
 
+  // NIVEL 1-2: practica DETERMINISTA (arriba, acceso rapido). Solo muestra los
+  // tipos con contenido disponible (algunos dependen de grammar.mistakes).
+  const available = DRILL_TYPES
+    .map((t) => ({ t, count: t.gen(unit).length }))
+    .filter((x) => x.count);
+  const drillsSection = available.length ? el("section", { class: "mt-4" },
+    el("div", { class: "flex items-center gap-2" },
+      el("h3", { class: "font-bold text-slate-100" }, "Pr\u00e1ctica r\u00e1pida"),
+      el("span", { class: "text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-200" }, "Sin conexi\u00f3n \u00b7 instant\u00e1neo")),
+    el("p", { class: "text-xs text-slate-400 mt-0.5" }, "Autocorregidos con el vocabulario y la gram\u00e1tica de la unidad."),
+    el("div", { class: "mt-2 grid sm:grid-cols-2 gap-2" }, ...available.map(({ t, count }) =>
+      el("button", {
+        type: "button",
+        class: "text-left rounded-xl p-3 bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600 " +
+          "text-white shadow hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/80 transition",
+        onclick: () => launchDrills(t),
+        "aria-label": "Pr\u00e1ctica: " + t.label,
+      },
+        el("p", { class: "font-semibold text-sm" }, t.label + "  \u00b7  " + count),
+        el("p", { class: "text-xs text-white/80 mt-0.5 leading-snug" }, t.desc))))) : null;
+
   const card = el("div", {
     class: "robot-pop max-w-2xl w-full bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col max-h-[92dvh] overflow-hidden",
     role: "dialog", "aria-label": "Escritura con " + name, "aria-modal": "true",
@@ -158,6 +202,8 @@ export function openWriting(unit, opts = {}) {
     el("div", { class: "p-4 sm:p-5 overflow-y-auto" },
       el("p", { class: "text-sm text-slate-300" },
         name + " te dar\u00e1 una consigna, escribes tu respuesta y \u00e9l te corrige con tips. \u00a1Sin miedo a la hoja en blanco!"),
+      drillsSection,
+      el("h3", { class: "font-bold text-slate-100 mt-6" }, "Con " + name + " (guiado por IA)"),
       list));
 
   const overlay = el("div", {
