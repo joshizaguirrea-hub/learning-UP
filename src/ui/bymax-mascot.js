@@ -11,6 +11,8 @@
  * Vive en el chat con Bymax (features/conversation.js), pero es reutilizable.
  */
 import { el } from "./dom.js";
+import { getRobot } from "./robot-prefs.js";
+import { animalMascotSvg } from "./mascot-bodies.js";
 
 // SVG del personaje: Bymax con CUERPO DE PERRITO (robo-cachorro sentado).
 // Colores de la marca Bymax (indigo/violeta + ojos cian). Orejas floppy, cuatro
@@ -86,13 +88,17 @@ const MASCOT_SVG = `<svg viewBox="6 0 140 150" xmlns="http://www.w3.org/2000/svg
 const SIZES = { sm: "w-16", md: "w-24", lg: "w-32", xl: "w-40" };
 
 /**
- * Nodo de la mascota de Bymax.
+ * Nodo de la mascota de Bymax (cuerpo completo). Si el alumno eligio un robo-
+ * animal con cuerpo (gato, leon, dino...), muestra ESE cuerpo; si no, el perrito.
  * @param {"sm"|"md"|"lg"|"xl"} [size]
+ * @param {string} [id] - avatar a dibujar (por defecto, el elegido por el alumno)
  * @returns {HTMLElement}
  */
-export function bymaxMascot(size = "md") {
+export function bymaxMascot(size = "md", id) {
   const w = SIZES[size] || SIZES.md;
-  const inner = el("span", { class: "bymax-alive block w-full h-full", html: MASCOT_SVG });
+  const avatar = id || getRobot().avatar;
+  const svg = animalMascotSvg(avatar) || MASCOT_SVG; // animal con cuerpo, o el perrito Bymax
+  const inner = el("span", { class: "bymax-alive block w-full h-full", html: svg });
   return el("div", {
     class: "shrink-0 robot-float " + w,
     "aria-hidden": "true",

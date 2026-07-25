@@ -156,7 +156,7 @@ export function openRobotHint(grammar, act, lang = "es-MX", level) {
       }, "Ya entendi, gracias!")));
 
   const overlay = el("div", {
-    class: "fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4",
+    class: "fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
     onclick: (e) => { if (e.target === overlay) close(); },
   }, card);
 
@@ -290,7 +290,7 @@ export function openRobotSetup(onDone) {
   paintSwatches();
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl",
+    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl max-h-[92dvh] overflow-y-auto",
     role: "dialog", "aria-label": "Configura tu robot", "aria-modal": "true",
   },
     el("h2", { class: "text-xl font-bold text-slate-100" }, "Conoce a tu profesor robot"),
