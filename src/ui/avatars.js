@@ -163,6 +163,16 @@ const SVGS = {
     <circle cx="26" cy="28" r="2.5" fill="#0f172a"/><circle cx="38" cy="28" r="2.5" fill="#0f172a"/>
     <circle cx="25" cy="40" r="1.7" fill="#3f2a12"/><circle cx="39" cy="40" r="1.7" fill="#3f2a12"/>
   </svg>`,
+
+  // Oso robot: orejas redondas + hocico claro.
+  bear: `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+    <circle cx="20" cy="19" r="6" fill="#5b3a1a"/><circle cx="44" cy="19" r="6" fill="#5b3a1a"/>
+    <circle cx="20" cy="19" r="3" fill="#8b5e34"/><circle cx="44" cy="19" r="3" fill="#8b5e34"/>
+    <rect x="16" y="20" width="32" height="28" rx="13" fill="#8b5e34"/>
+    <ellipse cx="32" cy="40" rx="11" ry="9" fill="#c9a26b"/>
+    <circle cx="26" cy="30" r="3" fill="#67e8f9"/><circle cx="38" cy="30" r="3" fill="#67e8f9"/>
+    <ellipse cx="32" cy="37" rx="3" ry="2.2" fill="#3f2a12"/>
+  </svg>`,
 };
 
 /** Lista para el selector: id + nombre descriptivo (no marca registrada). */
@@ -183,6 +193,7 @@ export const AVATAR_LIST = [
   { id: "giraffe", label: "Robo-jirafa" },
   { id: "hamster", label: "Robo-hamster" },
   { id: "capybara", label: "Robo-capibara" },
+  { id: "bear", label: "Robo-oso" },
 ];
 
 /** Devuelve el SVG (string) de un avatar; cae en 'beep' si no existe. */

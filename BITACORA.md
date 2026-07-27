@@ -279,6 +279,28 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] SILUETAS PROPIAS POR ROBO-ANIMAL (cuerpo completo) (2026-07-27, v0.230.0).
+      Feedback del usuario: gato, cocodrilo, capibara, oso... TODOS se veian igual
+      (misma silueta). Causa: en ui/mascot-bodies.js la funcion body() era UNA sola
+      forma (perrito redondo sentado) que usaban todos; solo cambiaban color de
+      cabeza + orejas + cola. SOLUCION (DRY conservado): se mantiene el ALMA ROBOT
+      compartida (face() pantalla+ojos cian+boca bymax-mouth animada, antenna,
+      robotHead herrajes, collar, chest(cy) panel de pecho con LEDs) pero cada
+      animal usa un ARQUETIPO de cuerpo con su forma real: seated (redondo sentado:
+      gato/leon/hamster/capibara/oso), reptile (largo y bajo con vientre de placas +
+      cola de puas tailCroc: cocodrilo), biped (patotas traseras + pies + torso
+      erguido + bracitos + cola gruesa/puas: canguro/dino), heavy (4 patas columna +
+      trompa: elefante), longneck (cuello largo + patas largas + manchas: jirafa).
+      Colas nuevas: tailCurl/tailStub/tailThick/tailSpiky/tailCroc (todas class
+      bymax-tail para menear). Nueva funcion assemble({bodyStr,ac,hc,behind,top,
+      extra}) reemplaza a build(). NUEVO robo-oso (bear): cabecita en avatars.js
+      (SVGS.bear + AVATAR_LIST) y cuerpo seated marron en BODIES. El perrito Bymax
+      (dog) sigue siendo el default en bymax-mascot.js (MASCOT_SVG). Preview de dev:
+      dev-preview-mascots.html (gitignoreada) para ver los 10 lado a lado. Validadores
+      en verde. PENDIENTE usuario: aprobar visualmente (abrir la preview o git pull
+      + ver en Chrome un perfil con robo-gato/croc/etc.) y decir si ajustamos alguna
+      proporcion.
+
 - [x] GRAMMAR: STRUCTURED INPUT (Processing Instruction, VanPatten) (2026-07-27,
       v0.229.0). Cierra el ultimo hueco pedagogico grande: Grammar tenia clase IA
       (POP central) + caza-errores (produccion: corrige el fallo), pero faltaba el

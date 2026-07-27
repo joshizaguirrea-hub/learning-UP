@@ -33,3 +33,6 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Preview de desarrollo (no forma parte de la app)
+dev-preview-mascots.html
