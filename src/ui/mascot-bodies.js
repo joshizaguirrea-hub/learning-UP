@@ -82,12 +82,25 @@ const mzCheeks = (lc) => `<ellipse cx="54" cy="60" rx="11" ry="9" fill="${lc}"/>
 const mzCat = () => `<path d="M70 55 l-3.5 4 h7 z" fill="#7c2d12"/>` +
   `<rect class="bymax-mouth" x="65" y="60" width="10" height="3" rx="1.5" fill="#0f172a" opacity="0.5"/>` +
   `<path d="M42 56 h-13 M42 61 h-13 M98 56 h13 M98 61 h13" stroke="#0f172a" stroke-width="1" opacity="0.45"/>`;
-// Trompa larga con dientes (cocodrilo, dino): sale hacia la izquierda.
+// Trompa larga con dientes (cocodrilo): sale hacia la izquierda.
 const mzSnout = (lc, dc, teeth = true) => `<rect x="12" y="46" width="40" height="18" rx="8" fill="${lc}"/>` +
   `<rect x="12" y="46" width="40" height="18" rx="8" fill="none" stroke="${dc}" stroke-width="1" opacity="0.6"/>` +
   `<circle cx="18" cy="50" r="2" fill="#0f172a"/>` +
   (teeth ? `<path d="M15 64 l3 4 3 -4 3 4 3 -4 3 4 3 -4 3 4 3 -4 3 4" fill="#fff"/>` : "") +
   `<rect class="bymax-mouth" x="20" y="59" width="22" height="2.6" rx="1.3" fill="#0f172a" opacity="0.55"/>`;
+// Cara de T-Rex: mandibulon largo con DOS filas de dientes + ceno fiero + naricita.
+const mzTrex = (lc, dc) => `<path d="M52 44 H17 a7 7 0 0 0 -7 7 v7 a4 4 0 0 0 4 4 h38 z" fill="${lc}"/>` +
+  `<path d="M52 44 H17 a7 7 0 0 0 -7 7 v7 a4 4 0 0 0 4 4 h38 z" fill="none" stroke="${dc}" stroke-width="1" opacity="0.5"/>` +
+  `<circle cx="19" cy="49" r="1.9" fill="#0f172a"/>` +
+  `<path d="M14 62 l3 5 3 -5 3 5 3 -5 3 5 3 -5 3 5 3 -5 3 5 3 -5 3 5" fill="#fff"/>` +
+  `<path d="M20 44 l3 -4 3 4 3 -4 3 4 3 -4 3 4 3 -4 3 4" fill="#f8fafc" opacity="0.9"/>` +
+  `<path d="M54 32 l15 6 M86 32 l-15 6" stroke="${dc}" stroke-width="3.6" stroke-linecap="round"/>` +
+  `<rect class="bymax-mouth" x="20" y="57" width="24" height="2.6" rx="1.3" fill="#0f172a" opacity="0.55"/>`;
+// Bracitos ridiculos de T-Rex (con dos garritas cada uno).
+const trexArms = (f, c2) => `<path d="M50 88 q-10 3 -12 11" fill="none" stroke="${f}" stroke-width="6" stroke-linecap="round"/>` +
+  `<path d="M38 99 l-4 2 M38 101 l-4 1.4" stroke="${c2}" stroke-width="2" stroke-linecap="round"/>` +
+  `<path d="M90 88 q10 3 12 11" fill="none" stroke="${f}" stroke-width="6" stroke-linecap="round"/>` +
+  `<path d="M102 99 l4 2 M102 101 l4 1.4" stroke="${c2}" stroke-width="2" stroke-linecap="round"/>`;
 // Trompa de elefante (baja del centro de la cara).
 const trunk = (c) => `<path d="M70 60 q-4 16 -10 22 q-3 5 1 8 q5 2 6 -4 q3 -13 9 -22 z" fill="${c}"/>` +
   `<path d="M62 84 h6" stroke="#0f172a" stroke-width="1" opacity="0.4"/>`;
@@ -155,10 +168,9 @@ const biped = (f, c2, cfg = {}) => `${shadow(40)}
   <ellipse cx="84" cy="122" rx="18" ry="20" fill="${c2}"/>
   <path d="M38 138 h30 a5 5 0 0 1 0 8 h-30 z" fill="${c2}"/>
   <path d="M72 138 h30 a5 5 0 0 1 0 8 h-30 z" fill="${c2}"/>
-  <ellipse cx="70" cy="100" rx="27" ry="34" fill="${f}" stroke="${c2}" stroke-width="1.5"/>
+ellipse cx="70" cy="100" rx="27" ry="34" fill="${f}" stroke="${c2}" stroke-width="1.5"/>
   ${belly(108, 15, 22)}${sheen}
-  <rect x="42" y="92" width="10" height="5" rx="2.5" fill="${c2}"/>
-  <rect x="88" y="92" width="10" height="5" rx="2.5" fill="${c2}"/>${chest(96)}`;
+  ${cfg.arms ? cfg.arms(f, c2) : `<rect x="42" y="92" width="10" height="5" rx="2.5" fill="${c2}"/><rect x="88" y="92" width="10" height="5" rx="2.5" fill="${c2}"/>`}${chest(96)}`;
 
 const heavy = (f, c2) => `${shadow(46)}
   <rect x="36" y="116" width="16" height="26" rx="6" fill="${c2}"/>
@@ -181,7 +193,7 @@ const CFG = {
   cat: { arch: seated, c1: "#fb923c", c2: "#c2410c", hc: "#fdba74", rx: 31, ry: 33, back: (c2) => tailCurl(c2), top: () => ears.pointy("#ea580c", "#fda4af"), mz: () => mzCat() },
   croc: { arch: reptile, c1: "#4ade80", c2: "#15803d", hc: "#22c55e", top: () => ears.ridges("#166534"), mz: () => mzSnout("#22c55e", "#15803d") },
   kangaroo: { arch: biped, c1: "#d98c5f", c2: "#7c2d12", hc: "#e8a87c", tl: tailThick("#7c2d12"), top: () => ears.tall("#a3502a", "#fbcfe8"), mz: () => mzSmall("#e8a87c") },
-  dino: { arch: biped, c1: "#2dd4bf", c2: "#0f766e", hc: "#5eead4", tl: tailSpiky("#0f766e"), top: () => ears.spikes("#0d5c56"), mz: () => mzSnout("#5eead4", "#0f766e") },
+  dino: { arch: biped, c1: "#2dd4bf", c2: "#0f766e", hc: "#5eead4", tl: tailSpiky("#0f766e"), arms: (f, c2) => trexArms(f, c2), top: () => ears.spikes("#0d5c56"), mz: () => mzTrex("#5eead4", "#0f766e") },
   lion: { arch: seated, c1: "#fbbf24", c2: "#b45309", hc: "#fcd34d", rx: 33, ry: 35, back: (c2) => tailTuft(c2, "#7c2d12"), behind: () => mane("#ea9a3e", "#c2410c"), top: () => ears.roundSm("#d97706", "#fca5a5"), mz: () => mzSmall("#fde68a") },
   elephant: { arch: heavy, c1: "#cbd5e1", c2: "#64748b", hc: "#e2e8f0", behind: () => sideEars("#94a3b8", "#cbd5e1"), mz: () => "", extra: () => trunk("#94a3b8") },
   giraffe: { arch: longneck, c1: "#fde047", c2: "#a16207", hc: "#fef08a", spot: "#b45309", top: () => ears.horns("#78350f"), mz: () => mzSmall("#fef9c3") },
