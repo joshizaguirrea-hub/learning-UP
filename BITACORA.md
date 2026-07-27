@@ -279,6 +279,33 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] GRAMMAR: STRUCTURED INPUT (Processing Instruction, VanPatten) (2026-07-27,
+      v0.229.0). Cierra el ultimo hueco pedagogico grande: Grammar tenia clase IA
+      (POP central) + caza-errores (produccion: corrige el fallo), pero faltaba el
+      PROCESAMIENTO del INPUT. Idea de VanPatten: el aprendiz ignora la gramatica y
+      adivina por vocabulario/orden -> hay que OBLIGARLO a procesar la FORMA para
+      captar el significado con actividades REFERENCIALES (respuesta correcta).
+      NUEVO src/core/grammar-si.js (PURO): detectTense (past/present/future/null;
+      orden: futuro will/going-to -> pasado explicito was/were/did -> presente
+      am/is/are/do/has -> irregulares inequivocos (set, excluye put/read/cut...) ->
+      -ed regular (excluye adjetivos tired/bored/excited...) -> -s presente),
+      detectPolarity (aff/neg via not/-n't/never/no...), hasTimeMarker (excluye
+      frases con yesterday/tomorrow/now... para forzar mirar el VERBO), grammarOf,
+      buildGrammarInput(unit) -> 2 familias: TIEMPO (¿cuando ocurre? solo si hay
+      >=2 tiempos distintos, si no es trivial y se descarta) y POLARIDAD (¿afirma o
+      niega? solo si hay afirmativas Y negativas), intercaladas, max 8. Fuente:
+      grammar.examples + grammar.mistakes.right + vocab.example. NUEVO
+      src/features/grammar-input.js openGrammarInput(unit,opts): FASE 1 input
+      enriquecido (regla+forma+ejemplos con voz, speakMono), FASE 2 actividades
+      referenciales (oye la frase + elige, feedback+explain), FASE 3 resultado
+      (completeLesson grammar + celebrate). Devuelve false si no hay items ->
+      fallback. Con AUTOSAVE (resume) integrado. Cableado en unit-content.js:
+      NUEVO grammarInputPop ('Input gram.', icono grid, violet) en la fila de
+      extras; si openGrammarInput devuelve false cae a openSkillClass grammar (IA).
+      NUEVO tests/grammar-si.test.mjs (9 pruebas). Validadores en verde. PENDIENTE
+      usuario: git pull en personal + probar en Chrome (POP 'Input gram.') y correr
+      node tests/grammar-si.test.mjs + node tests/resume.test.mjs.
+
 - [x] AUTOSAVE / "CONTINUAR DONDE QUEDASTE" en ejercicios con pasos (2026-07-27,
       v0.228.0). Problema (celular): un desliz accidental dispara el gesto "atras"
       del navegador -> cierra el ejercicio (POP) y su progreso, que vivia SOLO en
