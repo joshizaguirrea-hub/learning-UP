@@ -279,6 +279,21 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] T-REX REHECHO + FIX bug del cuerpo bipedo (2026-07-27, v0.234.0). Al usuario
+      no le gusto el T-Rex anterior (bracitos, cara/dientes y cuerpo). Se rehizo en
+      ui/mascot-bodies.js: NUEVO arquetipo dinoBody (cola gruesa detras + 2 patotas
+      con 3 garras c/u + torso) SOLO para el dino (el canguro se queda en biped).
+      NUEVA cara mzDino (bocota FRONTAL con dientes arriba/abajo + naricitas, ya no la
+      trompa lateral mzTrex que se elimino). trexArms rehechos: cortos, simetricos y
+      pegados con 3 garritas. dino CFG: arch dinoBody + arms trexArms + mz mzDino +
+      top ears.spikes, color teal intacto. Se elimino tailSpiky (sin uso). BUG REAL
+      arreglado: al <ellipse del cuerpo en biped le faltaba el '<' (roto en edicion
+      previa) -> el canguro Y el dino tenian el cuerpo sin renderizar; los validadores
+      NO revisan contenido de strings SVG, por eso paso. AVISO caché: dev-preview-
+      mascots.html ahora hace import dinamico con ?v=Date.now() porque el navegador
+      cachea los ES modules y el usuario 'veia igual' aunque el codigo cambiaba.
+      Validadores en verde. PENDIENTE usuario aprobar (timeouts).
+
 - [x] DINO = T-REX de verdad: bracitos ridiculos + cara de dinosaurio (2026-07-27,
       v0.233.0). El usuario pidio que el dino sea un tiranosaurio rex con brazos
       pequenos y cara de dinosaurio. Antes compartia el hocico generico mzSnout con
