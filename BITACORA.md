@@ -279,6 +279,22 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] PISTA/IA EN GRAMMAR + DICCIONARIO EN TODOS LOS CURSOS (2026-07-27, v0.237.0).
+      El usuario: (a) que la IA pueda ayudar cuando no sabes que responder (ej. en
+      grammar) con opcion de PISTA, y (b) habilitar el diccionario (que ya existe en
+      un POP flotante) en TODOS los cursos para no quedarse con la duda de una palabra.
+      SOLUCION: (1) features/dictionary.js: el FAB flotante y el panel subieron de
+      z-50 a z-[70] para quedar ENCIMA de los POPs de curso (que son z-50) -> asi el
+      diccionario ya es alcanzable desde CUALQUIER curso con un solo cambio (DRY).
+      Se exporto openDictionary(word) para abrirlo con una palabra precargada desde
+      otros modulos. (2) features/grammar-input.js: barra de ayuda SIEMPRE visible con
+      'Pista / preguntale a <profe>' (reusa openRobotHint: recuerda la regla + boton
+      'Preguntale a la IA' que abre bymax-chat) y 'Diccionario' (openDictionary). El
+      grammar object para la pista se arma de si.focus/si.form/si.examples. typeTip cae
+      en tip_default para tipos desconocidos (sin crash). Validadores en verde.
+      PENDIENTE usuario probar en navegador. NOTA: si quiere la misma barra de ayuda en
+      reading-lab/dictogloss/vocab-lab/listening, se replica igual (avisar).
+
 - [x] TEACHER DE SPEAKING (Jack) + segmento dinamico (2026-07-27, v0.236.0).
       Aclaracion del usuario: el 2do teacher (Jack) es el de SPEAKING = la "Llamada
       con Bymax" (voice-call.js), y el nombre del SEGMENTO debe cambiar segun el

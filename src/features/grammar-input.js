@@ -20,7 +20,8 @@ import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
-import { robotName } from "../ui/robot.js";
+import { robotName, openRobotHint } from "../ui/robot.js";
+import { openDictionary } from "./dictionary.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { buildGrammarInput, scorePct } from "../core/grammar-si.js";
@@ -45,6 +46,25 @@ export function openGrammarInput(unit, opts = {}) {
 
   const name = robotName();
   const rkey = makeResumeKey(userId, unit.id, "grammarinput");
+
+  // Objeto de gramatica para la PISTA (reusa el pop de ayuda del lesson-player:
+  // recuerda la regla + "Preguntale a la IA"). Asi el alumno nunca se queda sin
+  // saber que contestar.
+  const grammarHint = { title: si.focus, form: si.form, examples: si.examples || [], mistakes: [] };
+
+  // Barra de ayuda SIEMPRE visible: Pista (regla + IA) y Diccionario (palabra que
+  // no conoces). Disponible en las dos fases (input y actividades).
+  const helpRow = el("div", { class: "mt-3 flex flex-wrap gap-2" },
+    el("button", {
+      type: "button",
+      class: "text-xs inline-flex items-center gap-1 border border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-200 px-3 py-1.5 rounded-full hover:bg-fuchsia-500/20 focus:outline focus:outline-2 focus:outline-fuchsia-400",
+      onclick: () => openRobotHint(grammarHint, { type: "choose" }, "es-MX", unit.level),
+    }, "\uD83D\uDCA1 Pista / preg\u00fantale a " + name),
+    el("button", {
+      type: "button",
+      class: "text-xs inline-flex items-center gap-1 border border-indigo-500/40 bg-indigo-500/10 text-indigo-200 px-3 py-1.5 rounded-full hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400",
+      onclick: () => openDictionary(),
+    }, el("span", { class: "w-3.5 h-3.5", html: ICONS.book }), "Diccionario"));
 
   const stopAudio = () => { cancelCloud(); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
   const close = () => { stopAudio(); overlay.remove(); };
@@ -175,8 +195,7 @@ export function openGrammarInput(unit, opts = {}) {
         el("p", { class: "font-bold text-violet-300" }, "Input estructurado \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Procesa la forma para captar el significado \u00b7 nivel " + (unit.level || ""))),
       el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
-    progress, stage);
-
+    progress, helpRow, stage);
   const overlay = el("div", {
     class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
     onclick: (e) => { if (e.target === overlay) close(); },
