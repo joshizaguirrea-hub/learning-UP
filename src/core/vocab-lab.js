@@ -170,6 +170,27 @@ export function buildVocabLadder(unit, opts = {}) {
   return ordered.slice(0, max);
 }
 
+/**
+ * Lista de palabras a ENSENAR en la clase de presentacion (fase de input, antes
+ * de practicar). Devuelve objetos limpios {id, term, clean, translation, example}
+ * listos para la UI. Sin DOM ni red -> testeable.
+ * @param {object} unit - { vocab: [{id, term, translation, example}] }
+ * @param {object} [opts] - { max } cuantas palabras enseñar (def. 8)
+ */
+export function vocabTeachList(unit, opts = {}) {
+  const max = opts.max || 8;
+  return (unit?.vocab || [])
+    .filter((v) => v.term && v.translation)
+    .slice(0, max)
+    .map((v) => ({
+      id: v.id,
+      term: v.term,
+      clean: cleanTerm(v.term),
+      translation: v.translation,
+      example: v.example || "",
+    }));
+}
+
 /** Proporcion 0..1 -> porcentaje 0..100. */
 export function scorePct(correct, total) {
   return total ? Math.round((correct / total) * 100) : 0;

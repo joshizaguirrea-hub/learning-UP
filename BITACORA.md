@@ -279,6 +279,26 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] CLASE DE PRESENTACION DE VOCABULARIO con Bymax (2026-07-27, v0.227.0).
+      Peticion del usuario: antes de la practica, que Bymax DE LA CLASE de
+      vocabulario -> se presenta y va palabra por palabra dando ejemplos y
+      poniendo a REPETIR al alumno. Antes el POP Vocabulary saltaba directo a la
+      escalera (openVocabLab), sin fase de INPUT. NUEVO helper puro core/vocab-lab.js
+      vocabTeachList(unit,{max}) -> [{id,term,clean,translation,example}] (limpia
+      'to hire'->'hire', filtra sin term/translation; testeable). NUEVO
+      src/features/vocab-class.js openVocabClass(unit,opts): overlay estilo Vocab
+      Lab; INTRO donde Bymax se presenta (saludo en ingles con voz), luego una
+      tarjeta por palabra (palabra grande + traduccion + ejemplo, botones Escuchar/
+      Lento/Escuchar-ejemplo con speakMono, auto-dice la palabra al mostrar) y
+      REPETIR con mic (createDictation + coachView palabra-x-palabra reusado de
+      speaking.js; sin mic -> boton 'La dije en voz alta'). Al terminar la clase
+      -> encadena con openVocabLab(unit,opts) (input primero, output despues). El
+      Vocab Lab sigue siendo quien marca la leccion completa + alimenta el SRS.
+      unit-content.js: el POP Vocabulary abre openVocabClass (quitado import
+      huerfano de openVocabLab). NUEVAS pruebas en tests/vocab-lab.test.mjs (2 para
+      vocabTeachList -> 13 en total). Ambos validadores (check_js + check_imports)
+      en verde. PENDIENTE probar en navegador (Chrome, permiso de mic).
+
 - [x] FIX SPEAKING - faltaba el boton para HABLAR (2026-07-25, v0.226.0). El POP
       Speaking abre en modo 'escucha y repite' (repeat:true) y ese modo hacia
       return ANTES del codigo del microfono -> solo se veian 'Escuchar a Bymax',
