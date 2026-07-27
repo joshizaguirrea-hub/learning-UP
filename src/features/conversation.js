@@ -7,7 +7,7 @@
  * microfono, voz bilingue, memoria) vive en el motor -> DRY.
  */
 import { openBymaxSession } from "./bymax-session.js";
-import { robotName } from "../ui/robot.js";
+import { teacherName } from "../ui/robot.js";
 
 /**
  * Abre la conversacion libre con la IA para una unidad.
@@ -16,10 +16,11 @@ import { robotName } from "../ui/robot.js";
 export function openConversation(unit) {
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
-  const name = robotName();
+  const name = teacherName("chat");
   openBymaxSession({
     mode: "conversation",
     topic, level,
+    teacher: name,
     title: name + " \u00b7 " + topic,
     subtitle: "Practica hablando en ingles \u00b7 nivel " + level,
     ariaLabel: "Conversacion con " + name,
