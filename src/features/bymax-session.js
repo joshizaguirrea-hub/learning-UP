@@ -64,7 +64,7 @@ export function openBymaxSession(cfg) {
       : ready ? "Terminar y guardar \u2713"
       : "Completa la practica (faltan " + (finishGoal - userTurnCount()) + ")";
   }
-  const name = robotName();
+  const name = cfg?.teacher || robotName();
   const title = cfg?.title || (name + " \u00b7 " + topic);
   const subtitle = cfg?.subtitle || ("Practica en ingles \u00b7 nivel " + level);
   const placeholder = cfg?.placeholder ||

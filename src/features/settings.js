@@ -13,6 +13,7 @@ import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
   getTheme, setTheme, THEMES } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
+import { TEACHER_ROLES, getTeacherName, setTeacherName } from "../ui/robot-prefs.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -183,9 +184,38 @@ export function renderSettings(container, user) {
       onclick: () => openRobotSetup(() => renderSettings(container, user)),
     }, "Cambiar mi robot"));
 
+  // Nombres de los tres Teachers IA (uno por contexto). Fuente unica: robot-prefs.
+  const teacherInputs = TEACHER_ROLES.map((r) => {
+    const input = el("input", {
+      class: INPUT, type: "text", maxlength: "20",
+      value: getTeacherName(r.id),
+      placeholder: r.defaultName,
+      "aria-label": "Nombre del teacher de " + r.label,
+    });
+    return { role: r.id, input, meta: r };
+  });
+  const teacherMsg = el("div", { class: "text-sm mt-3" });
+  const teachersCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Tus profes IA"),
+    el("p", { class: "text-sm text-slate-400 mt-1" }, "Ponle el nombre que quieras a cada profe IA. Deja vacio para usar el nombre por defecto."),
+    ...teacherInputs.map(({ input, meta }) => el("div", { class: "mt-4" },
+      el("label", { class: "block text-sm font-semibold text-slate-200" }, meta.label),
+      el("p", { class: "text-xs text-slate-400 mb-1" }, meta.desc + " Por defecto: " + meta.defaultName),
+      input)),
+    el("button", {
+      class: "mt-4 " + PRIMARY,
+      onclick: () => {
+        teacherInputs.forEach(({ role, input }) => setTeacherName(role, input.value));
+        mount(teacherMsg, msg(true, "Nombres de tus profes guardados."));
+        announce("Nombres de tus profes guardados.");
+        renderSettings(container, user);
+      },
+    }, "Guardar nombres"),
+    teacherMsg);
+
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, robotCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
+    nameCard, robotCard, teachersCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
   focusMainHeading(container);
 }
 

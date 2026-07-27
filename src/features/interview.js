@@ -10,7 +10,7 @@
  * motor anti-spanglish, igual que la Llamada con Bymax. Soporta voz y texto.
  */
 import { el } from "../ui/dom.js";
-import { robotAvatar, robotName } from "../ui/robot.js";
+import { robotAvatar, teacherName } from "../ui/robot.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
@@ -30,7 +30,7 @@ const MAX_TURNS = 12; // memoria: ultimos turnos que viajan al Worker
  * @param {string} [opts.userId] - para guardar el Speaking Score
  */
 export function openInterview(opts = {}) {
-  const name = robotName();
+  const name = teacherName("interview");
   const level = opts.level || "B1";
   const userId = opts.userId || "anon";
 
@@ -47,7 +47,7 @@ export function openInterview(opts = {}) {
 
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh] min-h-0",
-    role: "dialog", "aria-label": "Entrevista de trabajo con Bymax", "aria-modal": "true",
+    role: "dialog", "aria-label": "Entrevista de trabajo con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
       el("div", { class: "w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-700 grid place-items-center text-white", html: ICONS.briefcase || ICONS.teachers || ICONS.chat }),

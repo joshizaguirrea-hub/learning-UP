@@ -279,6 +279,22 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] TEACHERS IA ESTANDARIZADOS por contexto + renombrables (2026-07-27, v0.235.0).
+      El usuario pidio estandarizar los nombres: Cursos=Teacher Horus, Hablar con la
+      IA=Teacher Jack, Entrevistas=Teacher Lucien, y que cada alumno pueda renombrar-
+      los en Ajustes. FUENTE UNICA DE VERDAD en ui/robot-prefs.js: TEACHER_ROLES
+      (course/chat/interview con defaultName + label + desc), getTeacherName(role),
+      setTeacherName(role,name). El teacher de CURSO sigue usando el objeto historico
+      linguapath.robot (nombre+avatar); chat+interview guardan su nombre en
+      linguapath.teachers. Default de curso cambio de 'Profe Horus' a 'Teacher Horus'.
+      ui/robot.js expone teacherName(role). Cableado por contexto: conversation.js usa
+      teacherName('chat') y lo pasa como cfg.teacher; bymax-session.js usa
+      cfg.teacher||robotName() para las burbujas/titulo; interview.js usa
+      teacherName('interview'). Clases/hints/panel/bymax-chat/class-tutor siguen con el
+      de curso (Horus). Ajustes (features/settings.js): nueva tarjeta 'Tus profes IA'
+      con 3 inputs (uno por rol, placeholder=default, vacio=vuelve al default) + boton
+      Guardar. Validadores en verde. PENDIENTE usuario probar en navegador.
+
 - [x] T-REX REHECHO + FIX bug del cuerpo bipedo (2026-07-27, v0.234.0). Al usuario
       no le gusto el T-Rex anterior (bracitos, cara/dientes y cuerpo). Se rehizo en
       ui/mascot-bodies.js: NUEVO arquetipo dinoBody (cola gruesa detras + 2 patotas

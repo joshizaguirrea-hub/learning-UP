@@ -11,15 +11,20 @@ import { ICONS } from "./icons.js";
 import { speakButton, speakRobot, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
-import { getRobot, setRobot } from "./robot-prefs.js";
+import { getRobot, setRobot, getTeacherName } from "./robot-prefs.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
 import { openBymaxChat } from "../features/bymax-chat.js";
 
-/** Nombre actual del robot. */
+/** Nombre actual del robot (teacher de CURSO). */
 export function robotName() {
   return getRobot().name;
+}
+
+/** Nombre del teacher para un contexto: "course" | "chat" | "interview". */
+export function teacherName(role) {
+  return getTeacherName(role);
 }
 
 // Frases cortas de reaccion (bilingues) para acierto/error.
@@ -251,8 +256,8 @@ export function openRobotSetup(onDone) {
   const close = () => overlay.remove();
 
   const nameInput = el("input", {
-    type: "text", maxlength: "20", value: current.name === "Profe Horus" ? "" : current.name,
-    placeholder: "Ej: Robi, Chispas, Max...",
+    type: "text", maxlength: "20", value: current.name === "Teacher Horus" ? "" : current.name,
+    placeholder: "Ej: Horus, Robi, Max...",
     class: "mt-2 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
   });
 
@@ -292,7 +297,7 @@ export function openRobotSetup(onDone) {
   const saveBtn = el("button", {
     class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
     onclick: () => {
-      const name = nameInput.value.trim() || "Profe Robo";
+      const name = nameInput.value.trim() || "Teacher Horus";
       setAccent(chosenAccent);
       const cfg = setRobot({ name, avatar: chosen });
       close();
