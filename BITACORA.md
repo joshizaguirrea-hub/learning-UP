@@ -279,6 +279,17 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] DINO = T-REX de verdad: bracitos ridiculos + cara de dinosaurio (2026-07-27,
+      v0.233.0). El usuario pidio que el dino sea un tiranosaurio rex con brazos
+      pequenos y cara de dinosaurio. Antes compartia el hocico generico mzSnout con
+      el cocodrilo. NUEVO en ui/mascot-bodies.js: mzTrex(lc,dc) = mandibulon largo con
+      DOBLE fila de dientes (abajo grandes + arriba) + ceno fiero (2 cejas anguladas)
+      + naricita; trexArms(f,c2) = dos bracitos cortos doblados con 2 garritas cada
+      uno. El arquetipo biped ahora acepta cfg.arms (si no viene, dibuja los bracitos
+      normales -> el canguro no cambia). dino CFG usa arms:trexArms + mz:mzTrex.
+      mzSnout se queda solo para el croc. Validadores en verde. PENDIENTE usuario:
+      aprobar visualmente.
+
 - [x] ROBO-ANIMALES RECONOCIBLES: hocico propio por animal (2026-07-27, v0.232.0).
       Segundo feedback del usuario (con captura): 'veo muchas iguales, no representan
       al animal'. Gato/hamster/capibara/oso eran casi identicos (mismo cuerpo redondo
