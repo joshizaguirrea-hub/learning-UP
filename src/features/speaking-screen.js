@@ -18,6 +18,7 @@ import { openVoiceCall } from "./voice-call.js";
 import { openMyLifeLesson } from "./my-life-lesson.js";
 import { openSpeaking } from "./speaking.js";
 import { openShadowing } from "./shadowing.js";
+import { teacherName } from "../ui/robot.js";
 
 export async function renderSpeaking(container, user) {
   const [profile, progressMap] = await Promise.all([
@@ -26,17 +27,18 @@ export async function renderSpeaking(container, user) {
   const level = profile?.cefr_level || "A1";
   const units = unitsForLevel(level);
   const pronUnit = currentUnit(units, progressMap);
+  const speakName = teacherName("speaking"); // profe de Speaking (default Teacher Jack)
 
   mount(container, el("div", { class: "max-w-5xl mx-auto space-y-4" },
     backHome("text-sky-300 hover:text-sky-200"),
     screenHeader({
       icon: ICONS.mic, grad: accentGrad("speak"),
-      title: "Habla con Bymax", subtitle: "Practica tu speaking en ingles",
+      title: "Habla con " + speakName, subtitle: "Practica tu speaking en ingles",
     }),
     el("section", { class: "grid grid-cols-2 gap-2 sm:gap-4" },
       hubCard({
         grad: accentGrad("speak"), icon: ICONS.mic,
-        title: "Llamada con Bymax", subtitle: "Manos libres: tu eliges el tema",
+        title: "Llamada con " + speakName, subtitle: "Manos libres: tu eliges el tema",
         onClick: () => openVoiceCall({ level, chooseTopic: true }),
       }),
       hubCard({

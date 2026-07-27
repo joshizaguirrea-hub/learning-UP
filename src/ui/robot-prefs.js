@@ -4,7 +4,7 @@
  * FUENTE UNICA DE VERDAD de los nombres de los profes IA. Hay TRES teachers,
  * uno por contexto, y cada alumno puede renombrarlos en Ajustes:
  *   - course    -> "Teacher Horus"  (da las clases y las pistas de los cursos)
- *   - chat      -> "Teacher Jack"   (companero para HABLAR con la IA)
+ *   - speaking  -> "Teacher Jack"   (Speaking: la "Llamada" por voz manos libres)
  *   - interview -> "Teacher Lucien" (reclutador del simulador de entrevistas)
  *
  * Se guarda en localStorage (offline, sin migracion de BD). El teacher de CURSO
@@ -12,12 +12,12 @@
  * compatibilidad; los otros dos viven en `linguapath.teachers`.
  */
 const KEY = "linguapath.robot";        // teacher de CURSO (nombre + avatar) - historico
-const TKEY = "linguapath.teachers";    // nombres de chat + interview
+const TKEY = "linguapath.teachers";    // nombres de speaking + interview
 
 /** Metadatos de los tres teachers (defaults + textos para Ajustes). */
 export const TEACHER_ROLES = [
   { id: "course", defaultName: "Teacher Horus", label: "Cursos", desc: "Te da las clases y las pistas." },
-  { id: "chat", defaultName: "Teacher Jack", label: "Hablar con la IA", desc: "Tu companero de conversacion." },
+  { id: "speaking", defaultName: "Teacher Jack", label: "Speaking (Llamada)", desc: "Tu profe para hablar por voz." },
   { id: "interview", defaultName: "Teacher Lucien", label: "Entrevistas", desc: "Tu reclutador de practica." },
 ];
 
@@ -47,7 +47,7 @@ export function isRobotConfigured() {
   return !!localStorage.getItem(KEY);
 }
 
-/** Lee el mapa {chat, interview} de nombres personalizados (chat/interview). */
+/** Lee el mapa {speaking, interview} de nombres personalizados. */
 function readTeachers() {
   try { return JSON.parse(localStorage.getItem(TKEY) || "{}"); } catch { return {}; }
 }

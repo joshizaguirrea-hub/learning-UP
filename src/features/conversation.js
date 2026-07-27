@@ -16,7 +16,7 @@ import { teacherName } from "../ui/robot.js";
 export function openConversation(unit) {
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
-  const name = teacherName("chat");
+  const name = teacherName("speaking");
   openBymaxSession({
     mode: "conversation",
     topic, level,

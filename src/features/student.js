@@ -21,6 +21,7 @@ import { accentGrad } from "../ui/theme.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { hubCard } from "../ui/hub-ui.js";
+import { teacherName } from "../ui/robot.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -105,7 +106,7 @@ function hubGrid(profile, pct) {
     }),
     hubCard({
       href: "#/hablar", grad: accentGrad("speak"), icon: ICONS.mic,
-      title: "Habla con Bymax", subtitle: "Speaking, llamada y pronunciacion",
+      title: "Habla con " + teacherName("speaking"), subtitle: "Speaking, llamada y pronunciacion",
     }),
     hubCard({
       href: "#/trabajo", grad: "from-emerald-500 via-teal-600 to-teal-800", icon: ICONS.briefcase,
