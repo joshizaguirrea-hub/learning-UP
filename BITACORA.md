@@ -279,6 +279,26 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] ROBO-ANIMALES RECONOCIBLES: hocico propio por animal (2026-07-27, v0.232.0).
+      Segundo feedback del usuario (con captura): 'veo muchas iguales, no representan
+      al animal'. Gato/hamster/capibara/oso eran casi identicos (mismo cuerpo redondo
+      + orejas redondas + cara robot IDENTICA en todos). Se le dieron TODAS las
+      opciones (A rediseno SVG, B emojis, C set open-source, D DiceBear, E imagenes
+      IA) y se ejecuto la A (recomendada). Cambios en ui/mascot-bodies.js: (1) la cara
+      robot se redujo a un VISOR de ojos cian compacto (visor()) para dejar sitio al
+      HOCICO. (2) NUEVOS hocicos mz*: mzCat (nariz triangular+bigotes), mzSnout
+      (trompa larga con dientes hacia la izq: croc/dino), mzRound (hocico redondo+
+      nariz: oso/capibara), mzSmall (leon/canguro/jirafa), mzCheeks (cachetes+
+      dientones: hamster), trunk (elefante). (3) PALETAS mas distintas: canguro
+      terracota, dino teal, oso marron oscuro, hamster crema (ya no chocan). (4)
+      PROPORCIONES via seated(f,c2,cfg) con rx/ry: hamster chico (27x28), oso grande
+      (37x36), capibara ancho (34x31). (5) orejas con interior (pointy/tall/roundHi/
+      roundSm), melena de 2 tonos + borla en cola del leon (tailTuft), manchas de
+      jirafa (spots). Se conservan ojos cian + antena + pecho LED + clases bymax-tail/
+      bymax-mouth. Gradientes con IDs unicos (_uid) intactos. Validadores en verde.
+      PENDIENTE usuario: aprobar visualmente (varios timeouts en el chat; se commiteo
+      por atacar la queja directa, reversible con git).
+
 - [x] MAS DETALLE EN ROBO-ANIMALES (manteniendo look robot) (2026-07-27, v0.231.0).
       El usuario mando una imagen 3D (cocodrilo lector con lentes) y pregunto si se
       podia. Se le explico: la app usa SVG plano (ligero/animable/offline), no 3D
