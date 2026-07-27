@@ -10,7 +10,7 @@
  * directo sin selector.
  */
 import { el } from "../ui/dom.js";
-import { robotAvatar, robotName } from "../ui/robot.js";
+import { robotAvatar, teacherName } from "../ui/robot.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
@@ -34,7 +34,7 @@ const TOPIC_IDEAS = [
  * @param {string} [opts.label] - palabra para el titulo (def "Llamada")
  */
 export function openVoiceCall(opts = {}) {
-  const name = robotName();
+  const name = teacherName("speaking");
   const level = opts.level || "B1";
   const fixedTopic = opts.title;
   const chooseTopic = opts.chooseTopic || !fixedTopic;
@@ -54,7 +54,7 @@ export function openVoiceCall(opts = {}) {
 
   const card = el("div", {
     class: "robot-pop max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-6 shadow-2xl text-center flex flex-col max-h-[90vh]",
-    role: "dialog", "aria-label": "Llamada con Bymax", "aria-modal": "true",
+    role: "dialog", "aria-label": callWord + " con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center justify-between" },
       heading,

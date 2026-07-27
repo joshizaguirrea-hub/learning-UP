@@ -279,6 +279,20 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] TEACHER DE SPEAKING (Jack) + segmento dinamico (2026-07-27, v0.236.0).
+      Aclaracion del usuario: el 2do teacher (Jack) es el de SPEAKING = la "Llamada
+      con Bymax" (voice-call.js), y el nombre del SEGMENTO debe cambiar segun el
+      nombre que se le de a ese profe. Antes la Llamada usaba el profe de CURSO
+      (Horus). Cambios: (1) robot-prefs.js rol 'chat' renombrado a 'speaking' (default
+      sigue 'Teacher Jack', label 'Speaking (Llamada)'). (2) voice-call.js usa
+      teacherName('speaking') y su titulo/aria-label ahora es callWord+' con '+name
+      (ya no 'Llamada con Bymax' fijo). (3) conversation.js usa teacherName('speaking').
+      (4) speaking-screen.js: header 'Habla con '+Jack y card 'Llamada con '+Jack
+      (dinamicos). (5) student.js: la puerta grande del inicio ahora 'Habla con '+Jack.
+      Ajustes muestra 'Speaking (Llamada)' automatico (itera TEACHER_ROLES). Sigue
+      Horus en cursos y Lucien en entrevistas. Validadores en verde. PENDIENTE usuario
+      probar en navegador.
+
 - [x] TEACHERS IA ESTANDARIZADOS por contexto + renombrables (2026-07-27, v0.235.0).
       El usuario pidio estandarizar los nombres: Cursos=Teacher Horus, Hablar con la
       IA=Teacher Jack, Entrevistas=Teacher Lucien, y que cada alumno pueda renombrar-
