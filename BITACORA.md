@@ -279,6 +279,23 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] MAS DETALLE EN ROBO-ANIMALES (manteniendo look robot) (2026-07-27, v0.231.0).
+      El usuario mando una imagen 3D (cocodrilo lector con lentes) y pregunto si se
+      podia. Se le explico: la app usa SVG plano (ligero/animable/offline), no 3D
+      fotorrealista (eso necesita PNG de IA, pesados y sin animacion). Se le mostro
+      un prototipo cartoon (dev-preview-croc.html) y ELIGIO 'solo mejorar detalle,
+      mantener robot' (conservar ojos cian + antena + pecho LED). Mejoras en
+      ui/mascot-bodies.js: GRADIENTES de cuerpo/cabeza con IDs UNICOS por render
+      (_uid, gradDefs) para que dos mascotas en la misma pagina no se pisen los
+      colores (los IDs de <defs> son globales); vientre/panza marcada (belly),
+      contorno (stroke c2) en los cuerpos, brillo superior en la cabeza, remaches en
+      patas, y detalle rosa en orejas. Refactor: se paso de build()/BODIES-funcion a
+      un mapa CFG declarativo {arch,c1,c2,hc,back,tl,behind,top,extra} + funcion
+      render(id) que aplica el gradiente. Se conservan las clases bymax-tail/
+      bymax-mouth (animaciones intactas). Preview dev-preview-croc.html gitignoreada
+      (prototipo cartoon por si algun dia se cambia de direccion). Validadores en
+      verde. PENDIENTE usuario: aprobar visualmente.
+
 - [x] SILUETAS PROPIAS POR ROBO-ANIMAL (cuerpo completo) (2026-07-27, v0.230.0).
       Feedback del usuario: gato, cocodrilo, capibara, oso... TODOS se veian igual
       (misma silueta). Causa: en ui/mascot-bodies.js la funcion body() era UNA sola
