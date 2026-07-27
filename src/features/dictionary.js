@@ -13,6 +13,17 @@ import { speakButton } from "../ui/speech.js";
 import { translate, looksEnglish } from "../services/dictionary.js";
 
 let mounted = false;
+let openDict = null; // referencia interna para abrir el panel desde otros modulos
+
+/**
+ * Abre el diccionario (montandolo si hace falta) opcionalmente con una palabra ya
+ * cargada. Sirve para el boton "Diccionario" DENTRO de cualquier curso/POP.
+ * @param {string} [word] palabra o frase a precargar
+ */
+export function openDictionary(word) {
+  mountDictionary();
+  if (openDict) openDict(word);
+}
 
 /** Monta el diccionario flotante una sola vez. */
 export function mountDictionary() {
@@ -79,7 +90,7 @@ export function mountDictionary() {
 
   const panel = el("div", {
     role: "dialog", "aria-label": "Diccionario", "aria-modal": "false",
-    class: "hidden fixed z-50 bottom-40 right-4 w-[min(92vw,22rem)] rounded-2xl bg-slate-900 " +
+    class: "hidden fixed z-[70] bottom-40 right-4 w-[min(92vw,22rem)] rounded-2xl bg-slate-900 " +
       "border border-slate-700 shadow-2xl p-4",
   },
     el("div", { class: "flex items-center justify-between gap-2" },
@@ -93,7 +104,7 @@ export function mountDictionary() {
     "aria-label": "Abrir diccionario",
     "aria-expanded": "false",
     title: "Diccionario",
-    class: "fixed z-50 bottom-24 right-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 " +
+    class: "fixed z-[70] bottom-24 right-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 " +
       "text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white overflow-hidden",
     onclick: () => togglePanel(!open),
@@ -112,6 +123,14 @@ export function mountDictionary() {
       if (input.value) doTranslate();
     }
   }
+
+  // Permite abrir el diccionario desde otros modulos (openDictionary), con una
+  // palabra precargada opcional (p.ej. desde un curso: "no conozco esta palabra").
+  openDict = (word) => {
+    const w = (word || "").trim();
+    if (w) { input.value = w; pair = looksEnglish(w) ? "en|es" : "es|en"; dirLabel.textContent = pair === "en|es" ? "EN -> ES" : "ES -> EN"; }
+    togglePanel(true);
+  };
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && open) togglePanel(false); });
 
