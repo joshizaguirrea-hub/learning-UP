@@ -213,6 +213,7 @@ function cazaErroresPop(unit, user) {
       title: robotName() + " \u00b7 Caza-errores",
       subtitle: unit.title + " \u00b7 gram\u00e1tica",
       drills,
+      resumeKey: "cazaerrores-" + unit.id + "-" + (user?.id || "anon"),
       onFinish: () => {
         if (grammarLesson?.id && user?.id) completeLesson(user.id, grammarLesson.id, 100).catch(() => {});
       },

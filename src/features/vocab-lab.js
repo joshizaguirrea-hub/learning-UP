@@ -21,6 +21,7 @@ import { lessonForSkill } from "./skill-class.js";
 import { buildVocabLadder, scorePct } from "../core/vocab-lab.js";
 import { ensureCards, getCardsByIds, saveCard } from "../services/srs.js";
 import { review, newCard } from "../core/srs.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const LEVEL_LABEL = { 1: "Reconocer", 2: "Con pista", 3: "Colocaci\u00f3n", 4: "Producci\u00f3n", 5: "Trampa auditiva" };
 const OK_CLS = "border-emerald-400 bg-emerald-500/25 text-emerald-100";
@@ -38,6 +39,7 @@ export function openVocabLab(unit, opts = {}) {
   const progressId = opts.progressId || lesson?.id;
   const deck = buildVocabLadder(unit).map((ex) => ex.options ? { ...ex, options: shuffle(ex.options) } : ex);
   const name = robotName();
+  const rkey = makeResumeKey(userId, unit.id, "vocablab");
   let idx = 0;
   let correct = 0;
   const byVocab = {}; // vocabId -> { right, total } para alimentar el SRS
@@ -76,6 +78,7 @@ export function openVocabLab(unit, opts = {}) {
 
   function render() {
     if (idx >= deck.length) return renderDone();
+    saveProgress(rkey, { idx, correct, byVocab }); // autosave: sobrevive a un desliz accidental
     progress.firstChild.style.width = Math.round((idx / deck.length) * 100) + "%";
     const ex = deck[idx];
     const header = el("p", { class: "text-xs uppercase tracking-wide text-slate-500" },
@@ -179,6 +182,7 @@ export function openVocabLab(unit, opts = {}) {
 
   // --- RESULTADO + alimentar SRS ---
   async function renderDone() {
+    clearProgress(rkey); // ejercicio terminado -> ya no hay que retomar
     progress.firstChild.style.width = "100%";
     const pct = scorePct(correct, deck.length);
     stage.replaceChildren(el("div", { class: "text-center py-6" },
@@ -237,6 +241,15 @@ export function openVocabLab(unit, opts = {}) {
   if (!deck.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad aun no tiene vocabulario para practicar."));
   } else {
-    render();
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < deck.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.idx + 1, total: deck.length, accent: "pink",
+        onResume: () => { idx = saved.idx; correct = saved.correct || 0; Object.assign(byVocab, saved.byVocab || {}); render(); },
+        onRestart: () => { clearProgress(rkey); render(); },
+      }));
+    } else {
+      render();
+    }
   }
 }

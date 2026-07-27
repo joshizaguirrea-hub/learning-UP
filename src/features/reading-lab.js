@@ -24,6 +24,7 @@ import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
 import { splitTexts, buildQuestions, scorePct } from "../core/reading-lab.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const PASS = 60; // % de comprension para aprobar
 
@@ -53,6 +54,7 @@ export function openReadingLab(unit, opts = {}) {
   const passages = splitTexts(lesson?.content?.reading);
   const questions = buildQuestions(lesson, unit).map((q) => ({ ...q, options: shuffle(q.options) }));
   const name = robotName();
+  const rkey = makeResumeKey(userId, unit.id, "readinglab");
 
   const stopAudio = () => { cancelCloud(); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
   const close = () => { stopAudio(); overlay.remove(); };
@@ -71,6 +73,7 @@ export function openReadingLab(unit, opts = {}) {
   }
 
   function renderRead() {
+    saveProgress(rkey, { phase: "read", qIdx: 0, correct: 0 });
     progress.firstChild.style.width = "0%";
     const glossary = (unit.vocab || []).slice(0, 12);
     stage.replaceChildren(
@@ -109,6 +112,7 @@ export function openReadingLab(unit, opts = {}) {
   // -------- FASE 2: preguntas con feedback --------
   function renderQuestion() {
     if (qIdx >= questions.length) return renderDone();
+    saveProgress(rkey, { phase: "q", qIdx, correct }); // autosave: retomas aunque salgas
     progress.firstChild.style.width = Math.round((qIdx / questions.length) * 100) + "%";
     const q = questions[qIdx];
     let selected = null;
@@ -169,6 +173,7 @@ export function openReadingLab(unit, opts = {}) {
 
   // -------- FASE 3: resultado --------
   function renderDone() {
+    clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const pct = scorePct(correct, questions.length);
     if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
@@ -212,6 +217,15 @@ export function openReadingLab(unit, opts = {}) {
   if (!passages.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad aun no tiene un texto de lectura."));
   } else {
-    renderRead();
+    const saved = loadProgress(rkey);
+    if (saved && saved.phase === "q" && saved.qIdx > 0 && saved.qIdx < questions.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.qIdx + 1, total: questions.length, accent: "indigo",
+        onResume: () => { qIdx = saved.qIdx; correct = saved.correct || 0; renderQuestion(); },
+        onRestart: () => { clearProgress(rkey); renderRead(); },
+      }));
+    } else {
+      renderRead();
+    }
   }
 }

@@ -24,6 +24,7 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
 import { recordSpeakingScore, scoreLabel } from "../core/speaking-score.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const SELF_OK = 0.85; // puntaje generoso cuando el alumno se autoevalua "la dije bien"
 
@@ -36,6 +37,7 @@ export function openShadowing(unit, opts = {}) {
   const { userId, progressId, onComplete } = opts;
   const phrases = phrasesOf(unit);
   const supported = speechSupported();
+  const rkey = makeResumeKey(userId, unit.id, "shadowing");
 
   let idx = 0;
   const scores = [];       // proporciones 0..1 por frase
@@ -63,6 +65,7 @@ export function openShadowing(unit, opts = {}) {
   function renderPhrase() {
     setProgress();
     if (idx >= phrases.length) return renderDone();
+    saveProgress(rkey, { idx, scores }); // autosave: sobrevive a un desliz
     const target = phrases[idx];
     const chunks = chunkPhrase(target);
     let recorded = false; // evita puntuar la misma frase dos veces
@@ -190,6 +193,7 @@ export function openShadowing(unit, opts = {}) {
   }
 
   function renderDone() {
+    clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const score100 = sessionScore(scores);
     const info = scoreLabel(score100);
@@ -240,6 +244,15 @@ export function openShadowing(unit, opts = {}) {
   if (!phrases.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad a\u00fan no tiene frases para practicar."));
   } else {
-    renderPhrase();
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < phrases.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.idx + 1, total: phrases.length, accent: "emerald",
+        onResume: () => { idx = saved.idx; scores.push(...(saved.scores || [])); renderPhrase(); },
+        onRestart: () => { clearProgress(rkey); renderPhrase(); },
+      }));
+    } else {
+      renderPhrase();
+    }
   }
 }

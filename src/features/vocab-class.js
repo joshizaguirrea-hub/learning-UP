@@ -23,6 +23,7 @@ import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { vocabTeachList } from "../core/vocab-lab.js";
 import { openVocabLab } from "./vocab-lab.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 /**
  * Abre la clase de presentacion de vocabulario de una unidad.
@@ -34,6 +35,7 @@ export function openVocabClass(unit, opts = {}) {
   const words = vocabTeachList(unit);
   const name = robotName();
   const supported = speechSupported();
+  const rkey = makeResumeKey(opts.userId, unit.id, "vocabclass");
   let idx = 0;               // -1 = intro; 0..n-1 = palabras
   let cancelSay = null;      // corta la voz en curso
   let dictation = null;
@@ -87,6 +89,7 @@ export function openVocabClass(unit, opts = {}) {
   // --- UNA PALABRA: escuchar + traduccion + ejemplo + repetir -----------
   function renderWord() {
     if (idx >= words.length) return renderDone();
+    saveProgress(rkey, { idx }); // autosave: si sales, retomas en esta palabra
     setProgress((idx) / words.length);
     const w = words[idx];
     let repeated = false;
@@ -169,6 +172,7 @@ export function openVocabClass(unit, opts = {}) {
 
   // --- FIN de la clase -> a practicar -----------------------------------
   function renderDone() {
+    clearProgress(rkey);
     setProgress(1);
     stage.replaceChildren(el("div", { class: "text-center py-6" },
       el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
@@ -208,6 +212,15 @@ export function openVocabClass(unit, opts = {}) {
   if (!words.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad a\u00fan no tiene vocabulario para ense\u00f1ar."));
   } else {
-    renderIntro();
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < words.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.idx + 1, total: words.length, accent: "pink",
+        onResume: () => { idx = saved.idx; renderWord(); },
+        onRestart: () => { clearProgress(rkey); idx = -1; renderIntro(); },
+      }));
+    } else {
+      renderIntro();
+    }
   }
 }
