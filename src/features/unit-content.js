@@ -22,7 +22,7 @@ import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openListening } from "./listening.js";
 import { openDictogloss } from "./dictogloss.js";
-import { openVocabLab } from "./vocab-lab.js";
+import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { genCazaErrores } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
@@ -158,7 +158,7 @@ function skillPop(key, unit, progressMap, user) {
       onComplete: () => check.classList.remove("hidden"),
     });
   } else if (key === "vocabulary") {
-    onclick = () => openVocabLab(unit, {
+    onclick = () => openVocabClass(unit, {
       userId: user?.id, progressId: lesson?.id,
       onComplete: () => check.classList.remove("hidden"),
     });

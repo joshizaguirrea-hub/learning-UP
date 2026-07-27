@@ -5,7 +5,7 @@
 import assert from "node:assert/strict";
 import {
   cleanTerm, acceptsFor, editDistance, firstHint, clozeExample,
-  confusable, buildVocabLadder, scorePct,
+  confusable, buildVocabLadder, scorePct, vocabTeachList,
 } from "../src/core/vocab-lab.js";
 
 let passed = 0;
@@ -84,6 +84,27 @@ test("cada 'choose' tiene exactamente una opcion correcta", () => {
 test("scorePct calcula porcentaje", () => {
   assert.equal(scorePct(3, 4), 75);
   assert.equal(scorePct(0, 0), 0);
+});
+
+test("vocabTeachList limpia terminos y respeta el maximo", () => {
+  const list = vocabTeachList(UNIT, { max: 3 });
+  assert.equal(list.length, 3);
+  assert.equal(list[0].clean, "hire");        // 'to hire' -> 'hire'
+  assert.equal(list[0].translation, "contratar");
+  assert.ok(list[0].example.includes("hire"));
+  // cada item trae los campos que la clase necesita
+  for (const w of list) {
+    assert.ok(w.id && w.term && w.clean && w.translation);
+  }
+});
+
+test("vocabTeachList descarta vocab sin term/translation y tolera unit vacio", () => {
+  const dirty = { vocab: [{ id: "x", term: "cat" }, { id: "y", translation: "solo" }, { id: "z", term: "dog", translation: "perro" }] };
+  const list = vocabTeachList(dirty);
+  assert.equal(list.length, 1);
+  assert.equal(list[0].clean, "dog");
+  assert.deepEqual(vocabTeachList({}), []);
+  assert.deepEqual(vocabTeachList(null), []);
 });
 
 console.log(`\n${passed} pruebas en verde.`);
