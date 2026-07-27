@@ -30,6 +30,7 @@ import { getCourseProgress } from "../services/course.js";
 import { line } from "../ui/robot-lines.js";
 import { openSpeaking } from "./speaking.js";
 import { openConversation } from "./conversation.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const CARD = "lesson-card step-enter max-w-2xl w-full mx-auto bg-slate-900/55 backdrop-blur-xl border border-white/10 " +
   "rounded-3xl p-6 sm:p-8 min-h-[68vh] flex flex-col";
@@ -58,14 +59,44 @@ export async function renderLessonPlayer(container, params, user) {
   const unitGrammar = unit.lessons.find((l) => l.grammar)?.grammar || null;
 
   const state = { idx: 0, correct: 0, checked: new Set(), streak: 0, bestStreak: 0, hearts: 3 };
+  const rkey = makeResumeKey(user?.id, lesson.id, "lesson");
+
+  // Restaura el estado guardado (tras un desliz accidental) desde localStorage.
+  function restoreState(s) {
+    state.idx = s.idx || 0;
+    state.correct = s.correct || 0;
+    state.checked = new Set(s.checked || []);
+    state.streak = s.streak || 0;
+    state.bestStreak = s.bestStreak || 0;
+    state.hearts = typeof s.hearts === "number" ? s.hearts : 3;
+  }
+
+  // Arranca: si hay progreso guardado a medias, ofrece continuar; si no, empieza.
+  function startFlow() {
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < steps.length) {
+      mount(container, el("div", { class: CARD }, resumeCard({
+        step: saved.idx + 1, total: steps.length, accent: "indigo",
+        onResume: () => { restoreState(saved); renderStep(); },
+        onRestart: () => { clearProgress(rkey); renderStep(); },
+      })));
+    } else {
+      renderStep();
+    }
+  }
 
   // Primera vez: que el alumno elija avatar y nombre para su robot.
-  renderStep();
-  if (!isRobotConfigured()) openRobotSetup(() => renderStep());
+  startFlow();
+  if (!isRobotConfigured()) openRobotSetup(() => startFlow());
 
   // -------------------------------------------------------------------------
   function renderStep() {
     if (state.idx >= steps.length) return renderComplete();
+    // autosave: guarda el paso actual + resultados por si sales sin querer.
+    saveProgress(rkey, {
+      idx: state.idx, correct: state.correct, checked: [...state.checked],
+      streak: state.streak, bestStreak: state.bestStreak, hearts: state.hearts,
+    });
     const step = steps[state.idx];
     const pct = Math.round((state.idx / steps.length) * 100);
 
@@ -185,6 +216,7 @@ export async function renderLessonPlayer(container, params, user) {
 
   // ---- Pantalla final: logros que aparecen uno tras otro ------------------
   async function renderComplete() {
+    clearProgress(rkey); // leccion terminada -> ya no hay que retomar
     const total = activityTotal;
     const ratio = total === 0 ? 1 : state.correct / total;
     const passed = ratio >= 0.6;

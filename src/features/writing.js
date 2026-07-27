@@ -128,6 +128,7 @@ export function openWriting(unit, opts = {}) {
       title: name + " \u00b7 " + type.label,
       subtitle: title + " \u00b7 nivel " + level,
       drills,
+      resumeKey: "writingdrill-" + type.label + "-" + unit.id + "-" + (opts.userId || "anon"),
       onFinish: markDone,
     });
   }

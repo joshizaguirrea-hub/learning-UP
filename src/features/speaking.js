@@ -18,6 +18,7 @@ import { ICONS } from "../ui/icons.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
@@ -90,6 +91,7 @@ export function openSpeaking(unit, opts = {}) {
   // y se AUTOEVALUA (sin depender del microfono, que falla mucho). El mic queda
   // como extra opcional. Es el modo por defecto del hub; forzado si no hay mic.
   const repeat = opts.repeat === true || !supported;
+  const rkey = makeResumeKey(userId, unit.id, "speaking");
   let idx = 0;
   let passed = 0;
   let dictation = null;
@@ -109,6 +111,7 @@ export function openSpeaking(unit, opts = {}) {
   function renderPhrase() {
     setProgress();
     if (idx >= phrases.length) return renderDone();
+    saveProgress(rkey, { idx, passed }); // autosave: sobrevive a un desliz
     const target = phrases[idx];
 
     const phraseText = el("p", { class: "text-xl font-semibold text-slate-100 leading-relaxed" }, target);
@@ -214,6 +217,7 @@ export function openSpeaking(unit, opts = {}) {
   }
 
   function renderDone() {
+    clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const pct = Math.round((passed / Math.max(1, phrases.length)) * 100);
     // GUARDA que se completo la practica de Speaking de la unidad (upsert
@@ -255,6 +259,15 @@ export function openSpeaking(unit, opts = {}) {
   if (!phrases.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad aun no tiene frases para practicar."));
   } else {
-    renderPhrase();
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < phrases.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.idx + 1, total: phrases.length, accent: "indigo",
+        onResume: () => { idx = saved.idx; passed = saved.passed || 0; renderPhrase(); },
+        onRestart: () => { clearProgress(rkey); renderPhrase(); },
+      }));
+    } else {
+      renderPhrase();
+    }
   }
 }

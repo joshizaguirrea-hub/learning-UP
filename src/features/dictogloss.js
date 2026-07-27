@@ -22,6 +22,7 @@ import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { dictationSentences, gradeDictation, sessionScore } from "../core/dictogloss.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const PASS = 0.6; // proporcion de palabras para aprobar una frase
 
@@ -36,6 +37,7 @@ export function openDictogloss(unit, opts = {}) {
   const progressId = opts.progressId || lesson?.id;
   const sentences = dictationSentences(unit);
   const name = robotName();
+  const rkey = makeResumeKey(userId, unit.id, "dictogloss");
   let idx = 0;
   const scores = [];
 
@@ -50,6 +52,7 @@ export function openDictogloss(unit, opts = {}) {
   function renderSentence() {
     setProgress();
     if (idx >= sentences.length) return renderDone();
+    saveProgress(rkey, { idx, scores }); // autosave por si sales sin querer
     const target = sentences[idx];
 
     const listenBtn = el("button", {
@@ -126,6 +129,7 @@ export function openDictogloss(unit, opts = {}) {
   }
 
   function renderDone() {
+    clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const pct = sessionScore(scores);
     if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
@@ -164,6 +168,15 @@ export function openDictogloss(unit, opts = {}) {
   if (!sentences.length) {
     stage.replaceChildren(el("p", { class: "text-slate-400 py-6 text-center" }, "Esta unidad aun no tiene frases para dictado."));
   } else {
-    renderSentence();
+    const saved = loadProgress(rkey);
+    if (saved && saved.idx > 0 && saved.idx < sentences.length) {
+      stage.replaceChildren(resumeCard({
+        step: saved.idx + 1, total: sentences.length, accent: "sky",
+        onResume: () => { idx = saved.idx; scores.push(...(saved.scores || [])); renderSentence(); },
+        onRestart: () => { clearProgress(rkey); renderSentence(); },
+      }));
+    } else {
+      renderSentence();
+    }
   }
 }

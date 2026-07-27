@@ -13,18 +13,21 @@ import { speak } from "../ui/speech.js";
 import { celebrate } from "../ui/celebrate.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { normAnswer } from "../data/writing-drills.js";
+import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const OK_CLS = "border-emerald-400 bg-emerald-500/25 text-emerald-100";
 const BAD_CLS = "border-rose-400 bg-rose-500/25 text-rose-100";
 
 /**
  * Abre un modal que corre una baraja de drills.
- * @param {object} cfg { title, subtitle, drills:[], onFinish? }
+ * @param {object} cfg { title, subtitle, drills:[], onFinish?, resumeKey? }
+ *   resumeKey: si viene, se autoguarda el avance y al reabrir ofrece continuar.
  */
-export function openDrillDeck({ title, subtitle, drills = [], onFinish } = {}) {
+export function openDrillDeck({ title, subtitle, drills = [], onFinish, resumeKey } = {}) {
   const deck = (drills || []).filter(Boolean);
   if (!deck.length) return;
 
+  const rkey = resumeKey ? makeResumeKey(resumeKey) : null;
   let idx = 0;
   let correct = 0;
   const close = () => overlay.remove();
@@ -39,6 +42,7 @@ export function openDrillDeck({ title, subtitle, drills = [], onFinish } = {}) {
   }
 
   function finishDeck() {
+    clearProgress(rkey);
     const score = Math.round((correct / deck.length) * 100);
     close();
     celebrate({
@@ -57,6 +61,7 @@ export function openDrillDeck({ title, subtitle, drills = [], onFinish } = {}) {
 
   function render() {
     setProgress();
+    saveProgress(rkey, { idx, correct }); // autosave (solo si hay resumeKey)
     const drill = deck[idx];
     const ctrl = renderDrill(drill, () => { correct += 1; }, next);
     body.replaceChildren(
@@ -84,7 +89,18 @@ export function openDrillDeck({ title, subtitle, drills = [], onFinish } = {}) {
   }, card);
 
   document.body.append(overlay);
-  render();
+  const saved = loadProgress(rkey);
+  if (saved && saved.idx > 0 && saved.idx < deck.length) {
+    setProgress();
+    body.replaceChildren(resumeCard({
+      step: saved.idx + 1, total: deck.length, accent: "indigo",
+      onResume: () => { idx = saved.idx; correct = saved.correct || 0; render(); },
+      onRestart: () => { clearProgress(rkey); render(); },
+    }));
+    footer.replaceChildren();
+  } else {
+    render();
+  }
 }
 
 // --- Renderizadores por tipo. Cada uno devuelve { node, footer:[...botones] } --

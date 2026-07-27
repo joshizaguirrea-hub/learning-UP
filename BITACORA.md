@@ -279,6 +279,35 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] AUTOSAVE / "CONTINUAR DONDE QUEDASTE" en ejercicios con pasos (2026-07-27,
+      v0.228.0). Problema (celular): un desliz accidental dispara el gesto "atras"
+      del navegador -> cierra el ejercicio (POP) y su progreso, que vivia SOLO en
+      memoria -> al reabrir arranca en paso 0. SOLUCION (la que eligio el usuario:
+      solo autosave, sin tocar el gesto atras): NUEVO core/resume.js (PURO, sin
+      DOM, solo localStorage via globalThis con guardas): makeResumeKey(...partes)
+      (sanea a-z0-9-_ y une con '.'), saveProgress(key,state) (con sello ts),
+      loadProgress(key) (null si no existe o si expiro >2 dias, y auto-limpia),
+      clearProgress(key). NUEVO ui/resume.js: re-exporta lo de core + resumeCard()
+      (tarjeta visual '¡Bienvenido de vuelta! Paso X de Y' con botones Continuar/
+      Empezar-de-nuevo, acentos indigo/pink/sky/emerald). Patron de integracion en
+      cada ejercicio: rkey=makeResumeKey(userId,unit.id,'nombre'); saveProgress al
+      entrar a cada paso (idx + resultados acumulados); clearProgress al terminar
+      (renderDone/finishDeck/renderComplete); al abrir, si hay saved con idx>0 se
+      muestra resumeCard (Continuar restaura estado y sigue; Empezar-de-nuevo
+      limpia). Los decks se generan en ORDEN DETERMINISTA (solo se barajan las
+      opciones internas) -> retomar por indice es EXACTO. Integrado en: vocab-lab
+      (idx,correct,byVocab), vocab-class (idx), dictogloss (idx,scores), reading-lab
+      (phase,qIdx,correct), shadowing (idx,scores), speaking (idx,passed),
+      writing-drills-player/caza-errores (idx,correct via nuevo cfg.resumeKey;
+      cableado en unit-content cazaErroresPop y en writing.js launchDrills), y
+      lesson-player (state completo: idx,correct,checked[],streak,bestStreak,hearts;
+      restoreState + startFlow que respeta el openRobotSetup). NUEVAS pruebas
+      tests/resume.test.mjs (6, con shim de localStorage). Ambos validadores en
+      verde. NOTA infra: se creo .venv (uv) con tree_sitter+tree_sitter_javascript
+      para correr los validadores en la laptop de trabajo (ignorado por git).
+      PENDIENTE usuario: git pull en personal + probar en celular (desliza a media
+      practica -> reabre -> debe salir '¿Continuar?').
+
 - [x] CLASE DE PRESENTACION DE VOCABULARIO con Bymax (2026-07-27, v0.227.0).
       Peticion del usuario: antes de la practica, que Bymax DE LA CLASE de
       vocabulario -> se presenta y va palabra por palabra dando ejemplos y
