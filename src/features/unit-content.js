@@ -24,6 +24,7 @@ import { openListening } from "./listening.js";
 import { openDictogloss } from "./dictogloss.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
+import { openGrammarInput } from "./grammar-input.js";
 import { genCazaErrores } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
 import { completeLesson } from "../services/course.js";
@@ -75,6 +76,7 @@ export function unitContent(unit, progressMap, user) {
     miniPop("Conversacion", "Charla libre", SKILL_META.speaking.icon, "from-emerald-500 to-teal-600", () => openConversation(unit)),
     miniPop("Videollamada", "Listening IA", SKILL_META.listening.icon, "from-sky-500 to-cyan-600", () => openListening(unit)),
     cazaErroresPop(unit, user),
+    grammarInputPop(unit, user),
     miniPop("Anti-errores", "Trampas es->en", ICONS.bulb, "from-rose-500 to-orange-600", () => openAntiErrors(unit.level)));
 
   // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.
@@ -220,6 +222,18 @@ function cazaErroresPop(unit, user) {
     });
   };
   return miniPop("Caza-errores", "Corrige el fallo", ICONS.bulb, "from-purple-500 to-indigo-600", onclick);
+}
+
+/** POP de INPUT ESTRUCTURADO (Structured Input, VanPatten): procesar la forma
+ * para captar el significado. Determinista (core/grammar-si.js). Si la unidad no
+ * da variedad suficiente, cae a la clase de gramática con Bymax. */
+function grammarInputPop(unit, user) {
+  const grammarLesson = lessonForSkill(unit, "grammar");
+  const onclick = () => {
+    const ok = openGrammarInput(unit, { userId: user?.id, progressId: grammarLesson?.id });
+    if (!ok) openSkillClass(unit, "grammar", { userId: user?.id });
+  };
+  return miniPop("Input gram.", "Procesa la forma", ICONS.grid, "from-violet-500 to-purple-600", onclick);
 }
 
 /** POP pequeno generico (cuento, conversacion, anti-errores). */
