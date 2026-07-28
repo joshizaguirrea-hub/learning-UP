@@ -107,6 +107,85 @@ function renderSection(s, data) {
   return sectionCard(s);
 }
 
+// --- Pestanas de detalle (solo feedback de habla) ---------------------------
+function findSection(sections, title) { return (sections || []).find((s) => s.title === title) || null; }
+function findArea(areas, key) { return (areas || []).find((a) => a.key === key) || null; }
+
+/** Chip con el puntaje de un area (para encabezar cada pestana). */
+function scorePill(area) {
+  if (!area) return null;
+  return el("div", { class: "inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm" },
+    el("span", { class: "text-slate-300" }, area.label),
+    el("span", { class: "font-extrabold text-slate-100" }, String(area.value)),
+    el("span", { class: "text-xs text-slate-500" }, "/100"));
+}
+
+function emptyState(msg) {
+  return el("p", { class: "mt-3 text-sm text-slate-400 rounded-xl border border-white/10 bg-white/5 p-4 text-center" }, msg);
+}
+
+/** ¿Es feedback de HABLA? (tiene gramatica + fluidez/pronunciacion). Close-reading no. */
+function isSpeakingFeedback(parsed) {
+  const keys = new Set((parsed.areas || []).map((a) => a.key));
+  return keys.has("GRAMATICA") && (keys.has("PRONUNCIACION") || keys.has("FLUIDEZ"));
+}
+
+function tabBtnCls(on) {
+  return "shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold transition " + (on
+    ? "bg-sky-500 text-white"
+    : "bg-white/5 text-slate-300 hover:bg-white/10");
+}
+
+/** Contenedor de pestanas accesible (tablist). tabs = [{label, node}]. */
+function tabsView(tabs) {
+  const panel = el("div", { class: "mt-3", role: "tabpanel" });
+  const btns = [];
+  const select = (i) => {
+    btns.forEach((b, k) => { b.setAttribute("aria-selected", k === i ? "true" : "false"); b.className = tabBtnCls(k === i); });
+    panel.replaceChildren(tabs[i].node);
+  };
+  tabs.forEach((t, i) => btns.push(el("button", { type: "button", role: "tab", onclick: () => select(i) }, t.label)));
+  const bar = el("div", { class: "mt-4 flex gap-1.5 overflow-x-auto pb-1", role: "tablist" }, ...btns);
+  select(0);
+  return el("div", {}, bar, panel);
+}
+
+/** Arma las 4 pestanas de detalle del feedback de habla. */
+function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas }) {
+  // Grammar: puntaje + errores puntuales (con boton practicar).
+  const grammar = el("div", {},
+    scorePill(findArea(areas, "GRAMATICA")),
+    errors.length ? errorsCard(errors) : emptyState("Sin errores gramaticales puntuales esta vez. \u00a1Muy bien!"));
+
+  // Vocabulary: usado + sugerido.
+  const vocab = el("div", {},
+    scorePill(findArea(areas, "VOCABULARIO")),
+    vocabUsed.length
+      ? vocabChipsCard({ title: "Vocabulario que usaste", icon: "\uD83D\uDFE2", tone: "emerald" }, vocabUsed, "emerald")
+      : emptyState("A\u00fan no detectamos vocabulario destacado. \u00a1Anim\u00e1te a usar palabras nuevas!"),
+    vocabSuggested.length
+      ? vocabChipsCard({ title: "Podr\u00edas subir de nivel con", icon: "\uD83D\uDD35", tone: "sky" }, vocabSuggested, "sky")
+      : null);
+
+  // Pronunciacion: puntaje + notas.
+  const pronNote = findSection(sections, "Notas de pronunciaci\u00f3n");
+  const pron = el("div", {},
+    scorePill(findArea(areas, "PRONUNCIACION")),
+    pronNote ? sectionCard(pronNote) : emptyState("Sin observaciones de pronunciaci\u00f3n esta vez."));
+
+  // Recomendaciones: lo bueno + a mejorar + frases modelo + consejo.
+  const recTitles = ["Lo que hiciste bien", "A mejorar", "Frases modelo", "Consejo final"];
+  const recCards = recTitles.map((t) => findSection(sections, t)).filter(Boolean).map(sectionCard);
+  const recs = el("div", {}, ...(recCards.length ? recCards : [emptyState("Sin recomendaciones adicionales.")]));
+
+  return tabsView([
+    { label: "Grammar", node: grammar },
+    { label: "Vocabulary", node: vocab },
+    { label: "Pronunciaci\u00f3n", node: pron },
+    { label: "Recomendaciones", node: recs },
+  ]);
+}
+
 /**
  * Construye el nodo del dashboard.
  * @param {object} p
@@ -149,6 +228,12 @@ export function buildFeedbackDashboard(p = {}) {
     ? sections.map((s) => renderSection(s, { errors, vocabUsed, vocabSuggested }))
     : [el("p", { class: "mt-4 text-sm text-slate-200 whitespace-pre-line" }, raw)];
 
+  // Feedback de habla -> pestanas (Grammar/Vocabulary/Pronunciacion/Recomendaciones).
+  // Close-reading (u otro) -> secciones planas como antes.
+  const detail = isSpeakingFeedback(parsed)
+    ? buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas })
+    : el("div", { class: "mt-2" }, ...sectionEls);
+
   const buttons = el("div", { class: "mt-6 flex gap-2" },
     onRetry ? el("button", {
       type: "button",
@@ -169,7 +254,7 @@ export function buildFeedbackDashboard(p = {}) {
       progress,
       statsLine),
     areasGrid,
-    el("div", { class: "mt-2" }, ...sectionEls),
+    detail,
     extra || null,
     buttons);
 }
