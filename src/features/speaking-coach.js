@@ -64,7 +64,7 @@ export async function renderSpeakingCoach(container, user) {
     progressChart(log),
     interviewHero(level, user.id),
     interviewHistory(log),
-    scenesSection(level),
+    scenesSection(level, user.id),
     pronunciationCard(level)));
   focusMainHeading(container);
 }
@@ -205,11 +205,11 @@ function interviewHero(level, userId) {
       el("span", { class: "ml-3 text-white/80 text-xs" }, "\u2b50 Lo que la gente busca")));
 }
 
-function scenesSection(level) {
+function scenesSection(level, userId) {
   const cards = SCENES.map((s) => el("button", {
     type: "button",
     class: PANEL + " p-4 text-left hover:bg-slate-800/70 transition hover:-translate-y-0.5 focus:outline focus:outline-2 focus:outline-sky-400",
-    onclick: () => openVoiceCall({ level, title: s.scene, mode: "roleplay", label: "Escena" }),
+    onclick: () => openVoiceCall({ level, title: s.scene, mode: "roleplay", label: "Escena", userId }),
   },
     el("div", { class: "text-3xl", "aria-hidden": "true" }, s.emoji),
     el("p", { class: "mt-2 font-semibold text-slate-100" }, s.title),

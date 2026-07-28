@@ -279,6 +279,35 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] DASHBOARD DE FEEDBACK DE LUJO (Speaking + Entrevista) (2026-07-27, v0.238.0).
+      El usuario: tras cada llamada de Speaking y cada entrevista con IA, recibir un
+      FEEDBACK tipo dashboard LUJOSO con las oportunidades, evaluando gramatica,
+      vocabulario, coherencia, fluidez, pronunciacion... todo lo que un profe evalua.
+      Antes: la Llamada NO daba feedback (solo colgaba) y la Entrevista solo tenia 3
+      areas (fluidez/contenido/estructura). AHORA: (1) NUEVO core/feedback.js (PURO,
+      con tests): buildFeedbackPrompt(kind) -> rubrica con token [FEEDBACK] + pide
+      PUNTAJE + GRAMATICA/VOCABULARIO/FLUIDEZ/COHERENCIA/PRONUNCIACION + secciones (lo
+      que hiciste bien / a mejorar / errores clave / frases modelo / consejo);
+      parseFeedback(text) -> {score, areas[], sections[]} tolerante a acentos y al
+      formato viejo (CONTENIDO/ESTRUCTURA). (2) NUEVO features/feedback-dashboard.js:
+      buildFeedbackDashboard() reutilizable -> anillo conico grande con glow, etiqueta
+      motivadora, comparativa vs sesion anterior, GRID de tarjetas por area con barras
+      de gradiente, secciones con icono+tono, bloque extra (cita) y botones. (3)
+      voice-call.js: acumula allTurns, boton 'Terminar y ver feedback' -> pide eval en
+      modo interview (el unico que evalua) con buildFeedbackPrompt('speaking'), guarda
+      Speaking Score y pinta el dashboard (retry = otra llamada). Recibe userId (pasado
+      desde speaking-screen y speaking-coach). (4) interview.js: refactor -> usa el
+      dashboard compartido y el parser rico (se borraron parseFeedback/areasBox/
+      sectionBody locales; ahora vienen de core). NUEVO tests/feedback.test.mjs (8
+      pruebas; parser validado en Python porque no hay Node en la laptop). Validadores
+      en verde. IMPORTANTE/DEPENDENCIA DEL WORKER: para que aparezcan las 5 areas
+      (gramatica/vocab/coherencia...) el Worker de Bymax debe HONRAR la rubrica que va
+      en el question tras [FEEDBACK]. Si el Worker usa su prompt viejo, saldra el
+      formato de 3 areas (el parser lo soporta, sin romperse) pero NO las nuevas. Si
+      pasa eso -> actualizar el prompt del Worker (AI Launchpad) para respetar el
+      formato pedido. PENDIENTE usuario: correr node tests/feedback.test.mjs y probar
+      en navegador una llamada y una entrevista.
+
 - [x] PISTA/IA EN GRAMMAR + DICCIONARIO EN TODOS LOS CURSOS (2026-07-27, v0.237.0).
       El usuario: (a) que la IA pueda ayudar cuando no sabes que responder (ej. en
       grammar) con opcion de PISTA, y (b) habilitar el diccionario (que ya existe en

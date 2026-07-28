@@ -18,8 +18,10 @@ import { speechSupported, createDictation } from "../ui/mic.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { ICONS } from "../ui/icons.js";
-import { recordSpeakingScore, scoreLabel } from "../core/speaking-score.js";
+import { recordSpeakingScore } from "../core/speaking-score.js";
 import { recordInterview, setNextAppointment, downloadIcs, lastImprovements } from "../core/interview-log.js";
+import { buildFeedbackPrompt, parseFeedback, sectionBody } from "../core/feedback.js";
+import { buildFeedbackDashboard } from "./feedback-dashboard.js";
 
 const MAX_TURNS = 12; // memoria: ultimos turnos que viajan al Worker
 
@@ -318,7 +320,7 @@ export function openInterview(opts = {}) {
       if (history.length < 2) { status.textContent = "Responde al menos una pregunta antes de terminar."; return; }
       dictation?.abort(); stopAudio(); paused = true;
       renderFeedbackLoading();
-      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: "[FEEDBACK]", history: history.slice(-MAX_TURNS) });
+      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: buildFeedbackPrompt("interview"), history: history.slice(-MAX_TURNS) });
       if (ended) return;
       if (error || !answer) { status.textContent = "\u26a0\ufe0f No pude generar el feedback: " + (error || ""); return; }
       renderFeedback(answer, cfg, () => startInterview(cfg));
@@ -342,60 +344,25 @@ export function openInterview(opts = {}) {
 
   // ---- Paso 3: feedback + Speaking Score + entrenador -----------------------
   function renderFeedback(raw, cfg, onRetry) {
-    const { score, areas, sections } = parseFeedback(raw);
-    const info = scoreLabel(score);
+    const parsed = parseFeedback(raw);
+    const { score, sections } = parsed;
     const saved = recordSpeakingScore(userId, score);
     const improvements = sectionBody(sections, "A mejorar");
     const tip = sectionBody(sections, "Consejo final");
     const { prev } = recordInterview(userId, {
-      role: cfg.role, company: cfg.company, seniority: cfg.seniority, score, areas, improvements, tip,
+      role: cfg.role, company: cfg.company, seniority: cfg.seniority,
+      score, areas: parsed.areas, improvements, tip,
     });
 
-    const ring = el("div", {
-      class: "relative w-28 h-28 rounded-full grid place-items-center mx-auto",
-      style: "background: conic-gradient(#38bdf8 " + (score * 3.6) + "deg, rgba(148,163,184,.2) 0deg)",
-    },
-      el("div", { class: "w-24 h-24 rounded-full bg-slate-900 grid place-items-center" },
-        el("div", { class: "text-center" },
-          el("p", { class: "text-3xl font-extrabold text-sky-300 leading-none" }, String(score)),
-          el("p", { class: "text-[10px] text-slate-400 uppercase tracking-wide mt-0.5" }, "de 100"))));
-
-    // Progreso vs entrevista anterior (rol de entrenador).
-    let progress = null;
-    if (prev && typeof prev.score === "number") {
-      const diff = score - prev.score;
-      const up = diff >= 0;
-      progress = el("p", { class: "mt-1 text-sm font-semibold " + (up ? "text-emerald-400" : "text-amber-400") },
-        (up ? "\u25b2 +" : "\u25bc ") + diff + " pts vs tu entrevista anterior (" + prev.score + ")");
-    }
-
-    const sectionEls = sections.map((s) =>
-      el("div", { class: "mt-3" },
-        el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold" }, s.title),
-        el("div", { class: "mt-1 text-sm text-slate-200 whitespace-pre-line" }, s.body)));
-
-    body.replaceChildren(el("div", { class: "overflow-y-auto pr-1", style: "max-height: 74vh" },
-      el("div", { class: "text-center" },
-        ring,
-        el("p", { class: "mt-3 text-lg font-bold text-slate-100" }, info.label),
-        progress,
-        el("p", { class: "text-xs text-slate-400 mt-1" },
-          "Speaking Score \u00b7 mejor: " + saved.best + " \u00b7 promedio: " + saved.avg + " \u00b7 sesiones: " + saved.sessions)),
-      el("div", { class: "mt-5 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
-        sectionEls.length ? sectionEls : el("p", { class: "text-sm text-slate-200 whitespace-pre-line" }, raw)),
-      areasBox(areas),
-      appointmentBox(cfg, improvements),
-      el("div", { class: "mt-5 flex gap-2" },
-        el("button", {
-          type: "button",
-          class: "flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-sky-300",
-          onclick: onRetry,
-        }, "Practicar otra vez"),
-        el("button", {
-          type: "button",
-          class: "px-4 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-white",
-          onclick: close,
-        }, "Cerrar"))));
+    body.replaceChildren(buildFeedbackDashboard({
+      parsed,
+      title: "Feedback de tu entrevista",
+      stats: { best: saved.best, avg: saved.avg, sessions: saved.sessions },
+      prev: (prev && typeof prev.score === "number") ? prev : null,
+      extra: appointmentBox(cfg, improvements),
+      onRetry,
+      onClose: close,
+    }));
   }
 
   /** Caja "Agenda tu proxima cita de entrenamiento" (coach personal). */
@@ -452,35 +419,6 @@ function paintPills(pills) {
   });
 }
 
-/** Devuelve el cuerpo de una seccion del feedback por su titulo (o ""). */
-function sectionBody(sections, title) {
-  const s = (sections || []).find((x) => x.title === title);
-  return s ? s.body : "";
-}
-
-/** Caja con las 3 barras de puntaje por area (o null si el Worker no las manda). */
-function areasBox(areas) {
-  if (!areas) return null;
-  const ROWS = [
-    { key: "fluidez", label: "Fluidez", grad: "from-sky-400 to-cyan-400" },
-    { key: "contenido", label: "Contenido", grad: "from-indigo-400 to-violet-400" },
-    { key: "estructura", label: "Estructura (STAR)", grad: "from-fuchsia-400 to-pink-400" },
-  ];
-  const bar = (r) => {
-    const v = Math.max(0, Math.min(100, Math.round(Number(areas[r.key]) || 0)));
-    return el("div", { class: "mt-2" },
-      el("div", { class: "flex justify-between text-xs mb-1" },
-        el("span", { class: "text-slate-300 font-medium" }, r.label),
-        el("span", { class: "text-slate-400" }, v + "/100")),
-      el("div", { class: "w-full bg-slate-700/60 rounded-full h-2", role: "progressbar",
-        "aria-valuenow": String(v), "aria-valuemin": "0", "aria-valuemax": "100", "aria-label": r.label },
-        el("div", { class: "bg-gradient-to-r " + r.grad + " h-2 rounded-full transition-all", style: "width:" + v + "%" })));
-  };
-  return el("div", { class: "mt-5 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
-    el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold" }, "Puntaje por \u00e1rea"),
-    ...ROWS.map(bar));
-}
-
 /** Formatea una fecha ISO a algo legible en espanol. */
 function fmtDate(iso) {
   try {
@@ -492,47 +430,4 @@ function fmtDate(iso) {
   }
 }
 
-/**
- * Interpreta el feedback del Worker. Extrae PUNTAJE y separa secciones por sus
- * encabezados conocidos. Si el formato cambia, cae a texto plano (score 60).
- * @returns {{score:number, areas:object|null, sections:Array<{title,body}>}}
- */
-function parseFeedback(text) {
-  const raw = String(text || "");
-  const m = raw.match(/PUNTAJE:\s*(\d{1,3})/i);
-  const score = m ? Math.max(0, Math.min(100, parseInt(m[1], 10))) : 60;
 
-  // Puntajes por area (si el Worker nuevo los incluye; si no, areas = null).
-  const areaVal = (label) => {
-    const mm = raw.match(new RegExp(label + ":\\s*(\\d{1,3})", "i"));
-    return mm ? Math.max(0, Math.min(100, parseInt(mm[1], 10))) : null;
-  };
-  const fluidez = areaVal("FLUIDEZ");
-  const contenido = areaVal("CONTENIDO");
-  const estructura = areaVal("ESTRUCTURA");
-  const areas = (fluidez != null || contenido != null || estructura != null)
-    ? { fluidez: fluidez ?? score, contenido: contenido ?? score, estructura: estructura ?? score }
-    : null;
-
-  const HEADERS = [
-    { key: "LO QUE HICISTE BIEN", title: "Lo que hiciste bien" },
-    { key: "A MEJORAR", title: "A mejorar" },
-    { key: "FRASES MODELO", title: "Frases modelo" },
-    { key: "CONSEJO FINAL", title: "Consejo final" },
-  ];
-  const sections = [];
-  for (let i = 0; i < HEADERS.length; i++) {
-    const start = raw.toUpperCase().indexOf(HEADERS[i].key);
-    if (start === -1) continue;
-    const from = start + HEADERS[i].key.length;
-    // Fin = inicio del siguiente header presente, o fin del texto.
-    let end = raw.length;
-    for (let j = i + 1; j < HEADERS.length; j++) {
-      const nx = raw.toUpperCase().indexOf(HEADERS[j].key, from);
-      if (nx !== -1) { end = nx; break; }
-    }
-    const bodyTxt = raw.slice(from, end).replace(/^[:\s]+/, "").trim();
-    if (bodyTxt) sections.push({ title: HEADERS[i].title, body: bodyTxt });
-  }
-  return { score, areas, sections };
-}

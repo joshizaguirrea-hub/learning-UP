@@ -39,7 +39,7 @@ export async function renderSpeaking(container, user) {
       hubCard({
         grad: accentGrad("speak"), icon: ICONS.mic,
         title: "Llamada con " + speakName, subtitle: "Manos libres: tu eliges el tema",
-        onClick: () => openVoiceCall({ level, chooseTopic: true }),
+        onClick: () => openVoiceCall({ level, chooseTopic: true, userId: user.id }),
       }),
       hubCard({
         grad: accentGrad("reward"), icon: ICONS.sound,
