@@ -35,10 +35,11 @@ function scoreRing(score) {
         el("p", { class: "text-[10px] text-slate-400 uppercase tracking-widest mt-1" }, "de 100"))));
 }
 
-/** Tarjeta de un area con su barra de progreso (accesible). */
-function areaCard(a) {
+/** Tarjeta de un area con su barra de progreso (accesible). Si recibe onClick,
+ * se vuelve un boton que navega a la pestana de esa categoria. */
+function areaCard(a, onClick) {
   const v = a.value;
-  return el("div", { class: "rounded-xl bg-slate-800/60 border border-slate-700 p-3" },
+  const inner = [
     el("div", { class: "flex items-baseline justify-between" },
       el("span", { class: "text-sm font-semibold text-slate-200" }, a.label),
       el("span", { class: "text-lg font-extrabold text-slate-100" }, v,
@@ -48,7 +49,18 @@ function areaCard(a) {
       role: "progressbar", "aria-valuenow": String(v), "aria-valuemin": "0", "aria-valuemax": "100",
       "aria-label": a.label + ": " + v + " de 100",
     },
-      el("div", { class: "bg-gradient-to-r " + a.grad + " h-2 rounded-full transition-all", style: "width:" + v + "%" })));
+      el("div", { class: "bg-gradient-to-r " + a.grad + " h-2 rounded-full transition-all", style: "width:" + v + "%" })),
+  ];
+  if (!onClick) {
+    return el("div", { class: "rounded-xl bg-slate-800/60 border border-slate-700 p-3" }, ...inner);
+  }
+  return el("button", {
+    type: "button",
+    class: "text-left w-full rounded-xl bg-slate-800/60 border border-slate-700 p-3 " +
+      "hover:bg-slate-700/60 hover:border-slate-500 transition focus:outline focus:outline-2 focus:outline-sky-400",
+    onclick: onClick,
+    "aria-label": "Ver detalle de " + a.label,
+  }, ...inner);
 }
 
 /** Seccion de texto con icono + tono. */
@@ -136,7 +148,8 @@ function tabBtnCls(on) {
     : "bg-white/5 text-slate-300 hover:bg-white/10");
 }
 
-/** Contenedor de pestanas accesible (tablist). tabs = [{label, node}]. */
+/** Contenedor de pestanas accesible (tablist). tabs = [{label, node}].
+ * Devuelve { node, select } para poder cambiar de pestana desde fuera. */
 function tabsView(tabs) {
   const panel = el("div", { class: "mt-3", role: "tabpanel" });
   const btns = [];
@@ -147,10 +160,11 @@ function tabsView(tabs) {
   tabs.forEach((t, i) => btns.push(el("button", { type: "button", role: "tab", onclick: () => select(i) }, t.label)));
   const bar = el("div", { class: "mt-4 flex gap-1.5 overflow-x-auto pb-1", role: "tablist" }, ...btns);
   select(0);
-  return el("div", {}, bar, panel);
+  return { node: el("div", {}, bar, panel), select };
 }
 
-/** Arma las 4 pestanas de detalle del feedback de habla. */
+/** Arma las pestanas de detalle del feedback de habla. La 1a (General) es la
+ * parrilla de areas: al tocar una tarjeta saltas a la pestana de esa categoria. */
 function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas }) {
   // Grammar: puntaje + errores puntuales (con boton practicar).
   const grammar = el("div", {},
@@ -178,12 +192,28 @@ function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas })
   const recCards = recTitles.map((t) => findSection(sections, t)).filter(Boolean).map(sectionCard);
   const recs = el("div", {}, ...(recCards.length ? recCards : [emptyState("Sin recomendaciones adicionales.")]));
 
-  return tabsView([
+  // General: la parrilla de areas (contenedor vacio; lo llenamos tras crear tabs
+  // para poder cablear el salto de pestana desde cada tarjeta).
+  const general = el("div", {});
+
+  const view = tabsView([
+    { label: "General", node: general },
     { label: "Grammar", node: grammar },
     { label: "Vocabulary", node: vocab },
     { label: "Pronunciaci\u00f3n", node: pron },
     { label: "Recomendaciones", node: recs },
   ]);
+
+  const keyToTab = { GRAMATICA: 1, VOCABULARIO: 2, PRONUNCIACION: 3 };
+  general.append(
+    el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2" }, "Evaluaci\u00f3n por \u00e1rea"),
+    el("div", { class: "grid grid-cols-2 gap-2" },
+      ...areas.map((a) => {
+        const ti = keyToTab[a.key];
+        return areaCard(a, ti ? () => view.select(ti) : null);
+      })));
+
+  return view.node;
 }
 
 /**
@@ -218,19 +248,22 @@ export function buildFeedbackDashboard(p = {}) {
       "Speaking Score \u00b7 mejor: " + stats.best + " \u00b7 promedio: " + stats.avg + " \u00b7 sesiones: " + stats.sessions)
     : null;
 
-  const areasGrid = areas.length
+  // En feedback de HABLA la parrilla de areas vive dentro de la pestana General;
+  // en close-reading (plano) se muestra arriba como antes.
+  const speaking = isSpeakingFeedback(parsed);
+  const areasGrid = (!speaking && areas.length)
     ? el("div", { class: "mt-5" },
       el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2" }, "Evaluaci\u00f3n por \u00e1rea"),
-      el("div", { class: "grid grid-cols-2 gap-2" }, ...areas.map(areaCard)))
+      el("div", { class: "grid grid-cols-2 gap-2" }, ...areas.map((a) => areaCard(a))))
     : null;
 
   const sectionEls = sections.length
     ? sections.map((s) => renderSection(s, { errors, vocabUsed, vocabSuggested }))
     : [el("p", { class: "mt-4 text-sm text-slate-200 whitespace-pre-line" }, raw)];
 
-  // Feedback de habla -> pestanas (Grammar/Vocabulary/Pronunciacion/Recomendaciones).
+  // Feedback de habla -> pestanas (General/Grammar/Vocabulary/Pronunciacion/Recomendaciones).
   // Close-reading (u otro) -> secciones planas como antes.
-  const detail = isSpeakingFeedback(parsed)
+  const detail = speaking
     ? buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas })
     : el("div", { class: "mt-2" }, ...sectionEls);
 

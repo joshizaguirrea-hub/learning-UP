@@ -300,6 +300,15 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] FEEDBACK: pestana GENERAL con areas clicables (2026-07-27, v0.250.0). La parrilla
+      'Evaluacion por area' YA NO va suelta arriba: es la 1a pestana (General, default).
+      Cada tarjeta de area es un boton (areaCard(a, onClick)) que SALTA a la pestana de su
+      categoria (Gramatica->Grammar, Vocabulario->Vocabulary, Pronunciacion->Pronunciacion;
+      Fluidez sin detalle -> no clicable). tabsView ahora devuelve {node, select} para poder
+      navegar desde fuera. buildFeedbackDashboard: en habla, areasGrid arriba = null (vive en
+      General); close-reading sigue con areas arriba + plano. preview actualizado (General
+      default + tarjetas clicables). SUITE verde, feedback.test 12 verde.
+
 - [x] FEEDBACK en PESTANAS (Grammar/Vocabulary/Pronunciacion/Recomendaciones) +
       notas de pronunciacion (2026-07-27, v0.249.0). feedback-dashboard.js: para feedback
       de HABLA (auto-deteccion isSpeakingFeedback: areas con GRAMATICA + FLUIDEZ/PRONUNCIACION)
