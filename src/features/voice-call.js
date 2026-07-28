@@ -45,6 +45,7 @@ export function openVoiceCall(opts = {}) {
   const chooseTopic = opts.chooseTopic || !fixedTopic;
   const mode = opts.mode || "conversation";
   const callWord = opts.label || "Llamada";
+  const targetLang = opts.targetLang || "en"; // idioma META (en | pt...)
 
   let ended = false;
   let dictation = null;
@@ -146,7 +147,7 @@ export function openVoiceCall(opts = {}) {
       if (ended) return;
       setState(name + " esta pensando...", false);
       bymaxEmote("think");
-      const { answer, error } = await askBymax({ mode, topic, level, question: q, history: history.slice(-MAX) });
+      const { answer, error } = await askBymax({ mode, topic, level, question: q, history: history.slice(-MAX), targetLang });
       if (ended) return;
       if (error || !answer) { setState("\u26a0\ufe0f " + (error || "No pude responder."), false); showRetry(); return; }
       history.push({ role: "user", text: q }, { role: "model", text: answer });
@@ -234,7 +235,7 @@ export function openVoiceCall(opts = {}) {
       ended = true; dictation?.abort(); stopAudio();
       renderFeedbackLoading();
       const { answer, error } = await askBymax({
-        mode: "interview", topic, level,
+        mode: "interview", topic, level, targetLang,
         question: buildFeedbackPrompt("speaking"),
         history: allTurns.slice(-24),
       });

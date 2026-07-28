@@ -132,22 +132,25 @@ export function openStory(unit) {
     iaBtn.disabled = true;
     status.textContent = "Creando el pr\u00f3ximo cap\u00edtulo para ti...";
     const keywords = (unit.vocab || []).slice(0, 8).map((v) => v.term).join(", ");
+    // Idioma META del cuento (para el LLM). Default ingles (retrocompatible).
+    const STORY_LANGS = { en: "INGLES", pt: "PORTUGUES (de Brasil, pt-BR)", fr: "FRANCES", it: "ITALIANO", ja: "JAPONES" };
+    const storyLangName = STORY_LANGS[unit.language || "en"] || "INGLES";
     const sagaCtx = saga
       ? `Es una SAGA llamada "${saga.title}". Premisa: ${saga.premise}. Personajes: ${saga.cast.join(", ")}. ` +
         `Este es el CAPITULO ${chapterNum}. ` +
         (recap ? `Anteriormente: ${recap} ` : "") +
         `Continua la historia con esos personajes y termina con un pequeno cliffhanger (gancho). `
       : "";
-    const question = `Escribe UNICAMENTE el siguiente capitulo (cuento corto) en INGLES sobre "${unit.title}", ` +
+    const question = `Escribe UNICAMENTE el siguiente capitulo (cuento corto) en ${storyLangName} sobre "${unit.title}", ` +
       `nivel ${unit.level || "B1"} (MCER). ${sagaCtx}Incluye de forma natural estas palabras: ${keywords}. ` +
       `La primera linea es un titulo corto; luego 2 o 3 parrafos. NO uses asteriscos ni markdown. ` +
-      `NO escribas introduccion, saludo, despedida ni traducciones en espanol: SOLO el capitulo en ingles ` +
+      `NO escribas introduccion, saludo, despedida ni traducciones en espanol: SOLO el capitulo en ${storyLangName} ` +
       `y, al final, una sola linea "MORAL: " con una frase breve en espanol.`;
     try {
       const res = await fetch(BYMAX_WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, mode: "story", topic: unit.title, level: unit.level }),
+        body: JSON.stringify({ question, mode: "story", topic: unit.title, level: unit.level, targetLang: unit.language || "en" }),
       });
       const data = await res.json().catch(() => ({}));
       if (data && data.answer) {

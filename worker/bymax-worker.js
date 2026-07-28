@@ -607,6 +607,11 @@ async function handleChat(request, env, origin) {
   const freeMode = isConversation || isClass || isStory || isInterview || isRoleplay;
   const topic = String(body.topic || "").slice(0, 700).trim();
   const level = String(body.level || "").slice(0, 4).trim();
+  // IDIOMA META (que aprende el alumno). Default ingles (retrocompatible).
+  // El alumno SIEMPRE es hispanohablante -> explicaciones/TIP en espanol.
+  const TARGET_NAMES = { en: "English", pt: "Brazilian Portuguese (pt-BR)", fr: "French", it: "Italian", ja: "Japanese" };
+  const targetLang = String(body.targetLang || "en").slice(0, 5).toLowerCase().split("-")[0];
+  const targetName = TARGET_NAMES[targetLang] || "English";
   // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea "chat".
   const isCv = topic === "cv";
   let systemText = isStory ? STORY_PROMPT
@@ -618,7 +623,9 @@ async function handleChat(request, env, origin) {
     : SYSTEM_PROMPT;
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
-      `\nNIVEL del alumno (MCER): ${level || "B1"}`;
+      `\nNIVEL del alumno (MCER): ${level || "B1"}` +
+      `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
+      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
   }
 
   // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
@@ -631,17 +638,17 @@ async function handleChat(request, env, origin) {
     const immersive = body.immersive !== false; // default: inmersion (sin Azure)
     systemText += immersive
       ? `\n\n[MODO INMERSION - VOZ]\n` +
-        `- HABLA (lo que se lee en voz alta) SIEMPRE en INGLES, a nivel del alumno.\n` +
+        `- HABLA (lo que se lee en voz alta) SIEMPRE en ${targetName}, a nivel del alumno.\n` +
         `- Toda explicacion, traduccion, correccion o ayuda en ESPANOL va en lineas\n` +
         `  aparte que empiezan EXACTAMENTE con "TIP:" (el alumno las LEE, no se hablan).\n` +
-        `- Ejemplo de formato:\n` +
-        `  Let's practice greetings. How do you say hello in the morning?\n` +
-        `  TIP: Recuerda que "Good morning" se usa antes del mediodia.\n` +
-        `- NUNCA metas espanol fuera de una linea "TIP:". El cuerpo hablado es 100% ingles.`
+        `- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
+        `  <frase de practica en ${targetName}>\n` +
+        `  TIP: <ayuda breve en espanol>\n` +
+        `- NUNCA metas espanol fuera de una linea "TIP:". El cuerpo hablado es 100% ${targetName}.`
       : `\n\n[MODO VOZ MULTILINGUE]\n` +
-        `- Puedes explicar en espanol y hacer practicar en ingles con naturalidad.\n` +
+        `- Puedes explicar en espanol y hacer practicar en ${targetName} con naturalidad.\n` +
         `- Si corriges, puedes usar una linea aparte que empiece con "TIP:".\n` +
-        `- Sigue la regla anti-Spanglish: no mezcles ambos idiomas dentro de una misma oracion.`;
+        `- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
   }
 
   // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`

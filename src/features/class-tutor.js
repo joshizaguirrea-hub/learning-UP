@@ -7,6 +7,7 @@
  */
 import { openBymaxSession } from "./bymax-session.js";
 import { robotName } from "../ui/robot.js";
+import { languageByCode } from "../data/languages.js";
 
 /**
  * Abre la clase 1 a 1 con Bymax para una unidad.
@@ -16,12 +17,14 @@ export function openClass(unit) {
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
   const name = robotName();
+  const langName = languageByCode(unit?.language || "en")?.name || "Ingles";
   openBymaxSession({
     mode: "class",
     topic, level,
+    targetLang: unit?.language || "en", // Bymax ensena en el idioma de la unidad
     title: name + " \u00b7 Clase 1 a 1",
     subtitle: topic + " \u00b7 nivel " + level + " \u00b7 te corrige al instante",
-    placeholder: "Responde en ingles (o escribe/di 'ayuda')...",
+    placeholder: "Responde en " + langName + " (o escribe/di 'ayuda')...",
     ariaLabel: "Clase 1 a 1 con " + name,
   });
 }

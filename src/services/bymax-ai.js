@@ -11,13 +11,13 @@ import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
  * @param {object} p - { mode, topic, level, question, history }
  * @returns {Promise<{answer?:string, error?:string}>}
  */
-export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [] } = {}) {
+export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en" } = {}) {
   if (!bymaxAiEnabled) return { error: "Bymax IA no esta configurado (Worker inactivo)." };
   try {
     const res = await fetch(BYMAX_WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mode, topic, level, question, history }),
+      body: JSON.stringify({ mode, topic, level, question, history, targetLang }),
     });
     const data = await res.json().catch(() => ({}));
     if (data && data.answer) return { answer: data.answer };
