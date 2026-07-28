@@ -24,7 +24,7 @@ const TONE = {
 };
 
 /** Anillo conico con el puntaje global (0-100). */
-function scoreRing(score) {
+export function scoreRing(score) {
   return el("div", {
     class: "relative w-32 h-32 rounded-full grid place-items-center mx-auto shadow-[0_0_30px_-8px_rgba(56,189,248,.6)]",
     style: "background: conic-gradient(#38bdf8 " + (score * 3.6) + "deg, rgba(148,163,184,.18) 0deg)",
@@ -37,7 +37,7 @@ function scoreRing(score) {
 
 /** Tarjeta de un area con su barra de progreso (accesible). Si recibe onClick,
  * se vuelve un boton que navega a la pestana de esa categoria. */
-function areaCard(a, onClick) {
+export function areaCard(a, onClick) {
   const v = a.value;
   const inner = [
     el("div", { class: "flex items-baseline justify-between" },
@@ -64,7 +64,7 @@ function areaCard(a, onClick) {
 }
 
 /** Seccion de texto con icono + tono. */
-function sectionCard(s) {
+export function sectionCard(s) {
   const tone = TONE[s.tone] || TONE.indigo;
   return el("div", { class: "mt-3 rounded-xl border p-3 " + tone },
     el("p", { class: "text-sm font-bold flex items-center gap-2" },
@@ -75,7 +75,7 @@ function sectionCard(s) {
 /** Tarjeta de ERRORES estructurada: cada error tachado -> correcto (+ por que) y
  * un boton para PRACTICARLOS. Es lo que pidio el usuario: errores puntuales de
  * las oraciones que uso, y practicar desde ellos. */
-function errorsCard(errors) {
+export function errorsCard(errors) {
   const rows = errors.map((e) => el("div", { class: "rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5" },
     el("p", { class: "text-sm" },
       el("span", { class: "text-rose-400 line-through" }, e.wrong),
@@ -95,7 +95,7 @@ function errorsCard(errors) {
 }
 
 /** Tarjeta de VOCABULARIO en chips (palabra + significado como subtexto). */
-function vocabChipsCard(s, items, tone) {
+export function vocabChipsCard(s, items, tone) {
   const chipTone = tone === "emerald"
     ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-100"
     : "bg-sky-500/15 border-sky-500/30 text-sky-100";
@@ -124,7 +124,7 @@ function findSection(sections, title) { return (sections || []).find((s) => s.ti
 function findArea(areas, key) { return (areas || []).find((a) => a.key === key) || null; }
 
 /** Chip con el puntaje de un area (para encabezar cada pestana). */
-function scorePill(area) {
+export function scorePill(area) {
   if (!area) return null;
   return el("div", { class: "inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm" },
     el("span", { class: "text-slate-300" }, area.label),
@@ -132,7 +132,7 @@ function scorePill(area) {
     el("span", { class: "text-xs text-slate-500" }, "/100"));
 }
 
-function emptyState(msg) {
+export function emptyState(msg) {
   return el("p", { class: "mt-3 text-sm text-slate-400 rounded-xl border border-white/10 bg-white/5 p-4 text-center" }, msg);
 }
 
@@ -150,7 +150,7 @@ function tabBtnCls(on) {
 
 /** Contenedor de pestanas accesible (tablist). tabs = [{label, node}].
  * Devuelve { node, select } para poder cambiar de pestana desde fuera. */
-function tabsView(tabs) {
+export function tabsView(tabs) {
   const panel = el("div", { class: "mt-3", role: "tabpanel" });
   const btns = [];
   const select = (i) => {

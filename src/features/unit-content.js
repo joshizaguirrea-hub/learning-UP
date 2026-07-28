@@ -23,6 +23,9 @@ import { openDictogloss } from "./dictogloss.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openGrammarInput } from "./grammar-input.js";
+import { getCourseProgress } from "../services/course.js";
+import { openUnitReport } from "./unit-report.js";
+import { isUnitComplete } from "../core/unit-report.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -47,6 +50,15 @@ const ORBIT_RADIUS = 46; // radio en % del contenedor cuadrado
 export function unitContent(unit, progressMap, user) {
   const name = robotName();
 
+  // Al terminar la ULTIMA competencia de la unidad, abrimos el boletin solo.
+  // Releemos el progreso fresco (para tener las notas recien guardadas).
+  let reportShown = false;
+  const onSkillDone = async () => {
+    if (reportShown || !user?.id) return;
+    const fresh = await getCourseProgress(user.id);
+    if (isUnitComplete(unit, fresh)) { reportShown = true; openUnitReport(unit, fresh, user); }
+  };
+
   // POP central: Bymax (robo-perrito) mirando al alumno. El circulo lo CUBRE por
   // completo (glow suave detras). Al tocarlo, abre la clase 1 a 1.
   const center = el("button", {
@@ -62,7 +74,7 @@ export function unitContent(unit, progressMap, user) {
   // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
   // calculada con seno/coseno). Contenedor cuadrado y responsivo.
   const ring = orbit(center,
-    ORBIT.map((key) => skillPop(key, unit, progressMap, user)));
+    ORBIT.map((key) => skillPop(key, unit, progressMap, user, onSkillDone)));
 
   // Fila de POPs pequenos: examen, cuento, videollamada (llamada EN VIVO con la
   // IA, manos libres) e input gramatical.
@@ -89,7 +101,28 @@ export function unitContent(unit, progressMap, user) {
       "Toca a " + name + " para que te guie, o elige una competencia y te la explica al momento."),
     ring,
     extras,
+    boletinButton(unit, progressMap, user),
     bonusPops);
+}
+
+/** Boton "Boletin de la unidad": abre el resumen/calificacion. Relee el progreso
+ * fresco para reflejar lo recien hecho. Se resalta si la unidad ya esta completa. */
+function boletinButton(unit, progressMap, user) {
+  const complete = isUnitComplete(unit, progressMap);
+  const open = async () => {
+    const fresh = user?.id ? await getCourseProgress(user.id) : progressMap;
+    openUnitReport(unit, fresh, user);
+  };
+  return el("button", {
+    type: "button",
+    class: "mt-5 w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 " +
+      (complete ? "bg-gradient-to-r from-emerald-500 to-teal-600" : "bg-gradient-to-r from-sky-600 to-indigo-700"),
+    onclick: open,
+    "aria-label": "Ver el boletin de resultados de la unidad",
+  },
+    el("span", { class: "w-6 h-6", html: ICONS.star }),
+    el("span", {}, complete ? "Ver bolet\u00edn de la unidad" : "Bolet\u00edn de la unidad (resumen)"));
 }
 
 /**
@@ -136,32 +169,32 @@ function skillPop(key, unit, progressMap, user) {
   if (key === "reading") {
     onclick = () => openReadingLab(unit, {
       userId: user?.id, progressId: lesson?.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   } else if (key === "speaking") {
     onclick = () => openSpeaking(unit, {
       repeat: true, userId: user?.id, progressId: "speaking-" + unit.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   } else if (key === "listening") {
     onclick = () => openDictogloss(unit, {
       userId: user?.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   } else if (key === "writing") {
     onclick = () => openWriting(unit, {
       userId: user?.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   } else if (key === "vocabulary") {
     onclick = () => openVocabClass(unit, {
       userId: user?.id, progressId: lesson?.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   } else {
     onclick = () => openSkillClass(unit, key, {
       userId: user?.id,
-      onComplete: () => check.classList.remove("hidden"),
+      onComplete: markDone,
     });
   }
 

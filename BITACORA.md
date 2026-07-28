@@ -300,6 +300,25 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] BOLETIN DE LA UNIDAD (resumen/calificacion por competencia) (2026-07-27, v0.251.0).
+      Al terminar una unidad, dashboard con CALIFICACION global + desglose por competencia
+      (grammar/vocabulary/reading/listening/writing/speaking) senalando en que fallaste y
+      que repasar. NUEVO core/unit-report.js (puro): buildUnitReport(unit, progressMap) ->
+      {score, passed, skills:[{id,value,weak,pending,lessons}], grammarMistakes, weakSkills,
+      doneLessons,totalLessons} (excluye examen kind==test; speaking sintetico speaking-<id>;
+      PASS=70) + isUnitComplete. tests/unit-report.test.mjs 7 verde. NUEVO ui/unit-report-store.js
+      (localStorage learningup:unit-report:<userId> -> mapa por unidad con score/passed/weakSkills
+      = 'vamos guardando el feedback+calificacion'). NUEVO features/unit-report.js openUnitReport:
+      boletin en pestanas (General con tarjetas de competencia clicables + una pestana por
+      competencia + Recomendaciones), REUSA piezas del dashboard (feedback-dashboard.js ahora
+      exporta scoreRing/areaCard/scorePill/sectionCard/vocabChipsCard/errorsCard/emptyState/
+      tabsView) -> DRY. Grammar debil -> errorsCard con 'Practicar mis errores' (usa
+      grammar.mistakes de la unidad); Vocabulary debil -> chips de unit.vocab para repasar.
+      unit-content.js: skillPop dispara onSkillDone; al completar la ULTIMA competencia se
+      auto-abre el boletin (relee progreso fresco con getCourseProgress); + boton 'Boletin de
+      la unidad' siempre visible (verde si completa). preview/unit-report-preview.html. SUITE
+      25 archivos verde.
+
 - [x] FEEDBACK: pestana GENERAL con areas clicables (2026-07-27, v0.250.0). La parrilla
       'Evaluacion por area' YA NO va suelta arriba: es la 1a pestana (General, default).
       Cada tarjeta de area es un boton (areaCard(a, onClick)) que SALTA a la pestana de su
