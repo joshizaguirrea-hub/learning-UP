@@ -254,6 +254,32 @@ export function robotChirp() {
  * @param {function} [onDone] callback al terminar todo
  * @returns {function} cancel() para detener la secuencia
  */
+/**
+ * Parte un texto en trozos "decibles" por limites NATURALES para que el TTS suene
+ * fluido: primero por oracion (.!?...), y si un trozo sigue largo, por coma/;/:.
+ * Fusiona trozos muy cortos con el anterior. Pura y testeable.
+ * @param {string} text  @param {number} [maxChars=160]
+ * @returns {string[]}
+ */
+export function splitForSpeech(text, maxChars = 160) {
+  const t = String(text || "").trim();
+  if (!t) return [];
+  // 1) por oracion, conservando el signo final.
+  const bySentence = t.split(/(?<=[.!?\u2026])\s+/).map((s) => s.trim()).filter(Boolean);
+  // 2) trozos aun largos -> subdividir por coma / punto y coma / dos puntos.
+  const byComma = [];
+  for (const p of bySentence) {
+    if (p.length <= maxChars) { byComma.push(p); continue; }
+    let buf = "";
+    for (const seg of p.split(/(?<=[,;:])\s+/)) {
+      if (buf && (buf + " " + seg).length > maxChars) { byComma.push(buf.trim()); buf = seg; }
+      else buf = buf ? buf + " " + seg : seg;
+    }
+    if (buf.trim()) byComma.push(buf.trim());
+  }
+  return byComma.length ? byComma : [t];
+}
+
 let seqGen = 0; // generacion global: solo la ultima secuencia sigue viva
 export function speakSequence(items, onEach, onDone) {
   cancelCloud();
@@ -276,17 +302,43 @@ export function speakSequence(items, onEach, onDone) {
     const def = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en";
     const subs = toBilingualItems(it.text, def);
     if (!subs.length) return [];
-    return subs.map((s, k) => ({
-      text: s.text,
-      lang: s.lang,
-      opts: { ...s.opts, ...(it.opts || {}) },
-      gapAfter: k === subs.length - 1 ? it.gapAfter : 90,
-    }));
+    // FLUIDEZ: cada trozo de idioma se parte ademas por ORACIONES. Asi la primera
+    // frase suena casi al instante (audio corto) mientras el resto se pre-descarga
+    // en paralelo, y las pausas caen en limites naturales (punto, coma larga).
+    const out = [];
+    subs.forEach((s, k) => {
+      const isLastSub = k === subs.length - 1;
+      const pieces = splitForSpeech(s.text);
+      pieces.forEach((piece, j) => {
+        const isLastPiece = j === pieces.length - 1;
+        out.push({
+          text: piece,
+          lang: s.lang,
+          opts: { ...s.opts, ...(it.opts || {}) },
+          // Fin del item -> respeta su gapAfter; entre oraciones -> pausa natural.
+          gapAfter: (isLastSub && isLastPiece) ? it.gapAfter : (isLastSub ? 260 : 90),
+        });
+      });
+    });
+    return out;
   });
 
   let i = 0;
   let cancelled = false;
   const dead = () => cancelled || myGen !== seqGen;
+
+  // FLUIDEZ: pre-descarga TODOS los trozos en PARALELO (warm cache) con la MISMA
+  // clave (idioma + opts, incluido el rate 0.9 del ingles) que usa la
+  // reproduccion. Asi el primer sonido sale rapido y NO hay pausas de red entre
+  // trozos -> feedback/tips/dialogos en espanol fluidos, sin "guindarse".
+  if (cloudTtsEnabled()) {
+    for (const it of expanded) {
+      const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
+      const baseOpts = it.opts || {};
+      const preOpts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
+      prefetchCloud(isEs ? fixSpanishAccents(String(it.text)) : String(it.text), isEs ? "es" : "en", preOpts);
+    }
+  }
 
   function advance(it) {
     i++;
