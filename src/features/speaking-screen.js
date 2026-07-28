@@ -7,7 +7,8 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
-import { unitsForLevel } from "../data/units/index.js";
+import { unitsForCourse } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { accentGrad } from "../ui/theme.js";
@@ -25,7 +26,7 @@ export async function renderSpeaking(container, user) {
     getStudentProfile(user.id), getCourseProgress(user.id),
   ]);
   const level = profile?.cefr_level || "A1";
-  const units = unitsForLevel(level);
+  const units = unitsForCourse(level, currentLangCode());
   const pronUnit = currentUnit(units, progressMap);
   const speakName = teacherName("speaking"); // profe de Speaking (default Teacher Jack)
 

@@ -12,6 +12,7 @@
 import { el } from "../ui/dom.js";
 import { normalize } from "../core/activities.js";
 import { speak, speakMono, speakRobot } from "../ui/speech.js";
+import { unitTts, unitMic } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
@@ -85,6 +86,7 @@ export function phrasesOf(unit) {
  */
 export function openSpeaking(unit, opts = {}) {
   const { userId, progressId, onComplete } = opts;
+  const tts = unitTts(unit); const mic = unitMic(unit); // idioma META de la unidad
   const phrases = phrasesOf(unit);
   const supported = speechSupported();
   // Modo "escucha y repite": Bymax dice la frase, el alumno la repite a su ritmo
@@ -122,7 +124,7 @@ export function openSpeaking(unit, opts = {}) {
       type: "button",
       class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
         "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-fuchsia-400 transition",
-      onclick: () => speakMono(target, "en"),
+      onclick: () => speakMono(target, tts),
     }, el("span", { class: "w-5 h-5", html: ICONS.sound }), repeat ? "Escuchar a Bymax" : "Escuchar modelo");
 
     const micBtn = el("button", {
@@ -155,7 +157,7 @@ export function openSpeaking(unit, opts = {}) {
         if ("speechSynthesis" in window) window.speechSynthesis.cancel();
         heardBox.textContent = "";
         dictation = createDictation({
-          lang: "en-US",
+          lang: mic,
           onStart: () => { listening = true; micBtn.classList.add("animate-pulse"); micBtn.lastChild.textContent = "Escuchando... (toca para parar)"; },
           onInterim: (t) => { heardBox.textContent = "\u201c" + t + "\u201d"; },
           onEnd: (finalText) => {
@@ -200,7 +202,7 @@ export function openSpeaking(unit, opts = {}) {
         el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, ...(supported ? [micBtn] : []), goodBtn),
         supported ? null : el("p", { class: "mt-3 text-xs text-amber-300" }, "Tu navegador no soporta microfono. Usa Chrome (PC/Android) para que te califique al hablar."),
         fb, nextBtn);
-      setTimeout(() => speakMono(target, "en"), 300);
+      setTimeout(() => speakMono(target, tts), 300);
       return;
     }
 
@@ -213,7 +215,7 @@ export function openSpeaking(unit, opts = {}) {
       supported ? null : el("p", { class: "mt-3 text-sm text-amber-300" }, "Tu navegador no soporta microfono. Usa Chrome en PC o Android para practicar hablando. Igual puedes escuchar el modelo y repetir en voz alta."),
       fb, nextBtn);
     // Escucha el modelo automaticamente al mostrar la frase.
-    setTimeout(() => speakMono(target, "en"), 300);
+    setTimeout(() => speakMono(target, tts), 300);
   }
 
   function renderDone() {

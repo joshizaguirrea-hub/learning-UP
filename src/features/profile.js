@@ -10,6 +10,7 @@ import { getCourseProgress } from "../services/course.js";
 import { srsStats, getCardsByIds } from "../services/srs.js";
 import { getActiveDays } from "../services/activity.js";
 import { unitsForLevel } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { BONUS_DECKS } from "../data/bonus-decks.js";
 import { CEFR_INFO, nextLevel } from "../data/cefr.js";
@@ -41,7 +42,7 @@ const [progress, srs] = await Promise.all([
     srsStats(user.id),
   ]);
   const completed = new Set(Object.entries(progress).filter(([, v]) => v.status === "done").map(([k]) => k));
-  const units = unitsForLevel(level);
+  const units = unitsForLevel(level, currentLangCode());
   const lessonsDone = completed.size;
   const unitsCompleted = units.filter((u) => u.lessons.every((l) => completed.has(l.id))).length;
 

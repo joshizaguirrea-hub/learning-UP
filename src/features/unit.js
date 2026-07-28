@@ -29,7 +29,7 @@ export async function renderUnit(container, params, user) {
   // Guardia del sendero: no dejar entrar a una unidad bloqueada (aunque peguen la URL).
   const completed = new Set(
     Object.entries(progress).filter(([, v]) => v?.status === "done").map(([id]) => id));
-  if (!isUnitUnlocked(unit.id, unitsForLevel(unit.level), completed)) {
+  if (!isUnitUnlocked(unit.id, unitsForLevel(unit.level, unit.language), completed)) {
     mount(container, el("div", { class: "max-w-lg mx-auto " + CARD + " text-center" },
       el("div", { class: "w-14 h-14 mx-auto rounded-full bg-slate-800 grid place-items-center text-slate-400", html: ICONS.lock }),
       el("h1", { class: "text-xl font-bold mt-4" }, "Unidad bloqueada"),

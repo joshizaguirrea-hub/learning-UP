@@ -311,7 +311,7 @@ export async function renderLessonPlayer(container, params, user) {
         const prog = await getCourseProgress(user.id);
         const doneIds = new Set(Object.entries(prog)
           .filter(([, v]) => v.status === "done").map(([id]) => id));
-        grand = unitsForLevel(unit.level).every((u) => u.lessons.every((l) => doneIds.has(l.id)));
+        grand = unitsForLevel(unit.level, unit.language).every((u) => u.lessons.every((l) => doneIds.has(l.id)));
       } catch (e) { console.error("[leccion] no pude verificar fin de nivel:", e); }
       setTimeout(() => celebrate({
         title: grand ? "\u00a1Nivel " + unit.level + " completado!" : "\u00a1Unidad completada!",

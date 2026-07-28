@@ -85,9 +85,29 @@ export const UNITS = [
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
 ].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
 
-/** Unidades disponibles para un nivel MCER dado. */
-export function unitsForLevel(level) {
-  return UNITS.filter((u) => u.level === level);
+/** Unidades disponibles para un nivel MCER dado y un idioma META (default 'en'). */
+export function unitsForLevel(level, lang = "en") {
+  return UNITS.filter((u) => u.level === level && (u.language || "en") === lang);
+}
+
+/** Todas las unidades de un idioma META (default 'en'). */
+export function unitsForLanguage(lang = "en") {
+  return UNITS.filter((u) => (u.language || "en") === lang);
+}
+
+const LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+/** Unidades para mostrar en el curso: las del nivel pedido en ese idioma; si ese
+ * idioma aun no tiene contenido en ese nivel, cae al PRIMER nivel con unidades
+ * (evita pantallas vacias al estrenar un idioma, p.ej. portugues solo con A1). */
+export function unitsForCourse(level, lang = "en") {
+  const exact = unitsForLevel(level, lang);
+  if (exact.length) return exact;
+  for (const lv of LEVEL_ORDER) {
+    const u = unitsForLevel(lv, lang);
+    if (u.length) return u;
+  }
+  return [];
 }
 
 /** Busca una unidad por su id. */

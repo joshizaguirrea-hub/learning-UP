@@ -86,7 +86,7 @@ export function openStory(unit) {
 
   // --- Serializacion (telenovela): saga del nivel + numero de capitulo -------
   const saga = sagaForLevel(unit.level);
-  const lvlUnits = unitsForLevel(unit.level);
+  const lvlUnits = unitsForLevel(unit.level, unit.language);
   const chapterNum = Math.max(1, lvlUnits.findIndex((u) => u.id === unit.id) + 1);
   const recap = getRecap(unit.level);
 

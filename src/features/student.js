@@ -11,7 +11,8 @@
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
 import { srsStats } from "../services/srs.js";
-import { unitsForLevel } from "../data/units/index.js";
+import { unitsForCourse } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import { ICONS } from "../ui/icons.js";
 import { totalXp, xpToNext } from "../core/gamification.js";
@@ -43,7 +44,7 @@ export async function renderStudent(container, user) {
   const completed = new Set(
     Object.entries(progressMap).filter(([, v]) => v.status === "done").map(([id]) => id));
   const lessonsDone = completed.size;
-  const units = unitsForLevel(profile.cefr_level);
+  const units = unitsForCourse(profile.cefr_level, currentLangCode());
   const xp = totalXp(lessonsDone, srs.learned);
   const pct = coursePct(units, completed);
 

@@ -37,7 +37,16 @@ const ROBOTIC = /microsoft (sabina|raul|helena|laura|pablo) desktop|espeak|pico/
 const REGION_PREF = {
   es: ["es-mx", "es-us", "es-la", "es-419", "es-es", "es-co", "es-ar", "es"],
   en: ["en-us", "en-gb", "en-au", "en-ca", "en"],
+  pt: ["pt-br", "pt-pt", "pt"],
 };
+
+/** Base de idioma que entiende el motor: es | pt | en (default). */
+function baseOf(lang) {
+  const l = String(lang).toLowerCase();
+  if (l.startsWith("es")) return "es";
+  if (l.startsWith("pt")) return "pt";
+  return "en";
+}
 
 /**
  * Elige la MEJOR voz para el idioma (ej. 'es-MX'), priorizando fuerte las voces
@@ -143,13 +152,13 @@ export function speakBilingual(text, onDone) {
 // Fallback del navegador para UNA frase en UN idioma (sin re-segmentar).
 function browserSayOne(text, base, opts = {}, done) {
   if (!isSpeechSupported()) { setTimeout(() => done?.(), 200); return; }
-  const isEs = base === "es";
   // Candado anti-Spanglish: el navegador NUNCA lee espanol (solo nube). Si es
   // espanol y no hay nube, mejor silencio que voz gringa.
-  if (isEs) { setTimeout(() => done?.(), 80); return; }
-  const v = pickVoice("en-US");
+  if (base === "es") { setTimeout(() => done?.(), 80); return; }
+  const region = base === "pt" ? "pt-BR" : "en-US";
+  const v = pickVoice(region);
   const u = new SpeechSynthesisUtterance(String(text));
-  u.lang = v?.lang || "en-US";
+  u.lang = v?.lang || region;
   u.rate = opts.rate ?? 0.95;
   u.pitch = opts.pitch ?? 1.05;
   if (v) u.voice = v;
@@ -170,11 +179,12 @@ export function speakMono(text, lang = "en", opts = {}) {
   if (!text) return () => {};
   cancelCloud();
   if (isSpeechSupported()) window.speechSynthesis.cancel();
-  const isEs = String(lang).toLowerCase().startsWith("es");
-  const base = isEs ? "es" : "en";
+  const base = baseOf(lang);
+  const isEs = base === "es";
   if (cloudTtsEnabled()) {
     const t = isEs ? fixSpanishAccents(String(text)) : String(text);
     const o = (!isEs && opts.rate == null) ? { ...opts, rate: 0.95 } : opts;
+    // es NO cae al navegador (evita voz gringa); en/pt si (voz local del idioma).
     cloudSpeak(t, base, o).catch(() => { if (!isEs) browserSayOne(text, base, o); });
     return () => cancelCloud();
   }

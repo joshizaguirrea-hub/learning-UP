@@ -9,6 +9,7 @@
 import { el } from "../ui/dom.js";
 import { normalize } from "../core/activities.js";
 import { speakMono, speakRobot } from "../ui/speech.js";
+import { unitTts, unitMic } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
@@ -42,6 +43,7 @@ function sentencesFrom(text) {
  */
 export function openReadingAloud(unit, opts = {}) {
   const { userId, progressId, onComplete } = opts;
+  const tts = unitTts(unit); const mic = unitMic(unit); // idioma META de la unidad
   const lesson = lessonForSkill(unit, "reading");
   const sentences = sentencesFrom(lesson?.content?.reading);
   const supported = speechSupported();
@@ -82,7 +84,7 @@ export function openReadingAloud(unit, opts = {}) {
       type: "button",
       class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
         "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-emerald-400 transition",
-      onclick: () => speakMono(target, "en"),
+      onclick: () => speakMono(target, tts),
     }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Escuchar modelo");
 
     const micBtn = el("button", {
@@ -115,7 +117,7 @@ export function openReadingAloud(unit, opts = {}) {
         el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missed.slice(0, 6).map((m) => el("button", {
           type: "button",
           class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
-          onclick: () => speakMono(m.word, "en", { rate: 0.6 }),
+          onclick: () => speakMono(m.word, tts, { rate: 0.6 }),
         }, m.word)))) : null;
 
       fb.replaceChildren(el("div", {
@@ -141,7 +143,7 @@ export function openReadingAloud(unit, opts = {}) {
         stopAudio(); // que el mic no capture la voz de Bymax
         heardBox.textContent = "";
         dictation = createDictation({
-          lang: "en-US",
+          lang: mic,
           onStart: () => { listening = true; micBtn.classList.add("animate-pulse"); micBtn.lastChild.textContent = "Escuchando... (toca para parar)"; },
           onInterim: (t) => { heardBox.textContent = "\u201c" + t + "\u201d"; },
           onEnd: (finalText) => {
@@ -162,7 +164,7 @@ export function openReadingAloud(unit, opts = {}) {
       supported ? null : el("p", { class: "mt-3 text-sm text-amber-300" }, "Tu navegador no soporta microfono. Usa Chrome en PC o Android. Igual puedes escuchar el modelo y leer en voz alta."),
       fb, nextBtn);
     // Escucha el modelo automaticamente al mostrar la frase.
-    setTimeout(() => speakMono(target, "en"), 300);
+    setTimeout(() => speakMono(target, tts), 300);
   }
 
   function renderDone() {
