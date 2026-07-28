@@ -157,9 +157,13 @@ function orbit(center, pops) {
  * POP de una competencia. Al tocarlo, Bymax da la clase de esa skill con el
  * contenido real de la unidad. Muestra un check si ya se completo su leccion.
  */
-function skillPop(key, unit, progressMap, user) {
+function skillPop(key, unit, progressMap, user, onSkillDone) {
   const meta = SKILL_META[key];
   const lesson = lessonForSkill(unit, key);
+  // Al terminar una competencia: dispara el enganche de la unidad (revisa si ya
+  // esta completa para abrir el boletin). Sin esto, el clic moria con
+  // ReferenceError (markDone no existia) -> "no pasa nada".
+  const markDone = () => onSkillDone?.();
   // Check: speaking usa id sintetico; el resto, el id de su leccion.
   const doneId = key === "speaking" ? "speaking-" + unit.id : lesson?.id;
   const done = doneId ? progressMap[doneId]?.status === "done" : false;
