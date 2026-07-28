@@ -300,6 +300,22 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] NORMALIZACION pt-BR: quitar portuguesismos de Portugal (2026-07-27, v0.256.0).
+      Se colaron formas de Portugal (EP) en el contenido A1; corregidas las
+      INEQUIVOCAS (las que suenan raras en Brasil):
+        - connosco -> conosco (pt2: texto + glosario).
+        - casa de banho -> banheiro (pt5: vocab, texto reading, distractor de check).
+        - enclisis 'chama-se' -> proclisis BR 'se chama' (pt2: texto + glosario).
+        - 'continuar a + inf' (EP) -> gerundio BR: 'continuo a trabalhar' ->
+          'continuo trabalhando' (pt3).
+        - imperativo/posesivo con 'tu' -> 'voce': 'descreve a tua casa/familia' ->
+          'descreva a sua casa/familia' (pt2, pt5 titulos de Writing) para ser
+          consistente con la gramatica que ensena voce.
+      NOTA (decision): el ARTICULO antes del posesivo ('a minha casa', 'o meu nome')
+      NO se toco: es valido y comun en BR, y las unidades lo usan de forma
+      consistente en sus ejercicios (cambiarlo romperia coherencia sin ser un error).
+      Verificado: 8 unidades pt A1 + 8 en A1 cargan OK; validadores en verde.
+
 - [x] BONOS de PORTUGUES para hispanohablantes (2026-07-27, v0.255.0).
       Foco contrastivo (anti-portunhol): el mayor riesgo del hispanohablante NO es
       el vocabulario (85-90% cognados) sino la INTERFERENCIA. Dos mazos nuevos en

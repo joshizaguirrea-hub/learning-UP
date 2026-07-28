@@ -43,7 +43,7 @@ export const PT3_ROTINA = {
         reading:
           "TEXTO 1 - O dia do Marco\n" +
           "Eu acordo sempre às sete da manhã. Tomo café da manhã e trabalho num escritório. " +
-          "Ao meio-dia eu almoço com os meus colegas. À tarde, continuo a trabalhar. Volto para casa " +
+          "Ao meio-dia eu almoço com os meus colegas. À tarde, continuo trabalhando. Volto para casa " +
           "às seis. À noite, eu janto e às vezes estudo português. Durmo sempre às onze.\n\n" +
           "TEXTO 2 - A rotina da Lena\n" +
           "A Lena é estudante. Ela nunca acorda tarde: acorda às seis. De manhã ela estuda na universidade " +
