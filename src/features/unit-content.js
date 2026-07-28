@@ -5,7 +5,7 @@
  * centro mirando al alumno, rodeada por las 6 competencias en POPs (grid 3x3).
  * Al tocar un POP, Bymax DA la clase de esa competencia con el contenido real de
  * la unidad (features/skill-class.js). Alrededor, POPs pequenos para el examen,
- * el cuento, la conversacion, anti-errores y los bonos. Mas dinamico y personal.
+ * el cuento, la videollamada (llamada en vivo IA) y los bonos. Mas dinamico y personal.
  */
 import { SKILL_META } from "../data/skill-meta.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
@@ -13,21 +13,16 @@ import { ICONS } from "../ui/icons.js";
 import { robotName } from "../ui/robot.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { el } from "../ui/dom.js";
-import { openConversation } from "./conversation.js";
 import { openClass } from "./class-tutor.js";
 import { openStory } from "./story.js";
-import { openAntiErrors } from "./anti-errors.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
-import { openListening } from "./listening.js";
+import { openVoiceCall } from "./voice-call.js";
 import { openDictogloss } from "./dictogloss.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openGrammarInput } from "./grammar-input.js";
-import { genCazaErrores } from "../data/writing-drills.js";
-import { openDrillDeck } from "./writing-drills-player.js";
-import { completeLesson } from "../services/course.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
 // Deben coincidir con lo que evalua el examen (data/test-gen.js).
@@ -69,15 +64,14 @@ export function unitContent(unit, progressMap, user) {
   const ring = orbit(center,
     ORBIT.map((key) => skillPop(key, unit, progressMap, user)));
 
-  // Fila de POPs pequenos: examen, cuento, conversacion, anti-errores.
+  // Fila de POPs pequenos: examen, cuento, videollamada (llamada EN VIVO con la
+  // IA, manos libres) e input gramatical.
   const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" },
     examPop(unit, progressMap),
     miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
-    miniPop("Conversacion", "Charla libre", SKILL_META.speaking.icon, "from-emerald-500 to-teal-600", () => openConversation(unit)),
-    miniPop("Videollamada", "Listening IA", SKILL_META.listening.icon, "from-sky-500 to-cyan-600", () => openListening(unit)),
-    cazaErroresPop(unit, user),
-    grammarInputPop(unit, user),
-    miniPop("Anti-errores", "Trampas es->en", ICONS.bulb, "from-rose-500 to-orange-600", () => openAntiErrors(unit.level)));
+    miniPop("Videollamada", "Llamada en vivo IA", SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
+      () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", userId: user?.id })),
+    grammarInputPop(unit, user));
 
   // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.
   const vocabDecks = VOCAB_DECKS.filter((d) => d.level === unit.level);
@@ -202,26 +196,6 @@ function examPop(unit, progressMap) {
     el("span", { class: "font-bold text-sm leading-tight" }, "Examen"),
     el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
       done ? "APROBADO" : "PARA PASAR"));
-}
-
-/** POP de CAZA-ERRORES: practica determinista compartida con Grammar (misma data
- * grammar.mistakes, mismo player). Si la unidad no trae errores, cae a anti-errores. */
-function cazaErroresPop(unit, user) {
-  const grammarLesson = lessonForSkill(unit, "grammar");
-  const onclick = () => {
-    const drills = genCazaErrores(unit);
-    if (!drills.length) { openAntiErrors(unit.level); return; }
-    openDrillDeck({
-      title: robotName() + " \u00b7 Caza-errores",
-      subtitle: unit.title + " \u00b7 gram\u00e1tica",
-      drills,
-      resumeKey: "cazaerrores-" + unit.id + "-" + (user?.id || "anon"),
-      onFinish: () => {
-        if (grammarLesson?.id && user?.id) completeLesson(user.id, grammarLesson.id, 100).catch(() => {});
-      },
-    });
-  };
-  return miniPop("Caza-errores", "Corrige el fallo", ICONS.bulb, "from-purple-500 to-indigo-600", onclick);
 }
 
 /** POP de INPUT ESTRUCTURADO (Structured Input, VanPatten): procesar la forma

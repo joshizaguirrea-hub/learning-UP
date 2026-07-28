@@ -107,7 +107,7 @@ function renderInto(card, user, session, plan, resting) {
       el("div", { class: "w-14 shrink-0" }, bymaxMascot("md")),
       el("div", { class: "flex-1 min-w-0" },
         el("p", { class: "text-[11px] uppercase tracking-wide text-indigo-300 font-bold" },
-          "Tu profe " + teacherName("speaking")),
+          "Tu profe " + teacherName("course")),
         el("h2", { class: "text-xl font-extrabold text-slate-50 mt-0.5 leading-tight" }, session.headline),
         el("p", { class: "text-slate-300 mt-1 leading-relaxed" }, session.subline),
         session.metGoal && !session.courseDone

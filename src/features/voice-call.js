@@ -159,6 +159,14 @@ export function openVoiceCall(opts = {}) {
       speakBilingual(answer, () => { if (!ended && !paused) listen(); });
     }
 
+    // Llamada EN VIVO manos libres: tras hablar el bot, se escucha sola y vuelve
+    // a escuchar en cada pausa. Solo se detiene si falta permiso del microfono.
+    let micBlocked = false;
+    function restartListen(delay) {
+      if (ended || paused || micBlocked) return;
+      setTimeout(() => { if (!ended && !paused && !micBlocked) listen(); }, delay);
+    }
+
     function listen() {
       if (ended || paused) return;
       if (!speechSupported()) { setState("Tu navegador no permite hablar. Usa el chat de texto.", false); return; }
@@ -172,12 +180,22 @@ export function openVoiceCall(opts = {}) {
           onEnd: (finalText) => {
             const q = (finalText || "").trim();
             if (ended || paused) return;
+            // Si dijo algo, contesta; si hubo silencio, SIGUE escuchando sola.
             if (q) turn(q);
-            else setState("No te escuch\u00e9 bien. Toca \u201cHablar\u201d para intentar.", false);
+            else { setState(name + " te escucha... (sigue hablando)", true); restartListen(400); }
           },
           onError: (code) => {
-            if (code === "not-allowed" || code === "service-not-allowed") setState("Da permiso al micr\u00f3fono (candado en la barra) y toca Hablar.", false);
-            else setState("Toca \u201cHablar\u201d para responder.", false);
+            if (ended || paused) return;
+            if (code === "not-allowed" || code === "service-not-allowed") {
+              // Unico caso que corta el manos-libres: falta permiso del microfono.
+              micBlocked = true;
+              setState("Da permiso al micr\u00f3fono (candado en la barra) y toca \u201cReactivar\u201d.", false);
+              talkBtn.textContent = "Reactivar micr\u00f3fono";
+              talkBtn.classList.remove("hidden");
+            } else {
+              // no-speech, aborted, network... reintenta sola sin molestar al alumno.
+              restartListen(600);
+            }
           },
         });
       }
@@ -188,8 +206,8 @@ export function openVoiceCall(opts = {}) {
 
     const talkBtn = el("button", {
       type: "button",
-      class: "px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
-      onclick: () => { if (history.length) listen(); else turn("[BEGIN]"); },
+      class: "hidden px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
+      onclick: () => { micBlocked = false; talkBtn.classList.add("hidden"); if (history.length) listen(); else turn("[BEGIN]"); },
     }, "Hablar");
 
     const pauseBtn = el("button", {
@@ -259,7 +277,7 @@ export function openVoiceCall(opts = {}) {
       setState("Tu navegador no permite reconocer voz. Prueba Chrome en escritorio o el chat de texto.", false);
       talkBtn.classList.add("hidden"); pauseBtn.classList.add("hidden");
     } else {
-      setState("Toca \u201cHablar\u201d o espera: " + name + " te saluda...", false);
+      setState(name + " te saluda... la llamada es EN VIVO, solo habla \uD83C\uDF99\uFE0F", false);
       turn("[BEGIN]");
     }
   }
