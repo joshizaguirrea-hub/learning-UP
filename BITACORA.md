@@ -300,6 +300,24 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] BONOS de PORTUGUES para hispanohablantes (2026-07-27, v0.255.0).
+      Foco contrastivo (anti-portunhol): el mayor riesgo del hispanohablante NO es
+      el vocabulario (85-90% cognados) sino la INTERFERENCIA. Dos mazos nuevos en
+      src/data/pt-bonus-decks.js (PT_BONUS_DECKS, esquema flashcard identico a
+      bonus-decks.js, `language: "pt"`):
+        1) "Falsos amigos" (20): oficina=taller, esquisito=raro, todavia=sin embargo,
+           puxar/empurrar, borracha=goma, presunto=jamon, cena=escena, etc.
+        2) "Verbos irregulares" (12): ser/estar/ter/ir/fazer/poder/querer/vir/dar/
+           ver/dizer/saber, con presente (eu/voce/nos/eles) + preterito (eu).
+      Arquitectura por idioma: bonus-decks.js ahora etiqueta los mazos existentes
+      como `language:"en"` y expone bonusDecksForLanguage(lang); BONUS_DECKS =
+      ingles + vocab + portugues. unit-content.js muestra los bonos del idioma de
+      la unidad (ingles: lista curada por nivel; pt: sus 2 mazos). bonus.js
+      (/bonus) filtra por currentLangCode() -> cada idioma ve solo sus mazos.
+      VOZ: speakButton ahora enruta a speakMono cuando el idioma no es en/es -> los
+      mazos pt SUENAN en portugues (via OpenAI TTS en la nube). Verificado: 20+12
+      items, sin ids duplicados en los 200 totales; validadores en verde.
+
 - [x] IA de Bymax MULTI-IDIOMA + fix critico de POPs (2026-07-27, v0.254.0).
       FIX CRITICO: skillPop usaba `markDone` INDEFINIDO (venia del boletin v0.251) ->
       al tocar Grammar/Vocabulary/Writing/Listening/Speaking/Reading el onclick moria
