@@ -52,6 +52,7 @@ export async function renderUnit(container, params, user) {
         el("span", { class: "text-xs font-mono font-bold bg-black/30 text-white px-2 py-0.5 rounded" }, unit.level),
         el("h1", { class: "text-2xl sm:text-3xl font-extrabold text-white" }, unit.title)),
       el("p", { class: "text-white/85 mt-1" }, unit.subtitle),
+      objectivesButton(unit),
       el("div", { class: "mt-4" },
         el("div", { class: "flex justify-between text-xs text-white/80 mb-1" },
           el("span", {}, `${doneCount}/${unit.lessons.length} lecciones`),
@@ -59,11 +60,6 @@ export async function renderUnit(container, params, user) {
         el("div", { class: "w-full bg-black/25 rounded-full h-2", role: "progressbar",
           "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
           el("div", { class: "bg-white h-2 rounded-full transition-all", style: `width:${pct}%` })))));
-
-  const cando = el("section", { class: CARD },
-    el("h2", { class: "font-bold" }, "Al terminar este tema podras:"),
-    el("ul", { class: "mt-3 space-y-1 text-sm text-slate-300" },
-      ...unit.cando.map((c) => el("li", { class: "flex gap-2" }, el("span", { class: "text-emerald-400" }, "+"), c))));
 
   const content = el("section", { class: CARD }, unitContent(unit, progress, user));
 
@@ -79,6 +75,37 @@ export async function renderUnit(container, params, user) {
       onclick: () => go("/repaso"),
     }, "Repasar ahora"));
 
-  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" }, header, cando, content, review));
+  mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" }, header, content, review));
   focusMainHeading(container);
+}
+
+/** Boton compacto "Objetivos del tema" (los can-do). Antes ocupaba una tarjeta
+ * entera; ahora vive en el header y abre un modal ligero para no robar espacio. */
+function objectivesButton(unit) {
+  return el("button", {
+    type: "button",
+    class: "mt-3 inline-flex items-center gap-2 text-sm font-semibold bg-black/25 text-white " +
+      "px-3 py-1.5 rounded-full hover:bg-black/40 focus:outline focus:outline-2 focus:outline-white/70",
+    onclick: () => openObjectives(unit),
+  }, el("span", { class: "w-4 h-4", html: ICONS.check }), "Objetivos del tema");
+}
+
+/** Modal ligero con la lista de objetivos can-do de la unidad. */
+function openObjectives(unit) {
+  const close = () => overlay.remove();
+  const card = el("div", {
+    role: "dialog", "aria-modal": "true", "aria-label": "Objetivos del tema",
+    class: "robot-pop max-w-sm w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 shadow-2xl",
+  },
+    el("div", { class: "flex items-center justify-between gap-2 mb-3" },
+      el("h2", { class: "font-bold text-slate-100" }, "Al terminar este tema podr\u00e1s"),
+      el("button", { class: "w-8 h-8 rounded-full text-slate-400 hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-indigo-400", "aria-label": "Cerrar", onclick: close }, "\u2715")),
+    el("ul", { class: "space-y-1.5 text-sm text-slate-300" },
+      ...(unit.cando || []).map((c) => el("li", { class: "flex gap-2" }, el("span", { class: "text-emerald-400" }, "+"), c))));
+  const overlay = el("div", {
+    class: "fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4",
+    onclick: (e) => { if (e.target === overlay) close(); },
+  }, card);
+  document.addEventListener("keydown", function onEsc(e) { if (e.key === "Escape") { close(); document.removeEventListener("keydown", onEsc); } });
+  document.body.append(overlay);
 }

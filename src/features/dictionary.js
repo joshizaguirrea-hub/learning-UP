@@ -88,16 +88,25 @@ export function mountDictionary() {
     onclick: () => togglePanel(false),
   }, "x");
 
+  const panelHeader = el("div", {
+    class: "flex items-center justify-between gap-2 -mx-4 -mt-4 px-4 pt-4 pb-2 cursor-move select-none touch-none",
+    title: "Arr\u00e1strame para moverme",
+  },
+    el("div", { class: "flex items-center gap-2" },
+      el("span", { class: "text-slate-500", "aria-hidden": "true", html: GRIP }),
+      el("h2", { class: "font-bold text-slate-100" }, "Diccionario")),
+    el("div", { class: "flex items-center gap-2" }, dirBtn, closeBtn));
+
   const panel = el("div", {
     role: "dialog", "aria-label": "Diccionario", "aria-modal": "false",
     class: "hidden fixed z-[70] bottom-40 right-4 w-[min(92vw,22rem)] rounded-2xl bg-slate-900 " +
       "border border-slate-700 shadow-2xl p-4",
   },
-    el("div", { class: "flex items-center justify-between gap-2" },
-      el("h2", { class: "font-bold text-slate-100" }, "Diccionario"),
-      el("div", { class: "flex items-center gap-2" }, dirBtn, closeBtn)),
-    el("div", { class: "mt-3 flex gap-2" }, input, goBtn),
+    panelHeader,
+    el("div", { class: "mt-1 flex gap-2" }, input, goBtn),
     result);
+
+  makeDraggable(panel, panelHeader);
 
   const fab = el("button", {
     type: "button",
@@ -139,5 +148,57 @@ export function mountDictionary() {
 
 function isSpeakable(t) {
   return typeof t === "string" && t.trim().length > 0;
+}
+
+// Asa de arrastre (grip) del diccionario.
+const GRIP =
+  '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">' +
+  '<circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/>' +
+  '<circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/>' +
+  '<circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
+
+const POS_KEY = "learningup:dict-pos";
+
+/**
+ * Hace un panel FIJO arrastrable por su "asa" (handle). Cambia el anclaje de
+ * bottom/right a top/left, mantiene el panel dentro de la pantalla y recuerda la
+ * posicion (localStorage). No estorba a los botones del asa (dir/cerrar).
+ */
+function makeDraggable(panel, handle) {
+  const applyPos = (x, y) => {
+    const w = panel.offsetWidth || 320, h = panel.offsetHeight || 200;
+    const nx = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+    const ny = Math.max(4, Math.min(window.innerHeight - h - 4, y));
+    panel.style.left = nx + "px"; panel.style.top = ny + "px";
+    panel.style.right = "auto"; panel.style.bottom = "auto";
+  };
+
+  // Restaura la ultima posicion guardada (si cabe en la pantalla actual).
+  try {
+    const saved = JSON.parse(localStorage.getItem(POS_KEY) || "null");
+    if (saved && typeof saved.x === "number") requestAnimationFrame(() => applyPos(saved.x, saved.y));
+  } catch { /* nada */ }
+
+  let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
+  handle.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button, input, a, select")) return; // no robar clicks
+    dragging = true;
+    const r = panel.getBoundingClientRect();
+    ox = r.left; oy = r.top; sx = e.clientX; sy = e.clientY;
+    applyPos(ox, oy);
+    try { handle.setPointerCapture(e.pointerId); } catch { /* nada */ }
+    e.preventDefault();
+  });
+  handle.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    applyPos(ox + (e.clientX - sx), oy + (e.clientY - sy));
+  });
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    try { localStorage.setItem(POS_KEY, JSON.stringify({ x: parseFloat(panel.style.left), y: parseFloat(panel.style.top) })); } catch { /* nada */ }
+  };
+  handle.addEventListener("pointerup", end);
+  handle.addEventListener("pointercancel", end);
 }
 
