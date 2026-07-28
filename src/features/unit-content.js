@@ -86,12 +86,15 @@ export function unitContent(unit, progressMap, user) {
     grammarInputPop(unit, user));
 
   // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.
-  const vocabDecks = VOCAB_DECKS.filter((d) => d.level === unit.level);
-  const bonusPops = el("section", { class: "mt-6" },
+  // Por ahora los mazos de bono son contenido de INGLES; en otros idiomas se
+  // ocultan hasta tener bonos propios (evita mezclar idiomas en la unidad).
+  const isEnglish = (unit.language || "en") === "en";
+  const vocabDecks = isEnglish ? VOCAB_DECKS.filter((d) => d.level === unit.level) : [];
+  const bonusPops = isEnglish ? el("section", { class: "mt-6" },
     el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos"),
     el("div", { class: "flex flex-wrap gap-2" },
       ...BONUS_LINKS.map((b) => bonusPill(b.id, b.label, "amber")),
-      ...vocabDecks.map((d) => bonusPill(d.id, d.title, "sky"))));
+      ...vocabDecks.map((d) => bonusPill(d.id, d.title, "sky")))) : null;
 
   return el("div", {},
     el("div", { class: "flex items-center gap-2 mb-3" },
