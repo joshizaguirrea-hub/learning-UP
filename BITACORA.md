@@ -279,6 +279,20 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] VOZ FLUIDA en todo (feedback/tips/dialogos) (2026-07-27, v0.244.0). FASE 1 de
+      3 de la tanda de mejoras UX. Problema: el feedback/tips/dialogos en espanol "se
+      guindaban" o tardaban mucho. Causa: speakSequence reproducia el trozo 0 esperando
+      su descarga de red y NO pre-descargaba el resto -> primer sonido lento + pausas;
+      ademas un parrafo largo iba como UN solo audio grande (tarda en generarse). Arreglo
+      en ui/speech.js: (1) NUEVA splitForSpeech(text,maxChars=160) PURA (parte por oracion
+      .!?..., y si sigue largo por coma/;/:; con tests) -> cada trozo de idioma se subdivide
+      por oraciones; (2) speakSequence pre-descarga TODOS los trozos en PARALELO (prefetchCloud)
+      con la MISMA clave (idioma + opts incl. rate 0.9 ingles) que la reproduccion -> primer
+      sonido casi instantaneo y sin pausas de red entre trozos; (3) pausas naturales:
+      260ms entre oraciones, 90ms entre trozos de idioma, it.gapAfter al final. NUEVO
+      tests/speech-split.test.mjs (5 verde). Aplica a TODA la voz (dialogos, role-play,
+      feedback, clases IA...). PENDIENTE usuario: confirmar en Chrome que ya no se guinda.
+
 - [x] GRAMMAR PROCESSING INSTRUCTION AVANZADO (VanPatten) (2026-07-27, v0.243.0).
       #4 y ULTIMO del roadmap pedagogico -> ROADMAP COMPLETO (4/3/2 v0.240 + Close-reading
       v0.241 + Role-play v0.242 + Processing Instruction v0.243). El Structured Input
