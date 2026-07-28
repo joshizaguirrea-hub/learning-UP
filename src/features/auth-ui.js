@@ -11,6 +11,10 @@ import { go } from "../ui/router.js";
 
 const INPUT = "mt-1 w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 px-3 py-2 " +
   "focus:outline focus:outline-2 focus:outline-indigo-500";
+// Igual que INPUT pero sin mt-1 (el wrapper del passwordField ya lo aporta) y con
+// espacio a la derecha para el boton Mostrar/Ocultar.
+const INPUT_PW = "w-full rounded-md bg-slate-800 border border-slate-700 text-slate-100 px-3 py-2 pr-24 " +
+  "focus:outline focus:outline-2 focus:outline-indigo-500";
 const CARD = "max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8";
 const PRIMARY = "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold py-2.5 rounded-lg " +
   "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
@@ -27,11 +31,22 @@ function errorBox(message) {
 export function renderRegister(container) {
   const errSlot = el("div");
 
+  // Inputs de contrasena como variables para poder comparar y togglear.
+  const pw = el("input", { id: "password", name: "password", type: "password", required: "", minlength: "6", autocomplete: "new-password", class: INPUT_PW });
+  const pw2 = el("input", { id: "password2", name: "password2", type: "password", required: "", minlength: "6", autocomplete: "new-password", class: INPUT_PW });
+
   const form = el("form", {
     class: "mt-6 space-y-4",
     onsubmit: async (e) => {
       e.preventDefault();
       const fd = new FormData(form);
+      // Validacion en cliente: las dos contrasenas deben coincidir.
+      if (pw.value !== pw2.value) {
+        mount(errSlot, errorBox("Las contrase\u00f1as no coinciden. Escr\u00edbelas igual en ambos campos."));
+        announce("Las contrase\u00f1as no coinciden.");
+        pw2.focus();
+        return;
+      }
       const result = await register({
         fullName: fd.get("full_name").trim(),
         email: fd.get("email").trim().toLowerCase(),
@@ -56,7 +71,8 @@ export function renderRegister(container) {
   },
     field("Nombre completo", el("input", { id: "full_name", name: "full_name", type: "text", required: "", class: INPUT })),
     field("Correo electronico", el("input", { id: "email", name: "email", type: "email", required: "", class: INPUT })),
-    field("Contrasena", el("input", { id: "password", name: "password", type: "password", required: "", minlength: "6", class: INPUT })),
+    passwordField("Contrase\u00f1a", pw),
+    passwordField("Confirmar contrase\u00f1a", pw2),
     roleFieldset(),
     adultCheckbox(),
     el("button", { type: "submit", class: PRIMARY }, "Crear cuenta"),
@@ -98,7 +114,7 @@ export function renderLogin(container) {
     },
   },
     field("Correo electronico", el("input", { id: "email", name: "email", type: "email", required: "", class: INPUT })),
-    field("Contrasena", el("input", { id: "password", name: "password", type: "password", required: "", class: INPUT })),
+    passwordField("Contrase\u00f1a", el("input", { id: "password", name: "password", type: "password", required: "", autocomplete: "current-password", class: INPUT_PW })),
     el("button", { type: "submit", class: PRIMARY }, "Entrar"),
   );
 
@@ -121,6 +137,32 @@ function field(labelText, input) {
   return el("div", {},
     el("label", { for: input.id, class: "block text-sm font-medium" }, labelText),
     input);
+}
+
+/**
+ * Campo de contrasena con boton MOSTRAR/OCULTAR (para ver lo que escribes).
+ * Accesible: el boton tiene aria-label y aria-pressed; el input lleva pr-24
+ * para no chocar con el boton.
+ */
+function passwordField(labelText, input) {
+  const toggle = el("button", {
+    type: "button",
+    class: "absolute inset-y-0 right-0 my-1 mr-1 px-3 rounded-md text-xs font-semibold " +
+      "text-indigo-300 hover:text-indigo-200 hover:bg-white/5 focus:outline focus:outline-2 focus:outline-indigo-400",
+    "aria-label": "Mostrar contrase\u00f1a",
+    "aria-pressed": "false",
+    onclick: () => {
+      const showing = input.type === "text";
+      input.type = showing ? "password" : "text";
+      toggle.textContent = showing ? "Mostrar" : "Ocultar";
+      toggle.setAttribute("aria-pressed", showing ? "false" : "true");
+      toggle.setAttribute("aria-label", showing ? "Mostrar contrase\u00f1a" : "Ocultar contrase\u00f1a");
+      input.focus();
+    },
+  }, "Mostrar");
+  return el("div", {},
+    el("label", { for: input.id, class: "block text-sm font-medium" }, labelText),
+    el("div", { class: "relative mt-1" }, input, toggle));
 }
 
 function roleFieldset() {

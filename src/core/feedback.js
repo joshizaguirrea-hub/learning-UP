@@ -39,8 +39,10 @@ export const AREA_DEFS = [
 /** Secciones de texto del feedback, con su icono y tono para el dashboard. */
 export const SECTION_DEFS = [
   { key: "LO QUE HICISTE BIEN", title: "Lo que hiciste bien", icon: "\u2705", tone: "emerald" },
+  { key: "VOCABULARIO QUE USASTE", title: "Vocabulario que usaste", icon: "\uD83D\uDFE2", tone: "emerald" },
   { key: "A MEJORAR", title: "A mejorar", icon: "\uD83C\uDFAF", tone: "amber" },
   { key: "ERRORES CLAVE", title: "Errores clave", icon: "\u270F\uFE0F", tone: "rose" },
+  { key: "VOCABULARIO SUGERIDO", title: "Podr\u00edas subir de nivel con", icon: "\uD83D\uDD35", tone: "sky" },
   { key: "FRASES MODELO", title: "Frases modelo", icon: "\uD83D\uDCAC", tone: "sky" },
   { key: "CONSEJO FINAL", title: "Consejo final", icon: "\u2B50", tone: "indigo" },
 ];
@@ -67,8 +69,10 @@ export function buildFeedbackPrompt(kind = "speaking") {
     "COHERENCIA: <0-100>\n" +
     "PRONUNCIACION: <0-100>\n\n" +
     "LO QUE HICISTE BIEN:\n- <2 o 3 vi\u00f1etas concretas>\n" +
+    "VOCABULARIO QUE USASTE:\n- <palabras o expresiones EN INGLES que el estudiante realmente uso bien, una por linea>\n" +
     "A MEJORAR:\n- <2 o 3 vi\u00f1etas concretas y accionables>\n" +
-    "ERRORES CLAVE:\n- \"<algo que dijo mal>\" -> \"<correcto>\" (<por que>)\n" +
+    "ERRORES CLAVE:\n- \"<frase EXACTA que dijo mal>\" -> \"<como se dice correcto>\" (<por que, breve>)\n<una linea por error, 2 a 4 errores reales de lo que dijo>\n" +
+    "VOCABULARIO SUGERIDO:\n- <palabra o expresion EN INGLES que pudo usar> = <significado corto en espanol>\n<2 a 4 lineas>\n" +
     "FRASES MODELO:\n- <2 o 3 frases naturales en ingles que pudo haber usado>\n" +
     "CONSEJO FINAL:\n<1 o 2 frases motivadoras y claras>";
   return FEEDBACK_TOKEN + "\n" + rubric;
@@ -122,11 +126,70 @@ export function parseFeedback(text) {
     if (body) sections.push({ title: def.title, body, icon: def.icon, tone: def.tone });
   }
 
-  return { score, areas, sections, raw };
+  const errors = parseErrorItems(sectionBody(sections, "Errores clave"));
+  const vocabUsed = parseVocabItems(sectionBody(sections, "Vocabulario que usaste"));
+  const vocabSuggested = parseVocabItems(sectionBody(sections, "Podr\u00edas subir de nivel con"));
+
+  return { score, areas, sections, errors, vocabUsed, vocabSuggested, raw };
 }
 
 /** Cuerpo de una seccion por su titulo (para reusar improvements, etc.). */
 export function sectionBody(sections, title) {
   const s = (sections || []).find((x) => x.title === title);
   return s ? s.body : "";
+}
+
+/** Quita comillas envolventes y puntuacion sobrante de los extremos. */
+function stripQuotes(s) {
+  return String(s || "")
+    .replace(/^[\s\u201c\u201d"'\u00ab\u00bb.\-\u2022*]+/, "")
+    .replace(/[\s\u201c\u201d"'\u00ab\u00bb.]+$/, "")
+    .trim();
+}
+
+/**
+ * Parsea la seccion "Errores clave" en items estructurados para poder PRACTICAR.
+ * Reconoce lineas tipo:  "I have 20 years" -> "I am 20 years old" (edad con 'to be')
+ * Tolera flechas ->, \u2192, =>, comillas rectas o curvas, y (motivo) opcional.
+ * @param {string} body
+ * @returns {Array<{wrong:string, right:string, why:string}>}
+ */
+export function parseErrorItems(body) {
+  const out = [];
+  for (let line of String(body || "").split(/\n+/)) {
+    line = line.replace(/^\s*[-*\u2022]\s*/, "").trim();
+    if (!line) continue;
+    const parts = line.split(/\s*(?:->|\u2192|=>)\s*/);
+    if (parts.length < 2) continue;
+    const wrong = stripQuotes(parts[0]);
+    let rest = parts.slice(1).join(" -> ").trim();
+    let why = "";
+    const wm = rest.match(/\(([^)]*)\)\s*$/);
+    if (wm) { why = wm[1].trim(); rest = rest.slice(0, wm.index).trim(); }
+    const right = stripQuotes(rest);
+    if (wrong && right) out.push({ wrong, right, why });
+  }
+  return out;
+}
+
+/**
+ * Parsea una seccion de vocabulario en items { word, note }.
+ * Reconoce:  "resilient = resistente"  o  "to look forward to: esperar con ganas".
+ * @param {string} body
+ * @returns {Array<{word:string, note:string}>}
+ */
+export function parseVocabItems(body) {
+  const out = [];
+  const seen = new Set();
+  for (let line of String(body || "").split(/\n+/)) {
+    line = line.replace(/^\s*[-*\u2022]\s*/, "").trim();
+    if (!line) continue;
+    let word = line, note = "";
+    const eq = line.split(/\s*(?:=|:|\u2013|\u2014)\s*/);
+    if (eq.length >= 2) { word = eq[0].trim(); note = eq.slice(1).join(" ").trim(); }
+    word = stripQuotes(word);
+    const key = word.toLowerCase();
+    if (word && !seen.has(key)) { seen.add(key); out.push({ word, note }); }
+  }
+  return out;
 }

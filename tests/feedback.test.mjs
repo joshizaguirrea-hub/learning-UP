@@ -5,6 +5,7 @@
 import assert from "node:assert/strict";
 import {
   buildFeedbackPrompt, parseFeedback, sectionBody, AREA_DEFS, FEEDBACK_TOKEN,
+  parseErrorItems, parseVocabItems,
 } from "../src/core/feedback.js";
 
 let passed = 0;
@@ -97,6 +98,51 @@ test("AREA_DEFS incluye las dimensiones de un profe", () => {
   const keys = AREA_DEFS.map((a) => a.key);
   ["GRAMATICA", "VOCABULARIO", "FLUIDEZ", "COHERENCIA", "PRONUNCIACION"].forEach((k) =>
     assert.ok(keys.includes(k)));
+});
+
+test("parseErrorItems saca {wrong,right,why} de la seccion de errores", () => {
+  const body = '- "He go" -> "He goes" (3a persona +s)\n- "I have 20 years" \u2192 "I am 20 years old" (edad con to be)';
+  const items = parseErrorItems(body);
+  assert.equal(items.length, 2);
+  assert.deepEqual(items[0], { wrong: "He go", right: "He goes", why: "3a persona +s" });
+  assert.equal(items[1].wrong, "I have 20 years");
+  assert.equal(items[1].right, "I am 20 years old");
+  assert.ok(/edad/.test(items[1].why));
+});
+
+test("parseErrorItems ignora lineas sin flecha", () => {
+  assert.equal(parseErrorItems("- solo una nota sin correccion").length, 0);
+});
+
+test("parseVocabItems saca {word,note} y deduplica", () => {
+  const body = "- resilient = resistente\n- to look forward to: esperar con ganas\n- resilient = repetida";
+  const items = parseVocabItems(body);
+  assert.equal(items.length, 2);
+  assert.deepEqual(items[0], { word: "resilient", note: "resistente" });
+  assert.equal(items[1].word, "to look forward to");
+});
+
+const RICH2 = `PUNTAJE: 80
+GRAMATICA: 72
+VOCABULARIO QUE USASTE:
+- journey
+- exhausted
+ERRORES CLAVE:
+- "He go" -> "He goes" (3a persona +s)
+- "very much people" -> "a lot of people" (contable)
+VOCABULARIO SUGERIDO:
+- breathtaking = impresionante
+- to wander = deambular
+CONSEJO FINAL:
+Sigue asi.`;
+
+test("parseFeedback expone errors, vocabUsed y vocabSuggested", () => {
+  const p = parseFeedback(RICH2);
+  assert.equal(p.errors.length, 2);
+  assert.equal(p.errors[0].right, "He goes");
+  assert.deepEqual(p.vocabUsed.map((v) => v.word), ["journey", "exhausted"]);
+  assert.deepEqual(p.vocabSuggested.map((v) => v.word), ["breathtaking", "to wander"]);
+  assert.equal(p.vocabSuggested[0].note, "impresionante");
 });
 
 console.log(`\n${passed} pruebas en verde.`);

@@ -51,7 +51,7 @@ export async function renderStudent(container, user) {
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
-    coachCard(user, name, units, progressMap),
+    coachCard(user, name, units, progressMap, profile.cefr_level),
     hubGrid(profile, pct)));
   focusMainHeading(container);
 }

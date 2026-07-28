@@ -279,6 +279,27 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] REGISTRO (contrasena visible + confirmar) + PLAN por defecto + FEEDBACK
+      JUGOSO con practica (2026-07-27, v0.247.0). Tres cosas:
+      (0) Plan por defecto para cuentas VIEJAS: daily-guide.js coachCard, si no hay plan
+          en localStorage, genera uno (meta 'personal', 10 min, cefr del perfil) y lo
+          guarda -> el coach aparece sin rehacer onboarding. student.js pasa profile.cefr_level.
+      (1) auth-ui.js: campo Contrasena con boton MOSTRAR/OCULTAR (aria-pressed) para ver lo
+          que escribes + campo CONFIRMAR contrasena; valida en cliente que coincidan antes
+          de registrar. Helper passwordField + INPUT_PW (sin mt-1). Login tambien tiene toggle.
+      (2) FEEDBACK DASHBOARD mas provechoso: core/feedback.js rubrica ampliada (VOCABULARIO
+          QUE USASTE + VOCABULARIO SUGERIDO + ERRORES CLAVE con formato estricto
+          "dijiste"->"correcto"(motivo)); NUEVOS parsers PUROS parseErrorItems ->
+          [{wrong,right,why}] y parseVocabItems -> [{word,note}]; parseFeedback ahora
+          expone {errors, vocabUsed, vocabSuggested} (tests/feedback.test.mjs 12 verde).
+          feedback-dashboard.js: errores estructurados (tachado rojo -> correcto verde +
+          por que) con boton 'Practicar mis errores', vocabulario en chips (usado verde /
+          sugerido azul con significado). NUEVO features/feedback-practice.js openErrorPractice:
+          drill desde TUS errores reales (ves lo que dijiste mal, escribes la correccion,
+          compara con tolerancia, revela + pronuncia + porque). SUITE 24 archivos verde.
+          PENDIENTE usuario: probar en Chrome (registro + una sesion de Speaking/Entrevista
+          para ver el nuevo feedback; requiere Bymax Worker para el feedback real).
+
 - [x] GUIA INTERACTIVA DIARIA "coach del dia" (2026-07-27, v0.246.0). FASE 3 de 3.
       En el inicio, el profe SALUDA por nombre segun la hora y guia: primera vez del dia
       -> "Buenos dias, {nombre}. Hoy vamos a ver {tema}. Empezamos con {competencia}";

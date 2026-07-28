@@ -20,6 +20,8 @@ import { teacherName } from "../ui/robot.js";
 import { buildDailySession, countDoneToday, firstNameOf } from "../core/daily-guide.js";
 import { loadStudyPlan } from "../ui/study-plan-store.js";
 import { SKILL_LABEL } from "../core/study-plan.js";
+import { buildStudyPlan } from "../core/study-plan.js";
+import { saveStudyPlan } from "../ui/study-plan-store.js";
 
 let lastSpoken = ""; // evita repetir el MISMO saludo al revisitar el inicio
 
@@ -44,9 +46,15 @@ function setResting(userId, on) {
  * @param {object} user  @param {string} name  @param {Array} units
  * @param {object} progressMap - id -> { status, completedAt }
  */
-export function coachCard(user, name, units, progressMap) {
-  const plan = loadStudyPlan(user.id);
-  if (!plan) return null; // sin plan -> el inicio se ve como antes
+export function coachCard(user, name, units, progressMap, cefr) {
+  let plan = loadStudyPlan(user.id);
+  if (!plan) {
+    // Cuenta creada ANTES del cuestionario: generamos un plan por defecto desde
+    // su nivel (meta general "personal", 10 min/dia) y lo guardamos, para que el
+    // coach aparezca sin obligar a rehacer el onboarding. Podra afinarlo luego.
+    plan = buildStudyPlan({ selfLevel: "intermedio", goal: "personal", minutes: 10, cefr: cefr || "A1" });
+    saveStudyPlan(user.id, plan);
+  }
 
   const completed = new Set(
     Object.entries(progressMap).filter(([, v]) => v?.status === "done").map(([id]) => id));
