@@ -26,6 +26,11 @@ export const AREA_DEFS = [
   { key: "COHERENCIA", label: "Coherencia", grad: "from-amber-400 to-orange-500" },
   { key: "PRONUNCIACION", label: "Pronunciaci\u00f3n", grad: "from-pink-400 to-rose-500" },
   { key: "INTERACCION", label: "Interacci\u00f3n", grad: "from-indigo-400 to-blue-500" },
+  // Dimensiones del close-reading (an\u00e1lisis literario):
+  { key: "COMPRENSION", label: "Comprensi\u00f3n", grad: "from-emerald-400 to-green-500" },
+  { key: "EVIDENCIA", label: "Evidencia textual", grad: "from-sky-400 to-blue-500" },
+  { key: "PROFUNDIDAD", label: "Profundidad", grad: "from-violet-400 to-purple-500" },
+  { key: "EXPRESION", label: "Expresi\u00f3n", grad: "from-amber-400 to-orange-500" },
   // Compat con el formato viejo de entrevista (por si el Worker aun lo usa):
   { key: "CONTENIDO", label: "Contenido", grad: "from-indigo-400 to-violet-400" },
   { key: "ESTRUCTURA", label: "Estructura (STAR)", grad: "from-fuchsia-400 to-pink-400" },

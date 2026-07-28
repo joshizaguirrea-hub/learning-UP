@@ -279,6 +279,24 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] LITERATURE CLOSE-READING C1/C2 (2026-07-27, v0.241.0). #2 del roadmap
+      pedagogico (vamos 1 a 1). Close-reading = leer despacio y con lupa: no solo
+      QUE dice el texto sino COMO y POR QUE. El alumno responde por LENTES de
+      analisis y la IA lo evalua como profe de literatura. NUEVO core/close-reading.js
+      (PURO, con tests): LENSES (tone, diction, subtext, device, theme), buildCloseReading
+      (limita por max, clamp min 1, acepta string u objeto), buildAnalysisPrompt
+      (antepone FEEDBACK_TOKEN + embebe pasaje + Q&A + rubrica; pide PUNTAJE +
+      COMPRENSION/EVIDENCIA/PROFUNDIDAD/EXPRESION + secciones; feedback en espanol).
+      EXTENDIDO core/feedback.js: AREA_DEFS ahora incluye COMPRENSION/EVIDENCIA/
+      PROFUNDIDAD/EXPRESION (para que el dashboard reusable las pinte). NUEVO
+      features/close-reading.js openCloseReading(): modal autocontenido; junta pasajes
+      de unidades C1/C2 (splitTexts, body>=120) -> picker -> pasaje + textareas por
+      lente -> askBymax(mode interview) -> parseFeedback -> buildFeedbackDashboard.
+      Degradacion elegante sin IA / sin pasajes. Cableado en more-screen.js como
+      tarjeta destacada (violeta, ICONS.bulb). NUEVO tests/close-reading.test.mjs
+      (5 en verde) + feedback sigue 8 en verde. Validadores en verde. PENDIENTE
+      usuario: probar en Chrome (necesita Bymax IA activo).
+
 - [x] SPEAKING TECNICA 4/3/2 (Nation & Maurice) (2026-07-27, v0.240.0). #1 del roadmap
       pedagogico pendiente (vamos 1 a 1). Tecnica de fluidez: cuentas la MISMA
       historia 3 veces con menos tiempo cada vez (4->3->2 min); al bajar el techo
