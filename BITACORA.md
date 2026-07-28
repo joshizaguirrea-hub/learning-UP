@@ -279,6 +279,27 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] HUB DE UNIDAD MAS LIMPIO + VIDEOLLAMADA EN VIVO (2026-07-27, v0.248.0).
+      A peticion del usuario. (1) NOMBRE DEL PROFE DE CURSO: daily-guide.js el saludo
+      "Tu profe ..." usaba teacherName("speaking") (Teacher Jack) -> corregido a
+      teacherName("course") (Teacher Horus). El hub "Tu clase con ..." ya usaba
+      robotName() = curso, OK. (2) POPs QUITADOS del hub (unit-content.js extras):
+      "Conversacion/Charla libre" (redundante con la videollamada), "Caza-errores" y
+      "Anti-errores" (el usuario pidio quitarlos; nota: NO eran lo mismo -> Caza-errores
+      corrige fallos de gramatica de la unidad, Anti-errores era dataset fijo de trampas
+      es->en). Se borro la funcion muerta cazaErroresPop y sus imports (openConversation,
+      openListening, openAntiErrors, genCazaErrores, openDrillDeck, completeLesson).
+      El grid quedo en 4: Examen, Cuento, Videollamada, Input gram. Los modulos
+      conversation.js/listening.js/anti-errors.js SIGUEN existiendo (se usan en map.js,
+      lesson-player.js, etc.) - solo se quitaron del hub. (3) VIDEOLLAMADA = LLAMADA EN
+      VIVO manos libres: el POP ahora abre openVoiceCall({title:unit.title,...}) en vez de
+      openListening. voice-call.js: el ciclo de escucha ahora es AUTOMATICO -> tras hablar
+      el bot se re-escucha sola; en silencio o errores recuperables (no-speech/aborted/
+      network) reintenta sola (restartListen); el boton "Hablar" queda OCULTO por defecto
+      y solo aparece como "Reactivar microfono" si falta el permiso (not-allowed). Esto
+      mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
+      Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
+      (la llamada real requiere el Bymax Worker/IA activo).
 - [x] REGISTRO (contrasena visible + confirmar) + PLAN por defecto + FEEDBACK
       JUGOSO con practica (2026-07-27, v0.247.0). Tres cosas:
       (0) Plan por defecto para cuentas VIEJAS: daily-guide.js coachCard, si no hay plan
