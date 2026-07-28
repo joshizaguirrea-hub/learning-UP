@@ -300,6 +300,26 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] PORTUGUES (pt-BR) A1 COMPLETO + arquitectura multi-idioma (2026-07-27, v0.253.0).
+      FASE 0 (arquitectura): data/languages.js habilita 'pt' + SPEECH map (ttsCode/micCode/
+      unitTts/unitMic). Catalogo filtra por idioma: unitsForLevel(level, lang), unitsForLanguage,
+      unitsForCourse (cae al primer nivel con contenido -> no pantallas vacias). student/course/
+      map/speaking/profile/competency pasan currentLangCode(); unit/lesson-player/story usan
+      unit.language. Selector (ui/nav.js) al elegir idioma recarga /student. course-screen con
+      empty-state. Motor de voz (ui/speech.js): base 'pt' en speakMono/browserSayOne + REGION_PREF
+      pt-br. Voz cableada al idioma META en labs: dictogloss, reading-aloud, reading-lab,
+      speaking, vocab-lab, grammar-input, writing (writing-drills-player recibe lang).
+      FASE 1 (contenido): 8 unidades A1 pt-BR (pt1-ola SER, pt2-familia possessivos+TER,
+      pt3-rotina presente -ar+adverbios, pt4-comida gostar de+artigos, pt5-casa há/tem+prep+ESTAR,
+      pt6-compras numeros+demonstrativos+querer, pt7-tempolivre poder/gostar de+infinitivo,
+      pt8-ontem preterito perfeito -ar). Cada una: reading(2 textos+glossary+6 check) + vocabulary
+      (12 vocab+8 activities) + grammar(chart+8) + writing(8) + listening/test auto. Progreso
+      separado por ids unicos (pt-*). 25+ tests verde, validadores verde.
+      LIMITACION CONOCIDA: la 'clase con Bymax' (skill-class/lesson-teaching) y 'escuchar el
+      pasaje completo' usan el motor BILINGUE es/en -> en pt leen con voz inglesa. El resto de
+      la voz (escuchar frase, vocab, dictado, speaking) ya suena en pt-BR (nube si el Worker la
+      tiene; si no, voz pt del navegador). PENDIENTE opcional: ensenar pt al motor bilingue.
+
 - [x] UX unidad: objetivos en POP + diccionario arrastrable (2026-07-27, v0.252.0).
       (1) features/unit.js: la tarjeta grande "Al terminar este tema podras:" (can-do) YA NO
       ocupa una seccion entera; se movio a un boton compacto "Objetivos del tema" en el header

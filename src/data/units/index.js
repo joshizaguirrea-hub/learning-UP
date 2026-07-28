@@ -60,6 +60,15 @@ import { PROFESSIONAL_COMM_C2 } from "./professional-comm-c2.js";
 import { HUMOR_SUBTEXT_C2 } from "./humor-subtext-c2.js";
 import { DEBATE_MASTERY_C2 } from "./debate-mastery-c2.js";
 import { CAPSTONE_C2 } from "./capstone-c2.js";
+// --- Portugues (pt-BR) A1 ---
+import { PT1_OLA } from "./pt1-ola.js";
+import { PT2_FAMILIA } from "./pt2-familia.js";
+import { PT3_ROTINA } from "./pt3-rotina.js";
+import { PT4_COMIDA } from "./pt4-comida.js";
+import { PT5_CASA } from "./pt5-casa.js";
+import { PT6_COMPRAS } from "./pt6-compras.js";
+import { PT7_TEMPOLIVRE } from "./pt7-tempolivre.js";
+import { PT8_ONTEM } from "./pt8-ontem.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
 import { withClozeChoices } from "../cloze-gen.js";
@@ -83,6 +92,8 @@ export const UNITS = [
   // --- C2 ---
   REGISTER_C2, IDIOM_C2, ADVANCED_WRITING_C2,
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
+  // --- Portugues (pt-BR) A1 ---
+  PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
 ].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
 
 /** Unidades disponibles para un nivel MCER dado y un idioma META (default 'en'). */
