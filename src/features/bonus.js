@@ -6,7 +6,7 @@
  *
  * Una medalla se GANA al dominar el mazo: todos sus items con reps >= MASTER_REPS.
  */
-import { BONUS_DECKS, bonusDeckById } from "../data/bonus-decks.js";
+import { BONUS_DECKS, bonusDeckById, bonusDecksForLanguage } from "../data/bonus-decks.js";
 import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { buildPractice } from "../core/verb-practice.js";
@@ -15,6 +15,7 @@ import { generateTips } from "../core/verb-tips.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
+import { currentLangCode } from "../ui/nav.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay, getGenLevel, setGenLevel } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
@@ -50,10 +51,11 @@ function learnedCount(deck, cardMap) {
 // Lista de mazos + vitrina de medallas
 // ---------------------------------------------------------------------------
 export async function renderBonus(container, user) {
-  const allIds = BONUS_DECKS.flatMap((d) => d.items.map((i) => i.id));
+  const langDecks = bonusDecksForLanguage(currentLangCode());
+  const allIds = langDecks.flatMap((d) => d.items.map((i) => i.id));
   const cardMap = await getCardsByIds(user.id, allIds);
 
-  const decks = bonusMedals(BONUS_DECKS, cardMap);
+  const decks = bonusMedals(langDecks, cardMap);
 
   const medalsEarned = decks.filter((d) => d.mastered).length;
 
@@ -136,6 +138,8 @@ export async function renderBonusDeck(container, params, user) {
   function showCard() {
     if (index >= deck.items.length) { showDone(); return; }
     const item = deck.items[index];
+    // Idioma de la VOZ del mazo (front + ejemplos). pt -> voz portuguesa.
+    const spLang = (deck.language || "en") === "pt" ? "pt-BR" : "en-US";
     const card = cardMap[item.id] || { ease: 2.5, interval: 0, reps: 0, due: null };
     const last = deck.items.length - 1;
 
@@ -160,7 +164,7 @@ export async function renderBonusDeck(container, params, user) {
     const back = el("div", { class: "mt-4 hidden" },
       el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
       formsRow(item),
-      examplesBlock(item.examples),
+      examplesBlock(item.examples, spLang),
       deck.practice ? generatorBlock(item) : null,
       deck.practice ? practiceBlock(item, completeVerb) : null);
 
@@ -186,7 +190,7 @@ export async function renderBonusDeck(container, params, user) {
       deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
-        speakButton(item.front, { cls: "w-11 h-11" })),
+        speakButton(item.front, { cls: "w-11 h-11", lang: spLang })),
       statusHolder,
       el("p", { class: "mt-2 text-xs text-slate-500" },
         deck.practice ? "Completa las practicas para aprender el verbo." : "Piensa la respuesta y luego comprueba."),
@@ -331,13 +335,13 @@ function formsRow(item) {
 }
 
 // Bloque de ejemplos de uso (ingles con audio + traduccion).
-function examplesBlock(examples) {
+function examplesBlock(examples, lang = "en-US") {
   if (!examples || !examples.length) return null;
   return el("div", { class: "mt-4 text-left space-y-2" },
     el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Ejemplos de uso"),
     ...examples.map((ex) => el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 p-3" },
       el("div", { class: "flex items-center gap-2" },
-        speakButton(ex.en),
+        speakButton(ex.en, { lang }),
         el("p", { class: "text-slate-100" }, ex.en)),
       el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, ex.es))));
 }

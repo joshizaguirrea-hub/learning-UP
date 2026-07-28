@@ -417,7 +417,15 @@ export function speakButton(text, { lang = "en-US", cls = "" } = {}) {
       "hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400 shrink-0 " + cls,
     "aria-label": `Escuchar: ${text}`,
     title: "Escuchar",
-    onclick: (e) => { e.preventDefault(); e.stopPropagation(); speak(text, lang); },
+    onclick: (e) => {
+      e.preventDefault(); e.stopPropagation();
+      // El motor bilingue speak() solo domina es/en. Para otros idiomas (ej.
+      // portugues) usamos speakMono, que enruta a la nube (OpenAI TTS) y suena
+      // en el idioma correcto.
+      const base = String(lang).slice(0, 2).toLowerCase();
+      if (base !== "en" && base !== "es") speakMono(text, lang);
+      else speak(text, lang);
+    },
     html: ICONS.sound,
   });
 }
