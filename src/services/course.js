@@ -5,14 +5,14 @@
  */
 import { supabase } from "../config/supabase.js";
 
-/** Devuelve un mapa { lesson_id: {status, score} } del progreso del usuario. */
+/** Devuelve un mapa { lesson_id: {status, score, completedAt} } del progreso. */
 export async function getCourseProgress(userId) {
   const { data } = await supabase
     .from("course_progress")
-    .select("lesson_id, status, score")
+    .select("lesson_id, status, score, completed_at")
     .eq("user_id", userId);
   const map = {};
-  (data || []).forEach((r) => { map[r.lesson_id] = { status: r.status, score: r.score }; });
+  (data || []).forEach((r) => { map[r.lesson_id] = { status: r.status, score: r.score, completedAt: r.completed_at }; });
   return map;
 }
 
