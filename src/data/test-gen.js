@@ -164,7 +164,7 @@ export function buildUnitTest(unit) {
     kind: "test",
     order: 99, // siempre el ULTIMO paso de la unidad
     phase: "produce",
-    skills: [], // no infla la matriz de competencias (no es una competencia)
+    skills: ["writing", "speaking"], // el examen cierra con produccion escrita y oral
     title: "Examen de unidad",
     intro:
       "EXAMEN COMPLETO de la unidad. Reune TODO lo que practicaste: gramatica, " +

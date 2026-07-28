@@ -36,7 +36,7 @@ function activityError(a) {
       if (!Array.isArray(p.pairs) || p.pairs.length < 2) return "pares insuficientes";
       if (p.pairs.some((x) => !x.left || !x.right)) return "par incompleto";
       return null;
-    case "listening": {
+case "listening": {
       if (!p.audio || !String(p.audio).trim()) return "falta el texto del audio";
       // Reusa las reglas de MC (si hay choices) o de cloze (texto libre).
       if (Array.isArray(p.choices)) {
@@ -47,6 +47,17 @@ function activityError(a) {
       }
       return null;
     }
+    case "writing":
+      // Produccion escrita: se califica por longitud minima + palabras clave.
+      if (!Number.isFinite(p.minWords) || p.minWords <= 0) return "writing sin minimo de palabras";
+      if (!Array.isArray(p.keywords) || !p.keywords.length) return "writing sin palabras clave";
+      return null;
+    case "speaking":
+      // Produccion oral (escucha y repite): necesita material con vocabulario.
+      if (!p.speakingUnit || !Array.isArray(p.speakingUnit.vocab) || !p.speakingUnit.vocab.length) {
+        return "speaking sin material de habla";
+      }
+      return null;
     default:
       return `tipo desconocido: ${a.type}`;
   }

@@ -36,6 +36,22 @@ test("calcula cobertura por nivel y competencia", () => {
   assert.ok(r.coverage.byLevel["B1"].skills.grammar > 0);
 });
 
+test("acepta writing y speaking bien formados; detecta los rotos", () => {
+  const okUnit = [{ id: "u", title: "U", level: "B1", cando: ["x"], vocab: [],
+    lessons: [{ id: "x1", phase: "produce", skills: ["writing", "speaking"], activities: [
+      { id: "w", type: "writing", payload: { minWords: 40, keywords: ["a", "b"] } },
+      { id: "s", type: "speaking", payload: { speakingUnit: { title: "U", level: "B1", vocab: [{ term: "cat" }] } } },
+    ] }] }];
+  assert.equal(auditContent(okUnit).score.errorCount, 0);
+
+  const bad = [{ id: "u", title: "U", level: "B1", cando: ["x"], vocab: [],
+    lessons: [{ id: "x1", phase: "produce", skills: ["writing"], activities: [
+      { id: "w", type: "writing", payload: { minWords: 0, keywords: [] } },
+      { id: "s", type: "speaking", payload: { speakingUnit: { vocab: [] } } },
+    ] }] }];
+  assert.ok(auditContent(bad).score.errorCount >= 2);
+});
+
 test("puntaje entre 0 y 100", () => {
   const r = auditContent(UNITS);
   assert.ok(r.score.pct >= 0 && r.score.pct <= 100);

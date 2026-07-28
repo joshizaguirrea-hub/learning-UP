@@ -279,6 +279,23 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] PUNTAJE DE CALIDAD 100/100 + INTEGRIDAD SIN ERRORES (2026-07-27, v0.239.0).
+      El reporte /calidad marcaba 55/100 con 112 errores de integridad. Diagnostico
+      (corriendo el auditor real con Node): los 112 errores eran 56 'writing' + 56
+      'speaking' = 'tipo desconocido'. El examen de cada unidad (test-gen.js) SIEMPRE
+      cierra con una tarea de escritura y una de pronunciacion, pero core/content-
+      audit.js no conocia esos tipos (solo mc/cloze/word_bank/matching/listening).
+      Ademas la amplitud daba 5/6 competencias (faltaba 'speaking' como skill de
+      leccion) -> 25/30. FIX (legitimo, sin trampas): (1) content-audit.js ahora
+      valida writing (minWords>0 + keywords) y speaking (speakingUnit.vocab) -> 0
+      errores -> integridad 40/40. (2) test-gen.js: la leccion-examen pasa de skills:[]
+      a skills:['writing','speaking'] (refleja que el examen SI entrena produccion
+      escrita y oral) -> amplitud 6/6 = 30/30. Resultado auditor real: score 100/100,
+      errorCount 0, 6 competencias cubiertas. NUEVA prueba en content-audit.test.mjs
+      (acepta writing/speaking validos, detecta rotos) -> 6 en verde. NOTA: por fin hay
+      Node en la laptop via el paquete PyPI 'nodejs-bin' (node.exe en .venv\Lib\site-
+      packages\nodejs\node.exe) -> AHORA SI se pueden correr los tests .mjs localmente.
+
 - [x] DASHBOARD DE FEEDBACK DE LUJO (Speaking + Entrevista) (2026-07-27, v0.238.0).
       El usuario: tras cada llamada de Speaking y cada entrevista con IA, recibir un
       FEEDBACK tipo dashboard LUJOSO con las oportunidades, evaluando gramatica,
