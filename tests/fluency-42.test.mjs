@@ -10,8 +10,8 @@ import {
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
 
-test("ROUND_PLAN es 4/3/2 minutos en segundos", () => {
-  assert.deepEqual(ROUND_PLAN.map((r) => r.seconds), [240, 180, 120]);
+test("ROUND_PLAN mantiene la proporcion 4:3:2 (agil: 60/45/30 s)", () => {
+  assert.deepEqual(ROUND_PLAN.map((r) => r.seconds), [60, 45, 30]);
 });
 
 test("countWords cuenta tokens alfabeticos (con apostrofe)", () => {

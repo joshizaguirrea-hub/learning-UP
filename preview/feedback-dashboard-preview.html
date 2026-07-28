@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview · Dashboard de feedback</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style> body { background:#0b1120; } </style>
+</head>
+<body class="text-slate-200 min-h-screen py-8 px-4">
+<div class="max-w-lg mx-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl">
+
+  <!-- Encabezado tipo modal -->
+  <div class="flex items-center gap-3 mb-2">
+    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 grid place-items-center text-white text-xl"></div>
+    <div class="flex-1">
+      <p class="font-bold text-sky-300">Tu feedback de la llamada</p>
+      <p class="text-xs text-slate-400">Ejemplo con datos de muestra (así se ve tras una sesión real)</p>
+    </div>
+  </div>
+
+  <div class="overflow-y-auto pr-1">
+    <!-- Anillo de puntaje -->
+    <div class="text-center">
+      <p class="text-xs uppercase tracking-widest text-slate-500 mb-3">Tu feedback</p>
+      <div class="relative w-32 h-32 rounded-full grid place-items-center mx-auto shadow-[0_0_30px_-8px_rgba(56,189,248,.6)]"
+           style="background: conic-gradient(#38bdf8 280deg, rgba(148,163,184,.18) 0deg)">
+        <div class="w-24 h-24 rounded-full bg-slate-900 grid place-items-center">
+          <div class="text-center">
+            <p class="text-4xl font-extrabold text-sky-300 leading-none">78</p>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">de 100</p>
+          </div>
+        </div>
+      </div>
+      <p class="mt-3 text-xl font-extrabold text-slate-100">¡Muy bien!</p>
+      <p class="mt-1 text-sm font-semibold text-emerald-400">▲ +6 pts vs tu sesión anterior (72)</p>
+      <p class="text-xs text-slate-400 mt-1">Speaking Score · mejor: 82 · promedio: 74 · sesiones: 9</p>
+    </div>
+
+    <!-- Áreas -->
+    <div class="mt-5">
+      <p class="text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2">Evaluación por área</p>
+      <div class="grid grid-cols-2 gap-2">
+        <!-- area card template -->
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+          <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Gramática</span><span class="text-lg font-extrabold text-slate-100">70<span class="text-xs text-slate-500 font-normal">/100</span></span></div>
+          <div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-violet-400 to-fuchsia-500 h-2 rounded-full" style="width:70%"></div></div>
+        </div>
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+          <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Vocabulario</span><span class="text-lg font-extrabold text-slate-100">82<span class="text-xs text-slate-500 font-normal">/100</span></span></div>
+          <div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-sky-400 to-cyan-400 h-2 rounded-full" style="width:82%"></div></div>
+        </div>
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+          <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Fluidez</span><span class="text-lg font-extrabold text-slate-100">75<span class="text-xs text-slate-500 font-normal">/100</span></span></div>
+          <div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-emerald-400 to-teal-500 h-2 rounded-full" style="width:75%"></div></div>
+        </div>
+        <div class="rounded-xl bg-slate-800/60 border border-slate-700 p-3">
+          <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Pronunciación</span><span class="text-lg font-extrabold text-slate-100">66<span class="text-xs text-slate-500 font-normal">/100</span></span></div>
+          <div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-pink-400 to-rose-500 h-2 rounded-full" style="width:66%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lo que hiciste bien -->
+    <div class="mt-3 rounded-xl border p-3 text-emerald-300 border-emerald-500/30 bg-emerald-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> Lo que hiciste bien</p>
+      <div class="mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed">- Usaste bien el pasado simple para contar tu viaje.
+- Buena entonación en las preguntas.</div>
+    </div>
+
+    <!-- Vocabulario que usaste (chips verdes) -->
+    <div class="mt-3 rounded-xl border p-3 text-emerald-300 border-emerald-500/30 bg-emerald-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> Vocabulario que usaste</p>
+      <div class="mt-2 flex flex-wrap gap-1.5">
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-emerald-500/15 border-emerald-500/30 text-emerald-100"><span class="text-sm font-semibold">journey</span></span>
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-emerald-500/15 border-emerald-500/30 text-emerald-100"><span class="text-sm font-semibold">exhausted</span></span>
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-emerald-500/15 border-emerald-500/30 text-emerald-100"><span class="text-sm font-semibold">to be honest</span></span>
+      </div>
+    </div>
+
+    <!-- A mejorar -->
+    <div class="mt-3 rounded-xl border p-3 text-amber-300 border-amber-500/30 bg-amber-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> A mejorar</p>
+      <div class="mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed">- Cuida la concordancia sujeto–verbo en 3ª persona.
+- Evita traducir "mucha gente" literal.</div>
+    </div>
+
+    <!-- ERRORES estructurados + practicar -->
+    <div class="mt-3 rounded-xl border p-3 text-rose-300 border-rose-500/30 bg-rose-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> Errores en tus oraciones</p>
+      <div class="mt-2 space-y-2">
+        <div class="rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5">
+          <p class="text-sm"><span class="text-rose-400 line-through">He go to the beach</span><span class="mx-2 text-slate-500">→</span><span class="text-emerald-300 font-semibold">He goes to the beach</span></p>
+          <p class="mt-1 text-xs text-slate-400"> 3ª persona del singular lleva +s</p>
+        </div>
+        <div class="rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5">
+          <p class="text-sm"><span class="text-rose-400 line-through">very much people</span><span class="mx-2 text-slate-500">→</span><span class="text-emerald-300 font-semibold">a lot of people</span></p>
+          <p class="mt-1 text-xs text-slate-400"> "people" es contable: usa "a lot of"</p>
+        </div>
+        <div class="rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5">
+          <p class="text-sm"><span class="text-rose-400 line-through">I have 25 years</span><span class="mx-2 text-slate-500">→</span><span class="text-emerald-300 font-semibold">I am 25 years old</span></p>
+          <p class="mt-1 text-xs text-slate-400"> La edad se dice con el verbo "to be"</p>
+        </div>
+      </div>
+      <button class="mt-3 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold hover:brightness-110"> Practicar mis errores (3)</button>
+    </div>
+
+    <!-- Vocabulario sugerido (chips azules) -->
+    <div class="mt-3 rounded-xl border p-3 text-sky-300 border-sky-500/30 bg-sky-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> Podrías subir de nivel con</p>
+      <div class="mt-2 flex flex-wrap gap-1.5">
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">breathtaking</span><span class="text-[11px] opacity-80">impresionante</span></span>
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">to wander</span><span class="text-[11px] opacity-80">deambular / pasear</span></span>
+        <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">crowded</span><span class="text-[11px] opacity-80">abarrotado</span></span>
+      </div>
+    </div>
+
+    <!-- Frases modelo -->
+    <div class="mt-3 rounded-xl border p-3 text-sky-300 border-sky-500/30 bg-sky-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span></span> Frases modelo</p>
+      <div class="mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed">- "I'd love to travel there again someday."
+- "The beach was absolutely breathtaking."</div>
+    </div>
+
+    <!-- Consejo final -->
+    <div class="mt-3 rounded-xl border p-3 text-indigo-300 border-indigo-500/30 bg-indigo-500/10">
+      <p class="text-sm font-bold flex items-center gap-2"><span>⭐</span> Consejo final</p>
+      <div class="mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed">Vas muy bien. Enfócate en la 3ª persona y sigue hablando a diario: ¡se nota el progreso!</div>
+    </div>
+
+    <!-- Botones -->
+    <div class="mt-6 flex gap-2">
+      <button class="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold">Practicar otra vez</button>
+      <button class="px-4 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-200">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<p class="max-w-lg mx-auto mt-4 text-center text-xs text-slate-500">
+  Preview estático (datos de ejemplo). El feedback real lo genera el profe IA al terminar una sesión de Speaking/Entrevista.
+</p>
+</body>
+</html>

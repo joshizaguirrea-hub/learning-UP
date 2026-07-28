@@ -2,20 +2,21 @@
  * core/fluency-42.js — Motor PURO de la tecnica de fluidez 4/3/2 (Nation & Maurice).
  *
  * Idea pedagogica: cuentas la MISMA historia tres veces, con menos tiempo cada
- * vez (4 -> 3 -> 2 min). Al bajar el techo de tiempo pero mantener el contenido,
- * el cerebro AUTOMATIZA el habla: hablas mas rapido, con menos titubeos y menos
- * muletillas. La prueba de que funciono = tus palabras-por-minuto (WPM) SUBEN
- * ronda a ronda mientras las muletillas BAJAN.
+ * vez, MANTENIENDO la proporcion 4:3:2. Usamos una version AGIL (60/45/30 s) para
+ * que no se haga eterna con un tema corto. Al bajar el techo de tiempo pero
+ * mantener el contenido, el cerebro AUTOMATIZA el habla: hablas mas rapido, con
+ * menos titubeos y menos muletillas. La prueba de que funciono = tus
+ * palabras-por-minuto (WPM) SUBEN ronda a ronda mientras las muletillas BAJAN.
  *
  * Este modulo solo mide y puntua (sin DOM ni red). La UI vive en
  * features/fluency-42.js y el microfono en ui/mic.js.
  */
 
-/** Plan canonico de la tecnica: 4, 3 y 2 minutos (el techo de cada ronda). */
+/** Plan agil con la proporcion 4:3:2 (60, 45 y 30 s: el techo de cada ronda). */
 export const ROUND_PLAN = [
-  { id: 1, seconds: 240, label: "4 min" },
-  { id: 2, seconds: 180, label: "3 min" },
-  { id: 3, seconds: 120, label: "2 min" },
+  { id: 1, seconds: 60, label: "60 s" },
+  { id: 2, seconds: 45, label: "45 s" },
+  { id: 3, seconds: 30, label: "30 s" },
 ];
 
 /** Muletillas tipicas del ingles (incluye multi-palabra). Todo en minusculas. */

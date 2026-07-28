@@ -1,7 +1,8 @@
 /**
  * features/fluency-42.js — Tecnica de fluidez 4/3/2 (Nation & Maurice).
  *
- * Cuentas la MISMA historia 3 veces con menos tiempo cada vez (4 -> 3 -> 2 min).
+ * Cuentas la MISMA historia 3 veces con menos tiempo cada vez (proporcion 4:3:2,
+ * version agil 60/45/30 s).
  * El techo de tiempo baja pero el contenido se mantiene: tu cerebro automatiza el
  * habla y tus palabras-por-minuto SUBEN mientras las muletillas BAJAN. Al final,
  * un dashboard prueba tu ganancia de fluidez y alimenta tu Speaking Score.
@@ -85,7 +86,7 @@ export function openFluency42(opts = {}) {
       el("div", { class: "rounded-2xl bg-gradient-to-br from-purple-600/20 to-fuchsia-600/10 border border-purple-500/30 p-4" },
         el("p", { class: "text-sm text-slate-200 leading-relaxed" },
           "Cuenta la ", el("b", {}, "misma historia 3 veces"),
-          ": primero en ", el("b", {}, "4 min"), ", luego ", el("b", {}, "3 min"), " y por \u00faltimo ", el("b", {}, "2 min"),
+          ": primero en ", el("b", {}, ROUND_PLAN[0].label), ", luego ", el("b", {}, ROUND_PLAN[1].label), " y por \u00faltimo ", el("b", {}, ROUND_PLAN[2].label),
           ". Menos tiempo, mismo tema \u2192 hablas m\u00e1s r\u00e1pido y con menos muletillas. \u00a1As\u00ed se automatiza el ingl\u00e9s!")),
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-purple-400 font-semibold" }, "Elige tu tema"),
       el("div", { class: "mt-2 grid grid-cols-1 gap-2" }, ...chips));
