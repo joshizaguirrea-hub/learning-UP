@@ -22,6 +22,7 @@ import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { hubCard } from "../ui/hub-ui.js";
 import { teacherName } from "../ui/robot.js";
+import { coachCard } from "./daily-guide.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 
@@ -50,6 +51,7 @@ export async function renderStudent(container, user) {
     // Encabezado accesible (invisible): mantiene foco/lector de pantalla sin ocupar espacio.
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
+    coachCard(user, name, units, progressMap),
     hubGrid(profile, pct)));
   focusMainHeading(container);
 }

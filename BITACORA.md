@@ -279,6 +279,25 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] GUIA INTERACTIVA DIARIA "coach del dia" (2026-07-27, v0.246.0). FASE 3 de 3.
+      En el inicio, el profe SALUDA por nombre segun la hora y guia: primera vez del dia
+      -> "Buenos dias, {nombre}. Hoy vamos a ver {tema}. Empezamos con {competencia}";
+      a media meta -> "Vas X de N, avancemos a la siguiente clase"; meta cumplida ->
+      "Ya cumpliste tu meta, ¿seguimos o descansas?" (botones Seguir / Terminar por hoy);
+      curso completo -> felicita. Habla FLUIDO (voz de Fase 1) y NO repite el mismo
+      saludo al revisitar (gate lastSpoken); boton escuchar-de-nuevo. NUEVO core/daily-guide.js
+      PURO (greeting por hora, firstNameOf, countDoneToday desde completed_at, pickTodayUnit
+      = primera unidad sin terminar, buildDailySession -> {headline, subline, speech,
+      metGoal, budget, doneToday, order}; 9 tests). NUEVO features/daily-guide.js coachCard
+      (mascota + headline + pildoras de progreso hoy + chips de ruta de competencias +
+      botones segun momento; estado 'descansando por hoy' en localStorage). getCourseProgress
+      (services/course.js) ahora trae completed_at -> se cuenta lo de HOY sin contador
+      paralelo (una sola fuente de verdad). Cableado en student.js entre perfil y hub.
+      Meta diaria = plan.perSession (de los minutos elegidos). SUITE: 24 archivos de test
+      TODOS en verde. Validadores verdes. TANDA UX COMPLETA (Fase 1 voz + Fase 2
+      cuestionario/plan + Fase 3 coach). PENDIENTE usuario: probar en Chrome (rehacer
+      onboarding para generar plan -> ver coach en el inicio).
+
 - [x] CUESTIONARIO ROBUSTO + PLAN DE TRABAJO (2026-07-27, v0.245.0). FASE 2 de 3.
       Onboarding ahora en 3 pasos: (1) autonivel Basico(A1)/A2/Intermedio(Prueba,B1)/
       Avanzado(Prueba,B2) -> Basico y A2 saltan el examen, Intermedio/Avanzado lo hacen;
