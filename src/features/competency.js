@@ -8,6 +8,7 @@
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
 import { unitsForLevel } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { skillPlan } from "../data/skill-plans.js";
 import { comingSoon } from "../ui/placeholder.js";
@@ -33,7 +34,7 @@ export async function renderCompetency(container, params, user) {
 
   const level = profile.cefr_level;
   const progress = await getCourseProgress(user.id);
-  const units = unitsForLevel(level);
+  const units = unitsForLevel(level, currentLangCode());
 
   // Lecciones (de cualquier unidad del nivel) que entrenan esta competencia.
   const lessons = [];

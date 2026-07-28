@@ -12,7 +12,8 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
-import { unitsForLevel } from "../data/units/index.js";
+import { unitsForCourse } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
@@ -47,7 +48,7 @@ export async function renderMap(container, user) {
   const progress = await getCourseProgress(user.id);
   const done = new Set(
     Object.entries(progress).filter(([, v]) => v.status === "done").map(([id]) => id));
-  const units = unitsForLevel(profile.cefr_level);
+  const units = unitsForCourse(profile.cefr_level, currentLangCode());
 
   const totalUnits = units.length;
   const doneUnits = units.filter((u) => u.lessons.every((l) => done.has(l.id))).length;

@@ -15,6 +15,7 @@
  */
 import { el } from "../ui/dom.js";
 import { speak, speakMono, speakRobot } from "../ui/speech.js";
+import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
@@ -40,6 +41,7 @@ const BAD_CLS = "border-rose-400 bg-rose-500/25 text-rose-100";
  */
 export function openGrammarInput(unit, opts = {}) {
   const { userId, onComplete } = opts;
+  const tts = unitTts(unit); // idioma META de la unidad
   const lesson = lessonForSkill(unit, "grammar");
   const progressId = opts.progressId || lesson?.id;
   const si = buildGrammarInput(unit);
@@ -93,7 +95,7 @@ export function openGrammarInput(unit, opts = {}) {
 
   function renderInput() {
     progress.firstChild.style.width = "0%";
-    const listenAll = () => si.examples.forEach((ex, i) => setTimeout(() => speakMono(ex, "en"), i * 1400));
+    const listenAll = () => si.examples.forEach((ex, i) => setTimeout(() => speakMono(ex, tts), i * 1400));
     stage.replaceChildren(
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Paso 1 \u00b7 Escucha y fíjate en la forma"),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" },
@@ -112,7 +114,7 @@ export function openGrammarInput(unit, opts = {}) {
         el("div", { class: "mt-2 space-y-2" }, ...si.examples.map((ex) => el("button", {
           type: "button",
           class: "block w-full text-left px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-100 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-violet-400",
-          onclick: () => speakMono(ex, "en"),
+          onclick: () => speakMono(ex, tts),
         }, ex)))) : null,
       el("button", {
         type: "button",
@@ -173,12 +175,12 @@ export function openGrammarInput(unit, opts = {}) {
           type: "button",
           class: "shrink-0 grid place-items-center w-10 h-10 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 focus:outline focus:outline-2 focus:outline-violet-400",
           "aria-label": "Escuchar la frase",
-          onclick: () => speakMono(item.sentence, "en"),
+          onclick: () => speakMono(item.sentence, tts),
         }, el("span", { class: "w-5 h-5", html: ICONS.sound }))),
       el("p", { class: "font-semibold text-slate-100 mt-3" }, item.question),
       el("div", { class: "mt-1" }, ...btns),
       feedback, nextRow);
-    setTimeout(() => speakMono(item.sentence, "en"), 300); // oye la frase al aparecer
+    setTimeout(() => speakMono(item.sentence, tts), 300); // oye la frase al aparecer
   }
 
   // -------- FASE 2.5: actividades AFECTIVAS (cierre Processing Instruction) --------
@@ -219,13 +221,13 @@ export function openGrammarInput(unit, opts = {}) {
           type: "button",
           class: "shrink-0 grid place-items-center w-10 h-10 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 focus:outline focus:outline-2 focus:outline-violet-400",
           "aria-label": "Escuchar la frase",
-          onclick: () => speakMono(item.sentence, "en"),
+          onclick: () => speakMono(item.sentence, tts),
         }, el("span", { class: "w-5 h-5", html: ICONS.sound }))),
       el("p", { class: "font-semibold text-slate-100 mt-3" }, item.question),
       el("p", { class: "text-xs text-slate-500 mt-0.5" }, "No hay respuesta correcta \u2014 pero lee bien la forma para contestar."),
       el("div", { class: "mt-1" }, ...btns),
       note, nextRow);
-    setTimeout(() => speakMono(item.sentence, "en"), 300);
+    setTimeout(() => speakMono(item.sentence, tts), 300);
   }
 
   // -------- FASE 3: resultado --------

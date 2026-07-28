@@ -121,7 +121,7 @@ export function openVocabLab(unit, opts = {}) {
           else if (b._opt === selected) b.className += " " + BAD_CLS;
           b.disabled = true;
         });
-        if (ex.say) speak(ex.say, "en-US", { rate: 0.9 });
+        if (ex.say) speakMono(ex.say, tts, { rate: 0.9 });
         fb.replaceChildren(feedbackBox(ok, ex.kind === "audio" ? ex.say : null));
         checkBtn.replaceWith(nextBtn());
       },
@@ -130,7 +130,7 @@ export function openVocabLab(unit, opts = {}) {
     const audioBtn = ex.kind === "audio" ? el("button", {
       type: "button",
       class: "inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold px-4 py-2.5 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-pink-300",
-      onclick: () => speakMono(ex.say, "en"),
+      onclick: () => speakMono(ex.say, tts),
     }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Escuchar de nuevo") : null;
 
     stage.replaceChildren(header,
@@ -139,7 +139,7 @@ export function openVocabLab(unit, opts = {}) {
       el("div", { class: "mt-2" }, ...btns),
       fb, checkBtn);
 
-    if (ex.kind === "audio") setTimeout(() => speakMono(ex.say, "en"), 350);
+    if (ex.kind === "audio") setTimeout(() => speakMono(ex.say, tts), 350);
   }
 
   // --- TYPE: escribir la palabra ---
@@ -160,7 +160,7 @@ export function openVocabLab(unit, opts = {}) {
       ok ? playCorrect() : playWrong();
       input.disabled = true;
       input.className += ok ? " !border-emerald-400" : " !border-rose-400";
-      if (ex.say) speak(ex.say, "en-US", { rate: 0.9 });
+      if (ex.say) speakMono(ex.say, tts, { rate: 0.9 });
       fb.replaceChildren(feedbackBox(ok, ex.answer));
       checkBtn.replaceWith(nextBtn());
     };

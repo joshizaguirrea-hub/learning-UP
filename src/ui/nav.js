@@ -98,6 +98,7 @@ function langOption(l) {
       onclick: () => {
         localStorage.setItem(LS_KEY, l.code);
         renderLangSelector();
+        go("/student"); // recarga el hub con el curso del nuevo idioma
       },
     }, el("span", { class: "font-medium" }, l.name),
        currentLangCode() === l.code ? el("span", { class: "w-4 h-4 text-emerald-400", html: ICONS.check }) : null);

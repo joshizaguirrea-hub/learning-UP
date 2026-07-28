@@ -16,6 +16,7 @@ import { openBymaxSession } from "./bymax-session.js";
 import { lessonForSkill } from "./skill-class.js";
 import { DRILL_TYPES } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
+import { unitTts } from "../data/languages.js";
 
 // Como debe comportarse Bymax en CUALQUIER ejercicio de escritura.
 const BEHAVIOR =
@@ -129,6 +130,7 @@ export function openWriting(unit, opts = {}) {
       subtitle: title + " \u00b7 nivel " + level,
       drills,
       resumeKey: "writingdrill-" + type.label + "-" + unit.id + "-" + (opts.userId || "anon"),
+      lang: unitTts(unit),
       onFinish: markDone,
     });
   }

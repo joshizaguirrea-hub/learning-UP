@@ -13,7 +13,8 @@
  * como capa opcional de pronunciacion. Presentacion pura: la logica esta en core.
  */
 import { el } from "../ui/dom.js";
-import { speak, speakSequence } from "../ui/speech.js";
+import { speak, speakSequence, speakMono } from "../ui/speech.js";
+import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
@@ -49,6 +50,7 @@ function toSentences(text) {
  */
 export function openReadingLab(unit, opts = {}) {
   const { userId, onComplete } = opts;
+  const tts = unitTts(unit); // idioma META (en usa el motor bilingue; pt usa mono)
   const lesson = lessonForSkill(unit, "reading");
   const progressId = opts.progressId || lesson?.id;
   const passages = splitTexts(lesson?.content?.reading);
@@ -68,8 +70,15 @@ export function openReadingLab(unit, opts = {}) {
 
   // -------- FASE 1: leer + escuchar --------
   function readPassages() {
-    const items = passages.flatMap((p) => toSentences(p.body).map((s) => ({ text: s, lang: "en-US", opts: { rate: 0.95 } })));
-    if (items.length) speakSequence(items);
+    if (tts === "en") {
+      const items = passages.flatMap((p) => toSentences(p.body).map((s) => ({ text: s, lang: "en-US", opts: { rate: 0.95 } })));
+      if (items.length) speakSequence(items);
+    } else {
+      // Idioma no bilingue (pt...): el motor bilingue es solo es/en, asi que
+      // leemos el pasaje en voz MONO del idioma META.
+      const full = passages.map((p) => p.body).join(". ");
+      if (full.trim()) speakMono(full, tts, { rate: 0.95 });
+    }
   }
 
   function renderRead() {
@@ -97,7 +106,7 @@ export function openReadingLab(unit, opts = {}) {
         el("div", { class: "flex flex-wrap gap-2" }, ...glossary.map((v) => el("button", {
           type: "button",
           class: "text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10",
-          onclick: () => speak(v.term, "en-US", { rate: 0.9 }),
+          onclick: () => speakMono(v.term, tts, { rate: 0.9 }),
           title: v.translation || "",
         }, v.term)))) : null,
       el("button", {

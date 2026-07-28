@@ -13,6 +13,7 @@
  */
 import { el } from "../ui/dom.js";
 import { speakMono } from "../ui/speech.js";
+import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
@@ -33,6 +34,7 @@ const PASS = 0.6; // proporcion de palabras para aprobar una frase
  */
 export function openDictogloss(unit, opts = {}) {
   const { userId, onComplete } = opts;
+  const tts = unitTts(unit); // voz del idioma META de la unidad (en | pt...)
   const lesson = lessonForSkill(unit, "listening");
   const progressId = opts.progressId || lesson?.id;
   const sentences = dictationSentences(unit);
@@ -58,13 +60,13 @@ export function openDictogloss(unit, opts = {}) {
     const listenBtn = el("button", {
       type: "button",
       class: "inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-cyan-300",
-      onclick: () => speakMono(target, "en"),
+      onclick: () => speakMono(target, tts),
     }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Escuchar");
 
     const slowBtn = el("button", {
       type: "button",
       class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-3 py-2.5 rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-cyan-300",
-      onclick: () => speakMono(target, "en", { rate: 0.6 }),
+      onclick: () => speakMono(target, tts, { rate: 0.6 }),
     }, "M\u00e1s lento");
 
     const input = el("textarea", {
@@ -102,7 +104,7 @@ export function openDictogloss(unit, opts = {}) {
           el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missing.slice(0, 8).map((w) => el("button", {
             type: "button",
             class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
-            onclick: () => speakMono(w, "en", { rate: 0.55 }),
+            onclick: () => speakMono(w, tts, { rate: 0.55 }),
           }, w)))) : null;
 
         fb.replaceChildren(el("div", {
@@ -125,7 +127,7 @@ export function openDictogloss(unit, opts = {}) {
         el("div", { class: "mt-3 flex flex-wrap gap-2" }, listenBtn, slowBtn)),
       input, checkBtn, fb, nextBtn);
 
-    setTimeout(() => speakMono(target, "en"), 350); // reproduce al mostrar
+    setTimeout(() => speakMono(target, tts), 350); // reproduce al mostrar
   }
 
   function renderDone() {

@@ -9,7 +9,7 @@
  * Reutilizable por Writing y Grammar (comparten el caza-errores) via openDrillDeck.
  */
 import { el } from "../ui/dom.js";
-import { speak } from "../ui/speech.js";
+import { speakMono } from "../ui/speech.js";
 import { celebrate } from "../ui/celebrate.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { normAnswer } from "../data/writing-drills.js";
@@ -23,7 +23,7 @@ const BAD_CLS = "border-rose-400 bg-rose-500/25 text-rose-100";
  * @param {object} cfg { title, subtitle, drills:[], onFinish?, resumeKey? }
  *   resumeKey: si viene, se autoguarda el avance y al reabrir ofrece continuar.
  */
-export function openDrillDeck({ title, subtitle, drills = [], onFinish, resumeKey } = {}) {
+export function openDrillDeck({ title, subtitle, drills = [], onFinish, resumeKey, lang = "en" } = {}) {
   const deck = (drills || []).filter(Boolean);
   if (!deck.length) return;
 
@@ -156,7 +156,7 @@ function renderPick(drill, onCorrect, advance) {
       else if (b.textContent === selected) b.className += " " + BAD_CLS;
       b.disabled = true;
     });
-    if (ok && drill.say) speak(drill.say, "en-US", { rate: 0.9 });
+    if (ok && drill.say) speakMono(drill.say, lang, { rate: 0.9 });
     feedback.replaceChildren(feedbackLine(ok, drill.explain));
     check.replaceWith(nextBtn(undefined, advance));
   });
@@ -186,7 +186,7 @@ function renderText(drill, onCorrect, advance) {
     if (ok) onCorrect();
     input.disabled = true;
     input.className += ok ? " !border-emerald-400" : " !border-rose-400";
-    if (drill.say) speak(drill.say, "en-US", { rate: 0.9 });
+    if (drill.say) speakMono(drill.say, lang, { rate: 0.9 });
     feedback.replaceChildren(
       feedbackLine(ok, ""),
       el("p", { class: "mt-1 text-sm text-slate-300" }, "Modelo: "),
@@ -236,7 +236,7 @@ function renderMatch(drill, onCorrect, advance) {
     const ok = sel._i === b._i;
     if (ok) {
       [sel, b].forEach((n) => { n._done = true; n.disabled = true; n.classList.remove("border-indigo-400", "bg-indigo-500/25"); n.className += " " + OK_CLS; });
-      speak(pairs[b._i].left, "en-US", { rate: 0.9 });
+      speakMono(pairs[b._i].left, lang, { rate: 0.9 });
       clearSel();
       matched += 1;
       if (matched === total) {

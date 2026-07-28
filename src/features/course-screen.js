@@ -7,7 +7,8 @@
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
-import { unitsForLevel } from "../data/units/index.js";
+import { unitsForCourse } from "../data/units/index.js";
+import { currentLangCode } from "../ui/nav.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { accentGrad } from "../ui/theme.js";
@@ -26,7 +27,7 @@ export async function renderCourse(container, user) {
   }
 
   const progressMap = await getCourseProgress(user.id);
-  const units = unitsForLevel(profile.cefr_level);
+  const units = unitsForCourse(profile.cefr_level, currentLangCode());
 
   mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" },
     backHome(),
@@ -35,8 +36,16 @@ export async function renderCourse(container, user) {
       title: "Tu curso", subtitle: `${profile.cefr_level} - ${units.length} temas`,
     }),
     courseCards(units, progressMap),
-    bonusCard()));
+    units.length ? bonusCard() : emptyCourse()));
   focusMainHeading(container);
+}
+
+/** Aviso cuando el idioma elegido aun no tiene unidades (contenido en camino). */
+function emptyCourse() {
+  return el("div", { class: "rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center" },
+    el("div", { class: "w-14 h-14 mx-auto rounded-full bg-slate-800 grid place-items-center text-slate-400", html: ICONS.book }),
+    el("h2", { class: "text-lg font-bold mt-4" }, "Contenido en camino"),
+    el("p", { class: "mt-2 text-slate-400" }, "Este idioma todav\u00eda no tiene unidades para tu nivel. \u00a1Muy pronto!"));
 }
 
 /** Acceso a los bonos DENTRO del curso (verbos, vocabulario, medallas). */
