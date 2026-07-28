@@ -21,7 +21,7 @@ export const PT5_CASA = {
     { id: "pt5h-2", term: "quarto", translation: "cuarto/dormitorio", example: "O meu quarto é pequeno." },
     { id: "pt5h-3", term: "cozinha", translation: "cocina", example: "A cozinha é moderna." },
     { id: "pt5h-4", term: "sala", translation: "sala", example: "Na sala há um sofá." },
-    { id: "pt5h-5", term: "casa de banho / banheiro", translation: "bano", example: "O banheiro fica ao fundo." },
+    { id: "pt5h-5", term: "banheiro", translation: "bano", example: "O banheiro fica ao fundo." },
     { id: "pt5h-6", term: "cama", translation: "cama", example: "A cama está no quarto." },
     { id: "pt5h-7", term: "mesa / cadeira", translation: "mesa / silla", example: "Há uma mesa e quatro cadeiras." },
     { id: "pt5h-8", term: "sofá", translation: "sofa", example: "O sofá está na sala." },
@@ -42,8 +42,8 @@ export const PT5_CASA = {
       content: {
         reading:
           "TEXTO 1 - A casa da Rita\n" +
-          "A minha casa não é grande, mas é confortável. Há dois quartos, uma cozinha, uma sala e uma casa " +
-          "de banho. Na sala há um sofá e uma televisão. A cozinha fica ao lado da sala. O meu quarto tem " +
+          "A minha casa não é grande, mas é confortável. Há dois quartos, uma cozinha, uma sala e um banheiro. " +
+          "Na sala há um sofá e uma televisão. A cozinha fica ao lado da sala. O meu quarto tem " +
           "uma cama, uma mesa e uma janela grande. Eu gosto muito da minha casa.\n\n" +
           "TEXTO 2 - Onde estão as coisas?\n" +
           "Na cozinha há uma mesa e quatro cadeiras. O café está em cima da mesa. O gato está debaixo da " +
@@ -65,7 +65,7 @@ export const PT5_CASA = {
         check: [
           { prompt: "T1: Quantos quartos há na casa da Rita?", choices: ["Um", "Dois", "Três"], answer: 1 },
           { prompt: "T1: O que há na sala?", choices: ["Uma cama", "Um sofá e uma televisão", "Uma mesa"], answer: 1 },
-          { prompt: "T1: A cozinha fica ao lado de quê?", choices: ["Do quarto", "Da sala", "Da casa de banho"], answer: 1 },
+          { prompt: "T1: A cozinha fica ao lado de quê?", choices: ["Do quarto", "Da sala", "Do banheiro"], answer: 1 },
           { prompt: "T2: Onde está o café?", choices: ["Debaixo da mesa", "Em cima da mesa", "Na sala"], answer: 1 },
           { prompt: "T2: Onde está o gato?", choices: ["Em cima da cadeira", "Debaixo da cadeira", "No sofá"], answer: 1 },
           { prompt: "T2: Onde estão os livros?", choices: ["Em cima da estante", "Debaixo da mesa", "Ao lado do sofá"], answer: 0 },
@@ -251,7 +251,7 @@ export const PT5_CASA = {
       order: 4,
       phase: "produce",
       skills: ["writing"],
-      title: "Writing: descreve a tua casa",
+      title: "Writing: descreva a sua casa",
       intro: "Competencia de ESCRITURA. Describe tu casa, frase por frase.",
       activities: [
         {

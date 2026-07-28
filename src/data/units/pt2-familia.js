@@ -47,13 +47,13 @@ export const PT2_FAMILIA = {
           "Nós temos um cachorro também. Eu amo a minha família.\n\n" +
           "TEXTO 2 - A família da Júlia\n" +
           "A minha família é grande. Eu tenho dois irmãos e uma irmã. O meu avô e a minha avó moram " +
-          "connosco. O meu marido chama-se Rui e nós temos um filho. Ele tem três anos. Somos oito pessoas em casa!",
+          "conosco. O meu marido se chama Rui e nós temos um filho. Ele tem três anos. Somos oito pessoas em casa!",
         glossary: [
           { term: "a minha família", translation: "mi familia" },
           { term: "eu tenho", translation: "yo tengo" },
           { term: "nós temos", translation: "nosotros tenemos" },
-          { term: "moram connosco", translation: "viven con nosotros" },
-          { term: "chama-se", translation: "se llama" },
+          { term: "moram conosco", translation: "viven con nosotros" },
+          { term: "se chama", translation: "se llama" },
           { term: "pessoas", translation: "personas" },
           { term: "também", translation: "tambien" },
           { term: "grande / pequena", translation: "grande / pequena" },
@@ -251,7 +251,7 @@ export const PT2_FAMILIA = {
       order: 4,
       phase: "produce",
       skills: ["writing"],
-      title: "Writing: descreve a tua família",
+      title: "Writing: descreva a sua família",
       intro: "Competencia de ESCRITURA. Describe tu familia, frase por frase.",
       activities: [
         {
