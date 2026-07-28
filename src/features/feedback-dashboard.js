@@ -1,0 +1,127 @@
+/**
+ * features/feedback-dashboard.js — Dashboard de LUJO del feedback de habla.
+ *
+ * Reutilizable por Speaking (Llamada) y Entrevista. Recibe el feedback YA parseado
+ * (core/feedback.js -> {score, areas, sections}) y pinta:
+ *   - Anillo grande con el puntaje global + etiqueta motivadora.
+ *   - Comparativa vs la sesion anterior (rol de coach).
+ *   - Tarjetas por AREA (gramatica, vocabulario, fluidez, coherencia...) con barra.
+ *   - Secciones de texto (lo que hiciste bien / a mejorar / errores / frases / consejo).
+ *   - Bloque extra opcional (p.ej. agendar cita) + botones Reintentar / Cerrar.
+ *
+ * Presentacion pura: no hace red ni parsing. Devuelve un nodo listo para montar.
+ */
+import { el } from "../ui/dom.js";
+import { scoreLabel } from "../core/speaking-score.js";
+
+const TONE = {
+  emerald: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
+  amber: "text-amber-300 border-amber-500/30 bg-amber-500/10",
+  rose: "text-rose-300 border-rose-500/30 bg-rose-500/10",
+  sky: "text-sky-300 border-sky-500/30 bg-sky-500/10",
+  indigo: "text-indigo-300 border-indigo-500/30 bg-indigo-500/10",
+};
+
+/** Anillo conico con el puntaje global (0-100). */
+function scoreRing(score) {
+  return el("div", {
+    class: "relative w-32 h-32 rounded-full grid place-items-center mx-auto shadow-[0_0_30px_-8px_rgba(56,189,248,.6)]",
+    style: "background: conic-gradient(#38bdf8 " + (score * 3.6) + "deg, rgba(148,163,184,.18) 0deg)",
+  },
+    el("div", { class: "w-24 h-24 rounded-full bg-slate-900 grid place-items-center" },
+      el("div", { class: "text-center" },
+        el("p", { class: "text-4xl font-extrabold text-sky-300 leading-none" }, String(score)),
+        el("p", { class: "text-[10px] text-slate-400 uppercase tracking-widest mt-1" }, "de 100"))));
+}
+
+/** Tarjeta de un area con su barra de progreso (accesible). */
+function areaCard(a) {
+  const v = a.value;
+  return el("div", { class: "rounded-xl bg-slate-800/60 border border-slate-700 p-3" },
+    el("div", { class: "flex items-baseline justify-between" },
+      el("span", { class: "text-sm font-semibold text-slate-200" }, a.label),
+      el("span", { class: "text-lg font-extrabold text-slate-100" }, v,
+        el("span", { class: "text-xs text-slate-500 font-normal" }, "/100"))),
+    el("div", {
+      class: "mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden",
+      role: "progressbar", "aria-valuenow": String(v), "aria-valuemin": "0", "aria-valuemax": "100",
+      "aria-label": a.label + ": " + v + " de 100",
+    },
+      el("div", { class: "bg-gradient-to-r " + a.grad + " h-2 rounded-full transition-all", style: "width:" + v + "%" })));
+}
+
+/** Seccion de texto con icono + tono. */
+function sectionCard(s) {
+  const tone = TONE[s.tone] || TONE.indigo;
+  return el("div", { class: "mt-3 rounded-xl border p-3 " + tone },
+    el("p", { class: "text-sm font-bold flex items-center gap-2" },
+      el("span", { "aria-hidden": "true" }, s.icon || "\u2022"), s.title),
+    el("div", { class: "mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed" }, s.body));
+}
+
+/**
+ * Construye el nodo del dashboard.
+ * @param {object} p
+ * @param {{score,areas,sections,raw}} p.parsed - feedback parseado
+ * @param {string} [p.title] - titulo grande (p.ej. "Tu feedback de la llamada")
+ * @param {object} [p.stats] - { best, avg, sessions } del Speaking Score
+ * @param {object|null} [p.prev] - sesion anterior { score } para comparar
+ * @param {Node|null} [p.extra] - bloque extra al final (p.ej. agendar cita)
+ * @param {Function} [p.onRetry] - callback "Practicar otra vez"
+ * @param {Function} [p.onClose] - callback "Cerrar"
+ * @param {string} [p.retryLabel]
+ * @returns {HTMLElement}
+ */
+export function buildFeedbackDashboard(p = {}) {
+  const { parsed, title = "Tu feedback", stats, prev, extra, onRetry, onClose, retryLabel = "Practicar otra vez" } = p;
+  const { score, areas, sections, raw } = parsed;
+  const info = scoreLabel(score);
+
+  // Comparativa vs sesion anterior (coach).
+  let progress = null;
+  if (prev && typeof prev.score === "number") {
+    const diff = score - prev.score;
+    const up = diff >= 0;
+    progress = el("p", { class: "mt-1 text-sm font-semibold " + (up ? "text-emerald-400" : "text-amber-400") },
+      (up ? "\u25b2 +" : "\u25bc ") + diff + " pts vs tu sesi\u00f3n anterior (" + prev.score + ")");
+  }
+
+  const statsLine = stats
+    ? el("p", { class: "text-xs text-slate-400 mt-1" },
+      "Speaking Score \u00b7 mejor: " + stats.best + " \u00b7 promedio: " + stats.avg + " \u00b7 sesiones: " + stats.sessions)
+    : null;
+
+  const areasGrid = areas.length
+    ? el("div", { class: "mt-5" },
+      el("p", { class: "text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2" }, "Evaluaci\u00f3n por \u00e1rea"),
+      el("div", { class: "grid grid-cols-2 gap-2" }, ...areas.map(areaCard)))
+    : null;
+
+  const sectionEls = sections.length
+    ? sections.map(sectionCard)
+    : [el("p", { class: "mt-4 text-sm text-slate-200 whitespace-pre-line" }, raw)];
+
+  const buttons = el("div", { class: "mt-6 flex gap-2" },
+    onRetry ? el("button", {
+      type: "button",
+      class: "flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-sky-300",
+      onclick: onRetry,
+    }, retryLabel) : null,
+    onClose ? el("button", {
+      type: "button",
+      class: "px-4 py-3 rounded-xl border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10 focus:outline focus:outline-2 focus:outline-white",
+      onclick: onClose,
+    }, "Cerrar") : null);
+
+  return el("div", { class: "overflow-y-auto pr-1", style: "max-height: 76vh" },
+    el("div", { class: "text-center" },
+      el("p", { class: "text-xs uppercase tracking-widest text-slate-500 mb-3" }, title),
+      scoreRing(score),
+      el("p", { class: "mt-3 text-xl font-extrabold text-slate-100" }, info.label),
+      progress,
+      statsLine),
+    areasGrid,
+    el("div", { class: "mt-2" }, ...sectionEls),
+    extra || null,
+    buttons);
+}

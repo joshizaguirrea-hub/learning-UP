@@ -17,6 +17,9 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
+import { buildFeedbackPrompt, parseFeedback } from "../core/feedback.js";
+import { buildFeedbackDashboard } from "./feedback-dashboard.js";
+import { recordSpeakingScore, getSpeakingScore } from "../core/speaking-score.js";
 
 // Temas sugeridos (en ingles: la charla es en ingles). Bymax puede recomendar uno.
 const TOPIC_IDEAS = [
@@ -32,10 +35,12 @@ const TOPIC_IDEAS = [
  * @param {boolean} [opts.chooseTopic] - forzar selector de tema
  * @param {string} [opts.mode] - modo IA: "conversation" (def) o "roleplay"
  * @param {string} [opts.label] - palabra para el titulo (def "Llamada")
+ * @param {string} [opts.userId] - para guardar el Speaking Score y el feedback
  */
 export function openVoiceCall(opts = {}) {
   const name = teacherName("speaking");
   const level = opts.level || "B1";
+  const userId = opts.userId || "anon";
   const fixedTopic = opts.title;
   const chooseTopic = opts.chooseTopic || !fixedTopic;
   const mode = opts.mode || "conversation";
@@ -125,6 +130,7 @@ export function openVoiceCall(opts = {}) {
   // --- Paso 2: la llamada ----------------------------------------------------
   function startCall(topic) {
     const history = [];
+    const allTurns = []; // transcripcion completa (para evaluar al final)
     const MAX = 10;
 
     heading.textContent = callWord + " \u00b7 " + topic;
@@ -145,6 +151,8 @@ export function openVoiceCall(opts = {}) {
       if (error || !answer) { setState("\u26a0\ufe0f " + (error || "No pude responder."), false); showRetry(); return; }
       history.push({ role: "user", text: q }, { role: "model", text: answer });
       if (history.length > MAX) history.splice(0, history.length - MAX);
+      if (q !== "[BEGIN]") allTurns.push({ role: "user", text: q });
+      allTurns.push({ role: "model", text: answer });
       heard.textContent = "";
       setState(name + " habla...", true);
       bymaxEmote("happy");
@@ -198,8 +206,46 @@ export function openVoiceCall(opts = {}) {
     const endBtn = el("button", {
       type: "button",
       class: "px-5 py-3 rounded-xl bg-red-500/90 text-white font-semibold hover:bg-red-500 focus:outline focus:outline-2 focus:outline-red-300",
-      onclick: close,
-    }, "Terminar");
+      onclick: finishCall,
+    }, "Terminar y ver feedback");
+
+    // -- Feedback al colgar: un profe evalua gramatica, vocabulario, etc. --------
+    async function finishCall() {
+      const spoke = allTurns.some((t) => t.role === "user");
+      if (!spoke) { close(); return; } // no hablaste nada -> nada que evaluar
+      ended = true; dictation?.abort(); stopAudio();
+      renderFeedbackLoading();
+      const { answer, error } = await askBymax({
+        mode: "interview", topic, level,
+        question: buildFeedbackPrompt("speaking"),
+        history: allTurns.slice(-24),
+      });
+      if (error || !answer) {
+        body.replaceChildren(el("div", { class: "text-center py-8" },
+          el("p", { class: "text-amber-300 text-sm" }, "\u26a0\ufe0f No pude generar el feedback: " + (error || "")),
+          el("button", {
+            class: "mt-4 px-5 py-3 rounded-xl bg-white/5 border border-white/15 text-slate-200 hover:bg-white/10",
+            onclick: close,
+          }, "Cerrar")));
+        return;
+      }
+      const parsed = parseFeedback(answer);
+      const stats = recordSpeakingScore(userId, parsed.score);
+      body.replaceChildren(buildFeedbackDashboard({
+        parsed,
+        title: "Tu feedback de la llamada",
+        stats,
+        onRetry: () => { ended = false; if (fixedTopic) startCall(fixedTopic); else renderTopicPicker(); },
+        onClose: close,
+        retryLabel: "Otra llamada",
+      }));
+    }
+
+    function renderFeedbackLoading() {
+      body.replaceChildren(el("div", { class: "text-center py-10" },
+        el("div", { class: "w-10 h-10 mx-auto border-4 border-slate-700 border-t-emerald-400 rounded-full", style: "animation: spin 1s linear infinite" }),
+        el("p", { class: "mt-4 text-slate-300" }, name + " est\u00e1 evaluando tu conversaci\u00f3n...")));
+    }
 
     body.replaceChildren(
       el("div", { class: "mt-6 flex justify-center" }, avatar),
