@@ -279,6 +279,26 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] READING ROLE-PLAY (dialogo interpretado) (2026-07-27, v0.242.0). #3 del roadmap
+      pedagogico (vamos 1 a 1). El alumno elige un personaje de un pasaje-dialogo y lo
+      INTERPRETA leyendo sus lineas en voz alta; Bymax hace el otro (voz TTS). Cada
+      linea del alumno se puntua vs el guion. NUEVO core/role-play.js (PURO, con tests):
+      parseDialogue (reconoce 'A:'/'B:'/'Nombre:' al inicio o tras espacio, soporta
+      varios turnos por linea via regex con labelStart/lineStart), dialogueSpeakers,
+      isDialogue (>=2 turnos, 2-6 hablantes), buildScript (marca isUser por personaje),
+      scoreLine (reusa gradeDictation de dictogloss.js) + re-exporta sessionScore.
+      NUEVO features/role-play.js openRolePlay(): modal autocontenido; gatherDialogues()
+      junta pasajes-dialogo de TODAS las unidades (A1-C2) via splitTexts+isDialogue ->
+      picker -> renderCast (elige personaje) -> runScript: turnos de Bymax se auto-leen
+      con speakBilingual (+ boton Repetir/Continuar), turnos del alumno muestran la linea
+      objetivo + mic (createDictation) -> scoreLine -> feedback palabra x palabra (verde
+      hit / rojo tachado miss) -> Siguiente; al final sessionScore -> recordSpeakingScore.
+      Sin mic: degrada a lectura sin puntaje ('La lei'). userId: como se abre desde 'Mas'
+      sin user, se resuelve con currentUser() async (el puntaje se guarda al final).
+      Cableado en more-screen.js como 3a tarjeta derivada-de-lectura (teal, ICONS.chat),
+      junto a close-reading. NUEVO tests/role-play.test.mjs (8 en verde) + dictogloss
+      sigue 9 en verde. Validadores en verde. PENDIENTE usuario: probar en Chrome (mic).
+
 - [x] LITERATURE CLOSE-READING C1/C2 (2026-07-27, v0.241.0). #2 del roadmap
       pedagogico (vamos 1 a 1). Close-reading = leer despacio y con lupa: no solo
       QUE dice el texto sino COMO y POR QUE. El alumno responde por LENTES de
