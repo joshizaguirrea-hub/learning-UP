@@ -279,6 +279,21 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] CUESTIONARIO ROBUSTO + PLAN DE TRABAJO (2026-07-27, v0.245.0). FASE 2 de 3.
+      Onboarding ahora en 3 pasos: (1) autonivel Basico(A1)/A2/Intermedio(Prueba,B1)/
+      Avanzado(Prueba,B2) -> Basico y A2 saltan el examen, Intermedio/Avanzado lo hacen;
+      (2) META (trabajo/viajes/estudios/cultura/personal) que decide el ORDEN de
+      competencias; (3) MINUTOS/dia (5/10/15/30) que decide cuantas actividades por
+      sesion. NUEVO core/study-plan.js PURO (GOALS con order+tip por meta, SELF_LEVELS,
+      MINUTES, needsTest, cefrForSelfLevel, activitiesPerSession, buildStudyPlan -> {cefr,
+      skillOrder, startSkill, perSession, summary, goalTip}; 7 tests). NUEVO
+      ui/study-plan-store.js (saveStudyPlan/loadStudyPlan/clearStudyPlan en localStorage
+      scoped por userId, SIN migracion de BD). placement.js reescrito: pasos con stepDots,
+      pantalla final PLAN (nivel + desglose examen si hubo + resumen + orden recomendado
+      con la competencia de arranque resaltada 'EMPIEZA AQUI'). Validadores verdes,
+      study-plan 7 verde. El plan queda en localStorage para que la guia diaria (Fase 3)
+      lo use. PENDIENTE usuario: probar el nuevo onboarding en Chrome.
+
 - [x] VOZ FLUIDA en todo (feedback/tips/dialogos) (2026-07-27, v0.244.0). FASE 1 de
       3 de la tanda de mejoras UX. Problema: el feedback/tips/dialogos en espanol "se
       guindaban" o tardaban mucho. Causa: speakSequence reproducia el trozo 0 esperando
