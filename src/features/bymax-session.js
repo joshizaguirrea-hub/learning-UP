@@ -206,6 +206,7 @@ export function openBymaxSession(cfg) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode, topic, level,
+          targetLang: cfg?.targetLang || "en", // idioma META (en | pt...)
           immersive: !multilingualEnabled(), // inmersion salvo que Azure este activo
           question: q, history: history.slice(-MAX_TURNS),
         }),

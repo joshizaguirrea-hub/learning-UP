@@ -82,7 +82,7 @@ export function unitContent(unit, progressMap, user) {
     examPop(unit, progressMap),
     miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop("Videollamada", "Llamada en vivo IA", SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
-      () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", userId: user?.id })),
+      () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", targetLang: unit.language || "en", userId: user?.id })),
     grammarInputPop(unit, user));
 
   // Bonos (verbos + vocabulario del nivel) como POPs pequenos tipo pastilla.

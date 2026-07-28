@@ -300,6 +300,25 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] IA de Bymax MULTI-IDIOMA + fix critico de POPs (2026-07-27, v0.254.0).
+      FIX CRITICO: skillPop usaba `markDone` INDEFINIDO (venia del boletin v0.251) ->
+      al tocar Grammar/Vocabulary/Writing/Listening/Speaking/Reading el onclick moria
+      con ReferenceError y "no pasaba nada". Afectaba INGLES y PORTUGUES. Ahora skillPop
+      recibe onSkillDone y define markDone (v0.253.2).
+      HALLAZGO: el Worker (worker/bymax-worker.js) usa OpenAI (gpt-4o-mini chat +
+      gpt-4o-mini-tts voz), NO MeloTTS/Gemini como decia el comentario viejo. OpenAI TTS
+      es MULTILINGUE y detecta el idioma del texto -> voz pt-BR en la nube SIN llave nueva.
+      IA MULTI-IDIOMA (sin llaves nuevas): el cliente ahora envia `targetLang` (idioma
+      META de la unidad) al Worker en clase (class-tutor), videollamada/entrevista
+      (voice-call + services/bymax-ai), y cuento (story). El Worker mapea targetLang ->
+      nombre de idioma y arma el system prompt para que Bymax HABLE/haga practicar en ese
+      idioma (ej. pt-BR) y EXPLIQUE en espanol via lineas TIP (inmersion correcta A1).
+      Placeholder de la clase deja de decir "ingles" fijo. PENDIENTE USUARIO: REDESPLEGAR
+      el Worker (wrangler) para que el cambio del prompt tome efecto -> ver worker/README.
+      LIMITACION menor: la lectura en voz del Cuento (story readAloud) usa el motor
+      bilingue es/en -> en pt lee con voz inglesa; el TEXTO ya sale en pt. Clase y
+      Videollamada SI suenan en pt (van por OpenAI TTS).
+
 - [x] PORTUGUES (pt-BR) A1 COMPLETO + arquitectura multi-idioma (2026-07-27, v0.253.0).
       FASE 0 (arquitectura): data/languages.js habilita 'pt' + SPEECH map (ttsCode/micCode/
       unitTts/unitMic). Catalogo filtra por idioma: unitsForLevel(level, lang), unitsForLanguage,
