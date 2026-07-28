@@ -300,6 +300,19 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] FEEDBACK en PESTANAS (Grammar/Vocabulary/Pronunciacion/Recomendaciones) +
+      notas de pronunciacion (2026-07-27, v0.249.0). feedback-dashboard.js: para feedback
+      de HABLA (auto-deteccion isSpeakingFeedback: areas con GRAMATICA + FLUIDEZ/PRONUNCIACION)
+      el detalle ahora va en 4 pestanas (tabsView accesible role=tablist/tab/tabpanel):
+      Grammar (puntaje + errores estructurados + practicar), Vocabulary (usado + sugerido),
+      Pronunciacion (puntaje + Notas de pronunciacion), Recomendaciones (lo bueno + a mejorar
+      + frases modelo + consejo). Arriba queda el resumen (anillo + areas). Close-reading y
+      otros NO-habla siguen PLANOS (degrada). core/feedback.js: nueva seccion NOTAS DE
+      PRONUNCIACION en rubrica + SECTION_DEFS (titulo 'Notas de pronunciacion'). Helpers
+      findSection/findArea/scorePill/emptyState/tabsView/buildDetailTabs. feedback.test 12
+      verde. preview/feedback-dashboard-preview.html actualizado con las pestanas (mini JS).
+      SUITE 24 verde.
+
 - [x] UX hub Speaking + Fluidez agil + preview del feedback (2026-07-27, v0.248.0).
       (1) hub-ui.js hubCard: nuevo flag `compact` (aspect 16/10 -> 16/9, mas bajo) que NO
           afecta las 3 puertas grandes del inicio. speaking-screen.js: tarjetas compact:true,

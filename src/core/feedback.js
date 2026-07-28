@@ -42,6 +42,7 @@ export const SECTION_DEFS = [
   { key: "VOCABULARIO QUE USASTE", title: "Vocabulario que usaste", icon: "\uD83D\uDFE2", tone: "emerald" },
   { key: "A MEJORAR", title: "A mejorar", icon: "\uD83C\uDFAF", tone: "amber" },
   { key: "ERRORES CLAVE", title: "Errores clave", icon: "\u270F\uFE0F", tone: "rose" },
+  { key: "NOTAS DE PRONUNCIACION", title: "Notas de pronunciaci\u00f3n", icon: "\uD83D\uDDE3\uFE0F", tone: "rose" },
   { key: "VOCABULARIO SUGERIDO", title: "Podr\u00edas subir de nivel con", icon: "\uD83D\uDD35", tone: "sky" },
   { key: "FRASES MODELO", title: "Frases modelo", icon: "\uD83D\uDCAC", tone: "sky" },
   { key: "CONSEJO FINAL", title: "Consejo final", icon: "\u2B50", tone: "indigo" },
@@ -72,6 +73,7 @@ export function buildFeedbackPrompt(kind = "speaking") {
     "VOCABULARIO QUE USASTE:\n- <palabras o expresiones EN INGLES que el estudiante realmente uso bien, una por linea>\n" +
     "A MEJORAR:\n- <2 o 3 vi\u00f1etas concretas y accionables>\n" +
     "ERRORES CLAVE:\n- \"<frase EXACTA que dijo mal>\" -> \"<como se dice correcto>\" (<por que, breve>)\n<una linea por error, 2 a 4 errores reales de lo que dijo>\n" +
+    "NOTAS DE PRONUNCIACION:\n- <1 a 3 tips concretos: sonidos, acentuacion o entonacion a cuidar, con ejemplo>\n" +
     "VOCABULARIO SUGERIDO:\n- <palabra o expresion EN INGLES que pudo usar> = <significado corto en espanol>\n<2 a 4 lineas>\n" +
     "FRASES MODELO:\n- <2 o 3 frases naturales en ingles que pudo haber usado>\n" +
     "CONSEJO FINAL:\n<1 o 2 frases motivadoras y claras>";
