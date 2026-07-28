@@ -18,6 +18,7 @@ import { openVoiceCall } from "./voice-call.js";
 import { openMyLifeLesson } from "./my-life-lesson.js";
 import { openSpeaking } from "./speaking.js";
 import { openShadowing } from "./shadowing.js";
+import { openFluency42 } from "./fluency-42.js";
 import { teacherName } from "../ui/robot.js";
 
 export async function renderSpeaking(container, user) {
@@ -52,6 +53,11 @@ export async function renderSpeaking(container, user) {
         title: "Shadowing",
         subtitle: pronUnit ? "Haz eco e imita el ritmo (sube tu Speaking Score)" : "Avanza en tu curso para desbloquear",
         onClick: pronUnit ? () => openShadowing(pronUnit, { userId: user.id }) : undefined,
+      }),
+      hubCard({
+        grad: accentGrad("share"), icon: ICONS.clock,
+        title: "Fluidez 4/3/2", subtitle: "Misma historia, menos tiempo: gana ritmo",
+        onClick: () => openFluency42({ level, userId: user.id }),
       }),
       hubCard({
         grad: accentGrad("brand"), icon: ICONS.bulb,

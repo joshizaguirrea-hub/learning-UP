@@ -279,6 +279,28 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] SPEAKING TECNICA 4/3/2 (Nation & Maurice) (2026-07-27, v0.240.0). #1 del roadmap
+      pedagogico pendiente (vamos 1 a 1). Tecnica de fluidez: cuentas la MISMA
+      historia 3 veces con menos tiempo cada vez (4->3->2 min); al bajar el techo
+      pero mantener el contenido, el habla se AUTOMATIZA -> WPM suben y muletillas
+      bajan. NUEVO core/fluency-42.js (PURO, con tests): ROUND_PLAN [240,180,120]s,
+      FILLERS (um/uh/like/you know/i mean...), countWords, countFillers (incluye
+      muletillas de 2 palabras via regex con limites), wpm, analyzeRound ->
+      {words,seconds,wpm,fillers,fillerRate}, summarize -> {wpmByRound, deltaWpm,
+      fillerDrop, fluencyGain, bestWpm}, fluencyScore 0..100 (ritmo 0..70 vs meta 120
+      WPM + mejora 0..20 + penaliza muletillas 0..-20). NUEVO features/fluency-42.js
+      openFluency42({level,userId}): overlay con intro+explicacion+picker de tema ->
+      3 rondas con temporizador cuenta-regresiva, mic EN VIVO (transcripcion +
+      contador de palabras), termina por tiempo o boton -> pantalla 'misma historia,
+      menos tiempo' entre rondas -> dashboard: anillo de fluidez, barras de WPM por
+      ronda, caida de muletillas, mensaje de ganancia, alimenta Speaking Score
+      (recordSpeakingScore). Degradacion elegante sin mic. MEJORA ui/mic.js:
+      createDictation ahora acepta continuous=true (monologo largo, auto-reinicio en
+      pausas hasta stop(); default false = no rompe a nadie). Cableado en
+      speaking-screen.js como 6a tarjeta (ICONS.clock, accent share). NUEVO
+      tests/fluency-42.test.mjs (8 en verde). Validadores en verde. Corrido con el
+      Node local (nodejs-bin). PENDIENTE usuario: probar en Chrome (necesita mic).
+
 - [x] PUNTAJE DE CALIDAD 100/100 + INTEGRIDAD SIN ERRORES (2026-07-27, v0.239.0).
       El reporte /calidad marcaba 55/100 con 112 errores de integridad. Diagnostico
       (corriendo el auditor real con Node): los 112 errores eran 56 'writing' + 56
