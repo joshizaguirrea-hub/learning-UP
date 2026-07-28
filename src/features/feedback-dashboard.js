@@ -13,6 +13,7 @@
  */
 import { el } from "../ui/dom.js";
 import { scoreLabel } from "../core/speaking-score.js";
+import { openErrorPractice } from "./feedback-practice.js";
 
 const TONE = {
   emerald: "text-emerald-300 border-emerald-500/30 bg-emerald-500/10",
@@ -59,6 +60,53 @@ function sectionCard(s) {
     el("div", { class: "mt-1.5 text-sm text-slate-200 whitespace-pre-line leading-relaxed" }, s.body));
 }
 
+/** Tarjeta de ERRORES estructurada: cada error tachado -> correcto (+ por que) y
+ * un boton para PRACTICARLOS. Es lo que pidio el usuario: errores puntuales de
+ * las oraciones que uso, y practicar desde ellos. */
+function errorsCard(errors) {
+  const rows = errors.map((e) => el("div", { class: "rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5" },
+    el("p", { class: "text-sm" },
+      el("span", { class: "text-rose-400 line-through" }, e.wrong),
+      el("span", { class: "mx-2 text-slate-500" }, "\u2192"),
+      el("span", { class: "text-emerald-300 font-semibold" }, e.right)),
+    e.why ? el("p", { class: "mt-1 text-xs text-slate-400" }, "\uD83D\uDCA1 " + e.why) : null));
+
+  return el("div", { class: "mt-3 rounded-xl border p-3 " + TONE.rose },
+    el("p", { class: "text-sm font-bold flex items-center gap-2" },
+      el("span", { "aria-hidden": "true" }, "\u270F\uFE0F"), "Errores en tus oraciones"),
+    el("div", { class: "mt-2 space-y-2" }, ...rows),
+    el("button", {
+      type: "button",
+      class: "mt-3 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
+      onclick: () => openErrorPractice(errors),
+    }, "\uD83C\uDFAF Practicar mis errores (" + errors.length + ")"));
+}
+
+/** Tarjeta de VOCABULARIO en chips (palabra + significado como subtexto). */
+function vocabChipsCard(s, items, tone) {
+  const chipTone = tone === "emerald"
+    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-100"
+    : "bg-sky-500/15 border-sky-500/30 text-sky-100";
+  const chips = items.map((v) => el("span", {
+    class: "inline-flex flex-col px-2.5 py-1 rounded-lg border text-left " + chipTone,
+    title: v.note || "",
+  },
+    el("span", { class: "text-sm font-semibold" }, v.word),
+    v.note ? el("span", { class: "text-[11px] opacity-80" }, v.note) : null));
+  return el("div", { class: "mt-3 rounded-xl border p-3 " + (TONE[s.tone] || TONE.sky) },
+    el("p", { class: "text-sm font-bold flex items-center gap-2" },
+      el("span", { "aria-hidden": "true" }, s.icon || "\u2022"), s.title),
+    el("div", { class: "mt-2 flex flex-wrap gap-1.5" }, ...chips));
+}
+
+/** Elige como pintar cada seccion: las especiales van estructuradas. */
+function renderSection(s, data) {
+  if (s.title === "Errores clave" && data.errors.length) return errorsCard(data.errors);
+  if (s.title === "Vocabulario que usaste" && data.vocabUsed.length) return vocabChipsCard(s, data.vocabUsed, "emerald");
+  if (s.title === "Podr\u00edas subir de nivel con" && data.vocabSuggested.length) return vocabChipsCard(s, data.vocabSuggested, "sky");
+  return sectionCard(s);
+}
+
 /**
  * Construye el nodo del dashboard.
  * @param {object} p
@@ -74,7 +122,7 @@ function sectionCard(s) {
  */
 export function buildFeedbackDashboard(p = {}) {
   const { parsed, title = "Tu feedback", stats, prev, extra, onRetry, onClose, retryLabel = "Practicar otra vez" } = p;
-  const { score, areas, sections, raw } = parsed;
+  const { score, areas, sections, errors = [], vocabUsed = [], vocabSuggested = [], raw } = parsed;
   const info = scoreLabel(score);
 
   // Comparativa vs sesion anterior (coach).
@@ -98,7 +146,7 @@ export function buildFeedbackDashboard(p = {}) {
     : null;
 
   const sectionEls = sections.length
-    ? sections.map(sectionCard)
+    ? sections.map((s) => renderSection(s, { errors, vocabUsed, vocabSuggested }))
     : [el("p", { class: "mt-4 text-sm text-slate-200 whitespace-pre-line" }, raw)];
 
   const buttons = el("div", { class: "mt-6 flex gap-2" },
