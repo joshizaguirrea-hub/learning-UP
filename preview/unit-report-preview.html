@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview - Boletin de la unidad</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style> body { background:#0b1120; } </style>
+</head>
+<body class="text-slate-200 min-h-screen py-8 px-4">
+<div class="max-w-lg mx-auto bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl">
+
+  <div class="flex items-center gap-3 mb-1">
+    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600"></div>
+    <div class="flex-1">
+      <p class="font-bold text-sky-300">Boletin de la unidad</p>
+      <p class="text-xs text-slate-400">Resumen de lo que aprendiste</p>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <p class="text-xs uppercase tracking-widest text-slate-500 mb-3">Boletin - Hello!</p>
+    <div class="relative w-32 h-32 rounded-full grid place-items-center mx-auto shadow-[0_0_30px_-8px_rgba(56,189,248,.6)]"
+         style="background: conic-gradient(#38bdf8 288deg, rgba(148,163,184,.18) 0deg)">
+      <div class="w-24 h-24 rounded-full bg-slate-900 grid place-items-center">
+        <div class="text-center">
+          <p class="text-4xl font-extrabold text-sky-300 leading-none">80</p>
+          <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">de 100</p>
+        </div>
+      </div>
+    </div>
+    <p class="mt-3 text-xl font-extrabold text-slate-100">Muy bien!</p>
+    <span class="inline-block mt-2 text-xs font-black tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300">APROBADA</span>
+    <p class="mt-1 text-xs text-slate-400">4 de 4 competencias hechas</p>
+  </div>
+
+  <div class="mt-4 flex gap-1.5 overflow-x-auto pb-1" id="tabbar">
+    <button data-tab="gen" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-sky-500 text-white">General</button>
+    <button data-tab="grammar" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-white/5 text-slate-300">Grammar</button>
+    <button data-tab="vocabulary" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-white/5 text-slate-300">Vocabulary</button>
+    <button data-tab="reading" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-white/5 text-slate-300">Reading</button>
+    <button data-tab="writing" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-white/5 text-slate-300">Writing</button>
+    <button data-tab="r" class="tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold bg-white/5 text-slate-300">Recomendaciones</button>
+  </div>
+
+  <div class="mt-3">
+    <!-- GENERAL -->
+    <div class="panel" data-panel="gen">
+      <p class="text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2">Resultados por competencia</p>
+      <div class="grid grid-cols-2 gap-2">
+        <button data-goto="grammar" class="areacard text-left w-full rounded-xl bg-slate-800/60 border border-slate-700 p-3 hover:bg-slate-700/60 hover:border-slate-500 transition"><div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Grammar</span><span class="text-lg font-extrabold text-slate-100">80<span class="text-xs text-slate-500 font-normal">/100</span></span></div><div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-blue-600 to-indigo-800 h-2 rounded-full" style="width:80%"></div></div></button>
+        <button data-goto="vocabulary" class="areacard text-left w-full rounded-xl bg-slate-800/60 border border-slate-700 p-3 hover:bg-slate-700/60 hover:border-slate-500 transition"><div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Vocabulary</span><span class="text-lg font-extrabold text-slate-100">50<span class="text-xs text-slate-500 font-normal">/100</span></span></div><div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-pink-500 to-rose-700 h-2 rounded-full" style="width:50%"></div></div></button>
+        <button data-goto="reading" class="areacard text-left w-full rounded-xl bg-slate-800/60 border border-slate-700 p-3 hover:bg-slate-700/60 hover:border-slate-500 transition"><div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Reading</span><span class="text-lg font-extrabold text-slate-100">90<span class="text-xs text-slate-500 font-normal">/100</span></span></div><div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-emerald-500 to-green-800 h-2 rounded-full" style="width:90%"></div></div></button>
+        <button data-goto="writing" class="areacard text-left w-full rounded-xl bg-slate-800/60 border border-slate-700 p-3 hover:bg-slate-700/60 hover:border-slate-500 transition"><div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-slate-200">Writing</span><span class="text-lg font-extrabold text-slate-100">100<span class="text-xs text-slate-500 font-normal">/100</span></span></div><div class="mt-2 w-full bg-slate-700/60 rounded-full h-2 overflow-hidden"><div class="bg-gradient-to-r from-amber-500 to-orange-700 h-2 rounded-full" style="width:100%"></div></div></button>
+      </div>
+      <p class="mt-2 text-xs text-slate-500 text-center">Toca una competencia para ver el detalle.</p>
+    </div>
+
+    <!-- GRAMMAR (bien) -->
+    <div class="panel hidden" data-panel="grammar">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm"><span class="text-slate-300">Grammar</span><span class="font-extrabold text-slate-100">80</span><span class="text-xs text-slate-500">/100</span></div>
+      <div class="mt-3 space-y-1.5"><div class="flex items-center justify-between gap-2 rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2"><span class="text-sm text-slate-200 truncate">Grammar: el verbo 'to be'</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-600/30 text-emerald-200">80/100</span></div></div>
+      <p class="mt-3 text-sm text-emerald-300 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">Bien! Dominaste esta competencia.</p>
+      <div class="mt-3 rounded-xl border p-3 text-rose-300 border-rose-500/30 bg-rose-500/10">
+        <p class="text-sm font-bold">Errores en tus oraciones</p>
+        <div class="mt-2 space-y-2">
+          <div class="rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5"><p class="text-sm"><span class="text-rose-400 line-through">I is from Mexico</span><span class="mx-2 text-slate-500">-&gt;</span><span class="text-emerald-300 font-semibold">I am from Mexico</span></p></div>
+          <div class="rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5"><p class="text-sm"><span class="text-rose-400 line-through">He are a teacher</span><span class="mx-2 text-slate-500">-&gt;</span><span class="text-emerald-300 font-semibold">He is a teacher</span></p></div>
+        </div>
+        <button class="mt-3 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold">Practicar mis errores (2)</button>
+      </div>
+    </div>
+
+    <!-- VOCABULARY (debil) -->
+    <div class="panel hidden" data-panel="vocabulary">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm"><span class="text-slate-300">Vocabulary</span><span class="font-extrabold text-slate-100">50</span><span class="text-xs text-slate-500">/100</span></div>
+      <div class="mt-3 space-y-1.5"><div class="flex items-center justify-between gap-2 rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2"><span class="text-sm text-slate-200 truncate">Vocabulary: saludos y personas</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-600/30 text-amber-200">50/100</span></div></div>
+      <div class="mt-3 rounded-xl border p-3 text-amber-300 border-amber-500/30 bg-amber-500/10"><p class="text-sm font-bold">Puntos de mejora</p><p class="mt-1 text-sm text-slate-200">Vuelve al Vocab Lab y a tu repaso (SRS) para fijar las palabras.</p></div>
+      <div class="mt-3 rounded-xl border p-3 text-sky-300 border-sky-500/30 bg-sky-500/10">
+        <p class="text-sm font-bold">Palabras para repasar</p>
+        <div class="mt-2 flex flex-wrap gap-1.5">
+          <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">hello</span><span class="text-[11px] opacity-80">hola</span></span>
+          <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">goodbye</span><span class="text-[11px] opacity-80">adios</span></span>
+          <span class="inline-flex flex-col px-2.5 py-1 rounded-lg border bg-sky-500/15 border-sky-500/30 text-sky-100"><span class="text-sm font-semibold">friend</span><span class="text-[11px] opacity-80">amigo/a</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- READING -->
+    <div class="panel hidden" data-panel="reading">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm"><span class="text-slate-300">Reading</span><span class="font-extrabold text-slate-100">90</span><span class="text-xs text-slate-500">/100</span></div>
+      <div class="mt-3 space-y-1.5"><div class="flex items-center justify-between gap-2 rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2"><span class="text-sm text-slate-200 truncate">Reading: saludos y presentaciones</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-600/30 text-emerald-200">90/100</span></div></div>
+      <p class="mt-3 text-sm text-emerald-300 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">Bien! Dominaste esta competencia.</p>
+    </div>
+
+    <!-- WRITING -->
+    <div class="panel hidden" data-panel="writing">
+      <div class="inline-flex items-center gap-2 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-sm"><span class="text-slate-300">Writing</span><span class="font-extrabold text-slate-100">100</span><span class="text-xs text-slate-500">/100</span></div>
+      <div class="mt-3 space-y-1.5"><div class="flex items-center justify-between gap-2 rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2"><span class="text-sm text-slate-200 truncate">Writing: presentate por completo</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-600/30 text-emerald-200">100/100</span></div></div>
+      <p class="mt-3 text-sm text-emerald-300 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3">Bien! Dominaste esta competencia.</p>
+    </div>
+
+    <!-- RECOMENDACIONES -->
+    <div class="panel hidden" data-panel="r">
+      <div class="rounded-xl border p-3 text-amber-300 border-amber-500/30 bg-amber-500/10"><p class="text-sm font-bold">Repasa estas competencias</p><div class="mt-2 space-y-2"><p class="text-sm text-slate-200"><b class="text-slate-100">Vocabulary: </b>Vuelve al Vocab Lab y a tu repaso (SRS) para fijar las palabras.</p></div></div>
+      <div class="mt-3 rounded-xl border p-3 text-indigo-300 border-indigo-500/30 bg-indigo-500/10"><p class="text-sm font-bold">Consejo</p><p class="mt-1 text-sm text-slate-200">Vas por buen camino. La constancia diaria es lo que mas mueve la aguja.</p></div>
+    </div>
+  </div>
+
+  <button class="mt-6 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-semibold">Cerrar</button>
+</div>
+
+<p class="max-w-lg mx-auto mt-4 text-center text-xs text-slate-500">Preview estatico (datos de ejemplo). El boletin real se calcula con tus notas de cada competencia al terminar la unidad.</p>
+
+<script>
+  const panels = document.querySelectorAll(".panel");
+  function goto(tab) {
+    document.querySelectorAll(".tabbtn").forEach((b) => {
+      const on = b.dataset.tab === tab;
+      b.className = "tabbtn shrink-0 px-3 py-1.5 rounded-full text-sm font-semibold " + (on ? "bg-sky-500 text-white" : "bg-white/5 text-slate-300");
+    });
+    panels.forEach((p) => p.classList.toggle("hidden", p.dataset.panel !== tab));
+  }
+  document.getElementById("tabbar").addEventListener("click", (e) => {
+    const btn = e.target.closest(".tabbtn"); if (btn) goto(btn.dataset.tab);
+  });
+  document.querySelectorAll(".areacard").forEach((c) => c.addEventListener("click", () => goto(c.dataset.goto)));
+</script>
+</body>
+</html>
