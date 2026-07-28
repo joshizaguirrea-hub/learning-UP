@@ -98,7 +98,7 @@ export function detectPolarity(sentence) {
 }
 
 /** Reune y limpia las frases-fuente de la unidad (gramatica + vocab). */
-function sourceSentences(unit) {
+export function sourceSentences(unit) {
   const g = grammarOf(unit);
   const fromGrammar = [...(g?.examples || []), ...((g?.mistakes || []).map((m) => m.right))];
   const fromVocab = (unit?.vocab || []).slice(0, 8).map((v) => v.example).filter(Boolean);

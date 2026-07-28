@@ -279,6 +279,26 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       openVocabLab. Ambos validadores en verde. PENDIENTE probar en navegador.
       ROADMAP pedagogico COMPLETO (Reading Lab + Dictogloss + Vocab Lab). Ideas
       futuras: Grammar Structured Input, Speaking 4/3/2, Literature close-reading.
+- [x] GRAMMAR PROCESSING INSTRUCTION AVANZADO (VanPatten) (2026-07-27, v0.243.0).
+      #4 y ULTIMO del roadmap pedagogico -> ROADMAP COMPLETO (4/3/2 v0.240 + Close-reading
+      v0.241 + Role-play v0.242 + Processing Instruction v0.243). El Structured Input
+      basico (grammar-si.js) ya hacia actividades REFERENCIALES (tiempo/polaridad). Le
+      faltaban las 2 piezas del PI "de verdad": (1) EXPLICIT INFORMATION + aviso de
+      ESTRATEGIA (nombrar la trampa de procesamiento del alumno y el truco), (2)
+      actividades AFECTIVAS (sin respuesta correcta: reaccionas sobre ti mismo pero DEBES
+      procesar la forma). NUEVO core/grammar-pi.js (PURO, con tests): STRATEGIES por
+      familia (tense/polarity) con trap/fix/focus, explicitInfo(si) devuelve la EI de las
+      familias presentes, buildAffectiveItems(unit,{max}) genera items afectivos (pregunta
+      segun tiempo/polaridad + opciones SIN 'correct' + note que refuerza la forma).
+      EXPORTADO sourceSentences desde grammar-si.js (una sola fuente de verdad, reusada
+      por grammar-pi). CABLEADO en features/grammar-input.js: eiBox() en la FASE 1 (caja
+      ambar trap rojo / fix verde / focus), y nueva FASE 2.5 AFECTIVA tras el referencial
+      (renderAffective, no cuenta al puntaje) antes del resultado. Flujo completo ahora:
+      input+EI -> referencial -> afectivo -> resultado. NUEVO tests/grammar-pi.test.mjs
+      (5 verde) + grammar-si sigue 9 verde. SUITE COMPLETA: 21 archivos de test TODOS en
+      verde. Validadores en verde. PENDIENTE usuario: probar en Chrome (POP Grammar de
+      una unidad con variedad de tiempos, p.ej. B1+).
+
 - [x] READING ROLE-PLAY (dialogo interpretado) (2026-07-27, v0.242.0). #3 del roadmap
       pedagogico (vamos 1 a 1). El alumno elige un personaje de un pasaje-dialogo y lo
       INTERPRETA leyendo sus lineas en voz alta; Bymax hace el otro (voz TTS). Cada

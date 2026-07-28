@@ -25,6 +25,7 @@ import { openDictionary } from "./dictionary.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { buildGrammarInput, scorePct } from "../core/grammar-si.js";
+import { explicitInfo, buildAffectiveItems } from "../core/grammar-pi.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const PASS = 60;
@@ -43,6 +44,8 @@ export function openGrammarInput(unit, opts = {}) {
   const progressId = opts.progressId || lesson?.id;
   const si = buildGrammarInput(unit);
   if (!si.items.length) return false; // sin variedad suficiente -> el caller hace fallback
+  const ei = explicitInfo(si);            // Explicit Information (aviso de estrategia)
+  const affective = buildAffectiveItems(unit); // actividades afectivas (cierre PI)
 
   const name = robotName();
   const rkey = makeResumeKey(userId, unit.id, "grammarinput");
@@ -77,6 +80,17 @@ export function openGrammarInput(unit, opts = {}) {
   let correct = 0;
 
   // -------- FASE 1: input enriquecido (presentacion) --------
+  // Caja de Explicit Information: nombra la "trampa" de procesamiento y el truco.
+  function eiBox() {
+    if (!ei.length) return null;
+    return el("div", { class: "mt-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4" },
+      el("p", { class: "text-xs uppercase tracking-wide text-amber-300 font-semibold" }, "El truco para no caer en la trampa"),
+      ...ei.map((e) => el("div", { class: "mt-2" },
+        el("p", { class: "text-sm text-rose-300" }, "\u26a0\ufe0f " + e.trap),
+        el("p", { class: "text-sm text-emerald-300 mt-0.5" }, "\u2714 " + e.fix),
+        el("p", { class: "text-xs text-slate-400 mt-0.5 italic" }, e.focus))));
+  }
+
   function renderInput() {
     progress.firstChild.style.width = "0%";
     const listenAll = () => si.examples.forEach((ex, i) => setTimeout(() => speakMono(ex, "en"), i * 1400));
@@ -86,6 +100,7 @@ export function openGrammarInput(unit, opts = {}) {
         el("p", { class: "font-bold text-violet-300" }, si.focus),
         si.form ? el("p", { class: "mt-1 text-sm text-slate-300" }, el("span", { class: "text-slate-500" }, "Forma: "), si.form) : null,
         si.rule ? el("p", { class: "mt-2 text-slate-100 leading-relaxed" }, si.rule) : null),
+      eiBox(),
       si.examples.length ? el("div", { class: "mt-4" },
         el("div", { class: "flex items-center justify-between gap-2" },
           el("p", { class: "text-xs text-slate-500" }, "Ejemplos (toca para o\u00edr):"),
@@ -109,7 +124,7 @@ export function openGrammarInput(unit, opts = {}) {
 
   // -------- FASE 2: actividades referenciales --------
   function renderItem() {
-    if (idx >= si.items.length) return renderDone();
+    if (idx >= si.items.length) return startAffective();
     saveProgress(rkey, { idx, correct }); // autosave: sobrevive a un desliz
     progress.firstChild.style.width = Math.round((idx / si.items.length) * 100) + "%";
     const item = si.items[idx];
@@ -145,7 +160,7 @@ export function openGrammarInput(unit, opts = {}) {
         type: "button",
         class: "ml-auto px-5 py-2.5 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-500 focus:outline focus:outline-2 focus:outline-white/70",
         onclick: () => { idx++; renderItem(); },
-      }, idx === si.items.length - 1 ? "Ver resultado" : "Siguiente \u2192");
+      }, idx === si.items.length - 1 ? (affective.length ? "Con\u00e9ctalo contigo \u2192" : "Ver resultado") : "Siguiente \u2192");
     }
     const nextRow = el("div", { class: "mt-4 flex" });
 
@@ -164,6 +179,53 @@ export function openGrammarInput(unit, opts = {}) {
       el("div", { class: "mt-1" }, ...btns),
       feedback, nextRow);
     setTimeout(() => speakMono(item.sentence, "en"), 300); // oye la frase al aparecer
+  }
+
+  // -------- FASE 2.5: actividades AFECTIVAS (cierre Processing Instruction) --------
+  // Sin respuesta correcta: el alumno reacciona sobre si mismo, pero para hacerlo
+  // con sentido DEBE procesar la forma. No cuenta para el puntaje.
+  let affIdx = 0;
+  function startAffective() { affIdx = 0; renderAffective(); }
+  function renderAffective() {
+    if (!affective.length || affIdx >= affective.length) return renderDone();
+    const item = affective[affIdx];
+    const note = el("div");
+    const nextRow = el("div", { class: "mt-4 flex" });
+    let done = false;
+
+    const btns = item.options.map((opt) => el("button", {
+      type: "button",
+      class: "block w-full text-left px-4 py-3 rounded-xl border border-white/10 bg-white/5 text-slate-200 mt-2 hover:bg-white/10 transition focus:outline focus:outline-2 focus:outline-violet-400",
+      onclick: (e) => {
+        if (done) return;
+        done = true;
+        e.currentTarget.className += " border-violet-400 bg-violet-500/25 text-violet-100";
+        btns.forEach((x) => { x.disabled = true; });
+        note.replaceChildren(el("p", { class: "mt-3 text-sm text-violet-200" }, "\uD83D\uDCA1 " + item.note));
+        nextRow.replaceChildren(el("button", {
+          type: "button",
+          class: "ml-auto px-5 py-2.5 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-500 focus:outline focus:outline-2 focus:outline-white/70",
+          onclick: () => { affIdx++; renderAffective(); },
+        }, affIdx === affective.length - 1 ? "Ver resultado" : "Siguiente \u2192"));
+      },
+    }, opt.text));
+
+    stage.replaceChildren(
+      el("p", { class: "text-xs uppercase tracking-wide text-fuchsia-400 font-semibold" },
+        "Con\u00e9ctalo contigo \u00b7 " + (affIdx + 1) + " de " + affective.length),
+      el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4 flex items-center gap-3" },
+        el("p", { class: "text-xl font-semibold text-slate-100 leading-relaxed flex-1" }, item.sentence),
+        el("button", {
+          type: "button",
+          class: "shrink-0 grid place-items-center w-10 h-10 rounded-full bg-white/10 text-slate-200 hover:bg-white/20 focus:outline focus:outline-2 focus:outline-violet-400",
+          "aria-label": "Escuchar la frase",
+          onclick: () => speakMono(item.sentence, "en"),
+        }, el("span", { class: "w-5 h-5", html: ICONS.sound }))),
+      el("p", { class: "font-semibold text-slate-100 mt-3" }, item.question),
+      el("p", { class: "text-xs text-slate-500 mt-0.5" }, "No hay respuesta correcta \u2014 pero lee bien la forma para contestar."),
+      el("div", { class: "mt-1" }, ...btns),
+      note, nextRow);
+    setTimeout(() => speakMono(item.sentence, "en"), 300);
   }
 
   // -------- FASE 3: resultado --------
