@@ -300,6 +300,15 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] UX unidad: objetivos en POP + diccionario arrastrable (2026-07-27, v0.252.0).
+      (1) features/unit.js: la tarjeta grande "Al terminar este tema podras:" (can-do) YA NO
+      ocupa una seccion entera; se movio a un boton compacto "Objetivos del tema" en el header
+      que abre un modal ligero (openObjectives). (2) features/dictionary.js: el panel flotante
+      ahora es ARRASTRABLE por su cabecera (asa con grip + cursor-move). makeDraggable(panel,
+      handle) con pointer events (mouse+touch), cambia anclaje bottom/right->top/left, clampa a
+      la pantalla, ignora clicks en botones del asa (dir/cerrar) y RECUERDA la posicion
+      (localStorage learningup:dict-pos). Validadores verde.
+
 - [x] BOLETIN DE LA UNIDAD (resumen/calificacion por competencia) (2026-07-27, v0.251.0).
       Al terminar una unidad, dashboard con CALIFICACION global + desglose por competencia
       (grammar/vocabulary/reading/listening/writing/speaking) senalando en que fallaste y
