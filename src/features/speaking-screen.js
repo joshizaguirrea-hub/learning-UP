@@ -1,10 +1,9 @@
 /**
  * features/speaking-screen.js — Pantalla exclusiva "Habla con Bymax" (#/hablar).
  *
- * Todo lo de practicar speaking en un solo lugar, en tarjetas UNIFORMES (2x2):
- * llamada por voz, pronunciacion (escucha y repite), lecciones desde tu vida y
- * chat con Bymax. Reusa hubCard (mismo tamano/estilo que el inicio) -> DRY y sin
- * tarjetas de alturas distintas.
+ * Todo lo de practicar speaking en un solo lugar, en tarjetas COMPACTAS y
+ * uniformes: llamada por voz, pronunciacion, shadowing, fluidez 4/3/2 y
+ * lecciones desde tu vida. Reusa hubCard (compact) -> DRY, sin alturas distintas.
  */
 import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
@@ -36,37 +35,33 @@ export async function renderSpeaking(container, user) {
       icon: ICONS.mic, grad: accentGrad("speak"),
       title: "Habla con " + speakName, subtitle: "Practica tu speaking en ingles",
     }),
-    el("section", { class: "grid grid-cols-2 gap-2 sm:gap-4" },
+    el("section", { class: "grid grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4" },
       hubCard({
-        grad: accentGrad("speak"), icon: ICONS.mic,
+        grad: accentGrad("speak"), icon: ICONS.mic, compact: true,
         title: "Llamada con " + speakName, subtitle: "Manos libres: tu eliges el tema",
         onClick: () => openVoiceCall({ level, chooseTopic: true, userId: user.id }),
       }),
       hubCard({
-        grad: accentGrad("reward"), icon: ICONS.sound,
+        grad: accentGrad("reward"), icon: ICONS.sound, compact: true,
         title: "Pronunciacion",
         subtitle: pronUnit ? "Escucha y repite frases" : "Avanza en tu curso para desbloquear",
         onClick: pronUnit ? () => openSpeaking(pronUnit) : undefined,
       }),
       hubCard({
-        grad: accentGrad("practice"), icon: ICONS.target,
+        grad: accentGrad("practice"), icon: ICONS.target, compact: true,
         title: "Shadowing",
         subtitle: pronUnit ? "Haz eco e imita el ritmo (sube tu Speaking Score)" : "Avanza en tu curso para desbloquear",
         onClick: pronUnit ? () => openShadowing(pronUnit, { userId: user.id }) : undefined,
       }),
       hubCard({
-        grad: accentGrad("share"), icon: ICONS.clock,
+        grad: accentGrad("share"), icon: ICONS.clock, compact: true,
         title: "Fluidez 4/3/2", subtitle: "Misma historia, menos tiempo: gana ritmo",
         onClick: () => openFluency42({ level, userId: user.id }),
       }),
       hubCard({
-        grad: accentGrad("brand"), icon: ICONS.bulb,
+        grad: accentGrad("brand"), icon: ICONS.bulb, compact: true,
         title: "Lecciones de tu vida", subtitle: "Pega un texto y practicalo",
         onClick: () => openMyLifeLesson(),
-      }),
-      hubCard({
-        href: "#/chat", grad: accentGrad("share"), icon: ICONS.chat,
-        title: "Chat con Bymax", subtitle: "Escribe cuando prefieras teclado",
       }))));
   focusMainHeading(container);
 }

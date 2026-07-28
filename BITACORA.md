@@ -300,6 +300,18 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] UX hub Speaking + Fluidez agil + preview del feedback (2026-07-27, v0.248.0).
+      (1) hub-ui.js hubCard: nuevo flag `compact` (aspect 16/10 -> 16/9, mas bajo) que NO
+          afecta las 3 puertas grandes del inicio. speaking-screen.js: tarjetas compact:true,
+          grid lg:grid-cols-3, y QUITADA la tarjeta 'Chat con Bymax'. (2) core/fluency-42.js
+          ROUND_PLAN de 240/180/120 s a version AGIL 60/45/30 s (misma proporcion 4:3:2);
+          era demasiado para un tema corto. Actualizado el intro de features/fluency-42.js
+          para usar ROUND_PLAN[].label (DRY) y test fluency-42 (8 verde). (3) NUEVO
+          preview/feedback-dashboard-preview.html (Tailwind CDN, datos de muestra) para VER
+          el dashboard sin el Worker: anillo, areas, errores estructurados (tachado->correcto
+          +porque) con boton 'Practicar mis errores', chips de vocab usado/sugerido. SUITE
+          24 verde. NOTA: en el proyecto NO se permiten emojis en archivos (hook los quita).
+
 - [x] REGISTRO (contrasena visible + confirmar) + PLAN por defecto + FEEDBACK
       JUGOSO con practica (2026-07-27, v0.247.0). Tres cosas:
       (0) Plan por defecto para cuentas VIEJAS: daily-guide.js coachCard, si no hay plan

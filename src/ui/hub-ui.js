@@ -24,8 +24,9 @@ const ARROW_LEFT =
  * @param {string} p.subtitle
  * @param {string} [p.badge] - insignia arriba a la derecha (ej. "TOP")
  * @param {Node} [p.extra] - contenido extra bajo el subtitulo (ej. barra)
+ * @param {boolean} [p.compact] - tarjeta mas baja (para hubs con muchas tarjetas)
  */
-export function hubCard({ href, onClick, grad, icon, title, subtitle, badge, extra } = {}) {
+export function hubCard({ href, onClick, grad, icon, title, subtitle, badge, extra, compact } = {}) {
   const inner = [
     el("div", { class: `absolute inset-0 bg-gradient-to-br ${grad}`, "aria-hidden": "true" }),
     el("div", { class: "absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full bg-white/25 blur-2xl opacity-70", "aria-hidden": "true" }),
@@ -46,8 +47,11 @@ export function hubCard({ href, onClick, grad, icon, title, subtitle, badge, ext
         extra || null)),
   ];
 
+  const shape = compact
+    ? "aspect-[16/10] sm:aspect-[16/9]"
+    : "aspect-[3/5] sm:aspect-square";
   const cls =
-    "group relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl aspect-[3/5] sm:aspect-square " +
+    "group relative overflow-hidden rounded-2xl sm:rounded-3xl shadow-xl " + shape + " " +
     "transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl will-change-transform " +
     "focus:outline focus:outline-2 focus:outline-white/70";
 
