@@ -300,6 +300,14 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] ITALIANO Unidad 2 "La famiglia" (possessivi + AVERE) (2026-07-27, v0.261.0).
+      data/units/it2-famiglia.js: A1 completa (Reading 2 textos + 6 preguntas,
+      Vocabulary 12 + 8 ej, Grammar avere[io ho...loro hanno] + posesivos mio/mia
+      tuo/tua + 8 ej, Writing 8). Ensena el matiz fino del italiano: familiar en
+      SINGULAR sin articulo (mio padre) pero plural/otras cosas con articulo
+      (i miei genitori, la mia casa). Registrada en units/index.js. Ahora it A1
+      tiene 2 unidades -> el POP Repaso (checkpoint) ya aparece en U2. Suite verde.
+
 - [x] ITALIANO arranca (Unidad 1 "Ciao!") en modo BORRADOR (2026-07-27, v0.260.0).
       Primer idioma clonado de la plantilla mejorada (victoria rapida ~90% reuso).
         - ui/speech.js: baseOf() ahora pasa it/fr/ja (antes caian a ingles) ->
