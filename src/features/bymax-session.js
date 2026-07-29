@@ -288,12 +288,21 @@ export function openBymaxSession(cfg) {
           setMic(false);
           const q = (finalText || input.value).trim();
           if (q) { input.value = ""; send(q, true); }  // envia solo al terminar de hablar
+          else push("No te escuche. Toca el microfono y habla en " + langLabel + " (fuerte y claro). Si no aparece nada, revisa el permiso del microfono.", "bot");
         },
         onError: (code) => {
           setMic(false);
-          if (code === "not-allowed" || code === "service-not-allowed") {
-            push("No pude usar el microfono. Da permiso desde el candado de la barra de direcciones y vuelve a intentar.", "bot");
-          }
+          const MSG = {
+            "not-allowed": "No tengo permiso para el microfono. Tocalo en el candado de la barra de direcciones (Chrome) y permite el microfono.",
+            "service-not-allowed": "El navegador bloqueo el microfono. Permitelo en el candado de la barra de direcciones.",
+            "no-speech": "No escuche nada. Toca el microfono y habla enseguida, fuerte y claro.",
+            "audio-capture": "No encuentro un microfono. Conecta o habilita uno y vuelve a intentar.",
+            "language-not-supported": "Tu navegador no reconoce voz en " + langLabel + ". Usa Chrome de escritorio, o escribe tu respuesta.",
+            "network": "Fallo de red en el reconocimiento de voz. Revisa tu conexion e intenta de nuevo.",
+            "aborted": "",
+          };
+          const m = code in MSG ? MSG[code] : ("No pude usar el microfono (" + code + "). Puedes escribir tu respuesta.");
+          if (m) push(m, "bot");
         },
       });
     }
