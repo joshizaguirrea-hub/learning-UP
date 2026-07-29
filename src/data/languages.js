@@ -44,3 +44,8 @@ export function enabledLanguages() {
 export function languageByCode(code) {
   return LANGUAGES.find((l) => l.code === code) || null;
 }
+
+/** Nombre del idioma (en espanol) por codigo. Default "Ingles". */
+export function languageName(code) {
+  return (languageByCode(code)?.name) || "Ingles";
+}

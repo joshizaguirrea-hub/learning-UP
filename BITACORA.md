@@ -300,6 +300,21 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] FIX clase de competencias con IA en el idioma META (2026-07-27, v0.265.0).
+      BUG reportado: la clase de Grammar en italiano decia 'traduce yo soy
+      estudiante al INGLES'. Causa raiz: skill-class.js NUNCA pasaba targetLang a
+      openBymaxSession -> caia a 'en' por defecto (el Worker YA es multilingue via
+      targetLang, la videollamada si lo pasaba). Ademas skillFocus tenia 'ejemplos
+      en ingles' clavado. Arreglado:
+        - languages.js: nuevo languageName(code) -> nombre del idioma en espanol.
+        - skill-class.js: pasa targetLang: unit.language a la sesion; el topic dice
+          'el alumno APRENDE {idioma}, traduce/ejemplos en {idioma} no en ingles';
+          skillFocus usa el idioma META (grammar/listening) en vez de 'ingles'.
+        - bymax-session.js: microfono usa micCode(targetLang) (STT en el idioma
+          META, antes en-US fijo); subtitulo/placeholder dinamicos ('Practica en
+          italiano', 'habla en italiano') en vez de 'ingles'/'Type in English'.
+      Requiere Worker desplegado (ya multilingue). Sintaxis/imports en verde.
+
 - [x] FIX voz por idioma en Clase de Vocabulario y Cuento (2026-07-27, v0.264.0).
       BUG reportado: la Clase de vocabulario (vocab-class.js) decia 'Yo las digo
       en INGLES' y hablaba/reconocia en ingles aunque la unidad fuera italiana o

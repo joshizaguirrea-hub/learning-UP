@@ -16,6 +16,7 @@ import { speakSmart, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
+import { micCode, languageName } from "../data/languages.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled, multilingualEnabled } from "../config/bymax.js";
 
 /** Burbuja de mensaje (alumno o Bymax). */
@@ -65,10 +66,13 @@ export function openBymaxSession(cfg) {
       : "Completa la practica (faltan " + (finishGoal - userTurnCount()) + ")";
   }
   const name = cfg?.teacher || robotName();
+  const targetLang = cfg?.targetLang || "en";      // idioma META de la sesion
+  const micLang = micCode(targetLang);             // STT en el idioma META
+  const langLabel = languageName(targetLang).toLowerCase();
   const title = cfg?.title || (name + " \u00b7 " + topic);
-  const subtitle = cfg?.subtitle || ("Practica en ingles \u00b7 nivel " + level);
+  const subtitle = cfg?.subtitle || ("Practica en " + langLabel + " \u00b7 nivel " + level);
   const placeholder = cfg?.placeholder ||
-    (bymaxAiEnabled ? "Type in English (or ask for help)..." : "Bymax IA no esta configurado aun");
+    (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : "Bymax IA no esta configurado aun");
 
   const close = () => { dictation?.abort(); stopAudio(); overlay.remove(); };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
@@ -268,7 +272,7 @@ export function openBymaxSession(cfg) {
     micBtn.className = on ? MIC_LIVE : MIC_IDLE;
     micBtn.setAttribute("aria-label", on ? "Detener microfono" : "Hablar (microfono)");
     micBtn.innerHTML = on ? ICONS.micOff : ICONS.mic;
-    input.placeholder = on ? "Escuchando... habla en ingles" : placeholder;
+    input.placeholder = on ? ("Escuchando... habla en " + langLabel) : placeholder;
   }
 
   function startMic() {
@@ -276,7 +280,7 @@ export function openBymaxSession(cfg) {
     stopAudio(); // que el microfono NO capture la voz de Bymax
     if (!dictation) {
       dictation = createDictation({
-        lang: "en-US",
+        lang: micLang,
         onStart: () => setMic(true),
         onInterim: (t) => { input.value = t; },
         onFinal: (t) => { input.value = t; },
