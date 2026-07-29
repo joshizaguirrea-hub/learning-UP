@@ -13,7 +13,7 @@ export const LANGUAGES = [
   { code: "pt", name: "Portugues", flag: "BR", enabled: false, draft: true },
   { code: "fr", name: "Frances", flag: "FR", enabled: false },
   { code: "ja", name: "Japones", flag: "JP", enabled: false },
-  { code: "it", name: "Italiano", flag: "IT", enabled: false },
+  { code: "it", name: "Italiano", flag: "IT", enabled: false, draft: true },
 ];
 
 // Codigos de voz (TTS) y de reconocimiento (micro/STT) por idioma META.
@@ -23,6 +23,7 @@ const SPEECH = {
   en: { tts: "en", mic: "en-US" },
   es: { tts: "es", mic: "es-MX" },
   pt: { tts: "pt", mic: "pt-BR" },
+  it: { tts: "it", mic: "it-IT" },
 };
 
 /** Codigo de voz (TTS) del idioma dado (default "en"). */

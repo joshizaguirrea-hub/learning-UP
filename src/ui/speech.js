@@ -45,6 +45,9 @@ function baseOf(lang) {
   const l = String(lang).toLowerCase();
   if (l.startsWith("es")) return "es";
   if (l.startsWith("pt")) return "pt";
+  if (l.startsWith("it")) return "it";
+  if (l.startsWith("fr")) return "fr";
+  if (l.startsWith("ja")) return "ja";
   return "en";
 }
 
