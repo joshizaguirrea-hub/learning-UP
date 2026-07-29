@@ -3,7 +3,8 @@
  *
  * El POP de Vocabulary del hub ya no salta directo a la practica: primero Bymax
  * DA LA CLASE (fase de input comprensible). Se presenta, y va palabra por palabra
- * diciendola en ingles (voz nativa), mostrando su traduccion y un ejemplo real, y
+ * diciendola en el IDIOMA META (voz nativa), mostrando su traduccion y un ejemplo
+ * real, y
  * poniendo al alumno a REPETIRLA en voz alta (mic si el navegador lo soporta;
  * autoevaluacion honesta si no). Al terminar, encadena con la ESCALERA de
  * practica (openVocabLab) -> input primero, output despues.
@@ -23,7 +24,18 @@ import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { vocabTeachList } from "../core/vocab-lab.js";
 import { openVocabLab } from "./vocab-lab.js";
+import { unitTts, unitMic } from "../data/languages.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
+
+// Nombre del idioma META en espanol (L1) para la copia de la intro.
+const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", ja: "japones", es: "espanol" };
+// Saludo HABLADO por Bymax en el idioma META (inmersion desde el segundo uno).
+const GREETING = {
+  en: (n, c) => `Hi! I'm ${n}. Let's learn ${c} new words together. Listen and repeat after me!`,
+  pt: (n, c) => `Oi! Eu sou ${n}. Vamos aprender ${c} palavras novas juntos. Ouca e repita!`,
+  it: (n, c) => `Ciao! Sono ${n}. Impariamo ${c} parole nuove insieme. Ascolta e ripeti!`,
+  fr: (n, c) => `Salut! Je suis ${n}. Apprenons ${c} nouveaux mots ensemble. Ecoute et repete!`,
+};
 
 /**
  * Abre la clase de presentacion de vocabulario de una unidad.
@@ -34,6 +46,9 @@ import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } 
 export function openVocabClass(unit, opts = {}) {
   const words = vocabTeachList(unit);
   const name = robotName();
+  const tts = unitTts(unit);   // voz del idioma META (en | pt | it...)
+  const mic = unitMic(unit);   // reconocimiento de voz en el idioma META
+  const langLabel = L1_LANG[tts] || "el idioma";
   const supported = speechSupported();
   const rkey = makeResumeKey(opts.userId, unit.id, "vocabclass");
   let idx = 0;               // -1 = intro; 0..n-1 = palabras
@@ -46,7 +61,7 @@ export function openVocabClass(unit, opts = {}) {
 
   function say(text, rate) {
     stopVoice();
-    cancelSay = speakMono(text, "en", { rate });
+    cancelSay = speakMono(text, tts, { rate });
   }
 
   // Al terminar la clase: cierra este POP y abre la ESCALERA de practica.
@@ -70,13 +85,13 @@ export function openVocabClass(unit, opts = {}) {
   // --- INTRO: Bymax se presenta -----------------------------------------
   function renderIntro() {
     setProgress(0);
-    const greeting = `Hi! I'm ${name}. Let's learn ${words.length} new words together. Listen and repeat after me!`;
+    const greeting = (GREETING[tts] || GREETING.en)(name, words.length);
     stage.replaceChildren(el("div", { class: "text-center py-4" },
       el("div", { class: "w-28 mx-auto" }, bymaxMascot("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-3" }, "\u00a1Hola! Soy " + name),
       el("p", { class: "mt-2 text-slate-300 max-w-sm mx-auto" },
         "Hoy te ense\u00f1o " + words.length + " palabras nuevas de \u201c" + (unit.title || "") + "\u201d. " +
-        "Yo las digo en ingl\u00e9s, t\u00fa las repites. \u00a1As\u00ed se te pegan de verdad!"),
+        "Yo las digo en " + langLabel + ", t\u00fa las repites. \u00a1As\u00ed se te pegan de verdad!"),
       el("div", { class: "mt-5 flex flex-wrap gap-2 justify-center" },
         btn("Escuchar a " + name, ICONS.sound,
           "border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10", () => say(greeting, 0.95)),
@@ -110,7 +125,7 @@ export function openVocabClass(unit, opts = {}) {
       heardBox.textContent = "";
       say(w.clean); // oye el modelo antes de repetir
       dictation = createDictation({
-        lang: "en-US",
+        lang: mic,
         onStart: () => { listening = true; repeatBtn.classList.add("animate-pulse"); repeatBtn.lastChild.textContent = "Escuchando... (toca para parar)"; },
         onInterim: (t) => { heardBox.textContent = "\u201c" + t + "\u201d"; },
         onEnd: (finalText) => {

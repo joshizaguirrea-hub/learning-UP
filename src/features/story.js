@@ -11,7 +11,8 @@
  * DRY: reutiliza speakSequence/speak (voz) y el vocab/lectura ya definidos.
  */
 import { el } from "../ui/dom.js";
-import { speak, speakSequence } from "../ui/speech.js";
+import { speak, speakSequence, speakMono } from "../ui/speech.js";
+import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
@@ -83,6 +84,7 @@ function renderText(host, text) {
 export function openStory(unit) {
   const close = () => { cancelCloud(); if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); overlay.remove(); };
   let currentText = baseReading(unit);
+  const tts = unitTts(unit); // voz del idioma META (en | pt | it...)
 
   // --- Serializacion (telenovela): saga del nivel + numero de capitulo -------
   const saga = sagaForLevel(unit.level);
@@ -97,7 +99,7 @@ export function openStory(unit) {
   function readAloud() {
     const items = toSentences(currentText).map((s) => ({
       text: s.replace(/^moral\s*:\s*/i, ""),
-      lang: /^moral\s*:/i.test(s) ? "es-MX" : "en-US",
+      lang: /^moral\s*:/i.test(s) ? "es-MX" : tts,
       opts: { rate: 0.95 },
     }));
     speakSequence(items);
@@ -176,7 +178,7 @@ export function openStory(unit) {
     ...(unit.vocab || []).slice(0, 12).map((v) => el("button", {
       type: "button",
       class: "text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10",
-      onclick: () => speak(v.term, "en-US", { rate: 0.9 }),
+      onclick: () => speak(v.term, tts, { rate: 0.9 }),
       title: v.translation || "",
     }, v.term)));
 
