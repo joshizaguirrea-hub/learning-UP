@@ -25,6 +25,7 @@ import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openGrammarInput } from "./grammar-input.js";
 import { openPronunciationLab, hasPronunciation } from "./pronunciation-lab.js";
+import { openCheckpoint, hasCheckpoint } from "./checkpoint.js";
 import { getCourseProgress } from "../services/course.js";
 import { openUnitReport } from "./unit-report.js";
 import { isUnitComplete } from "../core/unit-report.js";
@@ -90,6 +91,10 @@ export function unitContent(unit, progressMap, user) {
   if (hasPronunciation(unit.language || "en")) {
     extraPops.push(miniPop("Pronuncia", "Afina el oido", ICONS.sound, "from-cyan-500 to-sky-600",
       () => openPronunciationLab(unit)));
+  }
+  if (hasCheckpoint(unit)) {
+    extraPops.push(miniPop("Repaso", "Mezcla unidades", ICONS.target, "from-rose-500 to-pink-600",
+      () => openCheckpoint(unit, { userId: user?.id })));
   }
   const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" }, ...extraPops);
 

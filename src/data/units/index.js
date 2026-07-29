@@ -106,6 +106,17 @@ export function unitsForLanguage(lang = "en") {
   return UNITS.filter((u) => (u.language || "en") === lang);
 }
 
+/** Unidades del MISMO nivel e idioma, desde la primera HASTA la dada (inclusive),
+ * en orden de catalogo. Sirve para el repaso acumulativo (checkpoint): mezclar
+ * la unidad actual con las anteriores del mismo nivel. */
+export function unitsUpTo(unitId, lang = "en") {
+  const list = unitsForLanguage(lang);
+  const idx = list.findIndex((u) => u.id === unitId);
+  if (idx < 0) return [];
+  const level = list[idx].level;
+  return list.slice(0, idx + 1).filter((u) => u.level === level);
+}
+
 const LEVEL_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 /** Unidades para mostrar en el curso: las del nivel pedido en ese idioma; si ese
