@@ -1,14 +1,16 @@
 /**
  * data/languages.js — Idiomas que ofrece la plataforma.
  *
- * Datos PUROS. En el MVP solo ingles esta activo; el resto queda listo para
- * activarse cambiando `enabled` a true (arquitectura multi-idioma desde el dia uno).
+ * Datos PUROS. `enabled: true` = visible para todos. `draft: true` = en
+ * BORRADOR: oculto al publico, pero visible/usable en modo preview (ver
+ * ui/nav.js: isPreview). Asi trabajamos un idioma sin publicarlo hasta que
+ * este listo (feature flag).
  */
 
 export const LANGUAGES = [
   { code: "en", name: "Ingles", flag: "GB", enabled: true },
   { code: "es", name: "Espanol", flag: "ES", enabled: false },
-  { code: "pt", name: "Portugues", flag: "BR", enabled: true },
+  { code: "pt", name: "Portugues", flag: "BR", enabled: false, draft: true },
   { code: "fr", name: "Frances", flag: "FR", enabled: false },
   { code: "ja", name: "Japones", flag: "JP", enabled: false },
   { code: "it", name: "Italiano", flag: "IT", enabled: false },

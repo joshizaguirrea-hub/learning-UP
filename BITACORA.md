@@ -300,6 +300,23 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] PORTUGUES en modo BORRADOR (feature flag + preview) (2026-07-27, v0.257.0).
+      Peticion: seguir mejorando el portugues SIN publicarlo, y publicarlo cuando
+      este listo. Solucion limpia con feature flag (no ramas ni duplicar codigo):
+        - data/languages.js: pt pasa a `enabled: false, draft: true` (oculto al
+          publico; aparece como "Pronto" en el selector, como fr/ja/it).
+        - ui/nav.js: isPreview() -> se activa una vez con `?preview=1` en la URL
+          (se guarda en localStorage 'linguapath.preview'); se apaga con `?preview=0`.
+          isLangUsable(l) = enabled O (draft && preview). langOption usa isLangUsable
+          y marca los borradores con etiqueta 'borrador'. currentLangCode() cae a
+          'en' si el idioma guardado ya no es usable (no deja al usuario atrapado).
+      COMO PROBAR EL BORRADOR (tu y dev): abre la app con `?preview=1` una vez
+        (ej. .../index.html?preview=1) y ya podras elegir Portugues (borrador).
+      COMO PUBLICARLO (cuando este listo): en languages.js, poner pt `enabled: true`
+        y quitar `draft: true`. Una linea. Nada mas.
+      NOTA idioma base: el L1 (explicaciones) sigue FIJO en espanol; el selector
+      solo cambia el L2 (lo que aprendes). No se agrego 'materno elegible' (YAGNI).
+
 - [x] NORMALIZACION pt-BR: quitar portuguesismos de Portugal (2026-07-27, v0.256.0).
       Se colaron formas de Portugal (EP) en el contenido A1; corregidas las
       INEQUIVOCAS (las que suenan raras en Brasil):
