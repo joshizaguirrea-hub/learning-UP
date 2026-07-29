@@ -300,6 +300,13 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] ITALIANO Unidad 4 "Il cibo" (piacere + articoli) (2026-07-27, v0.263.0).
+      data/units/it4-cibo.js: A1 completa. Grammar: verbo 'piacere' (mi piace +
+      singular/infinitivo; mi piacciono + plural; ti/le piace; non mi piace) -
+      mapea igual que 'gustar' en espanol (ventaja hispanohablante) + articulos
+      determinativos (il/la/l'/i/le/gli). Vocab comida/bebida (12). Registrada.
+      it A1 = 4 unidades (mitad del A1). Suite verde.
+
 - [x] ITALIANO Unidad 3 "La routine" (presente -ARE + frequenza) (2026-07-27, v0.262.0).
       data/units/it3-routine.js: A1 completa. Grammar: presente regular -are
       (parlo/parli/parla/parliamo/parlate/parlano; lavorare/studiare/mangiare) +
