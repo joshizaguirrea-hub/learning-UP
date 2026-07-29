@@ -59,10 +59,34 @@ export function renderBottomNav() {
 // Selector de idioma (menu 2)
 // --------------------------------------------------------------------------
 const LS_KEY = "linguapath.lang";
+const PREVIEW_KEY = "linguapath.preview";
 
-/** Idioma que el usuario esta aprendiendo (solo 'en' activo por ahora). */
+/**
+ * Modo PREVIEW: deja ver/usar idiomas en borrador (draft) sin publicarlos.
+ * Se activa una vez con `?preview=1` en la URL (queda guardado) y se apaga con
+ * `?preview=0`. El publico normal nunca lo tiene -> los borradores quedan ocultos.
+ */
+export function isPreview() {
+  try {
+    const p = new URLSearchParams(location.search);
+    if (p.get("preview") === "1") localStorage.setItem(PREVIEW_KEY, "1");
+    if (p.get("preview") === "0") localStorage.removeItem(PREVIEW_KEY);
+    return localStorage.getItem(PREVIEW_KEY) === "1";
+  } catch { return false; }
+}
+
+/** ¿El idioma se puede elegir? (publicado, o en borrador con preview activo). */
+export function isLangUsable(l) {
+  return !!(l && (l.enabled || (l.draft && isPreview())));
+}
+
+/** Idioma que el usuario esta aprendiendo. Si el guardado ya no es usable
+ *  (p.ej. un borrador que se despublico), cae a ingles para no dejar al
+ *  usuario atrapado en un idioma oculto. */
 export function currentLangCode() {
-  return localStorage.getItem(LS_KEY) || "en";
+  const code = localStorage.getItem(LS_KEY) || "en";
+  const l = LANGUAGES.find((x) => x.code === code);
+  return isLangUsable(l) ? code : "en";
 }
 
 /** Renderiza el selector de idioma en el header. */
@@ -92,7 +116,7 @@ export function renderLangSelector() {
 }
 
 function langOption(l) {
-  if (l.enabled) {
+  if (isLangUsable(l)) {
     return el("button", {
       class: "w-full flex items-center justify-between px-3 py-2 text-sm text-slate-200 hover:bg-indigo-600/30",
       onclick: () => {
@@ -100,7 +124,8 @@ function langOption(l) {
         renderLangSelector();
         go("/student"); // recarga el hub con el curso del nuevo idioma
       },
-    }, el("span", { class: "font-medium" }, l.name),
+    }, el("span", { class: "font-medium" },
+         l.name, l.draft ? el("span", { class: "ml-1.5 text-[10px] uppercase tracking-wide text-amber-400" }, "borrador") : null),
        currentLangCode() === l.code ? el("span", { class: "w-4 h-4 text-emerald-400", html: ICONS.check }) : null);
   }
   return el("div", {
