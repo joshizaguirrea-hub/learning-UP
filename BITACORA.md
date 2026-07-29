@@ -300,6 +300,13 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] ITALIANO Unidad 3 "La routine" (presente -ARE + frequenza) (2026-07-27, v0.262.0).
+      data/units/it3-routine.js: A1 completa. Grammar: presente regular -are
+      (parlo/parli/parla/parliamo/parlate/parlano; lavorare/studiare/mangiare) +
+      adverbios de frecuencia (sempre/spesso despues del verbo; 'non... mai' doble
+      negacion). Vocab rutina (svegliarsi, fare colazione, la mattina/la sera).
+      Registrada en units/index.js. it A1 = 3 unidades. Suite verde.
+
 - [x] ITALIANO Unidad 2 "La famiglia" (possessivi + AVERE) (2026-07-27, v0.261.0).
       data/units/it2-famiglia.js: A1 completa (Reading 2 textos + 6 preguntas,
       Vocabulary 12 + 8 ej, Grammar avere[io ho...loro hanno] + posesivos mio/mia
