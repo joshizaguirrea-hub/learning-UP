@@ -300,6 +300,23 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] ITALIANO arranca (Unidad 1 "Ciao!") en modo BORRADOR (2026-07-27, v0.260.0).
+      Primer idioma clonado de la plantilla mejorada (victoria rapida ~90% reuso).
+        - ui/speech.js: baseOf() ahora pasa it/fr/ja (antes caian a ingles) ->
+          voz nativa por la nube (OpenAI TTS multilingue).
+        - data/languages.js: it con enabled:false + draft:true (borrador, visible
+          con ?preview=1). SPEECH.it = { tts:'it', mic:'it-IT' }.
+        - data/units/it1-ciao.js: unidad A1 completa (saluti + verbo ESSERE).
+          Mismo esquema que pt1/en: Reading (2 textos + glosario + 6 preguntas),
+          Vocabulary (12 palabras + SRS + 8 ejercicios), Grammar (essere: io sono,
+          tu sei, lui/lei e, noi siamo, voi siete, loro sono + errores tipicos +
+          8 ejercicios), Writing (8). term=italiano, translation=espanol.
+        - units/index.js: importada y registrada; withClozeChoices/withListening/
+          withTest le anaden listening + examen AUTO (quedo con 6 lecciones).
+      Verificado: it A1 carga 1 unidad, 6 lecciones, 12 vocab, voz it/it-IT, draft.
+      Suite 27 archivos test en verde. Reuso total del motor (labs, SRS, examen,
+      Pronuncia/Checkpoint ya funcionan; falta pack de pronunciacion it y mas unidades).
+
 - [x] REPASO ACUMULATIVO (checkpoint, interleaving) (2026-07-27, v0.259.0).
       Hueco #2 de la auditoria (subir pt a clase A): faltaba repaso INTERCALADO
       entre unidades. Base cientifica: la intercalacion (Rohrer & Bjork) vence al

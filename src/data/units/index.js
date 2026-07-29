@@ -69,6 +69,8 @@ import { PT5_CASA } from "./pt5-casa.js";
 import { PT6_COMPRAS } from "./pt6-compras.js";
 import { PT7_TEMPOLIVRE } from "./pt7-tempolivre.js";
 import { PT8_ONTEM } from "./pt8-ontem.js";
+// --- Italiano (it) A1 ---
+import { IT1_CIAO } from "./it1-ciao.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
 import { withClozeChoices } from "../cloze-gen.js";
@@ -94,6 +96,8 @@ export const UNITS = [
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
   // --- Portugues (pt-BR) A1 ---
   PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
+  // --- Italiano (it) A1 ---
+  IT1_CIAO,
 ].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
 
 /** Unidades disponibles para un nivel MCER dado y un idioma META (default 'en'). */
