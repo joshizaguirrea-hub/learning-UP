@@ -19,6 +19,7 @@ import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { buildVocabLadder, scorePct } from "../core/vocab-lab.js";
+import { ttsCode } from "../data/languages.js";
 import { ensureCards, getCardsByIds, saveCard } from "../services/srs.js";
 import { review, newCard } from "../core/srs.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
@@ -39,6 +40,7 @@ export function openVocabLab(unit, opts = {}) {
   const progressId = opts.progressId || lesson?.id;
   const deck = buildVocabLadder(unit).map((ex) => ex.options ? { ...ex, options: shuffle(ex.options) } : ex);
   const name = robotName();
+  const tts = ttsCode(unit.language || "en"); // voz del idioma META (en | pt...) -> antes 'tts' no existia (bug de voz)
   const rkey = makeResumeKey(userId, unit.id, "vocablab");
   let idx = 0;
   let correct = 0;
