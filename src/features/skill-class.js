@@ -10,6 +10,7 @@
 import { openBymaxSession } from "./bymax-session.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { robotName } from "../ui/robot.js";
+import { languageName } from "../data/languages.js";
 import { completeLesson } from "../services/course.js";
 
 /** Primera leccion de la unidad que entrena la competencia `key` (o null). */
@@ -28,6 +29,7 @@ export function lessonForSkill(unit, key) {
 function skillFocus(unit, key, lesson) {
   const out = [];
   const glossary = lesson?.glossary || lesson?.content?.glossary || unit?.vocab || [];
+  const langName = languageName(unit?.language || "en"); // idioma META que aprende el alumno
 
   if (key === "grammar") {
     const g = lesson?.grammar;
@@ -41,7 +43,7 @@ function skillFocus(unit, key, lesson) {
           g.mistakes.slice(0, 3).map((m) => m.wrong + " -> " + m.right).join(" ; "));
       }
     }
-    out.push("Explica la regla en espanol con ejemplos en ingles y hazlo practicar frase por frase.");
+    out.push("Explica la regla en espanol con ejemplos en " + langName + " y hazlo practicar frase por frase. Las traducciones y ejemplos deben ser en " + langName + ", NUNCA en ingles (salvo que el idioma meta sea ingles).");
   } else if (key === "vocabulary") {
     const words = glossary.slice(0, 10)
       .map((v) => '"' + v.term + '" = ' + v.translation).join(" ; ");
@@ -52,7 +54,7 @@ function skillFocus(unit, key, lesson) {
     if (rd) out.push("Texto de lectura: " + rd.slice(0, 380));
     out.push("Trabaja la comprension: presenta el texto por partes, aclara palabras clave y hazle preguntas al alumno.");
   } else if (key === "listening") {
-    out.push("Comprension auditiva: di frases cortas en ingles del tema (para que el alumno las oiga con el boton de audio) y pidele que las repita o responda que entendio.");
+    out.push("Comprension auditiva: di frases cortas en " + langName + " del tema (para que el alumno las oiga con el boton de audio) y pidele que las repita o responda que entendio.");
   } else if (key === "writing") {
     const acts = (lesson?.activities || []).filter((a) => a.prompt).slice(0, 4).map((a) => a.prompt);
     if (acts.length) out.push("Frases a construir: " + acts.join(" ; "));
@@ -76,7 +78,10 @@ export function openSkillClass(unit, key, opts = {}) {
   const lesson = lessonForSkill(unit, key);
   const focus = skillFocus(unit, key, lesson);
   const level = unit?.level || "B1";
-  const topic = (`Unidad "${unit?.title || "general"}" (${level}). ` +
+  const lang = unit?.language || "en";
+  const langName = languageName(lang);
+  const topic = (`Unidad "${unit?.title || "general"}" (${level}). El alumno APRENDE ${langName}. ` +
+    `Ensena y pide traducciones/ejemplos en ${langName} (no en ingles, salvo que el idioma meta sea ingles). ` +
     `Enfoque de la clase: ${meta.label} (${meta.subtitle}).\n${focus}`).slice(0, 695);
   const name = robotName();
 
@@ -91,6 +96,7 @@ export function openSkillClass(unit, key, opts = {}) {
     mode: "class",
     topic,
     level,
+    targetLang: lang, // idioma META -> el Worker ensena en este idioma (no ingles fijo)
     onFinish,
     title: name + " ensena: " + meta.label,
     subtitle: (unit?.title || "") + " \u00b7 " + meta.subtitle + " \u00b7 nivel " + level,
