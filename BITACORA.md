@@ -300,6 +300,19 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] FIX voz por idioma en Clase de Vocabulario y Cuento (2026-07-27, v0.264.0).
+      BUG reportado: la Clase de vocabulario (vocab-class.js) decia 'Yo las digo
+      en INGLES' y hablaba/reconocia en ingles aunque la unidad fuera italiana o
+      portuguesa. Arreglado: usa unitTts/unitMic (idioma META) para la voz de las
+      palabras y el microfono; el saludo hablado ahora es en el idioma meta
+      (GREETING pt/it/fr/en, inmersion); la copia dice 'en italiano/portugues'
+      segun el idioma (L1_LANG). Tambien story.js (Cuento) usaba 'en-US' clavado ->
+      ahora usa unitTts para leer el cuento y el vocabulario.
+      NOTA/PENDIENTE: hallazgo sistemico -> quedan features con 'en-US' hardcodeado
+      en la ruta de speaking (speaking.js pares minimos, voice-call, writing,
+      skill-class, lesson-teaching, shadowing, role-play...). Revisar en barrido
+      dedicado para soporte multilingue completo del habla.
+
 - [x] ITALIANO Unidad 4 "Il cibo" (piacere + articoli) (2026-07-27, v0.263.0).
       data/units/it4-cibo.js: A1 completa. Grammar: verbo 'piacere' (mi piace +
       singular/infinitivo; mi piacciono + plural; ti/le piace; non mi piace) -
