@@ -300,6 +300,25 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] REPASO ACUMULATIVO (checkpoint, interleaving) (2026-07-27, v0.259.0).
+      Hueco #2 de la auditoria (subir pt a clase A): faltaba repaso INTERCALADO
+      entre unidades. Base cientifica: la intercalacion (Rohrer & Bjork) vence al
+      repaso en bloque -> mezclar temas de varias unidades y varios tipos.
+        - data/units/index.js: unitsUpTo(unitId, lang) -> unidades del MISMO nivel
+          e idioma desde la 1a hasta la actual (inclusive), en orden.
+        - core/checkpoint.js (PURO, testeable): buildCheckpoint(units) arma un
+          mazo INTERCALADO con ROUND-ROBIN entre unidades (1 item de c/u por vuelta),
+          mezclando vocabulario (choose en->es con distractores del pool global) y
+          gramatica (cloze / multiple_choice de la leccion de grammar). Determinista;
+          la UI solo baraja opciones. unitsCovered, scorePct.
+        - features/checkpoint.js: overlay estilo lab. Renderiza choose (MC) y
+          gramatica (usa core/activities.grade para calificar cloze/MC). Al terminar
+          ALIMENTA el SRS con el vocabulario (>=60% -> good, si no again).
+        - unit-content.js: POP 'Repaso' (mezcla unidades, icono target) en extras,
+          SOLO desde la 2a unidad del nivel (hasCheckpoint = unitsUpTo>=2).
+        - tests/checkpoint.test.mjs: 8 pruebas en verde (suite total 27 archivos).
+      Reutilizable para cualquier idioma (usa unitsUpTo por idioma/nivel).
+
 - [x] PRONUNCIA LAB: laboratorio de pronunciacion (infra reutilizable) (2026-07-27, v0.258.0).
       Hueco #1 detectado en la auditoria del contenido pt (subir de B+ a clase A):
       faltaba PRONUNCIACION. Se construyo un motor AGNOSTICO al idioma, sembrado
