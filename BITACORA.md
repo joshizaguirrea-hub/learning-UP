@@ -300,6 +300,31 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       mejora TODAS las llamadas (speaking-screen, speaking-coach roleplay) por DRY.
       Validadores check_imports + check_js en verde. PENDIENTE usuario: probar en Chrome
       (la llamada real requiere el Bymax Worker/IA activo).
+- [x] PRONUNCIA LAB: laboratorio de pronunciacion (infra reutilizable) (2026-07-27, v0.258.0).
+      Hueco #1 detectado en la auditoria del contenido pt (subir de B+ a clase A):
+      faltaba PRONUNCIACION. Se construyo un motor AGNOSTICO al idioma, sembrado
+      con portugues (los sonidos que mas cuestan al hispanohablante). Base cientifica:
+      la PERCEPCION precede a la PRODUCCION (Flege) -> primero el oido.
+        - data/pt-pronunciation.js: paquete pt-BR con 7 sonidos (nasales ao/ae/oe;
+          vocales abiertas/cerradas avo/avo; R fuerte rr=J aspirada; S=Z entre
+          vocales; vocales finales O->U E->I; ti/di/-te/-de = chi/dji brasileno;
+          lh/nh 'ventaja del espanol'). Cada sonido: tip en espanol + ejemplos
+          para oir (voz nativa nube) + pares minimos. Registro pronunciationPackFor(lang).
+        - core/pronunciation.js (PURO, testeable): buildPronunciationDrill ->
+          por cada sonido emite GUIA + sus pares de DISCRIMINACION (oyes una
+          palabra del par y eliges cual fue). scorePct, scorableSteps.
+        - features/pronunciation-lab.js: overlay estilo Vocab Lab. Guia (chips que
+          suenan) + discriminacion de oido (re-aleatoriza cual palabra suena).
+          hasPronunciation(lang) para mostrar/ocultar el POP.
+        - unit-content.js: POP 'Pronuncia' (afina el oido) en la fila de extras,
+          SOLO si el idioma tiene guia (hoy: portugues).
+        - tests/pronunciation.test.mjs: 10 pruebas en verde (suite total 26 archivos).
+      NOTA reutilizable: para it/fr/ja solo hay que anadir su paquete de sonidos
+      en pronunciationPackFor() -> el motor y la UI ya sirven.
+      BUG ARREGLADO de paso: features/vocab-lab.js usaba una variable `tts` que
+      NUNCA se definia (ReferenceError al reproducir audio; y en pt habria usado
+      voz equivocada). Ahora `const tts = ttsCode(unit.language)`.
+
 - [x] PORTUGUES en modo BORRADOR (feature flag + preview) (2026-07-27, v0.257.0).
       Peticion: seguir mejorando el portugues SIN publicarlo, y publicarlo cuando
       este listo. Solucion limpia con feature flag (no ramas ni duplicar codigo):

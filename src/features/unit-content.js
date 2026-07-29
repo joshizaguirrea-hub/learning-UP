@@ -24,6 +24,7 @@ import { openDictogloss } from "./dictogloss.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openGrammarInput } from "./grammar-input.js";
+import { openPronunciationLab, hasPronunciation } from "./pronunciation-lab.js";
 import { getCourseProgress } from "../services/course.js";
 import { openUnitReport } from "./unit-report.js";
 import { isUnitComplete } from "../core/unit-report.js";
@@ -78,13 +79,19 @@ export function unitContent(unit, progressMap, user) {
     ORBIT.map((key) => skillPop(key, unit, progressMap, user, onSkillDone)));
 
   // Fila de POPs pequenos: examen, cuento, videollamada (llamada EN VIVO con la
-  // IA, manos libres) e input gramatical.
-  const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" },
+  // IA, manos libres), input gramatical y -si el idioma tiene guia- pronunciacion.
+  const extraPops = [
     examPop(unit, progressMap),
     miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop("Videollamada", "Llamada en vivo IA", SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
       () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", targetLang: unit.language || "en", userId: user?.id })),
-    grammarInputPop(unit, user));
+    grammarInputPop(unit, user),
+  ];
+  if (hasPronunciation(unit.language || "en")) {
+    extraPops.push(miniPop("Pronuncia", "Afina el oido", ICONS.sound, "from-cyan-500 to-sky-600",
+      () => openPronunciationLab(unit)));
+  }
+  const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" }, ...extraPops);
 
   // Bonos como POPs pequenos tipo pastilla. En INGLES: la lista curada
   // (gramatica + vocabulario del nivel). En otros idiomas: sus mazos propios
