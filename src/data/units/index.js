@@ -74,6 +74,10 @@ import { IT1_CIAO } from "./it1-ciao.js";
 import { IT2_FAMIGLIA } from "./it2-famiglia.js";
 import { IT3_ROUTINE } from "./it3-routine.js";
 import { IT4_CIBO } from "./it4-cibo.js";
+import { IT5_CASA } from "./it5-casa.js";
+import { IT6_SPESA } from "./it6-spesa.js";
+import { IT7_TEMPOLIBERO } from "./it7-tempolibero.js";
+import { IT8_IERI } from "./it8-ieri.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
 import { withClozeChoices } from "../cloze-gen.js";
@@ -100,7 +104,7 @@ export const UNITS = [
   // --- Portugues (pt-BR) A1 ---
   PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
   // --- Italiano (it) A1 ---
-  IT1_CIAO, IT2_FAMIGLIA, IT3_ROUTINE, IT4_CIBO,
+  IT1_CIAO, IT2_FAMIGLIA, IT3_ROUTINE, IT4_CIBO, IT5_CASA, IT6_SPESA, IT7_TEMPOLIBERO, IT8_IERI,
 ].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
 
 /** Unidades disponibles para un nivel MCER dado y un idioma META (default 'en'). */
