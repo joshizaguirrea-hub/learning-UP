@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Marca `[x]` al cerrar. Lo grande y por hacer arriba,
 > lo terminado se resume en la BITACORA.md (que es el diario detallado).
 
-Version actual: **v0.267.0**
+Version actual: **v0.268.0**
 
 ---
 
@@ -25,13 +25,15 @@ Version actual: **v0.267.0**
       - Call sites en `lesson-player.js` (`buildSteps`) pasan `unitTts(unit)`.
 
 - [ ] **3. Terminar Italiano A1 (unidades 5-8)** — espejo del arco de portugues:
-      - [ ] `it5-casa` — "La casa": c'e / ci sono (hay) + preposizioni + verbo stare
-      - [ ] `it6-spesa` — "Fare la spesa": numeri + questo/quello + verbo volere
-      - [ ] `it7-tempolibero` — "Il tempo libero": potere/volere + infinito + attivita
-      - [ ] `it8-ieri` — "Ieri": passato prossimo con avere (-are -> -ato)
+      - [x] `it5-casa` — "La casa": c'e / ci sono (hay) + preposizioni + verbo stare
+      - [x] `it6-spesa` — "Fare la spesa": numeri + questo/quello + verbo volere
+      - [x] `it7-tempolibero` — "Il tempo libero": potere/andare + infinito + attivita
+      - [x] `it8-ieri` — "Ieri": passato prossimo con avere (-are -> -ato)
       Cada una: reading (2 textos + glossary + check) + vocabulary (12 vocab + 8 act)
       + grammar (chart + 8 act) + writing (8 act). Registrar en `units/index.js`.
       Con it1-it8 el Italiano A1 queda COMPLETO (8 unidades).
+      HECHO (v0.268.0): 8/8 unidades, auditContent 0 errores, score 100%. Sigue en
+      `draft: true` (visible solo en preview) hasta decidir publicar.
 
 - [ ] **4. QA del microfono (v0.266)** — levantar server local y validar que la
       clase con IA avisa bien los estados del microfono (no-speech, permiso,
