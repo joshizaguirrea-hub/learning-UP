@@ -16,12 +16,15 @@ import { openRuleExplainer } from "./rule-explainer.js";
 const BOX = "bg-white/5 border border-white/5 rounded-xl p-4";
 const H2 = "font-bold text-lg text-slate-100 flex items-center gap-2";
 
+// Rotulo de la "zona idioma meta" en la caja de gramatica, por codigo de voz.
+const TTS_LABEL = { en: "English", pt: "Portugues", it: "Italiano", es: "Espanol", fr: "Francais", ja: "Nihongo" };
+
 /** Chip-icono decorativo para encabezar cada bloque. */
 function chip(emoji, tone = "bg-indigo-500/20 text-indigo-200") {
   return el("span", { class: "grid place-items-center w-8 h-8 rounded-xl text-lg shrink-0 " + tone, "aria-hidden": "true" }, emoji);
 }
 
-export function readingSection(text) {
+export function readingSection(text, tts = "en-US") {
   const blocks = String(text).split(/\n\n+/).map((para) => {
     const lines = para.split(/\n/);
     const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
@@ -32,12 +35,12 @@ export function readingSection(text) {
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83D\uDCD6"), "Lectura"),
-      playSeqButton(() => readingItems(text))),
-    el("div", { class: "mt-3 space-y-4" }, ...blocks.map(renderReadingBlock)));
+      playSeqButton(() => readingItems(text, tts))),
+    el("div", { class: "mt-3 space-y-4" }, ...blocks.map((b) => renderReadingBlock(b, tts))));
 }
 
 /** Render de un bloque de lectura: titulo + (dialogo con nombres | narracion). */
-function renderReadingBlock(b) {
+function renderReadingBlock(b, tts = "en-US") {
   const children = [];
   if (b.title) children.push(el("p", { class: "font-bold text-indigo-200 mb-1" }, b.title));
   if (b.body && hasDialog(b.body)) {
@@ -47,7 +50,7 @@ function renderReadingBlock(b) {
       ...turns.map((t) => {
         const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-start gap-2" },
-          playSeqButton(() => [turnItem(t, cast)]),
+          playSeqButton(() => [turnItem(t, cast, tts)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));
@@ -135,19 +138,23 @@ function parseDialogTurns(text) {
 }
 
 /** Un turno -> item de voz con nombre (pausa tras el nombre) y voz por genero. */
-function turnItem(t, cast) {
+function turnItem(t, cast, tts = "en-US") {
   const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
   // El nombre se une a la frase con COMA (pausa breve natural), NO con punto:
   // asi respeta el corte del ":" en pantalla pero la voz continua sin cortar la
   // frase ("Maria, Of course..."). Ademas se le quita el acento al nombre hablado
   // para que no dispare la voz espanola (anti-Spanglish): el turno entero se lee
-  // en UNA sola voz (la inglesa del personaje), sin interrupcion ni cambio de voz.
+  // en UNA sola voz (la del idioma META del personaje), sin interrupcion.
   const spokenWho = who ? who.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
   const text = spokenWho ? spokenWho + ", " + t.line : t.line;
   const v = (cast.voices && t.speaker && cast.voices[t.speaker]) || {};
+  // Las voces con nombre (Deepgram Aura / Chirp3-HD) son INGLESAS: solo se pasan
+  // cuando el idioma meta es ingles. Para pt/it/... dejamos que el motor elija la
+  // voz nativa del idioma (el genero sigue guiando M/F).
+  const isEn = String(tts).toLowerCase().startsWith("en");
   return {
-    text, lang: "en-US",
-    opts: { rate: 0.86, voice: v.voice, voiceHd: v.voiceHd, gender: v.gender }, // ingles PAUSADO
+    text, lang: tts,
+    opts: { rate: 0.86, voice: isEn ? v.voice : undefined, voiceHd: isEn ? v.voiceHd : undefined, gender: v.gender },
     gapAfter: 380, // mas aire entre turnos (no atropellado)
   };
 }
@@ -159,7 +166,7 @@ function turnItem(t, cast) {
  *     dentro -> suena fluido y claro, no cortado).
  *   - Los dialogos se leen turno por turno con nombres y pausa breve.
  */
-function readingItems(text) {
+function readingItems(text, tts = "en-US") {
   const items = [];
   for (const para of String(text).split(/\n\n+/)) {
     const lines = para.split(/\n/);
@@ -167,7 +174,7 @@ function readingItems(text) {
     const tm = (lines[0] || "").match(/^TEXT\s*\d*\s*[-\u2013]\s*(.+)$/i);
     if (tm) {
       // Titulo: mas LENTO y con calma (con carino), no corriendo. gapAfter largo.
-      items.push({ text: tm[1].trim(), lang: "en-US", opts: { rate: 0.8, pitch: 1.04, gender: "F" }, gapAfter: 500 });
+      items.push({ text: tm[1].trim(), lang: tts, opts: { rate: 0.8, pitch: 1.04, gender: "F" }, gapAfter: 500 });
       bodyStart = 1;
     }
     const body = lines.slice(bodyStart).join(" ").trim();
@@ -175,9 +182,9 @@ function readingItems(text) {
     if (hasDialog(body)) {
       const turns = parseDialogTurns(body);
       const cast = buildCast(turns, body);
-      for (const t of turns) items.push(turnItem(t, cast));
+      for (const t of turns) items.push(turnItem(t, cast, tts));
     } else {
-      items.push({ text: body, lang: "en-US", opts: { rate: 0.85 }, gapAfter: 350 }); // narracion PAUSADA
+      items.push({ text: body, lang: tts, opts: { rate: 0.85 }, gapAfter: 350 }); // narracion PAUSADA
     }
   }
   return items;
@@ -195,12 +202,12 @@ function playSeqButton(getItems, cls = "") {
   });
 }
 
-export function glossarySection(glossary) {
+export function glossarySection(glossary, tts = "en-US") {
   return el("section", {},
     el("h2", { class: H2 }, chip("\uD83D\uDCDA"), "Glosario"),
     el("div", { class: "mt-3 rounded-xl border border-white/10 overflow-hidden" }, ...glossary.map((g, i) =>
       el("div", { class: "flex justify-between items-center gap-4 px-3 py-2 " + (i % 2 ? "bg-white/[0.03]" : "") },
-        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, richText(g.term), speakButton(stripMarkup(g.term))),
+        el("span", { class: "font-semibold text-slate-100 flex items-center gap-2" }, richText(g.term), speakButton(stripMarkup(g.term), { lang: tts })),
         el("span", { class: "text-slate-400 text-right" }, g.translation)))));
 }
 
@@ -217,7 +224,7 @@ export function noteSection(note) {
     el("p", { class: "mt-2 text-sm text-amber-100" }, richText(note)));
 }
 
-export function dialogueSection(dialogue) {
+export function dialogueSection(dialogue, tts = "en-US") {
   const turns = dialogue.map((line) => {
     const m = String(line).match(/^([A-D]):\s*(.*)$/s);
     return m ? { speaker: m[1], line: m[2].trim() } : { speaker: null, line: String(line) };
@@ -226,12 +233,12 @@ export function dialogueSection(dialogue) {
   return el("section", {},
     el("div", { class: "flex items-center gap-2" },
       el("h2", { class: H2 }, chip("\uD83C\uDFAD"), "Dialogo"),
-      playSeqButton(() => turns.map((t) => turnItem(t, cast)))),
+      playSeqButton(() => turns.map((t) => turnItem(t, cast, tts)))),
     el("ul", { class: "mt-3 space-y-1 " + BOX + " text-slate-300 text-sm" },
       ...turns.map((t) => {
         const who = t.speaker ? (cast.names[t.speaker] || t.speaker) : "";
         return el("li", { class: "flex items-center gap-2" },
-          playSeqButton(() => [turnItem(t, cast)]),
+          playSeqButton(() => [turnItem(t, cast, tts)]),
           el("span", {},
             who ? el("span", { class: "font-semibold text-indigo-200" }, who + ": ") : null,
             richText(t.line)));
@@ -298,23 +305,25 @@ export function grammarChart(chart) {
 
 /**
  * Caja de gramatica REDISENADA (anti-spanglish). Dos zonas que NUNCA se mezclan:
- *  1) Zona INGLES: formula, tabla, ejemplos y errores -> SOLO ingles, voz ingles.
+ *  1) Zona IDIOMA META: formula, tabla, ejemplos y errores -> SOLO idioma meta,
+ *     voz del idioma meta (ingles | portugues | italiano...).
  *  2) Zona "El profe te explica": para que sirve, como funciona y la traduccion
  *     de cada ejemplo -> SOLO espanol, voz espanol.
- * Asi el alumno ve/oye el ingles limpio y, por separado, al profe explicando en
- * espanol como en una clase de verdad.
+ * Asi el alumno ve/oye el idioma meta limpio y, por separado, al profe
+ * explicando en espanol como en una clase de verdad.
  */
-export function grammarBox(g, robotLang = "es-MX", level) {
+export function grammarBox(g, robotLang = "es-MX", level, tts = "en-US") {
   const examples = (g.examples || []).map((ex, i) => splitExample(ex, g.explain?.tr?.[i]));
+  const metaLabel = TTS_LABEL[String(tts).slice(0, 2).toLowerCase()] || "English";
 
-  // --- ZONA INGLES: lo que se aprende, en ingles puro -----------------------
+  // --- ZONA IDIOMA META: lo que se aprende, en el idioma meta puro ----------
   const englishZone = el("div", { class: "mt-3 border border-white/10 bg-slate-950/40 rounded-2xl p-4" },
-    el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/70 mb-2" }, "English"),
+    el("p", { class: "text-[11px] uppercase tracking-widest text-indigo-300/70 mb-2" }, metaLabel),
 
     g.form ? el("div", {},
       el("div", { class: "flex items-center gap-2 mb-1" },
         el("p", { class: "text-[11px] uppercase tracking-wide text-slate-400" }, "Formula"),
-        speakButton(stripMarkup(g.form), { lang: "en-US" })),
+        speakButton(stripMarkup(g.form), { lang: tts })),
       el("p", { class: "font-mono text-sm text-indigo-100 bg-slate-950/50 border border-white/10 rounded-lg px-3 py-2" }, richText(g.form))) : null,
 
     g.table?.headers?.length ? el("div", { class: "mt-4" },
@@ -326,7 +335,7 @@ export function grammarBox(g, robotLang = "es-MX", level) {
       el("ul", { class: "space-y-1.5" },
         ...examples.map((ex) => el("li", {
           class: "text-sm text-slate-200 flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2",
-        }, speakButton(ex.enPlain, { lang: "en-US" }), richText(ex.en))))) : null);
+        }, speakButton(ex.enPlain, { lang: tts }), richText(ex.en))))) : null);
 
   // Errores comunes: ingles, se muestra AL FINAL (repaso tras entender la regla).
   const mistakesBlock = g.mistakes?.length ? el("div", { class: "mt-3 border border-white/10 bg-slate-950/40 rounded-2xl p-4" },

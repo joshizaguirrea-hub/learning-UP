@@ -24,6 +24,7 @@ import { richText } from "../ui/richtext.js";
 import { speak, speakSequence } from "../ui/speech.js";
 import { ICONS } from "../ui/icons.js";
 import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialogueSection, grammarBox } from "./lesson-teaching.js";
+import { unitTts } from "../data/languages.js";
 import { confettiBurst } from "../ui/confetti.js";
 import { celebrate } from "../ui/celebrate.js";
 import { getCourseProgress } from "../services/course.js";
@@ -328,18 +329,19 @@ export async function renderLessonPlayer(container, params, user) {
 function buildSteps(unit, lesson, robotLang = "es-MX") {
   const steps = [{ kind: "intro" }];
   const c = lesson.content || {};
+  const tts = unitTts(unit); // voz del idioma META de la unidad (en | pt | it...)
 
   const teach = [];
   const reading = c.reading || lesson.passage;
-  if (reading) teach.push({ node: readingSection(reading), robot: line("reading", robotLang) });
+  if (reading) teach.push({ node: readingSection(reading, tts), robot: line("reading", robotLang) });
   const grammar = c.grammar || lesson.grammar;
-  if (grammar) teach.push({ node: grammarBox(grammar, robotLang, unit.level), robot: line("grammar", robotLang) });
+  if (grammar) teach.push({ node: grammarBox(grammar, robotLang, unit.level, tts), robot: line("grammar", robotLang) });
   const glossary = c.glossary || lesson.glossary;
-  if (glossary?.length) teach.push({ node: glossarySection(glossary), robot: line("glossary", robotLang) });
+  if (glossary?.length) teach.push({ node: glossarySection(glossary, tts), robot: line("glossary", robotLang) });
   if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: line("keyPhrases", robotLang) });
   const note = c.note || lesson.note;
   if (note) teach.push({ node: noteSection(note), robot: line("note", robotLang) });
-  if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue), robot: line("dialogue", robotLang) });
+  if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue, tts), robot: line("dialogue", robotLang) });
 
   teach.forEach((t, i) => steps.push({ kind: "teach", node: t.node, robot: t.robot, last: i === teach.length - 1 }));
 
