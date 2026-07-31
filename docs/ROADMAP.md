@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Marca `[x]` al cerrar. Lo grande y por hacer arriba,
 > lo terminado se resume en la BITACORA.md (que es el diario detallado).
 
-Version actual: **v0.268.0**
+Version actual: **v0.269.0**
 
 ---
 

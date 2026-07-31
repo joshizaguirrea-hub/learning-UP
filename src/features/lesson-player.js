@@ -54,6 +54,9 @@ export async function renderLessonPlayer(container, params, user) {
   // Idioma/voz del profe: espanol nativo en A1-A2; ingles (inmersion) de B1 en adelante.
   // Guia de Bymax: espanol en A1-B2, ingles (inmersion) solo en C1-C2.
   const robotLang = isAtLeast(unit.level, "C1") ? "en-US" : "es-MX";
+  // Elogio de acierto/animo en el idioma META (lo que se aprende): en inmersion
+  // "Perfect!"/"Great job!" con voz inglesa, NO "Perfecto" con acento gringo.
+  const praiseLang = unitTts(unit);
   const steps = buildSteps(unit, lesson, robotLang);
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
   // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.
@@ -198,7 +201,7 @@ export async function renderLessonPlayer(container, params, user) {
         }
         body.append(feedbackBanner(ok, act, unitGrammar, robotLang, unit.level));
         // Bymax reacciona DESPUES de montar el banner (ya existe su avatar vivo).
-        robotReact(ok, robotLang);
+        robotReact(ok, praiseLang);
         mount(footerHost, el("button", { class: ok ? OK_BTN : PRIMARY, onclick: next },
           state.idx === steps.length - 1 ? "Terminar" : "Continuar"));
         announce(ok ? "Correcto" : "Incorrecto");

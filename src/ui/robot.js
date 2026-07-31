@@ -8,7 +8,7 @@
  */
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
-import { speakButton, speakRobot, robotChirp } from "./speech.js";
+import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
 import { getRobot, setRobot, getTeacherName } from "./robot-prefs.js";
@@ -27,26 +27,40 @@ export function teacherName(role) {
   return getTeacherName(role);
 }
 
-// Frases cortas de reaccion (bilingues) para acierto/error.
+// Frases cortas de reaccion para acierto/error, EN EL IDIOMA META (lo que se
+// aprende): asi el elogio suena inmersivo y con su voz correcta, sin spanglish
+// (nada de "Perfecto" con acento gringo). Un idioma sin pool cae a ingles.
 const REACT = {
   ok: {
     es: ["Muy bien!", "Excelente!", "Eso es!", "Vas genial!", "Lo lograste!", "Perfecto!"],
     en: ["Great job!", "Awesome!", "That's it!", "Well done!", "Perfect!", "Nailed it!"],
+    it: ["Perfetto!", "Bravo!", "Benissimo!", "Esatto!", "Ottimo!", "Ce l'hai fatta!"],
+    pt: ["Perfeito!", "Muito bem!", "\u00c9 isso!", "Excelente!", "Mandou bem!", "Boa!"],
+    fr: ["Parfait!", "Bravo!", "C'est \u00e7a!", "Excellent!", "Bien jou\u00e9!", "Super!"],
   },
   no: {
     es: ["Casi! Tu puedes.", "No pasa nada, sigue.", "Buen intento!", "Ya casi, animo!"],
     en: ["Almost! Keep going.", "No worries, try again.", "Nice try!", "You've got this!"],
+    it: ["Quasi! Ci sei.", "Riprova, dai!", "Bel tentativo!", "Ci sei quasi!"],
+    pt: ["Quase! Voc\u00ea consegue.", "Tenta de novo!", "Boa tentativa!", "J\u00e1 quase!"],
+    fr: ["Presque! Tu peux le faire.", "R\u00e9essaie!", "Bel essai!", "Tu y es presque!"],
   },
 };
 
 /** El profe reacciona con voz al acierto/error (frase corta al azar). */
 export function robotReact(ok, lang = "es-MX") {
   bymaxEmote(ok ? "happy" : "sad"); // Bymax vivo: salta de alegria o se apena
-  const l = lang.startsWith("es") ? "es" : "en";
-  const pool = REACT[ok ? "ok" : "no"][l];
+  const base = String(lang).slice(0, 2).toLowerCase();
+  const set = REACT[ok ? "ok" : "no"];
+  const pool = set[base] || set.en;
   const phrase = pool[(Math.random() * pool.length) | 0];
+  // es/en -> voz "divertida" del profe (motor bilingue). Otros idiomas (it/pt/fr)
+  // -> voz NATIVA de la nube (speakMono), nunca con acento gringo.
   // Pequeno retraso para no encimar el "ding".
-  setTimeout(() => speakRobot(phrase, lang), 220);
+  setTimeout(() => {
+    if (base === "es" || base === "en") speakRobot(phrase, lang);
+    else speakMono(phrase, lang, { rate: 1.02, pitch: 1.12 });
+  }, 220);
 }
 
 /** Avatar del robot elegido por el alumno. size: sm | md | lg. */
