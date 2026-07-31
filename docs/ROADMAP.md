@@ -7,6 +7,52 @@ Version actual: **v0.268.0**
 
 ---
 
+## Plan diario (L-V) — arranca 2026-07-31
+
+> Objetivos por dia habil (lunes a viernes). Marca `[x]` al terminar cada uno.
+> Al cerrar el dia, el detalle fino se resume en `BITACORA.md`. Ritmo: varios
+> objetivos/dia. Estrategia: **cerrar pendientes primero, luego contenido nuevo.**
+
+### Viernes 2026-07-31 (HOY)
+- [x] Pushear los 2 commits pendientes (Italiano A1 + fix i18n) -> live en Pages
+- [ ] QA microfono (v0.266) en Chrome: validar avisos no-speech / permiso /
+      idioma no soportado / red en la clase con IA
+- [ ] Validar Italiano A1 en preview (`?preview=1`): recorrer it1-it8 y confirmar
+      que lectura, glosario y gramatica suenan en voz **it-IT**
+
+### Lunes 2026-08-03
+- [ ] Publicar Italiano A1: quitar `draft:true` en `languages.js` + bump version +
+      validadores + push
+- [ ] Boton "rehacer plan" para cuentas viejas sin plan en localStorage
+- [ ] Smoke test en Chrome (Ctrl+Shift+R)
+
+### Martes 2026-08-04
+- [ ] Coach diario: "Empezar la clase" lanza DIRECTO la actividad de `startSkill`
+      (hoy solo navega a la unidad)
+- [ ] Meta diaria contada por POPs individuales (hoy cuenta lecciones completas)
+
+### Miercoles 2026-08-05
+- [ ] Arrancar **Frances A1** (fr): fr1 "Bonjour!" (saluts + verbe etre) +
+      fr2 "La famille" (avoir + possessifs), en modo `draft`
+- [ ] Cablear catalogo `fr` en `languages.js` (voz fr-FR ya existe)
+
+### Jueves 2026-08-06
+- [ ] Frances A1: fr3 "La routine" (present -er) + fr4 "La nourriture" (aimer/manger)
+- [ ] `auditContent` del bloque fr (objetivo: 0 errores)
+
+### Viernes 2026-08-07
+- [ ] Frances A1: fr5 + fr6
+- [ ] Validadores (check_js + check_imports) + commit
+
+### Lunes 2026-08-10
+- [ ] Frances A1: fr7 + fr8 -> **Frances A1 COMPLETO (8/8)**
+- [ ] Auditoria final + decidir publicar o dejar en draft
+
+### Martes 2026-08-11
+- [ ] Arrancar **Japones A1** o **Portugues A2 / Italiano A2** (a definir segun avance)
+
+---
+
 ## Sesion 2026-07-31 — Plan del dia
 
 - [ ] **1. ROADMAP.md formal** — este archivo. Backlog por escrito para no depender
