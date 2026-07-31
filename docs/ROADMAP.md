@@ -21,8 +21,13 @@ Version actual: **v0.268.0**
       que lectura, glosario y gramatica suenan en voz **it-IT**
 
 ### Lunes 2026-08-03
-- [ ] Publicar Italiano A1: quitar `draft:true` en `languages.js` + bump version +
-      validadores + push
+- [ ] **BLOQUEANTE: arreglar voz i18n** antes de publicar Italiano. Ver
+      `docs/AUDITORIA-VOZ-2026-07-31.md`. `speak()`/`speakSequence()` son es/en
+      only -> lectura/dialogos/actividades de Italiano suenan en INGLES. Fix
+      opcion A: rutear items no-es/en a `cloudSpeak(text, baseOf(lang))` +
+      threadear `unitTts(unit)` en las actividades de `lesson-player.js`.
+- [ ] Publicar Italiano A1 (quitar `draft:true`) SOLO despues de que la voz
+      italiana funcione en lectura + actividades (probado en casa)
 - [ ] Boton "rehacer plan" para cuentas viejas sin plan en localStorage
 - [ ] Smoke test en Chrome (Ctrl+Shift+R)
 
