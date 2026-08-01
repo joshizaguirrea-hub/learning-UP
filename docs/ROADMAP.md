@@ -15,6 +15,10 @@ Version actual: **v0.269.0**
 
 ### Viernes 2026-07-31 (HOY)
 - [x] Pushear los 2 commits pendientes (Italiano A1 + fix i18n) -> live en Pages
+- [x] **FIX spanglish elogio de acierto** (v0.269.0): el examen/lecciones de
+      ingles ahora dicen "Perfect!"/"Great job!" con voz inglesa (antes "Perfecto"
+      con acento gringo). `robotReact` usa `unitTts(unit)` (idioma meta) + pools
+      it/pt/fr con `speakMono`. CONFIRMADO EN VIVO en PC personal.
 - [ ] QA microfono (v0.266) en Chrome: validar avisos no-speech / permiso /
       idioma no soportado / red en la clase con IA
 - [ ] Validar Italiano A1 en preview (`?preview=1`): recorrer it1-it8 y confirmar
