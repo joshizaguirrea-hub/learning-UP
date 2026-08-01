@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Marca `[x]` al cerrar. Lo grande y por hacer arriba,
 > lo terminado se resume en la BITACORA.md (que es el diario detallado).
 
-Version actual: **v0.269.0**
+Version actual: **v0.270.0**
 
 ---
 
@@ -25,13 +25,14 @@ Version actual: **v0.269.0**
       que lectura, glosario y gramatica suenan en voz **it-IT**
 
 ### Lunes 2026-08-03
-- [ ] **BLOQUEANTE: arreglar voz i18n** antes de publicar Italiano. Ver
+- [x] **PUBLICADO Italiano + Portugues** (v0.270.0): quitado `draft:true`,
+      `enabled:true`. Ya salen en el selector de idioma normal (sin preview).
+      Decision de Joshua: usarlos ya en vivo pese al bug de voz pendiente.
+- [ ] **PRIORIDAD ALTA (ahora en VIVO): arreglar voz i18n**. Ver
       `docs/AUDITORIA-VOZ-2026-07-31.md`. `speak()`/`speakSequence()` son es/en
       only -> lectura/dialogos/actividades de Italiano suenan en INGLES. Fix
       opcion A: rutear items no-es/en a `cloudSpeak(text, baseOf(lang))` +
       threadear `unitTts(unit)` en las actividades de `lesson-player.js`.
-- [ ] Publicar Italiano A1 (quitar `draft:true`) SOLO despues de que la voz
-      italiana funcione en lectura + actividades (probado en casa)
 - [ ] Boton "rehacer plan" para cuentas viejas sin plan en localStorage
 - [ ] Smoke test en Chrome (Ctrl+Shift+R)
 
