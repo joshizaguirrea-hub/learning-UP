@@ -10,10 +10,10 @@
 export const LANGUAGES = [
   { code: "en", name: "Ingles", flag: "GB", enabled: true },
   { code: "es", name: "Espanol", flag: "ES", enabled: false },
-  { code: "pt", name: "Portugues", flag: "BR", enabled: false, draft: true },
+  { code: "pt", name: "Portugues", flag: "BR", enabled: true },
   { code: "fr", name: "Frances", flag: "FR", enabled: false },
   { code: "ja", name: "Japones", flag: "JP", enabled: false },
-  { code: "it", name: "Italiano", flag: "IT", enabled: false, draft: true },
+  { code: "it", name: "Italiano", flag: "IT", enabled: true },
 ];
 
 // Codigos de voz (TTS) y de reconocimiento (micro/STT) por idioma META.
