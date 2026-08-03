@@ -8,6 +8,7 @@
  */
 import { openBymaxSession } from "./bymax-session.js";
 import { teacherName } from "../ui/robot.js";
+import { languageName } from "../data/languages.js";
 
 /**
  * Abre la conversacion libre con la IA para una unidad.
@@ -16,13 +17,15 @@ import { teacherName } from "../ui/robot.js";
 export function openConversation(unit) {
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
+  const targetLang = unit?.language || "en"; // idioma META (no ingles fijo)
+  const langLabel = languageName(targetLang).toLowerCase();
   const name = teacherName("speaking");
   openBymaxSession({
     mode: "conversation",
-    topic, level,
+    topic, level, targetLang,
     teacher: name,
     title: name + " \u00b7 " + topic,
-    subtitle: "Practica hablando en ingles \u00b7 nivel " + level,
+    subtitle: "Practica hablando en " + langLabel + " \u00b7 nivel " + level,
     ariaLabel: "Conversacion con " + name,
   });
 }
