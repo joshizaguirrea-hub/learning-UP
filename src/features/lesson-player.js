@@ -155,7 +155,7 @@ export async function renderLessonPlayer(container, params, user) {
   function activityStep(step) {
     const act = step.act;
     const idxNum = step.number;
-    const { node, getResponse } = renderActivity(act, idxNum);
+    const { node, getResponse } = renderActivity(act, idxNum, unitTts(unit));
     const headRow = el("div", { class: "flex items-center justify-between gap-3" },
       el("p", { class: "text-xs uppercase tracking-wide text-slate-400" }, "Practica " + idxNum + " de " + activityTotal),
       robotHelpButton(() => openRobotHint(unitGrammar, act, robotLang, unit.level)));
@@ -341,7 +341,7 @@ function buildSteps(unit, lesson, robotLang = "es-MX") {
   if (grammar) teach.push({ node: grammarBox(grammar, robotLang, unit.level, tts), robot: line("grammar", robotLang) });
   const glossary = c.glossary || lesson.glossary;
   if (glossary?.length) teach.push({ node: glossarySection(glossary, tts), robot: line("glossary", robotLang) });
-  if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases), robot: line("keyPhrases", robotLang) });
+  if (c.keyPhrases?.length) teach.push({ node: keyPhrasesSection(c.keyPhrases, tts), robot: line("keyPhrases", robotLang) });
   const note = c.note || lesson.note;
   if (note) teach.push({ node: noteSection(note), robot: line("note", robotLang) });
   if (lesson.dialogue?.length) teach.push({ node: dialogueSection(lesson.dialogue, tts), robot: line("dialogue", robotLang) });
@@ -452,26 +452,26 @@ function lockNode(node) {
 // ---------------------------------------------------------------------------
 // Renderizadores de actividad. Cada uno devuelve { node, getResponse }.
 // ---------------------------------------------------------------------------
-function renderActivity(act, idx) {
+function renderActivity(act, idx, tts = "en-US") {
   const title = el("legend", { class: "font-medium text-slate-100 text-lg" }, richText(act.prompt));
   switch (act.type) {
-    case "multiple_choice": return mcActivity(act, idx, title);
-    case "cloze": return clozeActivity(act, title);
-    case "word_bank": return wordBankActivity(act, title);
+    case "multiple_choice": return mcActivity(act, idx, title, tts);
+    case "cloze": return clozeActivity(act, title, tts);
+    case "word_bank": return wordBankActivity(act, title, tts);
     case "matching": return matchingActivity(act, title);
-    case "listening": return listeningActivity(act, idx, title);
+    case "listening": return listeningActivity(act, idx, title, tts);
     case "writing": return writingActivity(act, title);
     case "speaking": return speakingActivity(act, title);
     default: return { node: el("p", {}, "Tipo no soportado."), getResponse: () => null };
   }
 }
 
-function mcActivity(act, idx, title) {
+function mcActivity(act, idx, title, tts = "en-US") {
   let selected = null;
-  // Idioma para pronunciar la opcion elegida: ingles por defecto; una pregunta
-  // cuyas opciones esten en espanol (ej. significado de un idiom) puede pedir
-  // payload.speakLang: "es-MX". null/"" desactiva el audio.
-  const speakLang = "speakLang" in act.payload ? act.payload.speakLang : "en-US";
+  // Idioma para pronunciar la opcion elegida: idioma META de la unidad por
+  // defecto; una pregunta cuyas opciones esten en espanol (ej. significado de un
+  // idiom) puede pedir payload.speakLang: "es-MX". null/"" desactiva el audio.
+  const speakLang = "speakLang" in act.payload ? act.payload.speakLang : tts;
   const opts = act.payload.choices.map((text, ci) => {
     const btn = el("button", {
       type: "button",
@@ -489,7 +489,7 @@ function mcActivity(act, idx, title) {
   return { node: el("fieldset", {}, title, el("div", { class: "mt-2" }, ...opts)), getResponse: () => selected };
 }
 
-function clozeActivity(act, title) {
+function clozeActivity(act, title, tts = "en-US") {
   const p = act.payload || {};
   // Con TRAMPAS: si hay `choices`, se elige la palabra (banco de opciones) y se
   // PRONUNCIA al tocarla. Sin choices, se escribe libremente (comportamiento clasico).
@@ -506,7 +506,7 @@ function clozeActivity(act, title) {
           selected = word;
           chips.forEach((c) => c.classList.remove("border-indigo-400", "bg-indigo-500/25"));
           chip.classList.add("border-indigo-400", "bg-indigo-500/25");
-          speak(word, "en-US", { rate: 0.9 }); // pronuncia la palabra elegida
+          speak(word, tts, { rate: 0.9 }); // pronuncia la palabra elegida
         },
       }, word);
       chips.push(chip);
@@ -524,7 +524,7 @@ function clozeActivity(act, title) {
   return { node: el("fieldset", {}, title, input), getResponse: () => input.value };
 }
 
-function wordBankActivity(act, title) {
+function wordBankActivity(act, title, tts = "en-US") {
   const chosen = [];
   const answerArea = el("div", { class: "mt-3 min-h-[3rem] flex flex-wrap gap-2 bg-white/5 rounded-2xl p-3 border border-dashed border-white/20" });
   const bank = el("div", { class: "mt-3 flex flex-wrap gap-2" });
@@ -546,7 +546,7 @@ function wordBankActivity(act, title) {
   shuffled.forEach((w) => {
     const btn = el("button", { type: "button",
       class: "px-3 py-1.5 border border-white/15 bg-white/5 rounded-lg text-slate-200 hover:bg-white/10 transition active:scale-95",
-      onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); speak(w, "en-US", { rate: 0.9 }); } }, w);
+      onclick: () => { if (btn.disabled) return; chosen.push(w); btn.disabled = true; btn.classList.add("opacity-40"); redraw(); speak(w, tts, { rate: 0.9 }); } }, w);
     bank.append(btn);
   });
 
@@ -655,9 +655,9 @@ function matchingActivity(act, title) {
  * para que primero entrene el oido. DRY: no duplicamos MC/cloze.
  * payload: { audio, lang?, question?, choices?, answer, alt?, transcript? }
  */
-function listeningActivity(act, idx, title) {
+function listeningActivity(act, idx, title, tts = "en-US") {
   const p = act.payload;
-  const lang = p.lang || "en-US";
+  const lang = p.lang || tts;
   const audioText = String(p.audio || "");
   const play = (rate) => speakSequence([{ text: audioText, lang, opts: { rate } }]);
 
@@ -679,8 +679,8 @@ function listeningActivity(act, idx, title) {
   // Sub-actividad: MC o cloze, reusando los renderers existentes.
   const qLegend = el("legend", { class: "font-medium text-slate-100" }, richText(p.question || ""));
   const sub = Array.isArray(p.choices)
-    ? mcActivity({ payload: { choices: p.choices, answer: p.answer, speakLang: null } }, idx, qLegend)
-    : clozeActivity({ payload: {} }, qLegend);
+    ? mcActivity({ payload: { choices: p.choices, answer: p.answer, speakLang: null } }, idx, qLegend, tts)
+    : clozeActivity({ payload: {} }, qLegend, tts);
 
   // Transcripcion BLOQUEADA hasta responder (integridad del listening). Se
   // revela sola cuando el paso dispara el evento "activity:checked".

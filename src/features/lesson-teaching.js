@@ -211,11 +211,11 @@ export function glossarySection(glossary, tts = "en-US") {
         el("span", { class: "text-slate-400 text-right" }, g.translation)))));
 }
 
-export function keyPhrasesSection(phrases) {
+export function keyPhrasesSection(phrases, tts = "en-US") {
   return el("section", {},
     el("h2", { class: H2 }, chip("\uD83D\uDCAC"), "Frases clave"),
     el("ul", { class: "mt-3 space-y-2" },
-      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(stripMarkup(p)), richText(p)))));
+      ...phrases.map((p) => el("li", { class: "text-sm text-slate-300 flex items-center gap-2 " + BOX }, speakButton(stripMarkup(p), { lang: tts }), richText(p)))));
 }
 
 export function noteSection(note) {
