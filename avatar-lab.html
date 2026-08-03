@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laboratorio · Profe humano 3D · Learning UP</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Mismo import-map que la app: three.js por CDN, ESM puro. -->
+  <!-- Mismo import-map que la app: three.js LOCAL (vendor/three), sin CDN. -->
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
     }
   }
   </script>
@@ -33,22 +33,31 @@
     <div id="stage" class="stage mt-4 rounded-2xl border border-slate-700 overflow-hidden"
          style="height: 420px;">
       <div id="hint" class="h-full grid place-items-center text-slate-400 text-sm px-6 text-center">
-        Elige un avatar abajo y dale <b class="mx-1">Cargar</b> ·
-        (la primera carga baja three.js del CDN, tarda unos segundos)
+        Dale a <b class="mx-1">Demo OFFLINE</b> para verlo ya mismo (sin internet).
       </div>
     </div>
 
     <!-- Presets -->
     <div class="mt-4 grid sm:grid-cols-2 gap-2">
+      <button id="demoF"
+        class="text-left rounded-xl p-3 bg-gradient-to-br from-emerald-600 to-teal-700 hover:brightness-110">
+        <p class="font-semibold text-sm">Demo OFFLINE - Profe mujer</p>
+        <p class="text-xs text-white/80">Funciona sin internet (hecho con three.js). Pruebalo YA.</p>
+      </button>
+      <button id="demoM"
+        class="text-left rounded-xl p-3 bg-gradient-to-br from-cyan-600 to-sky-700 hover:brightness-110">
+        <p class="font-semibold text-sm">Demo OFFLINE - Profe hombre</p>
+        <p class="text-xs text-white/80">Funciona sin internet. Boca + parpadeo.</p>
+      </button>
       <button data-url="https://threejs.org/examples/models/gltf/facecap.glb"
         class="preset text-left rounded-xl p-3 bg-gradient-to-br from-sky-600 to-blue-700 hover:brightness-110">
-        <p class="font-semibold text-sm">1 · Cara demo (three.js)</p>
-        <p class="text-xs text-white/80">Garantizado: prueba el lip-sync ya mismo.</p>
+        <p class="font-semibold text-sm">Cara realista (needs internet)</p>
+        <p class="text-xs text-white/80">Modelo demo de three.js. Solo carga con red libre.</p>
       </button>
       <button data-url="https://models.readyplayer.me/64bfa15f0e72c63d7c3934a6.glb?morphTargets=mouthOpen,mouthSmile,ARKit"
         class="preset text-left rounded-xl p-3 bg-gradient-to-br from-fuchsia-600 to-pink-700 hover:brightness-110">
-        <p class="font-semibold text-sm">2 · Avatar Ready Player Me</p>
-        <p class="text-xs text-white/80">Cartoon humano. Si no carga, pega el tuyo abajo.</p>
+        <p class="font-semibold text-sm">Avatar Ready Player Me (needs internet)</p>
+        <p class="text-xs text-white/80">Cartoon humano real. Pega el tuyo abajo.</p>
       </button>
     </div>
 
@@ -79,7 +88,7 @@
   </div>
 
   <script type="module">
-    import { createAvatar3d } from "./src/ui/avatar3d.js";
+    import { createAvatar3d, createDemoHead } from "./src/ui/avatar3d.js";
 
     const stage = document.getElementById("stage");
     const hint = document.getElementById("hint");
@@ -90,25 +99,41 @@
 
     const say = (m) => { status.textContent = m; };
 
+    function ready(msg) {
+      avatar.setEmotion("happy");
+      talkBtn.disabled = flapBtn.disabled = false;
+      say(msg);
+    }
+
+    function reset() {
+      if (avatar) { avatar.dispose(); avatar = null; }
+      talkBtn.disabled = flapBtn.disabled = true;
+      hint.style.display = "none";
+    }
+
+    function demo(gender) {
+      say("Montando profe " + (gender === "F" ? "mujer" : "hombre") + " (offline)...");
+      reset();
+      try { avatar = createDemoHead(stage, { gender }); ready("Listo. Dale a Hablar (demo)."); }
+      catch (e) { console.error(e); hint.style.display = "grid"; say("Error 3D: " + (e?.message || e)); }
+    }
+
     async function load(url) {
       if (!url) { say("Pega una URL primero."); return; }
-      say("Cargando avatar... (bajando three.js + modelo)");
-      talkBtn.disabled = flapBtn.disabled = true;
-      if (avatar) { avatar.dispose(); avatar = null; }
-      hint.style.display = "none";
+      say("Cargando avatar del .glb... (necesita red libre)");
+      reset();
       try {
         avatar = await createAvatar3d(stage, { url });
-        avatar.setEmotion("happy");
-        talkBtn.disabled = flapBtn.disabled = false;
-        say(avatar.canLipSync ? "¡Listo! Este avatar mueve la boca " :
-          "Cargó, pero este .glb NO trae morphs de boca (añade ?morphTargets=mouthOpen,ARKit).");
+        ready(avatar.canLipSync ? "Listo. Este avatar mueve la boca." :
+          "Cargo, pero sin morphs de boca (agrega ?morphTargets=mouthOpen,ARKit).");
       } catch (e) {
-        console.error(e);
-        hint.style.display = "grid";
-        say("No se pudo cargar: " + (e?.message || e) + ". Prueba el preset 1 o pega otra URL.");
+        console.error(e); hint.style.display = "grid";
+        say("No cargo (red bloqueada?): " + (e?.message || e) + ". Usa los demos OFFLINE de arriba.");
       }
     }
 
+    document.getElementById("demoF").addEventListener("click", () => demo("F"));
+    document.getElementById("demoM").addEventListener("click", () => demo("M"));
     document.querySelectorAll(".preset").forEach((b) =>
       b.addEventListener("click", () => { document.getElementById("url").value = b.dataset.url; load(b.dataset.url); }));
     document.getElementById("load").addEventListener("click", () =>

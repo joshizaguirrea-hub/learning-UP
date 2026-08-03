@@ -1,16 +1,19 @@
 /**
- * ui/avatar3d.js — Profe HUMANO 3D (cartoon) estilo Ready Player Me.
+ * ui/avatar3d.js — Profe HUMANO 3D (cartoon) con three.js.
  *
- * Renderiza un avatar .glb en un <canvas> con three.js y lo hace "hablar"
- * moviendo la boca (morph targets ARKit/Oculus). Dos modos de lip-sync:
- *   1) REAL: enganchado al <audio> de la voz de nube (AnalyserNode) -> la boca
- *      se abre segun el VOLUMEN real de la voz. Se activa con attachAudio(el).
+ * Dos fuentes de avatar, MISMO motor (DRY):
+ *   - createAvatar3d(container,{url})  -> carga un .glb (Ready Player Me, etc.)
+ *   - createDemoHead(container,{gender}) -> cabeza cartoon hecha con primitivas
+ *     (funciona 100% OFFLINE, sin descargar nada; ideal para probar/fallback).
+ *
+ * Lip-sync (mover la boca) en DOS modos:
+ *   1) REAL por amplitud: attachAudio(<audio>) engancha la voz de nube via
+ *      AnalyserNode -> la boca se abre segun el VOLUMEN real.
  *   2) PROCEDURAL: si no hay audio analizable (voz del navegador), oscila la
- *      mandibula con un envelope aleatorio mientras setTalking(true).
+ *      boca mientras setTalking(true).
  *
- * DRY: es un DROP-IN para bymax-mascot (misma idea que setBymaxTalking). No
- * conoce nada del negocio; solo dibuja y mueve la boca. Carga three.js por
- * import-map (ver index.html) -> sin build, ESM puro.
+ * three.js se carga por import-map LOCAL (vendor/three, ver index.html): sin CDN,
+ * funciona offline y lo cachea la PWA. API drop-in analoga a setBymaxTalking.
  *
  * @module ui/avatar3d
  */
@@ -19,27 +22,24 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // Morphs candidatos para "abrir la boca" (ARKit + Oculus visemes + RPM).
 const MOUTH_MORPHS = ["jawOpen", "mouthOpen", "viseme_aa", "viseme_O", "viseme_CH"];
-// Morphs de parpadeo (para dar vida en reposo).
+// Morphs de parpadeo.
 const BLINK_MORPHS = [["eyeBlinkLeft", "eyeBlinkRight"], ["eyesClosed"]];
 
 /**
- * Crea un avatar 3D dentro de `container`.
- * @param {HTMLElement} container - donde montar el canvas (se dimensiona a el)
- * @param {object} opts - { url, background }
- * @returns {Promise<object>} API: setTalking, attachAudio, setEmotion, dispose
+ * MOTOR compartido: escena, luces, camara, bucle de animacion, lip-sync, resize
+ * y dispose. Recibe un "rig" que sabe mover SU boca/ojos.
+ * @param {HTMLElement} container
+ * @param {object} rig - { root:Object3D, setMouth(v), setBlink?(v), headBone? }
+ * @param {object} opts - { background }
  */
-export async function createAvatar3d(container, opts = {}) {
-  const url = opts.url;
-  if (!url) throw new Error("avatar3d: falta la url del .glb");
-
+function runEngine(container, rig, opts = {}) {
   const width = container.clientWidth || 320;
   const height = container.clientHeight || 380;
 
   const scene = new THREE.Scene();
   scene.background = opts.background ? new THREE.Color(opts.background) : null;
 
-  const camera = new THREE.PerspectiveCamera(28, width / height, 0.1, 100);
-  camera.position.set(0, 1.5, 0.9);
+  const camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 100);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -47,71 +47,39 @@ export async function createAvatar3d(container, opts = {}) {
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.appendChild(renderer.domElement);
 
-  // Luz: hemisferica suave + una direccional de relleno tipo estudio.
+  // Luz de estudio: hemisferica suave + key + relleno frio.
   scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 2.2));
   const key = new THREE.DirectionalLight(0xffffff, 2.0);
-  key.position.set(1.5, 3, 2.5);
-  scene.add(key);
+  key.position.set(1.5, 3, 2.5); scene.add(key);
   const fill = new THREE.DirectionalLight(0xa5b4fc, 0.6);
-  fill.position.set(-2, 1, 1);
-  scene.add(fill);
+  fill.position.set(-2, 1, 1); scene.add(fill);
 
-  // --- carga del modelo -----------------------------------------------------
-  const gltf = await new Promise((resolve, reject) =>
-    new GLTFLoader().load(url, resolve, undefined, reject));
-  const model = gltf.scene;
-  scene.add(model);
+  scene.add(rig.root);
 
-  // Recolecta TODOS los morph targets (boca, ojos) de todas las mallas.
-  const morphs = {}; // nombre -> [{ mesh, index }]
-  let headBone = null;
-  model.traverse((o) => {
-    if (o.isBone && /head/i.test(o.name) && !headBone) headBone = o;
-    if (o.morphTargetDictionary && o.morphTargetInfluences) {
-      for (const [name, idx] of Object.entries(o.morphTargetDictionary)) {
-        (morphs[name] ||= []).push({ mesh: o, index: idx });
-      }
-    }
-  });
-  const has = (name) => Array.isArray(morphs[name]);
-  const setMorph = (name, v) => {
-    const targets = morphs[name];
-    if (!targets) return;
-    const val = Math.max(0, Math.min(1, v));
-    for (const t of targets) t.mesh.morphTargetInfluences[t.index] = val;
-  };
-  const mouthMorph = MOUTH_MORPHS.find(has) || null;
-  const blinkSet = BLINK_MORPHS.find((set) => set.every(has)) || null;
-
-  // Encuadre "busto": apunta la camara a la cabeza (bounding box superior).
-  const box = new THREE.Box3().setFromObject(model);
+  // Encuadre automatico: cuerpo completo -> a la cabeza; solo cabeza -> centro.
+  const box = new THREE.Box3().setFromObject(rig.root);
   const size = new THREE.Vector3(); box.getSize(size);
   const center = new THREE.Vector3(); box.getCenter(center);
-  const headY = box.max.y - size.y * 0.08;       // un pelin bajo la coronilla
-  const target = new THREE.Vector3(center.x, headY, center.z);
-  const dist = size.y * 0.62;                     // que quepa cabeza + hombros
-  camera.position.set(center.x, headY + size.y * 0.02, box.max.z + dist);
-  camera.lookAt(target);
+  const fov = camera.fov * Math.PI / 180;
+  const isTall = size.y > size.x * 1.6;                 // heuristica: humano de pie
+  const framedH = isTall ? size.y * 0.30 : size.y * 1.2; // alto que queremos ver
+  const targetY = isTall ? box.max.y - framedH * 0.55 : center.y;
+  const dist = (framedH / 2) / Math.tan(fov / 2) * 1.15;
+  camera.position.set(center.x, targetY, box.max.z + dist);
+  camera.lookAt(center.x, targetY, center.z);
 
-  // --- estado y bucle -------------------------------------------------------
-  let talking = false;
-  let analyser = null;
-  let audioData = null;
-  let raf = 0;
-  let disposed = false;
+  // --- estado + bucle -------------------------------------------------------
+  let talking = false, analyser = null, audioData = null;
+  let raf = 0, disposed = false;
   const clock = new THREE.Clock();
-  let nextBlink = 1 + Math.random() * 3;
-  let blink = 0;
-  let jaw = 0;             // apertura actual (suavizada)
-  let procPhase = 0;
+  let nextBlink = 1 + Math.random() * 3, blink = 0, mouth = 0, procPhase = 0;
 
   function amplitude() {
     if (!analyser) return null;
     analyser.getByteTimeDomainData(audioData);
     let sum = 0;
     for (let i = 0; i < audioData.length; i++) {
-      const v = (audioData[i] - 128) / 128;
-      sum += v * v;
+      const v = (audioData[i] - 128) / 128; sum += v * v;
     }
     return Math.sqrt(sum / audioData.length); // RMS 0..~1
   }
@@ -119,91 +87,190 @@ export async function createAvatar3d(container, opts = {}) {
   function loop() {
     if (disposed) return;
     raf = requestAnimationFrame(loop);
-    const dt = clock.getDelta();
-    const t = clock.elapsedTime;
+    const dt = clock.getDelta(), t = clock.elapsedTime;
 
-    // Respiracion/vida: leve balanceo de la cabeza.
-    if (headBone) {
-      headBone.rotation.z = Math.sin(t * 0.8) * 0.02;
-      headBone.rotation.y = Math.sin(t * 0.35) * 0.04;
+    // Vida en reposo: leve balanceo de cabeza.
+    if (rig.headBone) {
+      rig.headBone.rotation.z = Math.sin(t * 0.8) * 0.02;
+      rig.headBone.rotation.y = Math.sin(t * 0.35) * 0.05;
     } else {
-      model.rotation.y = Math.sin(t * 0.35) * 0.03;
+      rig.root.rotation.y = Math.sin(t * 0.35) * 0.05;
     }
 
-    // Parpadeo natural en reposo.
-    if (blinkSet) {
+    // Parpadeo.
+    if (rig.setBlink) {
       nextBlink -= dt;
       if (nextBlink <= 0) { blink = 1; nextBlink = 2 + Math.random() * 4; }
       blink = Math.max(0, blink - dt * 8);
-      const eye = blink > 0.5 ? 1 : blink * 2;
-      for (const m of blinkSet) setMorph(m, eye);
+      rig.setBlink(blink > 0.5 ? 1 : blink * 2);
     }
 
     // Lip-sync: real (amplitud) o procedural (oscilacion).
-    let targetJaw = 0;
+    let target = 0;
     if (talking) {
       const amp = amplitude();
-      if (amp != null) {
-        targetJaw = Math.min(1, amp * 3.2); // escala el volumen a apertura
-      } else {
+      if (amp != null) target = Math.min(1, amp * 3.2);
+      else {
         procPhase += dt * (7 + Math.sin(t * 3) * 3);
-        targetJaw = (Math.sin(procPhase) * 0.5 + 0.5) * (0.35 + Math.random() * 0.35);
+        target = (Math.sin(procPhase) * 0.5 + 0.5) * (0.35 + Math.random() * 0.35);
       }
     }
-    jaw += (targetJaw - jaw) * Math.min(1, dt * 18); // suavizado
-    if (mouthMorph) setMorph(mouthMorph, jaw);
+    mouth += (target - mouth) * Math.min(1, dt * 18); // suavizado
+    rig.setMouth(mouth);
 
     renderer.render(scene, camera);
   }
   loop();
 
-  // Redimension responsiva.
   const ro = new ResizeObserver(() => {
-    const w = container.clientWidth || width;
-    const h = container.clientHeight || height;
-    camera.aspect = w / h; camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    const w = container.clientWidth || width, h = container.clientHeight || height;
+    camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h);
   });
   ro.observe(container);
 
   return {
-    /** Activa/desactiva el movimiento de boca. */
-    setTalking(on) { talking = !!on; if (!on) { jaw = 0; if (mouthMorph) setMorph(mouthMorph, 0); } },
-    /**
-     * Engancha un <audio> para lip-sync REAL por volumen. Crea el grafo de
-     * Web Audio una sola vez (createMediaElementSource solo se puede una vez
-     * por elemento). Silencioso si el navegador no soporta AudioContext.
-     */
+    setTalking(on) { talking = !!on; if (!on) { mouth = 0; rig.setMouth(0); } },
     attachAudio(audioEl) {
       if (analyser || !audioEl) return;
       try {
         const Ctx = window.AudioContext || window.webkitAudioContext;
         const ctx = new Ctx();
         const src = ctx.createMediaElementSource(audioEl);
-        analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
+        analyser = ctx.createAnalyser(); analyser.fftSize = 512;
         audioData = new Uint8Array(analyser.fftSize);
-        src.connect(analyser);
-        analyser.connect(ctx.destination);
+        src.connect(analyser); analyser.connect(ctx.destination);
         audioEl.addEventListener("play", () => { if (ctx.state === "suspended") ctx.resume(); });
       } catch { analyser = null; }
     },
-    /** Emocion simple: "happy" | "neutral" (sonrisa con morph si existe). */
-    setEmotion(kind) {
-      const smile = kind === "happy" ? 0.5 : 0;
-      setMorph("mouthSmile", smile);
-      setMorph("mouthSmileLeft", smile);
-      setMorph("mouthSmileRight", smile);
-    },
-    /** True si el .glb trae morphs de boca (lip-sync posible). */
-    get canLipSync() { return !!mouthMorph; },
-    /** Libera recursos (canvas, GPU, observer). */
+    setEmotion(kind) { rig.setEmotion?.(kind); },
+    get canLipSync() { return rig.canLipSync !== false; },
     dispose() {
-      disposed = true;
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      renderer.dispose();
-      renderer.domElement.remove();
+      disposed = true; cancelAnimationFrame(raf); ro.disconnect();
+      renderer.dispose(); renderer.domElement.remove();
     },
   };
+}
+
+/**
+ * Avatar desde un .glb (Ready Player Me, Mixamo, etc.). Requiere red para bajar
+ * el modelo (readyplayer.me / tu host). Detecta morphs de boca y parpadeo.
+ * @param {HTMLElement} container  @param {object} opts - { url }
+ */
+export async function createAvatar3d(container, opts = {}) {
+  if (!opts.url) throw new Error("avatar3d: falta la url del .glb");
+  const gltf = await new Promise((resolve, reject) =>
+    new GLTFLoader().load(opts.url, resolve, undefined, reject));
+  const root = gltf.scene;
+
+  const morphs = {}; let headBone = null;
+  root.traverse((o) => {
+    if (o.isBone && /head/i.test(o.name) && !headBone) headBone = o;
+    if (o.morphTargetDictionary && o.morphTargetInfluences) {
+      for (const [name, idx] of Object.entries(o.morphTargetDictionary)) {
+        (morphs[name] ||= []).push({ mesh: o, index: idx });
+      }
+    }
+  });
+  const has = (n) => Array.isArray(morphs[n]);
+  const setMorph = (n, v) => {
+    const ts = morphs[n]; if (!ts) return;
+    const val = Math.max(0, Math.min(1, v));
+    for (const t of ts) t.mesh.morphTargetInfluences[t.index] = val;
+  };
+  const mouthMorph = MOUTH_MORPHS.find(has) || null;
+  const blinkSet = BLINK_MORPHS.find((s) => s.every(has)) || null;
+
+  const rig = {
+    root, headBone,
+    canLipSync: !!mouthMorph,
+    setMouth: (v) => { if (mouthMorph) setMorph(mouthMorph, v); },
+    setBlink: blinkSet ? (v) => blinkSet.forEach((m) => setMorph(m, v)) : null,
+    setEmotion: (kind) => {
+      const s = kind === "happy" ? 0.5 : 0;
+      ["mouthSmile", "mouthSmileLeft", "mouthSmileRight"].forEach((m) => setMorph(m, s));
+    },
+  };
+  return runEngine(container, rig, opts);
+}
+
+/**
+ * Cabeza cartoon hecha con PRIMITIVAS (sin descargar nada). Funciona offline y
+ * sirve de fallback/demo. No es foto-real: es un munequito simpatico con boca
+ * que se abre y ojos que parpadean.
+ * @param {HTMLElement} container  @param {object} opts - { gender:"F"|"M" }
+ */
+export function createDemoHead(container, opts = {}) {
+  const female = (opts.gender || "F") === "F";
+  const root = new THREE.Group();
+  const skin = new THREE.MeshStandardMaterial({ color: 0xf1c9a5, roughness: 0.85 });
+  const hairCol = female ? 0x6d4c41 : 0x3e2723;
+  const hairMat = new THREE.MeshStandardMaterial({ color: hairCol, roughness: 0.9 });
+
+  // Cabeza (esfera un pelin achatada).
+  const head = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 48), skin);
+  head.scale.set(1, 1.12, 0.95); head.position.y = 1.6; root.add(head);
+
+  // Cuello + hombros (para que no flote).
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.45, 0.5, 24), skin);
+  neck.position.y = 0.75; root.add(neck);
+  const shirt = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.25, 0.7, 32),
+    new THREE.MeshStandardMaterial({ color: 0x6366f1, roughness: 0.7 }));
+  shirt.position.y = 0.25; root.add(shirt);
+
+  // Pelo (casquete). Mujer: mas largo por los lados.
+  const hair = new THREE.Mesh(new THREE.SphereGeometry(1.06, 40, 40, 0, Math.PI * 2, 0, Math.PI * 0.62), hairMat);
+  hair.scale.set(1, 1.12, 0.98); hair.position.y = 1.62; root.add(hair);
+  if (female) {
+    for (const sx of [-1, 1]) {
+      const strand = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 1.1, 6, 12), hairMat);
+      strand.position.set(sx * 0.92, 1.35, -0.05); root.add(strand);
+    }
+  }
+
+  // Ojos: blanco + pupila. Grupo para parpadear (escala Y).
+  const eyeWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+  const pupilMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.3 });
+  const eyes = [];
+  for (const sx of [-1, 1]) {
+    const g = new THREE.Group();
+    const white = new THREE.Mesh(new THREE.SphereGeometry(0.17, 24, 24), eyeWhiteMat);
+    white.scale.z = 0.5;
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.085, 20, 20), pupilMat);
+    pupil.position.z = 0.12;
+    g.add(white, pupil);
+    g.position.set(sx * 0.36, 1.66, 0.82);
+    root.add(g); eyes.push(g);
+  }
+  // Cejas.
+  for (const sx of [-1, 1]) {
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.05, 0.05), hairMat);
+    brow.position.set(sx * 0.36, 1.84, 0.86); root.add(brow);
+  }
+  // Nariz.
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), skin);
+  nose.position.set(0, 1.55, 0.92); nose.scale.set(0.8, 1, 0.9); root.add(nose);
+
+  // Boca: elipsoide oscuro que se ABRE escalando en Y (lip-sync).
+  const mouth = new THREE.Mesh(new THREE.SphereGeometry(0.2, 24, 16),
+    new THREE.MeshStandardMaterial({ color: 0x7f1d1d, roughness: 0.6 }));
+  mouth.scale.set(1, 0.12, 0.5); mouth.position.set(0, 1.34, 0.86); root.add(mouth);
+  // Cachetes rosaditos.
+  for (const sx of [-1, 1]) {
+    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xf9a8d4, roughness: 0.9, transparent: true, opacity: 0.5 }));
+    cheek.scale.set(1, 0.7, 0.3); cheek.position.set(sx * 0.55, 1.45, 0.8); root.add(cheek);
+  }
+
+  const rig = {
+    root,
+    canLipSync: true,
+    setMouth: (v) => {
+      // v 0..1 -> abre la boca (mas alta) y la baja un pelin.
+      mouth.scale.y = 0.12 + v * 0.6;
+      mouth.position.y = 1.34 - v * 0.05;
+    },
+    setBlink: (v) => { eyes.forEach((g) => { g.scale.y = 1 - Math.min(1, v) * 0.92; }); },
+    setEmotion: () => {},
+  };
+  return runEngine(container, rig, opts);
 }
