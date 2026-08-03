@@ -228,6 +228,14 @@ export function speakMono(text, lang = "en", opts = {}) {
  */
 export function speakSmart(text, opts = {}) {
   if (!text) return () => {};
+  // Idioma META de la sesion (it|pt|fr|ja|en). Si el cuerpo hablado NO es espanol
+  // (inmersion: viene en el idioma meta), usamos ese idioma para la voz mono en
+  // vez de caer siempre a ingles (bug: italiano/portugues sonaban en ingles).
+  const target = opts.targetLang;
+  const monoFor = (t) => {
+    if (detectLang(t) === "es") return "es";
+    return (target && target !== "es" && target !== "en") ? target : "en";
+  };
   const hasEs = ES_CHARS.test(text) || ES_WORDS.test(text);
   const hasEn = EN_WORDS.test(text);
   const mixed = hasEs && hasEn;
@@ -237,10 +245,10 @@ export function speakSmart(text, opts = {}) {
     // El Worker enruta "multi" a Azure (una sola voz bilingue). Si falla, cae a
     // mono del idioma dominante (mejor una voz que dos pegadas).
     cloudSpeak(fixSpanishAccents(String(text)), "multi", opts)
-      .catch(() => speakMono(text, detectLang(text) === "es" ? "es" : "en", opts));
+      .catch(() => speakMono(text, monoFor(text), opts));
     return () => cancelCloud();
   }
-  return speakMono(text, detectLang(text) === "es" ? "es" : "en", opts);
+  return speakMono(text, monoFor(text), opts);
 }
 
 /** Voz del Profe Robo: futurista (aguda, brillante) + chirp sci-fi opcional. */

@@ -149,12 +149,12 @@ export function openBymaxSession(cfg) {
           class: "inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 bg-slate-800/90 border " +
             "border-slate-700 text-emerald-200 text-sm hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400",
           "aria-label": "Escuchar de nuevo a " + name,
-          onclick: () => speakSmart(speakText),
+          onclick: () => speakSmart(speakText, { targetLang }),
         }, el("span", { class: "w-5 h-5 shrink-0", html: ICONS.sound }),
           name + " esta hablando... (toca para repetir)"));
       log.append(row);
       log.scrollTop = log.scrollHeight;
-      speakSmart(speakText);
+      speakSmart(speakText, { targetLang });
       bymaxEmote("happy");
       talkFor(speakText);
       return;
@@ -166,7 +166,7 @@ export function openBymaxSession(cfg) {
         type: "button",
         class: "shrink-0 mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-emerald-300 hover:bg-emerald-500/20",
         "aria-label": "Escuchar respuesta", title: "Escuchar",
-        onclick: () => speakSmart(speakText), html: ICONS.sound,
+        onclick: () => speakSmart(speakText, { targetLang }), html: ICONS.sound,
       }));
     log.append(row);
     // Correcciones/ayuda: TEXTO abajo (NO se hablan -> no rompen la fluidez).
@@ -179,7 +179,7 @@ export function openBymaxSession(cfg) {
     }
     log.scrollTop = log.scrollHeight;
     // speakSmart: una sola voz fluida (multilingue Azure si esta activa, o mono).
-    speakSmart(speakText);
+    speakSmart(speakText, { targetLang });
     // La mascota reacciona: brinco corto de alegria + boca en movimiento.
     bymaxEmote("happy");
     talkFor(speakText);

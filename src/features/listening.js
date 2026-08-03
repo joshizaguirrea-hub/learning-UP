@@ -28,9 +28,10 @@ export function openListening(unit, opts = {}) {
   } : (typeof opts.onComplete === "function" ? opts.onComplete : null);
 
   openBymaxSession({
-    mode: "conversation",   // charla guiada en ingles (voz)
+    mode: "conversation",   // charla guiada en el idioma META (voz)
     hideBotText: true,      // NO mostrar el texto: se entrena el OIDO
     topic, level,
+    targetLang: unit?.language || "en", // idioma META (no ingles fijo)
     onFinish,
     title: name + " \u00b7 Listening (videollamada)",
     subtitle: topic + " \u00b7 escucha y responde \u00b7 nivel " + level,

@@ -18,13 +18,16 @@ import { DRILL_TYPES } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
 import { unitTts } from "../data/languages.js";
 
-// Como debe comportarse Bymax en CUALQUIER ejercicio de escritura.
+// Como debe comportarse Bymax en CUALQUIER ejercicio de escritura. {LANG} se
+// reemplaza por el idioma META de la unidad (Italian/Portuguese/English...) para
+// que las consignas y ejemplos NO salgan siempre en ingles.
 const BEHAVIOR =
-  "You are Bymax, a warm, encouraging writing coach for a Spanish-speaking learner. " +
+  "You are Bymax, a warm, encouraging writing coach for a Spanish-speaking learner who is learning {LANG}. " +
   "Run the writing exercise described below. Give ONE short, clear task at a time using the unit topic. " +
+  "EVERY task, example sentence, and the text the student must write MUST be in {LANG} (never English unless {LANG} is English). " +
   "Wait for the student's written answer. Then reply: (1) a brief praise, (2) each correction on its own " +
   "line starting with 'TIP:' (grammar, vocabulary, spelling, style). Keep guidance in SPANISH if the level " +
-  "is A1-B2, and in ENGLISH if the level is C1-C2. End by offering the next task. Be concise and kind.";
+  "is A1-B2, and in {LANG} if the level is C1-C2. End by offering the next task. Be concise and kind.";
 
 // Familias de ejercicios (con nivel recomendado minimo y sus tipos).
 const GROUPS = [
@@ -42,7 +45,7 @@ const GROUPS = [
       { label: "Unir oraciones", desc: "Combina dos frases con because, although, however...",
         instr: "Sentence joining: give two simple sentences; the student combines them using a suitable connector." },
       { label: "Traducir frases", desc: "Traduce oraciones breves para fijar estructuras.",
-        instr: "Translation: give a short Spanish sentence; the student translates it into English (or vice versa)." },
+        instr: "Translation: give a short Spanish sentence; the student translates it into the target language (or vice versa)." },
       { label: "Escalera de oraciones", desc: "De 1 palabra a un mini-p\u00e1rrafo, paso a paso.",
         instr: "Sentence ladder scaffold: advance ONE rung per turn using the unit vocabulary -> (1) ask for ONE word, (2) a short phrase with it, (3) a full sentence, (4) combine two sentences with a connector (because/although/however), (5) a 2-3 sentence mini-paragraph. Praise and correct softly at each rung." },
     ],
@@ -136,13 +139,18 @@ export function openWriting(unit, opts = {}) {
   }
 
   function launch(item) {
-    const topic = (`${BEHAVIOR}\nUnit: "${title}" (level ${level}).\n` +
+    // Idioma META de la unidad: el prompt (BEHAVIOR) y el Worker (targetLang)
+    // deben saberlo para no generar ejercicios en ingles por defecto.
+    const targetLang = unit?.language || "en";
+    const langEn = { en: "English", es: "Spanish", pt: "Portuguese", fr: "French", it: "Italian", ja: "Japanese" }[targetLang] || "English";
+    const behavior = BEHAVIOR.replaceAll("{LANG}", langEn);
+    const topic = (`${behavior}\nUnit: "${title}" (level ${level}).\n` +
       `EXERCISE: ${item.label} - ${item.instr}`).slice(0, 695);
     const onFinish = markDone;
     close();
     openBymaxSession({
       mode: "class",
-      topic, level,
+      topic, level, targetLang,
       onFinish,
       finishGoal: 3,
       title: name + " \u00b7 Writing: " + item.label,
