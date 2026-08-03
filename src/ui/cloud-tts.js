@@ -62,6 +62,36 @@ if (typeof window !== "undefined") {
   window.addEventListener("click", unlock, { once: true });
 }
 
+// --- Analizador de voz (para lip-sync del profe 3D) -------------------------
+// createMediaElementSource SOLO se puede llamar UNA vez por <audio>. Por eso el
+// grafo Web Audio es SINGLETON: un unico AudioContext + AnalyserNode enganchado
+// al player. avatar3d lee la amplitud (RMS) de aqui para abrir la boca al ritmo
+// de la voz real. Silencioso si el navegador no soporta Web Audio.
+let _analyser = null;
+let _analyserTried = false;
+/**
+ * Devuelve el AnalyserNode enganchado a la voz de nube (o null si no se puede).
+ * Idempotente: crea el grafo una sola vez y luego reusa.
+ * @returns {AnalyserNode|null}
+ */
+export function getTtsAnalyser() {
+  if (_analyser || _analyserTried) return _analyser;
+  _analyserTried = true;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    const src = ctx.createMediaElementSource(getPlayer());
+    const an = ctx.createAnalyser();
+    an.fftSize = 512;
+    src.connect(an);
+    an.connect(ctx.destination); // sin esto, el audio se silencia
+    getPlayer().addEventListener("play", () => { if (ctx.state === "suspended") ctx.resume(); });
+    _analyser = an;
+  } catch { _analyser = null; }
+  return _analyser;
+}
+
 /** Detiene el audio de nube que este sonando (e invalida reproducciones pendientes). */
 export function cancelCloud() {
   playToken++; // cualquier fetch.then anterior vera un token viejo y NO tocara el player

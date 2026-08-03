@@ -47,6 +47,29 @@ export function isRobotConfigured() {
   return !!localStorage.getItem(KEY);
 }
 
+// --- Profe 3D (avatar humano) -----------------------------------------------
+// El alumno puede cambiar la "cara" del profe: el robot Bymax (default) o un
+// humano 3D cartoon (Ready Player Me). Se guarda aparte para no tocar el objeto
+// historico. { mode:"robot"|"human", gender:"F"|"M", url:"<glb>" }.
+const T3DKEY = "linguapath.teacher3d";
+const DEFAULT_3D = { mode: "robot", gender: "F", url: "" };
+
+/** Config del profe 3D (con defaults). mode "robot" = Bymax de siempre. */
+export function getTeacher3d() {
+  try {
+    return { ...DEFAULT_3D, ...JSON.parse(localStorage.getItem(T3DKEY) || "{}") };
+  } catch {
+    return { ...DEFAULT_3D };
+  }
+}
+
+/** Guarda (fusiona) la config del profe 3D. Devuelve la config resultante. */
+export function setTeacher3d(cfg) {
+  const merged = { ...getTeacher3d(), ...cfg };
+  try { localStorage.setItem(T3DKEY, JSON.stringify(merged)); } catch { /* ignore */ }
+  return merged;
+}
+
 /** Lee el mapa {speaking, interview} de nombres personalizados. */
 function readTeachers() {
   try { return JSON.parse(localStorage.getItem(TKEY) || "{}"); } catch { return {}; }

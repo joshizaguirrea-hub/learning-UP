@@ -10,7 +10,8 @@
  */
 import { el } from "../ui/dom.js";
 import { robotName } from "../ui/robot.js";
-import { bymaxMascot, setBymaxTalking } from "../ui/bymax-mascot.js";
+import { setBymaxTalking } from "../ui/bymax-mascot.js";
+import { mountTeacher } from "../ui/teacher-presenter.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakSmart, robotChirp } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
@@ -74,22 +75,23 @@ export function openBymaxSession(cfg) {
   const placeholder = cfg?.placeholder ||
     (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : "Bymax IA no esta configurado aun");
 
-  const close = () => { dictation?.abort(); stopAudio(); overlay.remove(); };
+  const close = () => { dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
   function stopAudio() {
     cancelCloud();
-    setBymaxTalking(false);
+    teacher ? teacher.setTalking(false) : setBymaxTalking(false);
     if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
   }
   robotChirp();
 
-  // La mascota "habla" un rato proporcional al largo del texto (aprox. al TTS).
+  // El profe (robot Bymax o humano 3D) "habla" un rato proporcional al texto.
+  let teacher = null; // se asigna al construir la tarjeta (mountTeacher)
   let talkTimer = null;
   function talkFor(text) {
     clearTimeout(talkTimer);
-    setBymaxTalking(true);
+    teacher ? teacher.setTalking(true) : setBymaxTalking(true);
     const ms = Math.min(12000, Math.max(1600, (text ? text.length : 0) * 55));
-    talkTimer = setTimeout(() => setBymaxTalking(false), ms);
+    talkTimer = setTimeout(() => (teacher ? teacher.setTalking(false) : setBymaxTalking(false)), ms);
   }
 
   // MEMORIA: turnos previos { role:"user"|"model", text }. Cap 10 (5 intercambios).
@@ -343,12 +345,15 @@ export function openBymaxSession(cfg) {
     push("Bymax IA todavia no esta activado. Cuando el administrador conecte el Worker (ver carpeta /worker), podras practicar aqui.", "bot");
   }
 
+  const teacherSlot = el("div", { class: "shrink-0" });
+  teacher = mountTeacher(teacherSlot, { size: "md" });
+
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92dvh] min-h-0",
     role: "dialog", "aria-label": cfg?.ariaLabel || ("Sesion con " + name), "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      bymaxMascot("md"),
+      teacherSlot,
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-emerald-300" }, title),
         el("p", { class: "text-xs text-slate-400" }, subtitle)),
