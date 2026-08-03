@@ -4,12 +4,12 @@
  * Cache-first para el "app shell". La version se sincroniza con VERSION via
  * tools/stamp_version.py (ADR-002): NO editar CACHE a mano en cada release.
  */
-const CACHE = "linguapath-v0.275.0";
+const CACHE = "linguapath-v0.276.0";
 
 const SHELL = [
   "./",
   "./index.html",
-  "./styles/app.css?v=0.275.0",
+  "./styles/app.css?v=0.276.0",
   "./manifest.json",
   "./assets/icons/icon-192.png",
   "./assets/icons/icon-512.png",
@@ -33,6 +33,19 @@ self.addEventListener("fetch", (event) => {
   const { request } = event;
   // Solo GET del mismo origen; el resto (Supabase, Worker, CDN) pasa directo.
   if (request.method !== "GET" || new URL(request.url).origin !== location.origin) {
+    return;
+  }
+  // VENDOR (libs inmutables como three.js): CACHE-FIRST. No cambian nunca (van
+  // versionadas por ruta), asi que no tiene sentido redescargar 1.27MB cada vez.
+  // Se baja UNA vez (cuando el alumno usa el profe 3D) y luego sale del cache.
+  if (new URL(request.url).pathname.includes("/vendor/")) {
+    event.respondWith(
+      caches.match(request).then((hit) => hit || fetch(request).then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(request, copy)).catch(() => {});
+        return res;
+      }))
+    );
     return;
   }
   // NETWORK-FIRST + BYPASS del cache HTTP del navegador (cache:"reload"). Clave:

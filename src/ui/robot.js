@@ -11,7 +11,7 @@ import { ICONS } from "./icons.js";
 import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
-import { getRobot, setRobot, getTeacherName } from "./robot-prefs.js";
+import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d } from "./robot-prefs.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
@@ -308,11 +308,39 @@ export function openRobotSetup(onDone) {
   }
   paintSwatches();
 
+  // --- Cara del profe: robot Bymax (default) o humano 3D cartoon ------------
+  const t3d = getTeacher3d();
+  let mode3d = t3d.mode, gender3d = t3d.gender;
+  const glbInput = el("input", {
+    type: "text", value: t3d.url || "",
+    placeholder: "URL .glb de Ready Player Me (opcional)",
+    class: "mt-2 w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
+  });
+  const chip = (active) => "px-3 py-2 rounded-xl text-sm font-semibold border transition " +
+    (active ? "border-indigo-400 bg-indigo-500/20 text-indigo-100" : "border-slate-700 text-slate-300 hover:bg-slate-800");
+  const modeRow = el("div", { class: "mt-2 grid grid-cols-2 gap-2" });
+  const humanBox = el("div", { class: "mt-2" });
+  function paint3d() {
+    modeRow.replaceChildren(
+      el("button", { type: "button", class: chip(mode3d === "robot"), onclick: () => { mode3d = "robot"; paint3d(); } }, "Robot Bymax"),
+      el("button", { type: "button", class: chip(mode3d === "human"), onclick: () => { mode3d = "human"; paint3d(); } }, "Humano 3D"));
+    humanBox.style.display = mode3d === "human" ? "" : "none";
+    humanBox.replaceChildren(
+      el("div", { class: "grid grid-cols-2 gap-2" },
+        el("button", { type: "button", class: chip(gender3d === "F"), onclick: () => { gender3d = "F"; paint3d(); } }, "Mujer"),
+        el("button", { type: "button", class: chip(gender3d === "M"), onclick: () => { gender3d = "M"; paint3d(); } }, "Hombre")),
+      glbInput,
+      el("p", { class: "mt-1 text-xs text-slate-500" },
+        "Sin URL usa un demo. Crea el tuyo gratis en readyplayer.me y pega la .glb (con ?morphTargets=mouthOpen,mouthSmile,ARKit)."));
+  }
+  paint3d();
+
   const saveBtn = el("button", {
     class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
     onclick: () => {
       const name = nameInput.value.trim() || "Teacher Horus";
       setAccent(chosenAccent);
+      setTeacher3d({ mode: mode3d, gender: gender3d, url: glbInput.value.trim() });
       const cfg = setRobot({ name, avatar: chosen });
       close();
       if (typeof onDone === "function") onDone(cfg);
@@ -332,7 +360,10 @@ export function openRobotSetup(onDone) {
       el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Elige su avatar"),
       grid,
       el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Color de " + (current.name || "tu robot")),
-      swatches),
+      swatches,
+      el("p", { class: "mt-4 text-sm font-semibold text-slate-200" }, "Cara del profe"),
+      modeRow,
+      humanBox),
     // Pie FIJO: el boton Guardar siempre visible (aunque la lista tenga scroll).
     el("div", { class: "shrink-0 border-t border-slate-800 p-4 bg-slate-900" }, saveBtn));
 

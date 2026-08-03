@@ -130,6 +130,12 @@ function runEngine(container, rig, opts = {}) {
 
   return {
     setTalking(on) { talking = !!on; if (!on) { mouth = 0; rig.setMouth(0); } },
+    /** Usa un AnalyserNode YA creado (singleton compartido, ver cloud-tts). */
+    attachAnalyser(an) {
+      if (analyser || !an) return;
+      analyser = an;
+      audioData = new Uint8Array(analyser.fftSize);
+    },
     attachAudio(audioEl) {
       if (analyser || !audioEl) return;
       try {
