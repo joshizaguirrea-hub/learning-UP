@@ -313,7 +313,7 @@ export function openRobotSetup(onDone) {
   let mode3d = t3d.mode, gender3d = t3d.gender;
   const glbInput = el("input", {
     type: "text", value: t3d.url || "",
-    placeholder: "URL .glb de Ready Player Me (opcional)",
+    placeholder: "URL o ruta .glb del avatar (opcional)",
     class: "mt-2 w-full rounded-xl bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
   });
   const chip = (active) => "px-3 py-2 rounded-xl text-sm font-semibold border transition " +
@@ -331,7 +331,7 @@ export function openRobotSetup(onDone) {
         el("button", { type: "button", class: chip(gender3d === "M"), onclick: () => { gender3d = "M"; paint3d(); } }, "Hombre")),
       glbInput,
       el("p", { class: "mt-1 text-xs text-slate-500" },
-        "Sin URL usa un demo. Crea el tuyo gratis en readyplayer.me y pega la .glb (con ?morphTargets=mouthOpen,mouthSmile,ARKit)."));
+        "Sin URL usa un demo. Crea el tuyo gratis en Avaturn (avaturn.me) o Ready Player Me y pega la .glb, o subela a vendor/avatars/ y pon ./vendor/avatars/tu-profe.glb"));
   }
   paint3d();
 
