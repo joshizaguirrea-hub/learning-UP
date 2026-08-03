@@ -25,6 +25,16 @@ const AURA_VOICES = new Set([
 const GTTS_LANG = "es-US";
 const GTTS_VOICES = ["es-US-Chirp3-HD-Aoede", "es-US-Neural2-A"];
 
+// Voces Google Cloud para los DEMAS idiomas meta (it/pt/fr/ja). Chirp3-HD-Aoede
+// existe en muchos locales (misma "persona" en cada idioma); Neural2/Standard de
+// respaldo. Se usa cuando OpenAI no esta configurado (respaldo Google puro).
+const GTTS_LANGS = {
+  pt: { lang: "pt-BR", voices: ["pt-BR-Chirp3-HD-Aoede", "pt-BR-Neural2-A"] },
+  it: { lang: "it-IT", voices: ["it-IT-Chirp3-HD-Aoede", "it-IT-Neural2-A"] },
+  fr: { lang: "fr-FR", voices: ["fr-FR-Chirp3-HD-Aoede", "fr-FR-Neural2-A"] },
+  ja: { lang: "ja-JP", voices: ["ja-JP-Chirp3-HD-Aoede", "ja-JP-Neural2-B"] },
+};
+
 const SYSTEM_PROMPT = `Eres "Bymax", un profesor de ingles amigable, futurista y motivador
 dentro de una app llamada "Learning UP". Ayudas a hispanohablantes a aprender ingles.
 
@@ -362,13 +372,14 @@ async function gctts(text, key, langCode, voiceNames, rate) {
   throw new Error(lastErr || "gctts fallo");
 }
 
-// Fallback espanol (robotico): Google Translate TTS. Concatena los mp3.
-async function googleTts(text) {
+// Fallback robotico: Google Translate TTS. Concatena los mp3. `tl` = idioma
+// (es por defecto; it/pt/fr/ja para los demas idiomas meta).
+async function googleTts(text, tl = "es") {
   const chunks = splitForTts(text, 190);
   const parts = [];
   let total = 0;
   for (const c of chunks) {
-    const url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=es&q=" + encodeURIComponent(c);
+    const url = "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=" + encodeURIComponent(tl) + "&q=" + encodeURIComponent(c);
     const r = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -545,6 +556,21 @@ async function handleTts(request, env, origin) {
       const audio = await toBase64Audio(out);
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
       return store({ audio, engine: "aura", voice });
+    }
+    // OTROS IDIOMAS META (it/pt/fr/ja) -> Google Cloud TTS con la voz de ESE
+    // idioma. Antes caian por error a la rama de espanol (voz es-US leyendo
+    // italiano = suena gringo/espanol). Solo se llega aqui si OpenAI no atendio
+    // (OpenAI es multilingue y ya cubre estos idiomas cuando esta configurado).
+    const other = GTTS_LANGS[lang.slice(0, 2).toLowerCase()];
+    if (other) {
+      try {
+        const gc = await gctts(text, env.GOOGLE_TTS_KEY, other.lang, other.voices, rate);
+        if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud-" + lang.slice(0, 2), voice: gc.voice });
+      } catch (e) {
+        // Ultimo recurso: Google Translate TTS en el idioma correcto (robotico
+        // pero al menos NO suena en otro idioma). No se cachea.
+        return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: "google-translate", gcttsError: String(e).slice(0, 180) }, 200, origin);
+      }
     }
     // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
     try {

@@ -38,9 +38,12 @@ const REGION_PREF = {
   es: ["es-mx", "es-us", "es-la", "es-419", "es-es", "es-co", "es-ar", "es"],
   en: ["en-us", "en-gb", "en-au", "en-ca", "en"],
   pt: ["pt-br", "pt-pt", "pt"],
+  it: ["it-it", "it"],
+  fr: ["fr-fr", "fr-ca", "fr"],
+  ja: ["ja-jp", "ja"],
 };
 
-/** Base de idioma que entiende el motor: es | pt | en (default). */
+/** Base de idioma que entiende el motor: es | pt | it | fr | ja | en (default). */
 function baseOf(lang) {
   const l = String(lang).toLowerCase();
   if (l.startsWith("es")) return "es";
@@ -50,6 +53,18 @@ function baseOf(lang) {
   if (l.startsWith("ja")) return "ja";
   return "en";
 }
+
+/**
+ * Idioma "mono" (it/pt/fr/ja) que NO pasa por el motor bilingue es/en. Devuelve
+ * el base, o `null` si es es/en (que si van por el camino bilingue de siempre).
+ */
+function monoBase(lang) {
+  const b = baseOf(lang);
+  return b === "es" || b === "en" ? null : b;
+}
+
+/** Region BCP-47 de respaldo (voz del navegador) por base de idioma. */
+const REGION_FALLBACK = { en: "en-US", pt: "pt-BR", it: "it-IT", fr: "fr-FR", ja: "ja-JP" };
 
 /**
  * Elige la MEJOR voz para el idioma (ej. 'es-MX'), priorizando fuerte las voces
@@ -89,7 +104,6 @@ function pickVoice(lang) {
 // @param text  @param lang idioma (es-MX | en-US)  @param opts { rate, pitch, gap }
 export function speak(text, lang = "en-US", opts = {}) {
   if (!text) return;
-  const base = String(lang).toLowerCase().startsWith("es") ? "es" : "en";
 
   // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
   //   "=" -> pausa (coma); "\u00B7"/flechas -> separan ideas; "+ ( ) * _ :" -> pausa.
@@ -104,6 +118,14 @@ export function speak(text, lang = "en-US", opts = {}) {
     .trim();
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
   if (!parts.length) return;
+
+  // Idioma MONO (it/pt/fr/ja): NO pasa por el motor bilingue es/en (que lo
+  // clasificaria palabra por palabra y lo leeria en ingles). Cada parte va
+  // entera con su idioma -> speakSequence la enruta a la nube por su base.
+  if (monoBase(lang)) {
+    speakSequence(parts.map((p) => ({ text: p, lang, opts })));
+    return;
+  }
 
   // Cada parte se re-segmenta por idioma (garantia anti-Spanglish): aunque una
   // parte traiga mezcla es/en, toBilingualItems le da a cada trozo su voz.
@@ -312,8 +334,14 @@ export function speakSequence(items, onEach, onDone) {
   // El it.lang original es solo el idioma POR DEFECTO para palabras ambiguas.
   // Las opts del item mandan sobre las del segmentador (rate/pitch del rol).
   const expanded = items.flatMap((it) => {
-    const def = String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en";
-    const subs = toBilingualItems(it.text, def);
+    const mono = monoBase(it.lang);
+    // Idioma MONO (it/pt/fr/ja): NO se re-segmenta por idioma (no hay mezcla
+    // es/en que separar). Se parte solo por oraciones y se lee ENTERO en la nube
+    // con su base -> voz correcta del idioma (antes caia a ingles).
+    const subs = mono
+      ? [{ text: it.text, lang: it.lang, opts: it.opts || {}, base: mono }]
+      : toBilingualItems(it.text, String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en")
+          .map((s) => ({ ...s, base: String(s.lang || "").toLowerCase().startsWith("es") ? "es" : "en" }));
     if (!subs.length) return [];
     // FLUIDEZ: cada trozo de idioma se parte ademas por ORACIONES. Asi la primera
     // frase suena casi al instante (audio corto) mientras el resto se pre-descarga
@@ -327,6 +355,7 @@ export function speakSequence(items, onEach, onDone) {
         out.push({
           text: piece,
           lang: s.lang,
+          base: s.base,
           opts: { ...s.opts, ...(it.opts || {}) },
           // Fin del item -> respeta su gapAfter; entre oraciones -> pausa natural.
           gapAfter: (isLastSub && isLastPiece) ? it.gapAfter : (isLastSub ? 260 : 90),
@@ -346,10 +375,11 @@ export function speakSequence(items, onEach, onDone) {
   // trozos -> feedback/tips/dialogos en espanol fluidos, sin "guindarse".
   if (cloudTtsEnabled()) {
     for (const it of expanded) {
-      const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
+      const base = it.base || (String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en");
+      const isEs = base === "es";
       const baseOpts = it.opts || {};
       const preOpts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
-      prefetchCloud(isEs ? fixSpanishAccents(String(it.text)) : String(it.text), isEs ? "es" : "en", preOpts);
+      prefetchCloud(isEs ? fixSpanishAccents(String(it.text)) : String(it.text), base, preOpts);
     }
   }
 
@@ -363,39 +393,39 @@ export function speakSequence(items, onEach, onDone) {
     if (i >= expanded.length) { onDone?.(); return; }
     const it = expanded[i];
     onEach?.(i);
-    const isEs = String(it.lang || "es-MX").toLowerCase().startsWith("es");
+    const base = it.base || (String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en");
+    const isEs = base === "es";
 
-    // Voz de la nube para ambos (ingles Aura, espanol Google TTS latino),
-    // independiente del dispositivo. Cae al navegador si falla.
+    // Voz de la nube para todos (ingles Aura, espanol Google TTS latino, it/pt/fr/ja
+    // por su base), independiente del dispositivo. Cae al navegador si falla.
     if (cloudTtsEnabled()) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
-      // Ingles PAUSADO por defecto (0.9) si nadie fijo un rate; espanol queda
-      // normal (ya suena nitido). Asi el ingles nunca sale atropellado.
+      // Ingles/otros idiomas PAUSADOS por defecto (0.9) si nadie fijo un rate;
+      // espanol queda normal (ya suena nitido). Asi nunca sale atropellado.
       const baseOpts = it.opts || {};
       const opts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
-      cloudSpeak(ct, isEs ? "es" : "en", opts)
+      cloudSpeak(ct, base, opts)
         .then(() => advance(it))
         .catch(() => {
           // MEDIDA DRASTICA: si la nube falla y es ESPANOL, saltamos el item
-          // (silencio) en vez de leerlo con voz gringa. Ingles si cae al navegador.
+          // (silencio) en vez de leerlo con voz gringa. Los demas caen al navegador.
           if (isEs) { advance(it); return; }
-          browserSay(it, isEs, () => advance(it));
+          browserSay(it, base, () => advance(it));
         });
       return;
     }
-    browserSay(it, isEs, () => advance(it));
+    browserSay(it, base, () => advance(it));
   }
 
-  function browserSay(it, isEs, done) {
+  function browserSay(it, base, done) {
     if (!isSpeechSupported()) { setTimeout(done, 300); return; }
     // CANDADO DURO anti-Spanglish: el navegador NUNCA lee espanol. Solo nube.
-    if (isEs) { setTimeout(done, 100); return; }
+    if (base === "es") { setTimeout(done, 100); return; }
     const synth = window.speechSynthesis;
     const opts = it.opts || {};
-    const b = isEs ? "es-MX" : "en-US";
+    const b = REGION_FALLBACK[base] || "en-US";
     const v = pickVoice(b);
-    const say = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
-    const u = new SpeechSynthesisUtterance(say);
+    const u = new SpeechSynthesisUtterance(String(it.text));
     u.lang = v?.lang || b;
     u.rate = opts.rate ?? 0.98;
     u.pitch = opts.pitch ?? 1.05;

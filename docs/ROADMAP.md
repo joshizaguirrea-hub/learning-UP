@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Marca `[x]` al cerrar. Lo grande y por hacer arriba,
 > lo terminado se resume en la BITACORA.md (que es el diario detallado).
 
-Version actual: **v0.270.0**
+Version actual: **v0.271.0**
 
 ---
 
@@ -28,11 +28,22 @@ Version actual: **v0.270.0**
 - [x] **PUBLICADO Italiano + Portugues** (v0.270.0): quitado `draft:true`,
       `enabled:true`. Ya salen en el selector de idioma normal (sin preview).
       Decision de Joshua: usarlos ya en vivo pese al bug de voz pendiente.
-- [ ] **PRIORIDAD ALTA (ahora en VIVO): arreglar voz i18n**. Ver
-      `docs/AUDITORIA-VOZ-2026-07-31.md`. `speak()`/`speakSequence()` son es/en
-      only -> lectura/dialogos/actividades de Italiano suenan en INGLES. Fix
-      opcion A: rutear items no-es/en a `cloudSpeak(text, baseOf(lang))` +
-      threadear `unitTts(unit)` en las actividades de `lesson-player.js`.
+- [x] **PRIORIDAD ALTA (RESUELTO v0.271.0): voz i18n**. Ver
+      `docs/AUDITORIA-VOZ-2026-07-31.md`. Fix en TRES frentes:
+      (1) `speech.js`: `speak()`/`speakSequence()` ahora detectan idioma MONO
+      (it/pt/fr/ja via `monoBase`) y lo rutean ENTERO a `cloudSpeak(text, base)`
+      en vez de forzar es/en (que lo leia en ingles). Cada item expandido lleva
+      su `base`; prefetch y reproduccion la respetan. Fallback del navegador con
+      `REGION_FALLBACK` (it-IT/pt-BR/fr-FR/ja-JP) y `REGION_PREF` ampliado.
+      (2) `worker/bymax-worker.js`: los idiomas != en/es caian por error a la
+      rama de ESPANOL (voz es-US leyendo italiano). Nueva rama con `GTTS_LANGS`
+      (voces Chirp3-HD/Neural2 por idioma) + `googleTts(text, tl)` con idioma.
+      Solo aplica si OpenAI no atendio (OpenAI ya es multilingue).
+      (3) `lesson-player.js`: quitados los `"en-US"` hardcodeados en actividades
+      MC/cloze/word_bank/listening -> ahora threadean `unitTts(unit)`.
+      PENDIENTE: probar en Chrome (PC personal, Ctrl+Shift+R) recorriendo it1-it8
+      y pt1-pt8: lectura, dialogos, glosario, gramatica y actividades deben sonar
+      en el idioma meta. Correr `npm test` (Node no esta en la laptop de trabajo).
 - [ ] Boton "rehacer plan" para cuentas viejas sin plan en localStorage
 - [ ] Smoke test en Chrome (Ctrl+Shift+R)
 
