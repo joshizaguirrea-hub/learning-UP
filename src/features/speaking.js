@@ -44,7 +44,7 @@ export function scoreDetail(target, heard) {
  * pronunciacion y el shadowing (DRY: un solo coach visual).
  * @returns {{score:number, ok:boolean, node:Node}}
  */
-export function coachView(target, heard) {
+export function coachView(target, heard, tts = "en-US") {
   const { score, marks } = scoreDetail(target, heard);
   const ok = score >= PASS;
   const colored = el("p", { class: "mt-2 leading-relaxed" }, ...marks.map((m) => el("span", {
@@ -56,7 +56,7 @@ export function coachView(target, heard) {
     el("div", { class: "mt-1 flex flex-wrap gap-1.5" }, ...missed.slice(0, 6).map((m) => el("button", {
       type: "button",
       class: "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-100 hover:bg-amber-500/30",
-      onclick: () => speak(m.word, "en-US", { rate: 0.65 }),
+      onclick: () => speak(m.word, tts, { rate: 0.65 }),
     }, m.word)))) : null;
   const node = el("div", {
     class: "rounded-xl px-4 py-3 text-sm " + (ok
@@ -141,7 +141,7 @@ export function openSpeaking(unit, opts = {}) {
     }, idx === phrases.length - 1 ? "Terminar" : "Siguiente frase ->");
 
     function grade(heard) {
-      const { ok, node } = coachView(target, heard);
+      const { ok, node } = coachView(target, heard, tts);
       if (ok) passed++;
       ok ? playCorrect() : playWrong();
       fb.replaceChildren(node);

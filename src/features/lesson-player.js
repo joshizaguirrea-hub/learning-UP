@@ -718,11 +718,12 @@ function listeningActivity(act, idx, title, tts = "en-US") {
 function writingActivity(act, title) {
   const p = act.payload || {};
   const minWords = p.minWords || 20;
+  const langName = p.langName || "ingles";
   const area = el("textarea", {
     rows: "6",
     class: "mt-3 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 " +
       "focus:outline focus:outline-2 focus:outline-indigo-500 resize-y",
-    placeholder: "Write your text in English here...",
+    placeholder: "Escribe tu texto en " + langName + " aqui...",
   });
   const counter = el("span", { class: "tabular-nums" }, "0");
   const status = el("p", { class: "mt-2 text-xs text-slate-400" },
@@ -763,6 +764,11 @@ function speakingActivity(act, title) {
     class: "mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white " +
       "font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-fuchsia-300 transition",
     onclick: () => openSpeaking(p.speakingUnit || {}, {
+      // repeat:true -> modo "escucha y repite" con boton "La dije bien" SIEMPRE
+      // disponible. Sin esto, en desktop con mic "soportado" el unico modo de
+      // avanzar era hablar al micro; si no reconocia (ej. italiano) el alumno
+      // quedaba atascado sin poder terminar el examen.
+      repeat: true,
       onComplete: () => {
         completed = true;
         status.textContent = "Practica de pronunciacion completada.";

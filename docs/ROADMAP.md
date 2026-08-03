@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Marca `[x]` al cerrar. Lo grande y por hacer arriba,
 > lo terminado se resume en la BITACORA.md (que es el diario detallado).
 
-Version actual: **v0.271.0**
+Version actual: **v0.272.0**
 
 ---
 
@@ -47,7 +47,24 @@ Version actual: **v0.271.0**
 - [ ] Boton "rehacer plan" para cuentas viejas sin plan en localStorage
 - [ ] Smoke test en Chrome (Ctrl+Shift+R)
 
-### Martes 2026-08-04
+### Lunes 2026-08-03 (bis) - bugs de examen (writing/speaking)
+- [x] **FIX writing en ingles** (v0.272.0): `test-gen.js writingActivity` decia
+      SIEMPRE "Escribe un texto corto en INGLES" y el placeholder del textarea
+      era "Write your text in English here...". Ahora la consigna usa
+      `languageName(unit.language)` (Italiano/Portugues/...) y el payload lleva
+      `language`/`langName`; el placeholder de `lesson-player.js writingActivity`
+      es dinamico.
+- [x] **FIX speaking no deja avanzar** (v0.272.0): (1) `speakingUnit` no llevaba
+      `language` ni `id` -> la voz sonaba en ingles y el resume-key quedaba con
+      id undefined; ahora los incluye. (2) En desktop con mic "soportado", el
+      unico modo de avanzar era hablar al microfono; si no reconocia (ej.
+      italiano) el alumno quedaba ATASCADO sin terminar el examen. Fix: el
+      examen abre `openSpeaking(..., { repeat:true })` -> boton "La dije bien"
+      SIEMPRE disponible como escape (autoevaluacion). (3) `coachView` acepta
+      `tts` y pronuncia las palabras a repasar en el idioma meta.
+      PENDIENTE: probar en Chrome un examen de it y pt.
+
+### Martes 2026-08-04 (contenido/coach)
 - [ ] Coach diario: "Empezar la clase" lanza DIRECTO la actividad de `startSkill`
       (hoy solo navega a la unidad)
 - [ ] Meta diaria contada por POPs individuales (hoy cuenta lecciones completas)

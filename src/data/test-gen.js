@@ -18,6 +18,7 @@
  */
 import { BONUS_DECKS } from "./bonus-decks.js";
 import { isAtLeast } from "./cefr.js";
+import { languageName } from "./languages.js";
 
 const GRADABLE = new Set(["multiple_choice", "cloze", "word_bank", "matching", "listening"]);
 const TARGET = 15; // preguntas de conocimiento (grammar/vocab/reading/listening + bonos)
@@ -113,14 +114,19 @@ function meaningQ(deckId, label) {
 function writingActivity(unit) {
   const keywords = pick((unit.vocab || []).map((v) => v.term).filter(Boolean), 4);
   const minWords = isAtLeast(unit.level, "B1") ? 40 : 20;
+  // Idioma META de la unidad (Ingles/Italiano/Portugues...) para que la consigna
+  // NO diga siempre "en INGLES" (bug: unidades it/pt pedian escribir en ingles).
+  const langName = languageName(unit.language || "en");
   return {
     type: "writing",
-    prompt: `Escribe un texto corto en INGLES sobre "${unit.title}".`,
+    prompt: `Escribe un texto corto en ${langName} sobre "${unit.title}".`,
     payload: {
       topic: unit.title,
+      language: unit.language || "en",
+      langName,
       minWords,
       keywords,
-      hint: `Escribe al menos ${minWords} palabras e incluye al menos 2 de estas palabras: ${keywords.join(", ")}.`,
+      hint: `Escribe al menos ${minWords} palabras en ${langName} e incluye al menos 2 de estas palabras: ${keywords.join(", ")}.`,
     },
   };
 }
@@ -128,7 +134,9 @@ function speakingActivity(unit) {
   return {
     type: "speaking",
     prompt: "Pronunciacion: escucha cada frase y repitela en voz alta.",
-    payload: { speakingUnit: { title: unit.title, level: unit.level, vocab: unit.vocab } },
+    // language + id: para que la voz suene en el idioma META (no ingles) y el
+    // autoguardado (resume) tenga una clave estable.
+    payload: { speakingUnit: { id: unit.id, language: unit.language || "en", title: unit.title, level: unit.level, vocab: unit.vocab } },
   };
 }
 
