@@ -41,7 +41,12 @@ function runEngine(container, rig, opts = {}) {
 
   const camera = new THREE.PerspectiveCamera(30, width / height, 0.01, 100);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({
+    antialias: true, alpha: true,
+    // preserveDrawingBuffer: solo para capturas headless (gen_portraits). En la
+    // app normal queda en false (mas rendimiento).
+    preserveDrawingBuffer: !!opts.preserveDrawingBuffer,
+  });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(width, height);
   renderer.outputColorSpace = THREE.SRGBColorSpace;

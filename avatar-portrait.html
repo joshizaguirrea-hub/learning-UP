@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Avatar portrait renderer (dev)</title>
+  <!-- Mismo import-map que la app: three.js LOCAL (vendor/three), sin CDN. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three/three.module.js",
+      "three/addons/": "./vendor/three/addons/"
+    }
+  }
+  </script>
+  <style>
+    html, body { margin: 0; background: transparent; }
+    /* Cuadro fijo: Playwright captura este nodo como PNG transparente. */
+    #stage { width: 512px; height: 512px; }
+  </style>
+</head>
+<body>
+  <!-- Herramienta de DESARROLLO: renderiza un .glb como retrato para generar los
+       PNG estaticos de los profes (tools/gen_portraits.py). No es parte de la app. -->
+  <div id="stage"></div>
+  <script type="module">
+    import { createAvatar3d } from "./src/ui/avatar3d.js";
+    const params = new URLSearchParams(location.search);
+    const url = params.get("glb");
+    const stage = document.getElementById("stage");
+    window.__ready = false;
+    window.__error = null;
+    (async () => {
+      try {
+        const inst = await createAvatar3d(stage, { url, preserveDrawingBuffer: true });
+        inst.setEmotion("happy");
+        // Un par de frames para que se pinte antes de la captura.
+        await new Promise((r) => setTimeout(r, 1200));
+        window.__ready = true;
+      } catch (e) {
+        window.__error = String(e);
+      }
+    })();
+  </script>
+</body>
+</html>

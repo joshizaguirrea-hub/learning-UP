@@ -10,7 +10,7 @@ import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
 import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
-import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
+import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote, portraitNode } from "./avatars.js";
 import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d } from "./robot-prefs.js";
 import { HAIR_COLORS, SKIN_TONES } from "./avatar-palette.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
@@ -64,8 +64,23 @@ export function robotReact(ok, lang = "es-MX") {
   }, 220);
 }
 
-/** Avatar del robot elegido por el alumno. size: sm | md | lg. */
-export function robotAvatar(size = "md") {
+// Retrato PNG estatico de cada profe humano, por rol. Generado con
+// tools/gen_portraits.py a partir de los .glb (vendor/avatars).
+const ROLE_PORTRAITS = {
+  course: "./assets/teachers/megan.png",
+  speaking: "./assets/teachers/mathias.png",
+  interview: "./assets/teachers/susan.png",
+};
+
+/**
+ * Avatar del profe. size: sm|md|lg. role: course|speaking|interview.
+ * Modo humano (default): muestra el retrato del profe segun el rol.
+ * Modo robot: muestra el avatar SVG (Bymax) que eligio el alumno.
+ */
+export function robotAvatar(size = "md", role = "course") {
+  if (getTeacher3d().mode !== "robot") {
+    return portraitNode(ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course, size);
+  }
   return avatarNode(getRobot().avatar, size);
 }
 

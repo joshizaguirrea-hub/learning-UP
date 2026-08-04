@@ -139,7 +139,7 @@ export function openVoiceCall(opts = {}) {
     const status = el("p", { class: "mt-4 text-sm text-slate-300 min-h-[1.25rem]", role: "status" }, "");
     const heard = el("p", { class: "mt-1 text-xs text-slate-500 italic min-h-[1rem]" }, "");
     const ring = el("div", { class: "absolute -inset-3 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 opacity-0 blur-md transition-opacity", "aria-hidden": "true" });
-    const avatar = el("div", { class: "relative grid place-items-center" }, ring, el("div", { class: "relative" }, robotAvatar("lg")));
+    const avatar = el("div", { class: "relative grid place-items-center" }, ring, el("div", { class: "relative" }, robotAvatar("lg", "speaking")));
 
     function setState(txt, glow) { status.textContent = txt; ring.style.opacity = glow ? "0.7" : "0"; }
 

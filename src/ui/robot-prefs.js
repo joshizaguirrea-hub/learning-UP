@@ -48,11 +48,11 @@ export function isRobotConfigured() {
 }
 
 // --- Profe 3D (avatar humano) -----------------------------------------------
-// El alumno puede cambiar la "cara" del profe: el robot Bymax (default) o un
-// humano 3D cartoon (Ready Player Me). Se guarda aparte para no tocar el objeto
-// historico. { mode:"robot"|"human", gender:"F"|"M", url:"<glb>" }.
+// El alumno puede cambiar la "cara" del profe: un humano 3D (default) o el robot
+// Bymax de siempre. Se guarda aparte para no tocar el objeto historico.
+// { mode:"human"|"robot", gender:"F"|"M", url:"<glb>" }.
 const T3DKEY = "linguapath.teacher3d";
-const DEFAULT_3D = { mode: "robot", gender: "F", url: "", hairColor: null, skinTone: null };
+const DEFAULT_3D = { mode: "human", gender: "F", url: "", hairColor: null, skinTone: null };
 
 /** Config del profe 3D (con defaults). mode "robot" = Bymax de siempre. */
 export function getTeacher3d() {

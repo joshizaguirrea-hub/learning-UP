@@ -215,6 +215,27 @@ export function avatarNode(id, size = "md") {
 }
 
 /**
+ * Nodo de RETRATO del profe humano 3D: un PNG estatico (assets/teachers) dentro
+ * del mismo circulo que avatarNode, con zoom a la cara. Se usa como iconito del
+ * profe en toda la app sin correr un canvas 3D por cada uno. size: sm|md|lg.
+ */
+export function portraitNode(src, size = "md") {
+  const dims = { sm: "w-9 h-9", md: "w-12 h-12", lg: "w-24 h-24" }[size] || "w-12 h-12";
+  // El retrato es cara+hombros (512x512). Lo agrandamos y lo anclamos arriba
+  // para que la CARA llene el circulo (si no, la cabeza sale chiquita).
+  const img = el("img", {
+    src, alt: "", loading: "lazy", decoding: "async",
+    class: "w-full h-full object-cover",
+    style: "transform: scale(1.75); transform-origin: 50% 24%;",
+  });
+  return el("div", {
+    class: "shrink-0 rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 " +
+      "border border-slate-600 shadow-lg robot-float " + dims,
+    "aria-hidden": "true",
+  }, img);
+}
+
+/**
  * Hace que TODOS los Bymax visibles reaccionen con una emocion breve.
  * @param {"happy"|"sad"|"think"} kind
  */
