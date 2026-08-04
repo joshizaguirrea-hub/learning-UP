@@ -20,6 +20,9 @@ import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { micCode, languageName } from "../data/languages.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled, multilingualEnabled } from "../config/bymax.js";
+import { buildNotebookPrompt } from "../core/notebook.js";
+import { parseFeedback } from "../core/feedback.js";
+import { addToNotebook } from "../ui/notebook-store.js";
 
 /** Burbuja de mensaje (alumno o Bymax). */
 function bubble(text, who) {
@@ -77,7 +80,7 @@ export function openBymaxSession(cfg) {
   const placeholder = cfg?.placeholder ||
     (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : "Bymax IA no esta configurado aun");
 
-  const close = () => { dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
+  const close = () => { generateNotebook(); dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
   function stopAudio() {
     cancelCloud();
@@ -98,8 +101,41 @@ export function openBymaxSession(cfg) {
 
   // MEMORIA: turnos previos { role:"user"|"model", text }. Cap 10 (5 intercambios).
   const history = [];
+  // TRANSCRIPCION COMPLETA (para el cuaderno de errores): guarda TODOS los turnos
+  // reales, no solo la ventana corta de `history`.
+  const allTurns = [];
   const MAX_TURNS = 10;
   let busy = false;
+
+  // --- CUADERNO DE ERRORES: al cerrar, la profe evalua la charla y guarda los
+  // errores + vocabulario que le falto al alumno, por unidad (acumulativo).
+  let notebookDone = false;
+  async function generateNotebook() {
+    if (notebookDone) return;
+    if (!cfg?.unitId || !cfg?.userId || !bymaxAiEnabled) return;
+    const userTurns = allTurns.filter((t) => t.role === "user" && t.text !== "[BEGIN]");
+    if (userTurns.length < 2) return; // muy corta: no vale la pena molestar al Worker
+    notebookDone = true;
+    try {
+      const res = await fetch(BYMAX_WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode, topic, level, targetLang,
+          immersive: false, // queremos la evaluacion en espanol, sin protocolo TIP
+          question: buildNotebookPrompt(targetLang),
+          history: allTurns.slice(-24),
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (data && data.answer) {
+        const parsed = parseFeedback(data.answer);
+        addToNotebook(cfg.userId, {
+          unitId: cfg.unitId, title: cfg.unitTitle || topic, level, lang: targetLang,
+        }, parsed);
+      }
+    } catch (e) { console.warn("[Bymax] no se pudo generar el cuaderno:", e); }
+  }
 
   const log = el("div", { class: "flex flex-col gap-2.5 px-1 py-2" });
 
@@ -240,6 +276,7 @@ export function openBymaxSession(cfg) {
       try { pushBot(data.answer); }
       catch (e) { console.error("[Bymax] error al pintar/hablar la respuesta:", e); push(data.answer, "bot"); }
       history.push({ role: "user", text: q }, { role: "model", text: data.answer });
+      allTurns.push({ role: "user", text: q }, { role: "model", text: data.answer });
       if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
       // Habilita "Terminar y guardar" solo cuando se completa la practica.
       refreshFinish();

@@ -13,8 +13,9 @@ import { languageName } from "../data/languages.js";
 /**
  * Abre la conversacion libre con la IA para una unidad.
  * @param {object} unit - unidad del curso { title, subtitle, level }
+ * @param {object} [user] - usuario actual (para guardar el cuaderno de errores)
  */
-export function openConversation(unit) {
+export function openConversation(unit, user) {
   const topic = unit?.title || "general";
   const level = unit?.level || "B1";
   const targetLang = unit?.language || "en"; // idioma META (no ingles fijo)
@@ -24,6 +25,7 @@ export function openConversation(unit) {
     mode: "conversation",
     role: "speaking",
     topic, level, targetLang,
+    unitId: unit?.id, unitTitle: unit?.title, userId: user?.id, // -> cuaderno de errores
     teacher: name,
     title: name + " \u00b7 " + topic,
     subtitle: "Practica hablando en " + langLabel + " \u00b7 nivel " + level,
