@@ -13,8 +13,11 @@ La app asigna un avatar distinto a cada rol segun el nombre del archivo:
 | Rol         | Archivo esperado             | Quien es              | Donde aparece                 |
 |-------------|------------------------------|-----------------------|-------------------------------|
 | `course`    | `profe-mujer.glb`   (LISTO)  | Teacher Horus         | Clases del curso              |
-| `speaking`  | `profe-hombre.glb`  (falta)  | Teacher Jack          | Conversacion                  |
+| `speaking`  | `profe-hombre.glb`  (LISTO)  | Teacher Jack          | Conversacion                  |
 | `interview` | `profe-asiatica.glb`(falta)  | Teacher Lucien        | Simulador de entrevista       |
+
+> `profe-hombre.glb` es un avatar Avaturn realista (piel clara-media). Con el
+> selector de TONO DE PIEL en Ajustes se puede oscurecer (aproximado).
 
 > Si el archivo de un rol **no existe**, ese rol cae con gracia a `profe-mujer.glb`.
 > Apenas agregas el `.glb` con el nombre correcto, aparece solo en su rol.

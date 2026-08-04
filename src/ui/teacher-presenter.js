@@ -73,6 +73,7 @@ export function mountTeacher(container, opts = {}) {
       const an = getTtsAnalyser();      // lip-sync REAL por amplitud de la voz
       if (an) inst.attachAnalyser(an);
       if (pref.hairColor) inst.setHairColor(pref.hairColor);
+      if (pref.skinTone) inst.setSkinTone(pref.skinTone);
       inst.setEmotion("happy");
       inst.setTalking(want);
     } catch (e) {

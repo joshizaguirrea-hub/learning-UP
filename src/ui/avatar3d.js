@@ -151,6 +151,8 @@ function runEngine(container, rig, opts = {}) {
     setEmotion(kind) { rig.setEmotion?.(kind); },
     /** Recolorea el pelo (hex tipo "#E6C88C"). No-op si el avatar no tiene pelo. */
     setHairColor(hex) { rig.setHairColor?.(hex); },
+    /** Ajusta el tono de piel (hex, multiplica). No-op si no hay piel detectada. */
+    setSkinTone(hex) { rig.setSkinTone?.(hex); },
     get canLipSync() { return rig.canLipSync !== false; },
     dispose() {
       disposed = true; cancelAnimationFrame(raf); ro.disconnect();
@@ -172,15 +174,21 @@ export async function createAvatar3d(container, opts = {}) {
 
   const morphs = {}; let headBone = null;
   const hairMats = [];
+  const skinMats = [];
   root.traverse((o) => {
     if (o.isBone && /head/i.test(o.name) && !headBone) headBone = o;
-    if (o.isMesh && /hair/i.test((o.name || "") + " " + (o.material && o.material.name || ""))) {
+    if (o.isMesh) {
       (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
         if (!m) return;
-        // Guardamos la textura y color originales para poder restaurar.
-        m.userData._origMap = m.map || null;
-        m.userData._origColor = m.color ? m.color.clone() : null;
-        hairMats.push(m);
+        const n = ((o.name || "") + " " + (m.name || "")).toLowerCase();
+        if (/hair/.test(n)) {
+          m.userData._origMap = m.map || null;
+          m.userData._origColor = m.color ? m.color.clone() : null;
+          hairMats.push(m);
+        } else if (/skin|head|body/.test(n) && !/teeth|tooth|eye|glass|outfit|cloth|top|bottom|foot|shoe|hair/.test(n)) {
+          m.userData._origSkin = m.color ? m.color.clone() : null;
+          skinMats.push(m);
+        }
       });
     }
     if (o.morphTargetDictionary && o.morphTargetInfluences) {
@@ -209,6 +217,16 @@ export async function createAvatar3d(container, opts = {}) {
       const s = kind === "happy" ? 0.3 : 0;
       if (has("mouthSmile")) setMorph("mouthSmile", s);
       else { setMorph("mouthSmileLeft", s); setMorph("mouthSmileRight", s); }
+    },
+    // Tono de piel. La textura de piel es clara; MULTIPLICAR por un tono la
+    // oscurece (aproximacion: no cambia pelo ni rasgos). null = restaurar.
+    setSkinTone: (hex) => {
+      skinMats.forEach((m) => {
+        if (!m.color) return;
+        if (hex) m.color.set(hex);
+        else if (m.userData._origSkin) m.color.copy(m.userData._origSkin);
+        m.needsUpdate = true;
+      });
     },
     // Tinte del pelo. El pelo suele traer una TEXTURA oscura; multiplicar el
     // color no aclara (negro x rubio = negro). Por eso, para un color distinto
