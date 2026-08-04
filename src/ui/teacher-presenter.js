@@ -20,6 +20,14 @@ import { bymaxMascot, setBymaxTalking } from "./bymax-mascot.js";
 import { getTeacher3d } from "./robot-prefs.js";
 import { getTtsAnalyser } from "./cloud-tts.js";
 
+// Avatares 3D incluidos en el repo (vendor/avatars) -> funcionan en cualquier
+// red y offline. Se usan cuando el alumno elige "Humano 3D" sin pegar una URL.
+// TODO: agregar profe-hombre.glb (por ahora "M" cae con gracia a la profe mujer).
+const DEFAULT_AVATARS = {
+  F: "./vendor/avatars/profe-mujer.glb",
+  M: "./vendor/avatars/profe-mujer.glb",
+};
+
 /**
  * Monta el profe dentro de `container` y devuelve controles.
  * @param {HTMLElement} container
@@ -47,8 +55,10 @@ export function mountTeacher(container, opts = {}) {
     try {
       const mod = await import("./avatar3d.js");
       if (disposed) return;
-      inst = pref.url
-        ? await mod.createAvatar3d(stage, { url: pref.url })
+      // URL del alumno > avatar vendorizado del genero > profe mujer > blob demo.
+      const url = pref.url || DEFAULT_AVATARS[pref.gender] || DEFAULT_AVATARS.F;
+      inst = url
+        ? await mod.createAvatar3d(stage, { url })
         : mod.createDemoHead(stage, { gender: pref.gender || "F" });
       if (disposed) { inst.dispose(); inst = null; return; }
       const an = getTtsAnalyser();      // lip-sync REAL por amplitud de la voz

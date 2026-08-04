@@ -192,8 +192,11 @@ export async function createAvatar3d(container, opts = {}) {
     setMouth: (v) => { if (mouthMorph) setMorph(mouthMorph, v); },
     setBlink: blinkSet ? (v) => blinkSet.forEach((m) => setMorph(m, v)) : null,
     setEmotion: (kind) => {
-      const s = kind === "happy" ? 0.5 : 0;
-      ["mouthSmile", "mouthSmileLeft", "mouthSmileRight"].forEach((m) => setMorph(m, s));
+      // Sonrisa SUAVE y sin apilar: algunos avatares se deforman si se ponen
+      // varios blendshapes de sonrisa a la vez o muy fuerte.
+      const s = kind === "happy" ? 0.3 : 0;
+      if (has("mouthSmile")) setMorph("mouthSmile", s);
+      else { setMorph("mouthSmileLeft", s); setMorph("mouthSmileRight", s); }
     },
   };
   return runEngine(container, rig, opts);

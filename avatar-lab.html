@@ -39,6 +39,11 @@
 
     <!-- Presets -->
     <div class="mt-4 grid sm:grid-cols-2 gap-2">
+      <button data-url="./vendor/avatars/profe-mujer.glb"
+        class="preset text-left rounded-xl p-3 bg-gradient-to-br from-violet-600 to-purple-700 hover:brightness-110 sm:col-span-2">
+        <p class="font-semibold text-sm">Profe MUJER (lista, funciona en cualquier red)</p>
+        <p class="text-xs text-white/80">Avatar Ready Player Me real, guardado en el repo. Dale Cargar y luego Hablar.</p>
+      </button>
       <button id="demoF"
         class="text-left rounded-xl p-3 bg-gradient-to-br from-emerald-600 to-teal-700 hover:brightness-110">
         <p class="font-semibold text-sm">Demo OFFLINE - Profe mujer</p>
@@ -100,7 +105,8 @@
     const say = (m) => { status.textContent = m; };
 
     function ready(msg) {
-      avatar.setEmotion("happy");
+      // NO forzamos sonrisa: algunos avatares (Avaturn) se deforman si se apilan
+      // blendshapes de sonrisa al cargar. Cara neutra por defecto.
       talkBtn.disabled = flapBtn.disabled = false;
       say(msg);
     }
