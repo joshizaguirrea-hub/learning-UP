@@ -271,7 +271,7 @@ export function openRobotSetup(onDone) {
   const close = () => overlay.remove();
 
   const nameInput = el("input", {
-    type: "text", maxlength: "20", value: current.name === "Teacher Horus" ? "" : current.name,
+    type: "text", maxlength: "20", value: current.name === "Megan" ? "" : current.name,
     placeholder: "Ej: Horus, Robi, Max...",
     class: "mt-2 w-full rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 focus:outline focus:outline-2 focus:outline-indigo-500",
   });
@@ -356,7 +356,7 @@ export function openRobotSetup(onDone) {
   const saveBtn = el("button", {
     class: "w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400",
     onclick: () => {
-      const name = nameInput.value.trim() || "Teacher Horus";
+      const name = nameInput.value.trim() || "Megan";
       setAccent(chosenAccent);
       setTeacher3d({ mode: mode3d, gender: gender3d, url: glbInput.value.trim(), hairColor: hair3d, skinTone: skin3d });
       const cfg = setRobot({ name, avatar: chosen });

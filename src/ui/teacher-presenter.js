@@ -23,14 +23,14 @@ import { getTtsAnalyser } from "./cloud-tts.js";
 // Avatares 3D incluidos en el repo (vendor/avatars) POR ROL -> un profe distinto
 // para cada contexto. Funcionan en cualquier red y offline. Si el archivo del rol
 // no existe todavia, cae con gracia a la profe de curso (profe-mujer).
-//   course    = Teacher Horus  (da las clases)
-//   speaking  = Teacher Jack   (conversacion)
-//   interview = Teacher Lucien (entrevista laboral)
-// TODO: agregar profe-hombre.glb (speaking) y profe-asiatica.glb (interview).
+//   course    = Megan   (da las clases)
+//   speaking  = Mathias (conversacion)
+//   interview = Susan   (entrevista laboral)
+// TODO: agregar profe-conversacion.glb (hombre, Mathias).
 const ROLE_AVATARS = {
-  course: "./vendor/avatars/profe-mujer.glb",
-  speaking: "./vendor/avatars/profe-hombre.glb",
-  interview: "./vendor/avatars/profe-asiatica.glb",
+  course: "./vendor/avatars/profe-curso.glb",
+  speaking: "./vendor/avatars/profe-conversacion.glb",
+  interview: "./vendor/avatars/profe-entrevista.glb",
 };
 
 /**

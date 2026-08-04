@@ -3,9 +3,9 @@
  *
  * FUENTE UNICA DE VERDAD de los nombres de los profes IA. Hay TRES teachers,
  * uno por contexto, y cada alumno puede renombrarlos en Ajustes:
- *   - course    -> "Teacher Horus"  (da las clases y las pistas de los cursos)
- *   - speaking  -> "Teacher Jack"   (Speaking: la "Llamada" por voz manos libres)
- *   - interview -> "Teacher Lucien" (reclutador del simulador de entrevistas)
+ *   - course    -> "Megan"   (da las clases y las pistas de los cursos)
+ *   - speaking  -> "Mathias" (Speaking: la "Llamada" por voz manos libres)
+ *   - interview -> "Susan"   (reclutadora del simulador de entrevistas)
  *
  * Se guarda en localStorage (offline, sin migracion de BD). El teacher de CURSO
  * comparte el objeto historico `linguapath.robot` (nombre + avatar) por
@@ -16,9 +16,9 @@ const TKEY = "linguapath.teachers";    // nombres de speaking + interview
 
 /** Metadatos de los tres teachers (defaults + textos para Ajustes). */
 export const TEACHER_ROLES = [
-  { id: "course", defaultName: "Teacher Horus", label: "Cursos", desc: "Te da las clases y las pistas." },
-  { id: "speaking", defaultName: "Teacher Jack", label: "Speaking (Llamada)", desc: "Tu profe para hablar por voz." },
-  { id: "interview", defaultName: "Teacher Lucien", label: "Entrevistas", desc: "Tu reclutador de practica." },
+  { id: "course", defaultName: "Megan", label: "Cursos", desc: "Te da las clases y las pistas." },
+  { id: "speaking", defaultName: "Mathias", label: "Speaking (Llamada)", desc: "Tu profe para hablar por voz." },
+  { id: "interview", defaultName: "Susan", label: "Entrevistas", desc: "Tu reclutadora de practica." },
 ];
 
 const DEFAULT_NAME = (role) =>
