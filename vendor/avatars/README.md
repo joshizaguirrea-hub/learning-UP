@@ -1,32 +1,35 @@
-# vendor/avatars/
+# Avatares 3D del profe (vendor/avatars)
 
-Aca van los avatares 3D del profe (archivos `.glb`), servidos desde el propio
-sitio (github.io) para NO depender de un servidor externo. Asi el profe humano
-3D funciona en cualquier red (incluida la corporativa) y offline via PWA.
+Estos `.glb` son los profesores humanos 3D. Viven en el repo para que funcionen
+en **cualquier red** (incluida la de Walmart) y **offline** (el Service Worker
+los cachea). Formato ideal: **Ready Player Me** (mallas `Wolf3D_*` con blendshapes
+`jawOpen`, `viseme_*`, `eyeBlink*`) para que el lip-sync y el parpadeo funcionen
+automaticamente.
 
-## Como agregar un avatar
+## Un profe por ROL (convencion de nombres)
 
-Crea tu avatar en una de estas webs (desde una red/equipo LIBRE, no corporativo):
+La app asigna un avatar distinto a cada rol segun el nombre del archivo:
 
-- **Avaturn** -> https://avaturn.me  (recomendado: realista desde selfie, .glb con blendshapes ARKit)
-- **Ready Player Me** -> https://readyplayer.me/es/avatar  (cartoon humano)
+| Rol         | Archivo esperado             | Quien es              | Donde aparece                 |
+|-------------|------------------------------|-----------------------|-------------------------------|
+| `course`    | `profe-mujer.glb`   (LISTO)  | Teacher Horus         | Clases del curso              |
+| `speaking`  | `profe-hombre.glb`  (falta)  | Teacher Jack          | Conversacion                  |
+| `interview` | `profe-asiatica.glb`(falta)  | Teacher Lucien        | Simulador de entrevista       |
 
-Pasos:
+> Si el archivo de un rol **no existe**, ese rol cae con gracia a `profe-mujer.glb`.
+> Apenas agregas el `.glb` con el nombre correcto, aparece solo en su rol.
 
-1. Crea y personaliza tu avatar.
-2. **Exporta / descarga el `.glb`.**
-   - Avaturn: boton Export -> GLB (viene con blendshapes de cara).
-   - Ready Player Me: usa la URL con morph targets de boca:
-     `https://models.readyplayer.me/XXXX.glb?morphTargets=mouthOpen,mouthSmile,ARKit`
-3. Guarda el archivo aca, por ejemplo:
-   - `profe-mujer.glb`
-   - `profe-hombre.glb`
-4. En Ajustes -> "Cara del profe" -> Humano 3D, pega la ruta relativa como URL:
-   `./vendor/avatars/profe-mujer.glb`
-   (o pedile a Horus que lo deje como default).
+## Como crear los que faltan
 
-Requisito para el lip-sync: el `.glb` debe traer blendshapes de boca
-(`jawOpen` / `mouthOpen` / visemes). Avaturn y Ready Player Me los incluyen.
+1. Entra a **https://readyplayer.me** (o Avaturn) desde un equipo/telefono con
+   red libre (no la de Walmart / no telefono administrado).
+2. Crea el avatar eligiendo **piel, rasgos, pelo y ropa** a tu gusto.
+3. Descarga el **.glb** (Ready Player Me: "Download .glb").
+4. Renombralo segun la tabla (`profe-hombre.glb`, `profe-asiatica.glb`) y ponlo
+   en esta carpeta (`vendor/avatars/`).
+5. Commit + push. Listo.
 
-Nota: los `.glb` pesan ~1-3 MB. El Service Worker los cachea (cache-first, igual
-que three.js), asi que se bajan una sola vez.
+## Nota
+
+`profe-mujer.glb` es un avatar Ready Player Me tomado del proyecto open source
+met4citizen/TalkingHead. Reemplazalo cuando tengas el tuyo.

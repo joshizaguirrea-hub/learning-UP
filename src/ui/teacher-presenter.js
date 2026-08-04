@@ -20,12 +20,17 @@ import { bymaxMascot, setBymaxTalking } from "./bymax-mascot.js";
 import { getTeacher3d } from "./robot-prefs.js";
 import { getTtsAnalyser } from "./cloud-tts.js";
 
-// Avatares 3D incluidos en el repo (vendor/avatars) -> funcionan en cualquier
-// red y offline. Se usan cuando el alumno elige "Humano 3D" sin pegar una URL.
-// TODO: agregar profe-hombre.glb (por ahora "M" cae con gracia a la profe mujer).
-const DEFAULT_AVATARS = {
-  F: "./vendor/avatars/profe-mujer.glb",
-  M: "./vendor/avatars/profe-mujer.glb",
+// Avatares 3D incluidos en el repo (vendor/avatars) POR ROL -> un profe distinto
+// para cada contexto. Funcionan en cualquier red y offline. Si el archivo del rol
+// no existe todavia, cae con gracia a la profe de curso (profe-mujer).
+//   course    = Teacher Horus  (da las clases)
+//   speaking  = Teacher Jack   (conversacion)
+//   interview = Teacher Lucien (entrevista laboral)
+// TODO: agregar profe-hombre.glb (speaking) y profe-asiatica.glb (interview).
+const ROLE_AVATARS = {
+  course: "./vendor/avatars/profe-mujer.glb",
+  speaking: "./vendor/avatars/profe-hombre.glb",
+  interview: "./vendor/avatars/profe-asiatica.glb",
 };
 
 /**
@@ -36,6 +41,7 @@ const DEFAULT_AVATARS = {
  */
 export function mountTeacher(container, opts = {}) {
   const pref = getTeacher3d();
+  const role = opts.role || "course";
 
   // Modo ROBOT (default): la mascota SVG de siempre. Cero descarga extra.
   if (pref.mode !== "human") {
@@ -55,16 +61,19 @@ export function mountTeacher(container, opts = {}) {
     try {
       const mod = await import("./avatar3d.js");
       if (disposed) return;
-      // URL del alumno > avatar vendorizado del genero > profe mujer > blob demo.
-      const url = pref.url || DEFAULT_AVATARS[pref.gender] || DEFAULT_AVATARS.F;
-      inst = url
-        ? await mod.createAvatar3d(stage, { url })
-        : mod.createDemoHead(stage, { gender: pref.gender || "F" });
+      // Prueba en orden: URL del alumno > avatar del rol > profe de curso.
+      const candidates = [pref.url, ROLE_AVATARS[role], ROLE_AVATARS.course].filter(Boolean);
+      for (const url of candidates) {
+        try { inst = await mod.createAvatar3d(stage, { url }); break; }
+        catch (err) { console.warn("[teacher3d] no cargo", url, err); }
+        if (disposed) return;
+      }
+      if (!inst) inst = mod.createDemoHead(stage, { gender: pref.gender || "F" });
       if (disposed) { inst.dispose(); inst = null; return; }
       const an = getTtsAnalyser();      // lip-sync REAL por amplitud de la voz
       if (an) inst.attachAnalyser(an);
       if (pref.hairColor) inst.setHairColor(pref.hairColor);
-      inst.setEmotion("happy");          // aplica estado bufferizado
+      inst.setEmotion("happy");
       inst.setTalking(want);
     } catch (e) {
       console.error("[teacher3d] fallo al montar el avatar 3D, uso Bymax:", e);

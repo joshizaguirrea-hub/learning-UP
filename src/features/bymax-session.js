@@ -346,7 +346,7 @@ export function openBymaxSession(cfg) {
   }
 
   const teacherSlot = el("div", { class: "shrink-0" });
-  teacher = mountTeacher(teacherSlot, { size: "md" });
+  teacher = mountTeacher(teacherSlot, { size: "md", role: cfg?.role || "course" });
 
   const card = el("div", {
     class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92dvh] min-h-0",

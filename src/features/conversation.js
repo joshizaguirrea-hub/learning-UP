@@ -22,6 +22,7 @@ export function openConversation(unit) {
   const name = teacherName("speaking");
   openBymaxSession({
     mode: "conversation",
+    role: "speaking",
     topic, level, targetLang,
     teacher: name,
     title: name + " \u00b7 " + topic,
