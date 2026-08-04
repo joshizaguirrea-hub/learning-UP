@@ -84,6 +84,15 @@ export function robotAvatar(size = "md", role = "course") {
   return avatarNode(getRobot().avatar, size);
 }
 
+/**
+ * Ruta del retrato PNG del profe para un rol, o null si el alumno eligio el
+ * robot Bymax. Util para vistas que llenan su propio marco (hub de la unidad).
+ */
+export function teacherPortraitSrc(role = "course") {
+  if (getTeacher3d().mode === "robot") return null;
+  return ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course;
+}
+
 /** Boton pequeno de altavoz con la voz (divertida) del profe. */
 function robotSpeakBtn(text, lang) {
   return el("button", {

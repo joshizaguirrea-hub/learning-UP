@@ -215,24 +215,31 @@ export function avatarNode(id, size = "md") {
 }
 
 /**
- * Nodo de RETRATO del profe humano 3D: un PNG estatico (assets/teachers) dentro
- * del mismo circulo que avatarNode, con zoom a la cara. Se usa como iconito del
- * profe en toda la app sin correr un canvas 3D por cada uno. size: sm|md|lg.
+ * <img> del retrato del profe, con zoom a la CARA. Reutilizable: portraitNode lo
+ * mete en su circulo, pero el hub de la unidad lo usa suelto para llenar su
+ * propio circulo grande. El retrato es cara+hombros (512x512): lo agrandamos y
+ * lo anclamos arriba para que la cara llene el marco (si no, sale chiquita).
  */
-export function portraitNode(src, size = "md") {
-  const dims = { sm: "w-9 h-9", md: "w-12 h-12", lg: "w-24 h-24" }[size] || "w-12 h-12";
-  // El retrato es cara+hombros (512x512). Lo agrandamos y lo anclamos arriba
-  // para que la CARA llene el circulo (si no, la cabeza sale chiquita).
-  const img = el("img", {
+export function portraitImg(src) {
+  return el("img", {
     src, alt: "", loading: "lazy", decoding: "async",
     class: "w-full h-full object-cover",
     style: "transform: scale(1.75); transform-origin: 50% 24%;",
   });
+}
+
+/**
+ * Nodo de RETRATO del profe humano 3D: un PNG estatico (assets/teachers) dentro
+ * del mismo circulo que avatarNode. Se usa como iconito del profe en toda la app
+ * sin correr un canvas 3D por cada uno. size: sm|md|lg.
+ */
+export function portraitNode(src, size = "md") {
+  const dims = { sm: "w-9 h-9", md: "w-12 h-12", lg: "w-24 h-24" }[size] || "w-12 h-12";
   return el("div", {
     class: "shrink-0 rounded-full overflow-hidden bg-gradient-to-br from-slate-700 to-slate-800 " +
       "border border-slate-600 shadow-lg robot-float " + dims,
     "aria-hidden": "true",
-  }, img);
+  }, portraitImg(src));
 }
 
 /**
