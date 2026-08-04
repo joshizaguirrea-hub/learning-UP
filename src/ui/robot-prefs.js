@@ -87,6 +87,20 @@ export function teacherPortraitSrc(role = "course") {
   return ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course;
 }
 
+// Voz OpenAI de cada profe -> 3 voces DISTINTAS. Megan y Susan son mujeres pero
+// con voz diferente (nova vs shimmer); Mathias es hombre (onyx). El Worker
+// valida estos nombres contra las voces de OpenAI.
+export const ROLE_TTS_VOICE = {
+  course: "nova",      // Megan
+  speaking: "onyx",    // Mathias (hombre)
+  interview: "shimmer", // Susan
+};
+
+/** Voz OpenAI para un rol (default: la de curso, Megan). */
+export function teacherVoice(role = "course") {
+  return ROLE_TTS_VOICE[role] || ROLE_TTS_VOICE.course;
+}
+
 /** Lee el mapa {speaking, interview} de nombres personalizados. */
 function readTeachers() {
   try { return JSON.parse(localStorage.getItem(TKEY) || "{}"); } catch { return {}; }
