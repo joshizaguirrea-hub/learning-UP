@@ -56,17 +56,29 @@ function runEngine(container, rig, opts = {}) {
 
   scene.add(rig.root);
 
-  // Encuadre automatico: cuerpo completo -> a la cabeza; solo cabeza -> centro.
+  // Encuadre automatico. Si el modelo tiene hueso de cabeza (humanoide real),
+  // encuadramos CARA + HOMBROS usando su posicion -> inmune al T-pose (brazos
+  // abiertos) que rompia la heuristica por ancho. Si no, usamos la caja.
   const box = new THREE.Box3().setFromObject(rig.root);
   const size = new THREE.Vector3(); box.getSize(size);
   const center = new THREE.Vector3(); box.getCenter(center);
   const fov = camera.fov * Math.PI / 180;
-  const isTall = size.y > size.x * 1.6;                 // heuristica: humano de pie
-  const framedH = isTall ? size.y * 0.30 : size.y * 1.2; // alto que queremos ver
-  const targetY = isTall ? box.max.y - framedH * 0.55 : center.y;
+  let targetX = center.x, targetY = center.y, framedH = size.y * 1.05;
+  if (rig.headBone) {
+    rig.root.updateWorldMatrix(true, true);
+    const head = new THREE.Vector3();
+    rig.headBone.getWorldPosition(head);
+    targetX = head.x;
+    targetY = head.y - 0.06;   // un pelin abajo: incluye menton + hombros
+    framedH = 0.5;             // ~cabeza + hombros (unidades tipo metro de RPM)
+  } else {
+    const isTall = size.y > size.x * 1.6;
+    framedH = isTall ? size.y * 0.30 : size.y * 1.05;
+    targetY = isTall ? box.max.y - framedH * 0.55 : center.y;
+  }
   const dist = (framedH / 2) / Math.tan(fov / 2) * 1.15;
-  camera.position.set(center.x, targetY, box.max.z + dist);
-  camera.lookAt(center.x, targetY, center.z);
+  camera.position.set(targetX, targetY, box.max.z + dist);
+  camera.lookAt(targetX, targetY, center.z);
 
   // --- estado + bucle -------------------------------------------------------
   let talking = false, analyser = null, audioData = null;
