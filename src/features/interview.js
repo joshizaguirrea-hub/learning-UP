@@ -10,10 +10,11 @@
  * motor anti-spanglish, igual que la Llamada con Bymax. Soporta voz y texto.
  */
 import { el } from "../ui/dom.js";
-import { robotAvatar, teacherName } from "../ui/robot.js";
+import { teacherName } from "../ui/robot.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual } from "../ui/speech.js";
-import { cancelCloud } from "../ui/cloud-tts.js";
+import { cancelCloud, cloudSpeak } from "../ui/cloud-tts.js";
+import { mountTeacher } from "../ui/teacher-presenter.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
@@ -38,20 +39,21 @@ export function openInterview(opts = {}) {
 
   let ended = false;
   let dictation = null;
+  let teacher = null; // profe 3D ANIMADO (Susan); se monta al iniciar la entrevista
 
-  const stopAudio = () => { cancelCloud(); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
-  const close = () => { ended = true; dictation?.abort(); stopAudio(); overlay.remove(); };
+  const stopAudio = () => { cancelCloud(); teacher?.setTalking(false); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
+  const close = () => { ended = true; dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
 
   const heading = el("p", { class: "font-bold text-sky-300" }, "Entrevista con " + name);
-  // min-h-0 + overflow-y-auto: en celular el contenido scrollea DENTRO del modal
-  // (el header con la X queda fijo) para que nunca se corten los controles ni Salir.
-  const body = el("div", { class: "mt-4 flex-1 min-h-0 overflow-y-auto" });
+  // PANTALLA COMPLETA: la entrevista es inmersiva (avatar 3D grande). El header
+  // con la X queda fijo arriba y el contenido scrollea/se acomoda debajo.
+  const body = el("div", { class: "flex-1 min-h-0 overflow-y-auto flex flex-col px-4 sm:px-6 pb-4" });
 
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh] min-h-0",
+    class: "w-full h-full flex flex-col bg-slate-950",
     role: "dialog", "aria-label": "Entrevista de trabajo con " + name, "aria-modal": "true",
   },
-    el("div", { class: "flex items-center gap-3" },
+    el("div", { class: "flex items-center gap-3 px-4 sm:px-6 pt-4 pb-3 border-b border-slate-800 shrink-0" },
       el("div", { class: "w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-700 grid place-items-center text-white", html: ICONS.briefcase || ICONS.teachers || ICONS.chat }),
       el("div", { class: "flex-1 min-w-0" },
         heading,
@@ -60,8 +62,7 @@ export function openInterview(opts = {}) {
     body);
 
   const overlay = el("div", {
-    class: "fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4",
-    onclick: (e) => { if (e.target === overlay) close(); },
+    class: "fixed inset-0 z-[60] bg-slate-950 flex flex-col",
   }, card);
   document.body.append(overlay);
 
@@ -150,7 +151,7 @@ export function openInterview(opts = {}) {
 
     roleInput.addEventListener("keydown", (e) => { if (e.key === "Enter") companyInput.focus(); });
 
-    body.replaceChildren(
+    body.replaceChildren(el("div", { class: "w-full max-w-lg mx-auto pt-4" },
       el("p", { class: "text-sm text-slate-400" },
         "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutador senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
       el("label", { class: "block mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Puesto"),
@@ -166,7 +167,7 @@ export function openInterview(opts = {}) {
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "\u00bfC\u00f3mo quieres responder?"),
       el("div", { class: "flex gap-2" }, voiceBtn, textBtn),
       canVoice ? null : el("p", { class: "mt-1 text-xs text-amber-300" }, "Tu navegador no permite micr\u00f3fono; usar\u00e1s texto. (Chrome en PC/Android para voz.)"),
-      startBtn);
+      startBtn));
     setTimeout(() => roleInput.focus(), 50);
     syncMode();
     syncSen();
@@ -179,7 +180,8 @@ export function openInterview(opts = {}) {
     const history = [];
     // El coach retoma tus debilidades de la entrevista anterior (rol de entrenador).
     const prevFocus = lastImprovements(userId);
-    const topic = "Puesto: " + role +
+    const topic = "IMPORTANTE: Tu nombre es " + name + ". Prese\u0301ntate SIEMPRE como " + name +
+      " y NUNCA digas que te llamas Bymax. | Puesto: " + role +
       (company ? " | Empresa: " + company : "") +
       (seniority ? " | Seniority: " + seniority : "") +
       (details ? " | Detalles de la vacante: " + details : "") +
@@ -195,8 +197,8 @@ export function openInterview(opts = {}) {
       class: "mt-1 space-y-3 overflow-y-auto pr-1", style: "max-height: 38vh",
       role: "log", "aria-live": "polite", "aria-label": "Transcripci\u00f3n de la entrevista",
     });
-    const status = el("p", { class: "mt-3 text-sm text-slate-300 min-h-[1.25rem]", role: "status" }, "");
-    const heard = el("p", { class: "mt-0.5 text-xs text-slate-500 italic min-h-[1rem]" }, "");
+    const status = el("p", { class: "mt-3 text-sm text-slate-300 min-h-[1.25rem] text-center", role: "status" }, "");
+    const heard = el("p", { class: "mt-0.5 text-xs text-slate-500 italic min-h-[1rem] text-center" }, "");
 
     function bubble(text, who) {
       const mine = who === "me";
@@ -209,6 +211,16 @@ export function openInterview(opts = {}) {
     function addMsg(text, who) {
       transcript.append(bubble(text, who));
       transcript.scrollTop = transcript.scrollHeight;
+    }
+
+    // Hace "hablar" a Susan: voz de nube (lip-sync REAL por amplitud via el
+    // analyser compartido) + boca animada. onDone se llama al terminar el audio.
+    function say(text, onDone) {
+      teacher?.setTalking(true);
+      const finish = () => { teacher?.setTalking(false); if (!ended) onDone && onDone(); };
+      cloudSpeak(text, "en", { gender: "F" })
+        .then(finish)
+        .catch(() => speakBilingual(text, finish)); // sin nube: cae a voz del navegador
     }
 
     async function turn(q, showMine) {
@@ -224,14 +236,14 @@ export function openInterview(opts = {}) {
       history.push({ role: "user", text: q }, { role: "model", text: answer });
       if (history.length > MAX_TURNS) history.splice(0, history.length - MAX_TURNS);
       addMsg(answer, "them");
-      if (useVoice) {
-        status.textContent = name + " habla...";
-        bymaxEmote("happy");
-        speakBilingual(answer, () => { if (!ended && !paused) listen(); });
-      } else {
-        status.textContent = "Tu turno: escribe tu respuesta.";
-        bymaxEmote("happy");
-      }
+      status.textContent = name + " habla...";
+      bymaxEmote("happy");
+      // Susan SIEMPRE habla (el avatar se anima), tanto en modo voz como texto.
+      say(answer, () => {
+        if (ended || paused) return;
+        if (useVoice) { status.textContent = ""; listen(); }
+        else status.textContent = "Tu turno: escribe tu respuesta.";
+      });
     }
 
     // --- Entrada por VOZ ---
@@ -326,13 +338,20 @@ export function openInterview(opts = {}) {
       renderFeedback(answer, cfg, () => startInterview(cfg));
     }
 
-    body.replaceChildren(
-      el("div", { class: "flex items-center gap-3" },
-        el("div", { class: "shrink-0" }, robotAvatar("sm", "interview")),
-        el("p", { class: "text-xs text-slate-400" }, "Responde como en una entrevista real. Cuando quieras, toca \u201cTerminar y ver feedback\u201d.")),
-      transcript, status, heard, controls);
+    // Escenario del avatar 3D ANIMADO (Susan). En modo robot cae a la mascota.
+    const teacherStage = el("div", { class: "w-full flex justify-center pt-3" });
+    teacher = mountTeacher(teacherStage, { role: "interview", size: "lg", stageClass: "w-full max-w-sm h-[42vh] mx-auto" });
 
-    // Arranca: Bymax saluda y hace la primera pregunta.
+    body.replaceChildren(el("div", { class: "w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col" },
+      teacherStage,
+      status,
+      heard,
+      el("details", { class: "mt-1" },
+        el("summary", { class: "text-xs text-slate-400 cursor-pointer select-none" }, "Ver transcripci\u00f3n"),
+        transcript),
+      controls));
+
+    // Arranca: Susan saluda y hace la primera pregunta.
     turn("[BEGIN]");
   }
 
@@ -354,7 +373,7 @@ export function openInterview(opts = {}) {
       score, areas: parsed.areas, improvements, tip,
     });
 
-    body.replaceChildren(buildFeedbackDashboard({
+    body.replaceChildren(el("div", { class: "w-full max-w-2xl mx-auto pt-4" }, buildFeedbackDashboard({
       parsed,
       title: "Feedback de tu entrevista",
       stats: { best: saved.best, avg: saved.avg, sessions: saved.sessions },
@@ -362,7 +381,7 @@ export function openInterview(opts = {}) {
       extra: appointmentBox(cfg, improvements),
       onRetry,
       onClose: close,
-    }));
+    })));
   }
 
   /** Caja "Agenda tu proxima cita de entrenamiento" (coach personal). */
