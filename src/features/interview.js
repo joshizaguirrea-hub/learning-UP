@@ -328,7 +328,7 @@ export function openInterview(opts = {}) {
 
     body.replaceChildren(
       el("div", { class: "flex items-center gap-3" },
-        el("div", { class: "shrink-0" }, robotAvatar("sm")),
+        el("div", { class: "shrink-0" }, robotAvatar("sm", "interview")),
         el("p", { class: "text-xs text-slate-400" }, "Responde como en una entrevista real. Cuando quieras, toca \u201cTerminar y ver feedback\u201d.")),
       transcript, status, heard, controls);
 
