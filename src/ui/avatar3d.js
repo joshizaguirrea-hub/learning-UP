@@ -174,11 +174,11 @@ function runEngine(container, rig, opts = {}) {
 }
 
 /**
- * Baja los brazos de una T-pose a una pose relajada (como Megan). En vez de un
- * angulo fijo (que deformaba el hombro), APUNTA el brazo superior hacia abajo:
- * calcula el giro exacto que lleva la direccion actual del brazo a "abajo + un
- * pelin hacia afuera" y lo aplica en espacio-mundo. Funciona con cualquier rig.
- * Solo actua si el brazo esta horizontal (T-pose); si ya cuelga, no lo toca.
+ * Uniforma la pose de brazos de los profes: apunta el brazo superior hacia abajo
+ * (rectos a los costados) para que los 3 se vean igual. En vez de un angulo fijo
+ * (que deformaba el hombro), calcula el giro exacto hacia "abajo + un pelin hacia
+ * afuera" y lo aplica en LOCAL respetando la rotacion del padre. Funciona con
+ * cualquier rig. Salta los brazos que ya cuelgan casi rectos.
  * @param {THREE.Object3D} root
  */
 function relaxArms(root) {
@@ -196,8 +196,9 @@ function relaxArms(root) {
     const dir = fore.clone().sub(arm);
     if (dir.lengthSq() < 1e-6) return;
     dir.normalize();
-    if (Math.abs(dir.x) <= Math.abs(dir.y)) return;   // ya cuelga (Megan) -> no tocar
-    // Objetivo: hacia abajo, con un leve angulo hacia su propio lado.
+    if (dir.y < -0.92) return;   // ya cuelga casi recto -> no hace falta tocar
+    // Objetivo: hacia abajo, con un leve angulo hacia su propio lado. Se aplica
+    // a TODOS por igual (Megan incluida) para que los 3 profes queden iguales.
     const out = arm.x >= rootPos.x ? 0.18 : -0.18;
     const target = new THREE.Vector3(out, -1, 0.02).normalize();
     // Giro (en mundo) que lleva la direccion actual del brazo al objetivo, y lo
