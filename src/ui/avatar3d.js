@@ -175,7 +175,13 @@ export async function createAvatar3d(container, opts = {}) {
   root.traverse((o) => {
     if (o.isBone && /head/i.test(o.name) && !headBone) headBone = o;
     if (o.isMesh && /hair/i.test((o.name || "") + " " + (o.material && o.material.name || ""))) {
-      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m && hairMats.push(m));
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
+        if (!m) return;
+        // Guardamos la textura y color originales para poder restaurar.
+        m.userData._origMap = m.map || null;
+        m.userData._origColor = m.color ? m.color.clone() : null;
+        hairMats.push(m);
+      });
     }
     if (o.morphTargetDictionary && o.morphTargetInfluences) {
       for (const [name, idx] of Object.entries(o.morphTargetDictionary)) {
@@ -204,11 +210,16 @@ export async function createAvatar3d(container, opts = {}) {
       if (has("mouthSmile")) setMorph("mouthSmile", s);
       else { setMorph("mouthSmileLeft", s); setMorph("mouthSmileRight", s); }
     },
-    // Tinte del pelo: el material del pelo se multiplica por este color. Los
-    // avatares Wolf3D/RPM traen textura de pelo grisacea, asi que el tinte se ve.
+    // Tinte del pelo. El pelo suele traer una TEXTURA oscura; multiplicar el
+    // color no aclara (negro x rubio = negro). Por eso, para un color distinto
+    // QUITAMOS la textura y pintamos color plano; para "original" la restauramos.
     setHairColor: (hex) => {
-      if (!hex) return;
-      hairMats.forEach((m) => { if (m.color) { m.color.set(hex); m.needsUpdate = true; } });
+      hairMats.forEach((m) => {
+        if (!m.color) return;
+        if (hex) { m.map = null; m.color.set(hex); }
+        else { m.map = m.userData._origMap || null; if (m.userData._origColor) m.color.copy(m.userData._origColor); }
+        m.needsUpdate = true;
+      });
     },
   };
   return runEngine(container, rig, opts);
