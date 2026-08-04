@@ -18,7 +18,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
@@ -139,7 +139,7 @@ export function openDictogloss(unit, opts = {}) {
     if (pct >= 60) celebrate({ title: "\u00a1O\u00eddo afinado!", subtitle: `Entendiste el ${pct}% de las palabras.`, grand: pct >= 80 });
 
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= 60 ? "\u00a1Buen o\u00eddo!" : "Sigue entrenando el o\u00eddo"),
       el("p", { class: "mt-2 text-slate-300" }, "Entendiste el " + pct + "% de las palabras en " + sentences.length + " frases."),
       el("button", {
@@ -153,7 +153,7 @@ export function openDictogloss(unit, opts = {}) {
     role: "dialog", "aria-label": "Dictogloss (listening) con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-sky-300" }, "Dictogloss \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Escucha y escribe \u00b7 nivel " + (unit.level || ""))),

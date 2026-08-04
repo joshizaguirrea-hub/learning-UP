@@ -14,7 +14,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot, setBymaxTalking } from "../ui/bymax-mascot.js";
+import { setBymaxTalking, teacherFace } from "../ui/bymax-mascot.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
@@ -174,7 +174,7 @@ export function openReadingAloud(unit, opts = {}) {
     if (typeof onComplete === "function") onComplete(pct);
     bymaxSay(pct >= 60 ? "Excelente lectura, lo hiciste muy bien." : "Buen esfuerzo, sigue practicando y mejoraras.");
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, "\u00a1Lectura terminada!"),
       el("p", { class: "mt-2 text-slate-300" }, "Leiste bien " + passed + " de " + sentences.length + " frases (" + pct + "%)."),
       el("button", {
@@ -188,7 +188,7 @@ export function openReadingAloud(unit, opts = {}) {
     role: "dialog", "aria-label": "Lectura en voz alta con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-emerald-300" }, "Reading \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, name + " te califica la pronunciacion \u00b7 nivel " + (unit.level || ""))),

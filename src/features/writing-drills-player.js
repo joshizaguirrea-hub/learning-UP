@@ -11,7 +11,7 @@
 import { el } from "../ui/dom.js";
 import { speakMono } from "../ui/speech.js";
 import { celebrate } from "../ui/celebrate.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { normAnswer } from "../data/writing-drills.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
@@ -75,7 +75,7 @@ export function openDrillDeck({ title, subtitle, drills = [], onFinish, resumeKe
     role: "dialog", "aria-modal": "true", "aria-label": title || "Ejercicios",
   },
     el("div", { class: "flex items-center gap-3 p-4 border-b border-slate-800" },
-      el("div", { class: "w-10 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-10 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, title || "Pr\u00e1ctica"),
         subtitle ? el("p", { class: "text-xs text-slate-400" }, subtitle) : null),

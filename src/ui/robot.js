@@ -11,7 +11,7 @@ import { ICONS } from "./icons.js";
 import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote, portraitNode } from "./avatars.js";
-import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d } from "./robot-prefs.js";
+import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d, teacherPortraitSrc } from "./robot-prefs.js";
 import { HAIR_COLORS, SKIN_TONES } from "./avatar-palette.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
@@ -78,20 +78,13 @@ const ROLE_PORTRAITS = {
  * Modo robot: muestra el avatar SVG (Bymax) que eligio el alumno.
  */
 export function robotAvatar(size = "md", role = "course") {
-  if (getTeacher3d().mode !== "robot") {
-    return portraitNode(ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course, size);
-  }
+  const src = teacherPortraitSrc(role);
+  if (src) return portraitNode(src, size);
   return avatarNode(getRobot().avatar, size);
 }
 
-/**
- * Ruta del retrato PNG del profe para un rol, o null si el alumno eligio el
- * robot Bymax. Util para vistas que llenan su propio marco (hub de la unidad).
- */
-export function teacherPortraitSrc(role = "course") {
-  if (getTeacher3d().mode === "robot") return null;
-  return ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course;
-}
+// Re-export para que el resto de la UI use un solo import (robot.js).
+export { teacherPortraitSrc };
 
 /** Boton pequeno de altavoz con la voz (divertida) del profe. */
 function robotSpeakBtn(text, lang) {

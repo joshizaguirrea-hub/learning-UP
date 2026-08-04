@@ -70,6 +70,23 @@ export function setTeacher3d(cfg) {
   return merged;
 }
 
+// Retrato PNG estatico de cada profe humano, por rol. Generado con
+// tools/gen_portraits.py a partir de los .glb (vendor/avatars).
+export const ROLE_PORTRAITS = {
+  course: "./assets/teachers/megan.png",
+  speaking: "./assets/teachers/mathias.png",
+  interview: "./assets/teachers/susan.png",
+};
+
+/**
+ * Ruta del retrato PNG del profe para un rol, o null si el alumno eligio el
+ * robot Bymax (mode "robot"). Punto unico de verdad para "que cara mostrar".
+ */
+export function teacherPortraitSrc(role = "course") {
+  if (getTeacher3d().mode === "robot") return null;
+  return ROLE_PORTRAITS[role] || ROLE_PORTRAITS.course;
+}
+
 /** Lee el mapa {speaking, interview} de nombres personalizados. */
 function readTeachers() {
   try { return JSON.parse(localStorage.getItem(TKEY) || "{}"); } catch { return {}; }

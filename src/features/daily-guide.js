@@ -15,7 +15,7 @@ import { ICONS } from "../ui/icons.js";
 import { go } from "../ui/router.js";
 import { speakRobot } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { teacherName } from "../ui/robot.js";
 import { buildDailySession, countDoneToday, firstNameOf } from "../core/daily-guide.js";
 import { loadStudyPlan } from "../ui/study-plan-store.js";
@@ -104,7 +104,7 @@ function renderInto(card, user, session, plan, resting) {
 
   card.replaceChildren(
     el("div", { class: "flex items-start gap-4" },
-      el("div", { class: "w-14 shrink-0" }, bymaxMascot("md")),
+      el("div", { class: "w-14 shrink-0" }, teacherFace("md")),
       el("div", { class: "flex-1 min-w-0" },
         el("p", { class: "text-[11px] uppercase tracking-wide text-indigo-300 font-bold" },
           "Tu profe " + teacherName("course")),

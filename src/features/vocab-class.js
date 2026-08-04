@@ -20,7 +20,7 @@ import { speechSupported, createDictation } from "../ui/mic.js";
 import { coachView } from "./speaking.js";
 import { ICONS } from "../ui/icons.js";
 import { playCorrect } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { vocabTeachList } from "../core/vocab-lab.js";
 import { openVocabLab } from "./vocab-lab.js";
@@ -87,7 +87,7 @@ export function openVocabClass(unit, opts = {}) {
     setProgress(0);
     const greeting = (GREETING[tts] || GREETING.en)(name, words.length);
     stage.replaceChildren(el("div", { class: "text-center py-4" },
-      el("div", { class: "w-28 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-28 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-3" }, "\u00a1Hola! Soy " + name),
       el("p", { class: "mt-2 text-slate-300 max-w-sm mx-auto" },
         "Hoy te ense\u00f1o " + words.length + " palabras nuevas de \u201c" + (unit.title || "") + "\u201d. " +
@@ -190,7 +190,7 @@ export function openVocabClass(unit, opts = {}) {
     clearProgress(rkey);
     setProgress(1);
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, "\u00a1Terminamos la clase!"),
       el("p", { class: "mt-2 text-slate-300 max-w-sm mx-auto" },
         "Ya escuchaste y repetiste las " + words.length + " palabras. " +
@@ -210,7 +210,7 @@ export function openVocabClass(unit, opts = {}) {
     role: "dialog", "aria-label": "Clase de vocabulario con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-pink-300" }, "Clase de vocabulario \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Escucha y repite \u00b7 nivel " + (unit.level || ""))),

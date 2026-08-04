@@ -20,7 +20,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName, openRobotHint } from "../ui/robot.js";
 import { openDictionary } from "./dictionary.js";
 import { completeLesson } from "../services/course.js";
@@ -240,7 +240,7 @@ export function openGrammarInput(unit, opts = {}) {
     if (pct >= PASS) celebrate({ title: "\u00a1Gram\u00e1tica procesada!", subtitle: `Acertaste ${correct} de ${si.items.length} (${pct}%).`, grand: pct >= 80 });
 
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= PASS ? "\u00a1Bien procesado!" : "Sigue practicando"),
       el("p", { class: "mt-2 text-slate-300" }, "Entendiste " + correct + " de " + si.items.length + " (" + pct + "%)."),
       el("button", {
@@ -254,7 +254,7 @@ export function openGrammarInput(unit, opts = {}) {
     role: "dialog", "aria-label": "Input estructurado con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-violet-300" }, "Input estructurado \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Procesa la forma para captar el significado \u00b7 nivel " + (unit.level || ""))),
