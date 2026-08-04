@@ -52,7 +52,7 @@ export function isRobotConfigured() {
 // humano 3D cartoon (Ready Player Me). Se guarda aparte para no tocar el objeto
 // historico. { mode:"robot"|"human", gender:"F"|"M", url:"<glb>" }.
 const T3DKEY = "linguapath.teacher3d";
-const DEFAULT_3D = { mode: "robot", gender: "F", url: "" };
+const DEFAULT_3D = { mode: "robot", gender: "F", url: "", hairColor: null };
 
 /** Config del profe 3D (con defaults). mode "robot" = Bymax de siempre. */
 export function getTeacher3d() {

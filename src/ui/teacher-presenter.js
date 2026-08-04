@@ -63,8 +63,9 @@ export function mountTeacher(container, opts = {}) {
       if (disposed) { inst.dispose(); inst = null; return; }
       const an = getTtsAnalyser();      // lip-sync REAL por amplitud de la voz
       if (an) inst.attachAnalyser(an);
-      inst.setEmotion("happy");
-      inst.setTalking(want);            // aplica estado bufferizado
+      if (pref.hairColor) inst.setHairColor(pref.hairColor);
+      inst.setEmotion("happy");          // aplica estado bufferizado
+      inst.setTalking(want);
     } catch (e) {
       console.error("[teacher3d] fallo al montar el avatar 3D, uso Bymax:", e);
       if (disposed) return;
