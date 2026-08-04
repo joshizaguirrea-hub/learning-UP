@@ -29,6 +29,7 @@ import { openPronunciationLab, hasPronunciation } from "./pronunciation-lab.js";
 import { openCheckpoint, hasCheckpoint } from "./checkpoint.js";
 import { getCourseProgress } from "../services/course.js";
 import { openUnitReport } from "./unit-report.js";
+import { openNotebook } from "./notebook.js";
 import { isUnitComplete } from "../core/unit-report.js";
 
 // Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
@@ -76,7 +77,7 @@ export function unitContent(unit, progressMap, user) {
       "bg-[radial-gradient(circle_at_50%_42%,rgba(167,139,250,0.35),rgba(139,92,246,0.12)_62%,transparent_72%)] " +
       "ring-2 ring-violet-400/40 hover:ring-violet-300/70 " +
       "focus:outline focus:outline-2 focus:outline-white/80",
-    onclick: () => openClass(unit),
+    onclick: () => openClass(unit, user),
     "aria-label": "Hablar con " + name + " para elegir que practicar",
   }, face);
 
@@ -131,7 +132,22 @@ export function unitContent(unit, progressMap, user) {
     ring,
     extras,
     boletinButton(unit, progressMap, user),
+    notebookButton(unit, user),
     bonusPops);
+}
+
+/** Boton "Cuaderno de la unidad": errores acumulados + vocabulario + pronombres
+ * del capitulo (repaso y estudio). La profe lo llena al terminar cada clase. */
+function notebookButton(unit, user) {
+  return el("button", {
+    type: "button",
+    class: "mt-3 w-full flex items-center justify-center gap-2 rounded-2xl px-4 py-3 font-semibold text-white shadow-lg " +
+      "bg-gradient-to-r from-emerald-600 to-teal-700 hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70",
+    onclick: () => openNotebook(unit, user),
+    "aria-label": "Abrir el cuaderno de la unidad (errores, vocabulario y pronombres)",
+  },
+    el("span", { class: "w-6 h-6", html: ICONS.book }),
+    el("span", {}, "Cuaderno de la unidad"));
 }
 
 /** Boton "Boletin de la unidad": abre el resumen/calificacion. Relee el progreso
