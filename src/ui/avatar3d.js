@@ -174,34 +174,37 @@ function runEngine(container, rig, opts = {}) {
 }
 
 /**
- * Baja los brazos de una T-pose a una pose relajada (como Megan). Muchos avatares
- * (Avaturn, Avatar SDK) vienen en T-pose (brazos horizontales); rota el hueso del
- * brazo superior sobre el eje Z del mundo para dejarlos caer. El lado se deduce de
- * la posicion del hueso (no del nombre), asi funciona con distintos rigs.
+ * Baja los brazos de una T-pose a una pose relajada (como Megan). En vez de un
+ * angulo fijo (que deformaba el hombro), APUNTA el brazo superior hacia abajo:
+ * calcula el giro exacto que lleva la direccion actual del brazo a "abajo + un
+ * pelin hacia afuera" y lo aplica en espacio-mundo. Funciona con cualquier rig.
+ * Solo actua si el brazo esta horizontal (T-pose); si ya cuelga, no lo toca.
  * @param {THREE.Object3D} root
- * @param {number} [deg=68] - cuanto bajar (grados)
  */
-function relaxArms(root, deg = 70) {
+function relaxArms(root) {
   root.updateWorldMatrix(true, true);
   const rootPos = new THREE.Vector3(); root.getWorldPosition(rootPos);
-  const Z = new THREE.Vector3(0, 0, 1);
-  const angle = (deg * Math.PI) / 180;
   root.traverse((o) => {
     if (!o.isBone) return;
     const n = o.name.toLowerCase().replace(/[_\s.]/g, "");
     // Solo el brazo SUPERIOR exacto (evita 'Armature', 'ForeArm', twist bones).
-    const isUpperArm = n.includes("upperarm") || n === "leftarm" || n === "rightarm";
-    if (!isUpperArm) return;
+    if (!(n.includes("upperarm") || n === "leftarm" || n === "rightarm")) return;
     const child = o.children.find((c) => c.isBone);
     if (!child) return;
     const arm = new THREE.Vector3(); o.getWorldPosition(arm);
     const fore = new THREE.Vector3(); child.getWorldPosition(fore);
     const dir = fore.clone().sub(arm);
-    // Solo si esta en T-pose (brazo mas horizontal que vertical). Si ya cuelga
-    // (como Megan), no lo tocamos.
-    if (Math.abs(dir.x) <= Math.abs(dir.y)) return;
-    const sign = arm.x >= rootPos.x ? -1 : 1; // lado +X baja rotando -Z
-    o.rotateOnWorldAxis(Z, sign * angle);
+    if (dir.lengthSq() < 1e-6) return;
+    dir.normalize();
+    if (Math.abs(dir.x) <= Math.abs(dir.y)) return;   // ya cuelga (Megan) -> no tocar
+    // Objetivo: hacia abajo, con un leve angulo hacia su propio lado.
+    const out = arm.x >= rootPos.x ? 0.18 : -0.18;
+    const target = new THREE.Vector3(out, -1, 0.02).normalize();
+    const axis = dir.clone().cross(target);
+    if (axis.lengthSq() < 1e-6) return;
+    axis.normalize();
+    const angle = Math.acos(Math.max(-1, Math.min(1, dir.dot(target))));
+    o.rotateOnWorldAxis(axis, angle);
     o.updateWorldMatrix(true, true);
   });
 }
