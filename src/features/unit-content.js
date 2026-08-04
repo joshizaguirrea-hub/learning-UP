@@ -11,8 +11,9 @@ import { SKILL_META } from "../data/skill-meta.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { bonusDecksForLanguage } from "../data/bonus-decks.js";
 import { ICONS } from "../ui/icons.js";
-import { robotName } from "../ui/robot.js";
+import { robotName, teacherPortraitSrc } from "../ui/robot.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { portraitImg } from "../ui/avatars.js";
 import { el } from "../ui/dom.js";
 import { openClass } from "./class-tutor.js";
 import { openStory } from "./story.js";
@@ -62,8 +63,13 @@ export function unitContent(unit, progressMap, user) {
     if (isUnitComplete(unit, fresh)) { reportShown = true; openUnitReport(unit, fresh, user); }
   };
 
-  // POP central: Bymax (robo-perrito) mirando al alumno. El circulo lo CUBRE por
-  // completo (glow suave detras). Al tocarlo, abre la clase 1 a 1.
+  // POP central: el profe mirando al alumno. En modo humano (default) llena el
+  // circulo con su RETRATO (Megan, rol course); en modo robot, la mascota Bymax.
+  // Al tocarlo, abre la clase 1 a 1.
+  const faceSrc = teacherPortraitSrc("course");
+  const face = faceSrc
+    ? el("div", { class: "w-full h-full" }, portraitImg(faceSrc))
+    : el("div", { class: "translate-y-1" }, bymaxMascot("lg"));
   const center = el("button", {
     type: "button",
     class: "grid place-items-center rounded-full overflow-hidden w-[150px] h-[150px] sm:w-[176px] sm:h-[176px] " +
@@ -72,7 +78,7 @@ export function unitContent(unit, progressMap, user) {
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick: () => openClass(unit),
     "aria-label": "Hablar con " + name + " para elegir que practicar",
-  }, el("div", { class: "translate-y-1" }, bymaxMascot("lg")));
+  }, face);
 
   // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
   // calculada con seno/coseno). Contenedor cuadrado y responsivo.
