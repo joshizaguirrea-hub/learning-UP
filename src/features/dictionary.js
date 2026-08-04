@@ -2,7 +2,8 @@
  * features/dictionary.js — Diccionario/traductor FLOTANTE, disponible en toda la app.
  *
  * Un boton flotante (FAB) discreto abre un panel para traducir palabras o frases
- * ES <-> EN. Vive fuera de #app (colgado del body) para sobrevivir a los cambios
+ * entre ESPANOL y el IDIOMA META que estas aprendiendo (Ingles / Portugues /
+ * Italiano). Vive fuera de #app (colgado del body) para sobrevivir a los cambios
  * de ruta. Si seleccionas texto en la pagina y lo abres, se rellena solo.
  *
  * Widget de feature: orquesta ui (dom/speech) + servicio de traduccion. Accesible (WCAG AA).
@@ -10,7 +11,9 @@
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
 import { speakButton } from "../ui/speech.js";
-import { translate, looksEnglish } from "../services/dictionary.js";
+import { translate, looksSpanish } from "../services/dictionary.js";
+import { enabledLanguages, micCode } from "../data/languages.js";
+import { currentLangCode } from "../ui/nav.js";
 
 let mounted = false;
 let openDict = null; // referencia interna para abrir el panel desde otros modulos
@@ -19,10 +22,11 @@ let openDict = null; // referencia interna para abrir el panel desde otros modul
  * Abre el diccionario (montandolo si hace falta) opcionalmente con una palabra ya
  * cargada. Sirve para el boton "Diccionario" DENTRO de cualquier curso/POP.
  * @param {string} [word] palabra o frase a precargar
+ * @param {string} [lang] idioma meta a fijar (en|pt|it); por defecto, el del curso
  */
-export function openDictionary(word) {
+export function openDictionary(word, lang) {
   mountDictionary();
-  if (openDict) openDict(word);
+  if (openDict) openDict(word, lang);
 }
 
 /** Monta el diccionario flotante una sola vez. */
@@ -30,8 +34,16 @@ export function mountDictionary() {
   if (mounted) return;
   mounted = true;
 
-  let pair = "en|es"; // direccion actual
+  // Idiomas META traducibles (todo lo aprendible menos el nativo espanol).
+  const L2 = enabledLanguages().filter((l) => l.code !== "es");
+  const pickTarget = (code) => (L2.some((l) => l.code === code) ? code : (L2[0]?.code || "en"));
+
+  let target = pickTarget(currentLangCode()); // idioma que se aprende
+  let dir = "toEs"; // "toEs": meta->espanol (leer lo que aprendes) | "toL2": espanol->meta
   let open = false;
+
+  const curPair = () => (dir === "toEs" ? `${target}|es` : `es|${target}`);
+  const dirText = () => (dir === "toEs" ? `${target.toUpperCase()} \u2192 ES` : `ES \u2192 ${target.toUpperCase()}`);
 
   const input = el("input", {
     type: "text", autocomplete: "off",
@@ -43,31 +55,42 @@ export function mountDictionary() {
 
   const result = el("div", { class: "mt-3 min-h-[2.5rem] text-sm", role: "status", "aria-live": "polite" });
 
-  const dirLabel = el("span", { class: "font-semibold" }, "EN -> ES");
+  // Selector del IDIOMA META (Ingles / Portugues / Italiano).
+  const targetSel = el("select", {
+    class: "text-xs px-2 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-200 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-400",
+    "aria-label": "Idioma que estas aprendiendo",
+    onchange: () => { target = targetSel.value; refreshDir(); if (input.value) doTranslate(); },
+  }, ...L2.map((l) => el("option", { value: l.code }, l.name)));
+  targetSel.value = target;
+
+  const dirLabel = el("span", { class: "font-semibold" }, dirText());
   const dirBtn = el("button", {
     type: "button",
     class: "text-xs px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-200 " +
       "hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-indigo-400",
     "aria-label": "Cambiar direccion de traduccion",
-    onclick: () => { pair = pair === "en|es" ? "es|en" : "en|es"; dirLabel.textContent = pair === "en|es" ? "EN -> ES" : "ES -> EN"; },
+    onclick: () => { dir = dir === "toEs" ? "toL2" : "toEs"; refreshDir(); if (input.value) doTranslate(); },
   }, dirLabel);
+
+  function refreshDir() { dirLabel.textContent = dirText(); }
 
   const doTranslate = async () => {
     const q = input.value.trim();
     if (!q) { result.replaceChildren(); return; }
     result.replaceChildren(el("p", { class: "text-slate-400" }, "Traduciendo..."));
     try {
-      const { text } = await translate(q, pair);
-      const english = pair === "en|es" ? q : text; // que lado es ingles
+      const { text } = await translate(q, curPair());
+      const l2Side = dir === "toEs" ? q : text; // el lado en idioma meta (para pronunciar)
       result.replaceChildren(el("div", { class: "rounded-lg bg-slate-800/70 border border-slate-700 p-3" },
         el("div", { class: "flex items-center gap-2" },
           el("p", { class: "flex-1 text-lg font-semibold text-indigo-300" }, text),
-          speakButton(english, { cls: "w-8 h-8" })),
-        el("p", { class: "mt-1 text-xs text-slate-500" }, `${q}  (${pair.replace("|", " -> ")})`)));
+          speakButton(l2Side, { lang: micCode(target), cls: "w-8 h-8" })),
+        el("p", { class: "mt-1 text-xs text-slate-500" }, `${q}  (${curPair().replace("|", " -> ")})`)));
     } catch (e) {
       result.replaceChildren(el("div", { class: "rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-amber-200" },
         el("p", {}, e.message || "No se pudo traducir."),
-        isSpeakable(input.value) ? el("div", { class: "mt-2" }, speakButton(input.value, { cls: "w-8 h-8" })) : null));
+        isSpeakable(input.value) ? el("div", { class: "mt-2" }, speakButton(input.value, { lang: micCode(target), cls: "w-8 h-8" })) : null));
     }
   };
 
@@ -95,7 +118,7 @@ export function mountDictionary() {
     el("div", { class: "flex items-center gap-2" },
       el("span", { class: "text-slate-500", "aria-hidden": "true", html: GRIP }),
       el("h2", { class: "font-bold text-slate-100" }, "Diccionario")),
-    el("div", { class: "flex items-center gap-2" }, dirBtn, closeBtn));
+    el("div", { class: "flex items-center gap-2" }, targetSel, dirBtn, closeBtn));
 
   const panel = el("div", {
     role: "dialog", "aria-label": "Diccionario", "aria-modal": "false",
@@ -121,24 +144,29 @@ export function mountDictionary() {
     el("span", { class: "absolute inset-x-0 top-0 h-1/2 bg-white/25" }),
     el("span", { class: "relative w-7 h-7", html: ICONS.book }));
 
-  function togglePanel(next) {
+  function togglePanel(next, keepTarget) {
     open = next;
     panel.classList.toggle("hidden", !open);
     fab.setAttribute("aria-expanded", open ? "true" : "false");
     if (open) {
+      // Al abrir desde el FAB, sincroniza el idioma meta con el del curso actual.
+      if (!keepTarget) { target = pickTarget(currentLangCode()); targetSel.value = target; }
       const sel = String(window.getSelection?.() || "").trim();
-      if (sel) { input.value = sel; pair = looksEnglish(sel) ? "en|es" : "es|en"; dirLabel.textContent = pair === "en|es" ? "EN -> ES" : "ES -> EN"; }
+      if (sel) { input.value = sel; dir = looksSpanish(sel) ? "toL2" : "toEs"; }
+      refreshDir();
       input.focus();
       if (input.value) doTranslate();
     }
   }
 
   // Permite abrir el diccionario desde otros modulos (openDictionary), con una
-  // palabra precargada opcional (p.ej. desde un curso: "no conozco esta palabra").
-  openDict = (word) => {
+  // palabra precargada y/o idioma meta opcional (p.ej. desde un curso italiano).
+  openDict = (word, lang) => {
+    if (lang && L2.some((l) => l.code === lang)) { target = lang; targetSel.value = lang; }
     const w = (word || "").trim();
-    if (w) { input.value = w; pair = looksEnglish(w) ? "en|es" : "es|en"; dirLabel.textContent = pair === "en|es" ? "EN -> ES" : "ES -> EN"; }
-    togglePanel(true);
+    if (w) { input.value = w; dir = looksSpanish(w) ? "toL2" : "toEs"; }
+    refreshDir();
+    togglePanel(true, true);
   };
 
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && open) togglePanel(false); });

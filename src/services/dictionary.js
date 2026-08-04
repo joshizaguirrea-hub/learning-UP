@@ -1,14 +1,15 @@
 /**
- * services/dictionary.js — Traduccion de palabras/frases (ES <-> EN).
+ * services/dictionary.js — Traduccion de palabras/frases (ES <-> idioma meta).
  *
- * Usa la API gratuita y sin llave de MyMemory (soporta CORS). Si la red falla,
- * lanza un error claro para que la UI degrade con elegancia.
+ * Usa la API gratuita y sin llave de MyMemory (soporta CORS). Funciona con
+ * cualquier par de idiomas (en|es, it|es, pt|es, ...). Si la red falla, lanza un
+ * error claro para que la UI degrade con elegancia.
  *
  * No guarda estado global salvo un cache en memoria para no repetir peticiones.
  */
 
 const ENDPOINT = "https://api.mymemory.translated.net/get";
-const cache = new Map(); // clave: `${dir}:${texto}` -> traduccion
+const cache = new Map(); // clave: `${pair}:${texto}` -> traduccion
 
 /** Detecta si el texto parece ingles (heuristica simple por caracteres). */
 export function looksEnglish(text) {
@@ -18,9 +19,22 @@ export function looksEnglish(text) {
 }
 
 /**
+ * Heuristica: el texto parece ESPANOL (idioma nativo del alumno). Sirve para
+ * decidir la direccion por defecto al traducir contra el idioma meta (it/pt/en).
+ * No es perfecta (es/it/pt comparten acentos), pero acierta en los casos comunes.
+ */
+export function looksSpanish(text) {
+  const t = String(text || "").toLowerCase();
+  if (/[ñ¿¡]/.test(t)) return true; // marcas casi exclusivas del espanol
+  // Palabras muy frecuentes y propias del espanol.
+  if (/\b(el|la|los|las|un|una|unos|unas|de|que|y|con|para|por|pero|como|esto|eso|muy|tambien|hola|gracias|porque|donde|cuando)\b/.test(t)) return true;
+  return false;
+}
+
+/**
  * Traduce texto en la direccion dada.
  * @param {string} text
- * @param {"en|es"|"es|en"} pair
+ * @param {string} pair - par de idiomas MyMemory, ej "en|es", "it|es", "es|pt"
  * @returns {Promise<{text:string, match:number}>}
  */
 export async function translate(text, pair = "en|es") {
