@@ -102,7 +102,9 @@ function runEngine(container, rig, opts = {}) {
     const a = new THREE.Vector3(); fore.getWorldPosition(a);
     const c = new THREE.Vector3(); fore.children[0].getWorldPosition(c);
     const dir = c.clone().sub(a).normalize();
-    const target = new THREE.Vector3(0.35, 0.95, 0.25).normalize(); // arriba + un pelin al frente
+    const rc = new THREE.Vector3(); rig.root.getWorldPosition(rc);
+    const outSign = a.x >= rc.x ? 1 : -1; // hacia SU lado (afuera), NO cruzando el pecho
+    const target = new THREE.Vector3(outSign * 0.33, 0.95, 0.42).normalize(); // arriba (cerca de la cara) arqueando a su lado + al frente
     const dq = new THREE.Quaternion().setFromUnitVectors(dir, target);
     const curW = new THREE.Quaternion(); fore.getWorldQuaternion(curW);
     const parW = new THREE.Quaternion(); fore.parent.getWorldQuaternion(parW);
