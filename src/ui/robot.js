@@ -12,6 +12,7 @@ import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote } from "./avatars.js";
 import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d } from "./robot-prefs.js";
+import { HAIR_COLORS } from "./avatar-palette.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
@@ -310,7 +311,7 @@ export function openRobotSetup(onDone) {
 
   // --- Cara del profe: robot Bymax (default) o humano 3D cartoon ------------
   const t3d = getTeacher3d();
-  let mode3d = t3d.mode, gender3d = t3d.gender;
+  let mode3d = t3d.mode, gender3d = t3d.gender, hair3d = t3d.hairColor || null;
   const glbInput = el("input", {
     type: "text", value: t3d.url || "",
     placeholder: "URL o ruta .glb del avatar (opcional)",
@@ -329,9 +330,20 @@ export function openRobotSetup(onDone) {
       el("div", { class: "grid grid-cols-2 gap-2" },
         el("button", { type: "button", class: chip(gender3d === "F"), onclick: () => { gender3d = "F"; paint3d(); } }, "Mujer"),
         el("button", { type: "button", class: chip(gender3d === "M"), onclick: () => { gender3d = "M"; paint3d(); } }, "Hombre")),
+      el("p", { class: "mt-2 text-xs text-slate-400" }, "Color de pelo"),
+      el("div", { class: "mt-1 flex flex-wrap gap-2" }, ...HAIR_COLORS.map((h) => {
+        const sel = (hair3d || null) === h.hex;
+        return el("button", {
+          type: "button", title: h.label, "aria-label": "Pelo " + h.label, "aria-pressed": sel ? "true" : "false",
+          class: "w-9 h-9 rounded-full border-2 transition " +
+            (sel ? "ring-2 ring-offset-2 ring-offset-slate-900 ring-white scale-110 border-white" : "border-slate-600 hover:scale-105"),
+          style: "background:" + h.swatch,
+          onclick: () => { hair3d = h.hex; paint3d(); },
+        });
+      })),
       glbInput,
       el("p", { class: "mt-1 text-xs text-slate-500" },
-        "Sin URL usa un demo. Crea el tuyo gratis en Avaturn (avaturn.me) o Ready Player Me y pega la .glb, o subela a vendor/avatars/ y pon ./vendor/avatars/tu-profe.glb"));
+        "Sin URL usa la profe incluida. Podes crear el tuyo en Avaturn (avaturn.me) o Ready Player Me y pegar la .glb."));
   }
   paint3d();
 
@@ -340,7 +352,7 @@ export function openRobotSetup(onDone) {
     onclick: () => {
       const name = nameInput.value.trim() || "Teacher Horus";
       setAccent(chosenAccent);
-      setTeacher3d({ mode: mode3d, gender: gender3d, url: glbInput.value.trim() });
+      setTeacher3d({ mode: mode3d, gender: gender3d, url: glbInput.value.trim(), hairColor: hair3d });
       const cfg = setRobot({ name, avatar: chosen });
       close();
       if (typeof onDone === "function") onDone(cfg);

@@ -84,6 +84,8 @@
 
     <p id="status" class="mt-3 text-xs text-slate-400"></p>
 
+    <div id="hairRow" class="mt-3 flex flex-wrap items-center gap-2"></div>
+
     <div class="mt-6 text-xs text-slate-500 leading-relaxed">
       <p class="font-semibold text-slate-400">¿Cómo consigo mi avatar cartoon?</p>
       <p>1. Entra a <a class="text-indigo-300 underline" href="https://readyplayer.me/es/avatar" target="_blank" rel="noopener">readyplayer.me/es/avatar</a> (gratis, sin cuenta).</p>
@@ -94,6 +96,7 @@
 
   <script type="module">
     import { createAvatar3d, createDemoHead } from "./src/ui/avatar3d.js";
+    import { HAIR_COLORS } from "./src/ui/avatar-palette.js";
 
     const stage = document.getElementById("stage");
     const hint = document.getElementById("hint");
@@ -137,6 +140,17 @@
         say("No cargo (red bloqueada?): " + (e?.message || e) + ". Usa los demos OFFLINE de arriba.");
       }
     }
+
+    // Botones de color de pelo (misma paleta que Ajustes).
+    const hairRow = document.getElementById("hairRow");
+    hairRow.appendChild(Object.assign(document.createElement("span"), { className: "text-xs text-slate-400", textContent: "Pelo:" }));
+    HAIR_COLORS.forEach((h) => {
+      const b = document.createElement("button");
+      b.title = h.label; b.style.background = h.swatch;
+      b.className = "w-8 h-8 rounded-full border-2 border-slate-600 hover:scale-110 transition";
+      b.addEventListener("click", () => { if (avatar && avatar.setHairColor) { avatar.setHairColor(h.hex); say("Pelo: " + h.label); } });
+      hairRow.appendChild(b);
+    });
 
     document.getElementById("demoF").addEventListener("click", () => demo("F"));
     document.getElementById("demoM").addEventListener("click", () => demo("M"));

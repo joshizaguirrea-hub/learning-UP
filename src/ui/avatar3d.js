@@ -149,6 +149,8 @@ function runEngine(container, rig, opts = {}) {
       } catch { analyser = null; }
     },
     setEmotion(kind) { rig.setEmotion?.(kind); },
+    /** Recolorea el pelo (hex tipo "#E6C88C"). No-op si el avatar no tiene pelo. */
+    setHairColor(hex) { rig.setHairColor?.(hex); },
     get canLipSync() { return rig.canLipSync !== false; },
     dispose() {
       disposed = true; cancelAnimationFrame(raf); ro.disconnect();
@@ -169,8 +171,12 @@ export async function createAvatar3d(container, opts = {}) {
   const root = gltf.scene;
 
   const morphs = {}; let headBone = null;
+  const hairMats = [];
   root.traverse((o) => {
     if (o.isBone && /head/i.test(o.name) && !headBone) headBone = o;
+    if (o.isMesh && /hair/i.test((o.name || "") + " " + (o.material && o.material.name || ""))) {
+      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => m && hairMats.push(m));
+    }
     if (o.morphTargetDictionary && o.morphTargetInfluences) {
       for (const [name, idx] of Object.entries(o.morphTargetDictionary)) {
         (morphs[name] ||= []).push({ mesh: o, index: idx });
@@ -197,6 +203,12 @@ export async function createAvatar3d(container, opts = {}) {
       const s = kind === "happy" ? 0.3 : 0;
       if (has("mouthSmile")) setMorph("mouthSmile", s);
       else { setMorph("mouthSmileLeft", s); setMorph("mouthSmileRight", s); }
+    },
+    // Tinte del pelo: el material del pelo se multiplica por este color. Los
+    // avatares Wolf3D/RPM traen textura de pelo grisacea, asi que el tinte se ve.
+    setHairColor: (hex) => {
+      if (!hex) return;
+      hairMats.forEach((m) => { if (m.color) { m.color.set(hex); m.needsUpdate = true; } });
     },
   };
   return runEngine(container, rig, opts);
