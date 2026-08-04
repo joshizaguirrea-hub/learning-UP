@@ -166,7 +166,7 @@ export function parseErrorItems(body) {
     const wrong = stripQuotes(parts[0]);
     let rest = parts.slice(1).join(" -> ").trim();
     let why = "";
-    const wm = rest.match(/\(([^)]*)\)\s*$/);
+    const wm = rest.match(/\(([^)]*)\)[\s.;,]*$/);
     if (wm) { why = wm[1].trim(); rest = rest.slice(0, wm.index).trim(); }
     const right = stripQuotes(rest);
     if (wrong && right) out.push({ wrong, right, why });
