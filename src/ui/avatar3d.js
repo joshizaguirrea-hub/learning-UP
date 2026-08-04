@@ -154,7 +154,7 @@ function runEngine(container, rig, opts = {}) {
       }
     }
     mouth += (target - mouth) * Math.min(1, dt * 18); // suavizado
-    rig.setMouth(mouth);
+    if (rig.setSpeech) rig.setSpeech(mouth, t); else rig.setMouth(mouth);
 
     // --- Expresion calida + gesto de SALUDO (elbow wave) --------------------
     let smileTarget = 0.12;  // sonrisa BASE amable (que no se vea severa)
@@ -198,7 +198,7 @@ function runEngine(container, rig, opts = {}) {
   ro.observe(container);
 
   return {
-    setTalking(on) { talking = !!on; if (!on) { mouth = 0; rig.setMouth(0); } },
+    setTalking(on) { talking = !!on; if (!on) { mouth = 0; if (rig.setSpeech) rig.setSpeech(0, 0); else rig.setMouth(0); } },
     /** Saluda con la mano (elbow wave) + sonrisa y cejas amables. No-op si el
      *  avatar no tiene brazo detectable (ej. cabeza demo). */
     greet() { if (armRaised) greetT = 0; },
@@ -316,12 +316,29 @@ export async function createAvatar3d(container, opts = {}) {
     for (const t of ts) t.mesh.morphTargetInfluences[t.index] = val;
   };
   const mouthMorph = MOUTH_MORPHS.find(has) || null;
+  // Visemes de vocales para ARTICULACION realista: la boca cambia de FORMA (no
+  // solo abre/cierra). Usamos las que traiga el avatar RPM.
+  const vowels = ["viseme_aa", "viseme_E", "viseme_I", "viseme_O", "viseme_U"].filter(has);
   const blinkSet = BLINK_MORPHS.find((s) => s.every(has)) || null;
 
   const rig = {
     root, headBone,
     canLipSync: !!mouthMorph,
     setMouth: (v) => { if (mouthMorph) setMorph(mouthMorph, v); },
+    // Articulacion realista: abre la mandibula + mezcla dos visemes de vocales
+    // que van rotando en el tiempo, escalados por el volumen -> la boca toma
+    // formas distintas como al pronunciar. Si el avatar no tiene visemes, es
+    // null y el bucle cae a setMouth (solo mandibula).
+    setSpeech: vowels.length ? (open, t) => {
+      const o = Math.max(0, Math.min(1, open));
+      if (mouthMorph) setMorph(mouthMorph, o * 0.82);
+      const pos = t * 6.5;                       // velocidad de cambio de forma
+      const i = Math.floor(pos) % vowels.length;
+      const f = pos - Math.floor(pos);           // interpola entre vocal i e i+1
+      for (const v of vowels) if (v !== mouthMorph) setMorph(v, 0);
+      setMorph(vowels[i], o * (1 - f) * 0.6);
+      setMorph(vowels[(i + 1) % vowels.length], o * f * 0.6);
+    } : null,
     setBlink: blinkSet ? (v) => blinkSet.forEach((m) => setMorph(m, v)) : null,
     // Sonrisa continua (0..1). La usamos para una sonrisa BASE calida (que no se
     // vea severa) y para agrandarla al saludar. No apila blendshapes raros.
