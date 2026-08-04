@@ -11,8 +11,9 @@
  * Vive en el chat con Bymax (features/conversation.js), pero es reutilizable.
  */
 import { el } from "./dom.js";
-import { getRobot } from "./robot-prefs.js";
+import { getRobot, teacherPortraitSrc } from "./robot-prefs.js";
 import { animalMascotSvg } from "./mascot-bodies.js";
+import { portraitFill } from "./avatars.js";
 
 // SVG del personaje: Bymax con CUERPO DE PERRITO (robo-cachorro sentado).
 // Colores de la marca Bymax (indigo/violeta + ojos cian). Orejas floppy, cuatro
@@ -103,6 +104,19 @@ export function bymaxMascot(size = "md", id) {
     class: "shrink-0 robot-float " + w,
     "aria-hidden": "true",
   }, inner);
+}
+
+/**
+ * "Cara" del profe para paneles que muestran la mascota de cuerpo completo.
+ * Modo humano (default): retrato PNG que llena el contenedor. Modo robot: la
+ * mascota Bymax de siempre. DRY: un solo cambio por caller para soportar ambos.
+ * @param {"sm"|"md"|"lg"|"xl"} [size]
+ * @param {string} [role] - course|speaking|interview (default course)
+ */
+export function teacherFace(size = "md", role = "course") {
+  const src = teacherPortraitSrc(role);
+  if (src) return portraitFill(src);
+  return bymaxMascot(size);
 }
 
 /**

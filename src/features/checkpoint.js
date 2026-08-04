@@ -14,7 +14,7 @@ import { normalize, grade } from "../core/activities.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { ttsCode } from "../data/languages.js";
 import { unitsUpTo } from "../data/units/index.js";
@@ -191,7 +191,7 @@ export function openCheckpoint(unit, opts = {}) {
     const pct = scorePct(correct, deck.length);
     const covered = unitsCovered(units.map((u) => ({ unitId: u.id })));
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= 60 ? "\u00a1Repaso superado!" : "Buen intento"),
       el("p", { class: "mt-2 text-slate-300" }, "Acertaste " + correct + " de " + deck.length + " (" + pct + "%)."),
       el("p", { class: "mt-1 text-xs text-slate-500" }, "Mezclaste " + covered + " unidades. El vocabulario entr\u00f3 a tu repaso (SRS)."),
@@ -228,7 +228,7 @@ export function openCheckpoint(unit, opts = {}) {
     role: "dialog", "aria-label": "Repaso acumulativo con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-amber-300" }, "Repaso \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Mezcla varias unidades \u00b7 nivel " + (unit.level || ""))),

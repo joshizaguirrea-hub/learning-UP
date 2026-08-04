@@ -15,7 +15,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { ttsCode } from "../data/languages.js";
 import { pronunciationPackFor } from "../data/pt-pronunciation.js";
@@ -166,7 +166,7 @@ export function openPronunciationLab(unit, opts = {}) {
     progress.firstChild.style.width = "100%";
     const pct = scorePct(correct, totalScorable);
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= 60 ? "\u00a1Buen oido!" : "Sigue entrenando"),
       totalScorable
         ? el("p", { class: "mt-2 text-slate-300" }, "Distinguiste " + correct + " de " + totalScorable + " (" + pct + "%).")
@@ -185,7 +185,7 @@ export function openPronunciationLab(unit, opts = {}) {
     role: "dialog", "aria-label": "Pronuncia Lab con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-cyan-300" }, "Pronuncia Lab \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "El oido antes que la boca \u00b7 nivel " + (unit.level || ""))),

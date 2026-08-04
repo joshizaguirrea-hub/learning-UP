@@ -19,7 +19,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
 import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
@@ -190,7 +190,7 @@ export function openReadingLab(unit, opts = {}) {
     if (pct >= PASS) celebrate({ title: "\u00a1Comprensi\u00f3n lograda!", subtitle: `Acertaste ${correct} de ${questions.length} (${pct}%).`, grand: pct >= 80 });
 
     stage.replaceChildren(el("div", { class: "text-center py-6" },
-      el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+      el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= PASS ? "\u00a1Bien le\u00eddo!" : "Sigue practicando"),
       el("p", { class: "mt-2 text-slate-300" }, "Entendiste " + correct + " de " + questions.length + " (" + pct + "%)."),
       el("div", { class: "mt-5 flex flex-col sm:flex-row gap-2 justify-center" },
@@ -209,7 +209,7 @@ export function openReadingLab(unit, opts = {}) {
     role: "dialog", "aria-label": "Reading Lab con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, "Reading Lab \u00b7 " + (unit.title || "")),
         el("p", { class: "text-xs text-slate-400" }, "Lee, entiende y responde \u00b7 nivel " + (unit.level || ""))),

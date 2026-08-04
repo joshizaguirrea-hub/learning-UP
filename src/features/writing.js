@@ -8,7 +8,7 @@
  * sesion reutiliza openBymaxSession (mode "class") con onFinish para el progreso.
  */
 import { el } from "../ui/dom.js";
-import { bymaxMascot } from "../ui/bymax-mascot.js";
+import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { isAtLeast } from "../data/cefr.js";
 import { completeLesson } from "../services/course.js";
@@ -205,7 +205,7 @@ export function openWriting(unit, opts = {}) {
     role: "dialog", "aria-label": "Escritura con " + name, "aria-modal": "true",
   },
     el("div", { class: "flex items-center gap-3 p-4 sm:p-5 border-b border-slate-800" },
-      el("div", { class: "w-12 shrink-0" }, bymaxMascot("sm")),
+      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
       el("div", { class: "flex-1" },
         el("p", { class: "font-bold text-indigo-300" }, "Writing con " + name),
         el("p", { class: "text-xs text-slate-400" }, "Elige un tipo de ejercicio \u00b7 " + title + " \u00b7 nivel " + level)),

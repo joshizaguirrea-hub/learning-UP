@@ -229,6 +229,20 @@ export function portraitImg(src) {
 }
 
 /**
+ * Retrato del profe que LLENA el ancho de su contenedor (circulo cuadrado). Para
+ * paneles que antes mostraban la mascota de cuerpo completo dentro de un div de
+ * ancho fijo (w-24, w-12, ...). Asi el retrato hereda ese tamano sin tocar cada
+ * layout.
+ */
+export function portraitFill(src) {
+  return el("div", {
+    class: "w-full aspect-square rounded-full overflow-hidden shadow-lg robot-float " +
+      "bg-gradient-to-br from-slate-700 to-slate-800 border border-slate-600",
+    "aria-hidden": "true",
+  }, portraitImg(src));
+}
+
+/**
  * Nodo de RETRATO del profe humano 3D: un PNG estatico (assets/teachers) dentro
  * del mismo circulo que avatarNode. Se usa como iconito del profe en toda la app
  * sin correr un canvas 3D por cada uno. size: sm|md|lg.

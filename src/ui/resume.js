@@ -6,7 +6,7 @@
  * las funciones de core para que los ejercicios importen todo desde un solo lugar.
  */
 import { el } from "./dom.js";
-import { bymaxMascot } from "./bymax-mascot.js";
+import { teacherFace } from "./bymax-mascot.js";
 
 export { makeResumeKey, saveProgress, loadProgress, clearProgress } from "../core/resume.js";
 
@@ -28,7 +28,7 @@ export function resumeCard({ step, total, accent = "indigo", onResume, onRestart
   const grad = ACCENTS[accent] || ACCENTS.indigo;
   const where = total ? `Paso ${step} de ${total}` : `Paso ${step}`;
   return el("div", { class: "text-center py-6" },
-    el("div", { class: "w-24 mx-auto" }, bymaxMascot("lg")),
+    el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
     el("h3", { class: "text-xl font-bold text-slate-100 mt-3" }, "\u00a1Bienvenido de vuelta!"),
     el("p", { class: "mt-2 text-slate-300 max-w-sm mx-auto" },
       "Dejaste este ejercicio a medias. \u00bfSeguimos donde te quedaste?"),
