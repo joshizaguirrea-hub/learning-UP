@@ -185,12 +185,12 @@ function relaxArms(root) {
   root.updateWorldMatrix(true, true);
   const rootPos = new THREE.Vector3(); root.getWorldPosition(rootPos);
   root.traverse((o) => {
-    if (!o.isBone) return;
-    const n = o.name.toLowerCase().replace(/[_\s.]/g, "");
-    // Solo el brazo SUPERIOR exacto (evita 'Armature', 'ForeArm', twist bones).
+    // Por NOMBRE (no exigimos isBone: three.js a veces expone el joint como
+    // Object3D). Solo el brazo SUPERIOR exacto (evita Armature/ForeArm/twist).
+    const n = (o.name || "").toLowerCase().replace(/[_\s.]/g, "");
     if (!(n.includes("upperarm") || n === "leftarm" || n === "rightarm")) return;
-    const child = o.children.find((c) => c.isBone);
-    if (!child) return;
+    const child = o.children && o.children[0];
+    if (!child || !o.parent) return;
     const arm = new THREE.Vector3(); o.getWorldPosition(arm);
     const fore = new THREE.Vector3(); child.getWorldPosition(fore);
     const dir = fore.clone().sub(arm);
@@ -200,11 +200,14 @@ function relaxArms(root) {
     // Objetivo: hacia abajo, con un leve angulo hacia su propio lado.
     const out = arm.x >= rootPos.x ? 0.18 : -0.18;
     const target = new THREE.Vector3(out, -1, 0.02).normalize();
-    const axis = dir.clone().cross(target);
-    if (axis.lengthSq() < 1e-6) return;
-    axis.normalize();
-    const angle = Math.acos(Math.max(-1, Math.min(1, dir.dot(target))));
-    o.rotateOnWorldAxis(axis, angle);
+    // Giro (en mundo) que lleva la direccion actual del brazo al objetivo, y lo
+    // pasamos a LOCAL respetando la rotacion del padre (rotateOnWorldAxis NO lo
+    // hace bien cuando el padre esta rotado -> ese era el bug de brazos rotos).
+    const dq = new THREE.Quaternion().setFromUnitVectors(dir, target);
+    const curWorld = new THREE.Quaternion(); o.getWorldQuaternion(curWorld);
+    const parentWorld = new THREE.Quaternion(); o.parent.getWorldQuaternion(parentWorld);
+    const desiredWorld = dq.multiply(curWorld);       // dq * actual
+    o.quaternion.copy(parentWorld.invert().multiply(desiredWorld));
     o.updateWorldMatrix(true, true);
   });
 }
