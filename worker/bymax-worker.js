@@ -433,12 +433,15 @@ async function azureTts(text, env, rate) {
 // natural que lee texto mixto es+en y cambia de idioma sola. Requiere secret
 // OPENAI_API_KEY. Devuelve base64 mp3.
 const OPENAI_VOICE = "alloy"; // alloy/echo/fable/nova/shimmer/onyx (todas multilingues)
-async function openaiTts(text, env, rate) {
+// Voces OpenAI permitidas. Asi cada PROFE puede tener SU voz (Megan/Susan mujer,
+// Mathias hombre) sin arriesgar una voz invalida (la API las rechaza).
+const OPENAI_VOICES = new Set(["alloy", "echo", "fable", "onyx", "nova", "shimmer", "ash", "sage", "coral"]);
+async function openaiTts(text, env, rate, ttsVoice) {
   const key = env.OPENAI_API_KEY;
   if (!key) throw new Error("sin OPENAI_API_KEY");
   const body = {
     model: "gpt-4o-mini-tts",
-    voice: OPENAI_VOICE,
+    voice: OPENAI_VOICES.has(ttsVoice) ? ttsVoice : OPENAI_VOICE,
     input: String(text),
     response_format: "mp3",
   };
@@ -473,6 +476,9 @@ async function handleTts(request, env, origin) {
   // Voz Google Chirp3-HD ingles (Worker nuevo): solo se acepta el patron oficial.
   const voiceHd = typeof body.voiceHd === "string" && /^en-US-Chirp3-HD-[A-Za-z]+$/.test(body.voiceHd) ? body.voiceHd : "";
   const gender = body.gender === "M" ? "M" : "F";
+  // Voz OpenAI por PROFE (Megan=nova, Susan=shimmer, Mathias=onyx...). Si no viene
+  // o es invalida, cae a la voz por defecto (alloy).
+  const ttsVoice = OPENAI_VOICES.has(body.ttsVoice) ? body.ttsVoice : "";
   // Velocidad opcional (0.5-1.5). 0 = velocidad normal (no forzar).
   let rate = Number(body.rate);
   if (!(rate >= 0.5 && rate <= 1.5)) rate = 0;
@@ -487,7 +493,7 @@ async function handleTts(request, env, origin) {
   //    La clave incluye la voz REAL usada (HD o Aura) y el rate (afectan el audio).
   //    Si OpenAI esta activo, la clave se namespacea a su voz -> audio consistente.
   const kv = env.AUDIO_KV;
-  const keyVoice = (env.OPENAI_API_KEY ? "openai:" + OPENAI_VOICE : (isEn ? (hdEn || voice) : "es")) + "@" + (rate || "n");
+  const keyVoice = (env.OPENAI_API_KEY ? "openai:" + (ttsVoice || OPENAI_VOICE) : (isEn ? (hdEn || voice) : "es")) + "@" + (rate || "n");
   let key = null;
   if (kv) {
     try {
@@ -516,8 +522,8 @@ async function handleTts(request, env, origin) {
     // (Azure/Google/Aura) quedan solo de respaldo si OpenAI falla o no esta.
     if (env.OPENAI_API_KEY) {
       try {
-        const audio = await openaiTts(text, env, rate);
-        if (audio) return store({ audio, engine: "openai", voice: OPENAI_VOICE });
+        const audio = await openaiTts(text, env, rate, ttsVoice);
+        if (audio) return store({ audio, engine: "openai", voice: ttsVoice || OPENAI_VOICE });
       } catch (e) { /* cae a los motores de respaldo abajo */ }
     }
 
@@ -532,8 +538,8 @@ async function handleTts(request, env, origin) {
         if (audio) return store({ audio, engine: "azure-multi", voice: AZURE_VOICE });
       }
       if (env.OPENAI_API_KEY) {
-        const audio = await openaiTts(text, env, rate);
-        if (audio) return store({ audio, engine: "openai-multi", voice: OPENAI_VOICE });
+        const audio = await openaiTts(text, env, rate, ttsVoice);
+        if (audio) return store({ audio, engine: "openai-multi", voice: ttsVoice || OPENAI_VOICE });
       }
       if (env.GOOGLE_TTS_KEY) {
         const audio = await googleMultiTts(text, env, rate);

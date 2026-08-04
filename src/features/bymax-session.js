@@ -10,6 +10,7 @@
  */
 import { el } from "../ui/dom.js";
 import { robotName } from "../ui/robot.js";
+import { teacherVoice } from "../ui/robot-prefs.js";
 import { setBymaxTalking } from "../ui/bymax-mascot.js";
 import { mountTeacher } from "../ui/teacher-presenter.js";
 import { bymaxEmote } from "../ui/avatars.js";
@@ -67,6 +68,7 @@ export function openBymaxSession(cfg) {
       : "Completa la practica (faltan " + (finishGoal - userTurnCount()) + ")";
   }
   const name = cfg?.teacher || robotName();
+  const ttsVoice = teacherVoice(cfg?.role || "course"); // voz distinta por profe
   const targetLang = cfg?.targetLang || "en";      // idioma META de la sesion
   const micLang = micCode(targetLang);             // STT en el idioma META
   const langLabel = languageName(targetLang).toLowerCase();
@@ -151,12 +153,12 @@ export function openBymaxSession(cfg) {
           class: "inline-flex items-center gap-2 rounded-2xl px-4 py-2.5 bg-slate-800/90 border " +
             "border-slate-700 text-emerald-200 text-sm hover:bg-slate-700 focus:outline focus:outline-2 focus:outline-emerald-400",
           "aria-label": "Escuchar de nuevo a " + name,
-          onclick: () => speakSmart(speakText, { targetLang }),
+          onclick: () => speakSmart(speakText, { targetLang, ttsVoice }),
         }, el("span", { class: "w-5 h-5 shrink-0", html: ICONS.sound }),
           name + " esta hablando... (toca para repetir)"));
       log.append(row);
       log.scrollTop = log.scrollHeight;
-      speakSmart(speakText, { targetLang });
+      speakSmart(speakText, { targetLang, ttsVoice });
       bymaxEmote("happy");
       talkFor(speakText);
       return;
@@ -168,7 +170,7 @@ export function openBymaxSession(cfg) {
         type: "button",
         class: "shrink-0 mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-emerald-300 hover:bg-emerald-500/20",
         "aria-label": "Escuchar respuesta", title: "Escuchar",
-        onclick: () => speakSmart(speakText, { targetLang }), html: ICONS.sound,
+        onclick: () => speakSmart(speakText, { targetLang, ttsVoice }), html: ICONS.sound,
       }));
     log.append(row);
     // Correcciones/ayuda: TEXTO abajo (NO se hablan -> no rompen la fluidez).
@@ -181,7 +183,7 @@ export function openBymaxSession(cfg) {
     }
     log.scrollTop = log.scrollHeight;
     // speakSmart: una sola voz fluida (multilingue Azure si esta activa, o mono).
-    speakSmart(speakText, { targetLang });
+    speakSmart(speakText, { targetLang, ttsVoice });
     // La mascota reacciona: brinco corto de alegria + boca en movimiento.
     bymaxEmote("happy");
     talkFor(speakText);

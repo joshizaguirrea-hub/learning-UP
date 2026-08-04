@@ -13,7 +13,8 @@ import { el } from "../ui/dom.js";
 import { robotAvatar, teacherName } from "../ui/robot.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual } from "../ui/speech.js";
-import { cancelCloud } from "../ui/cloud-tts.js";
+import { cancelCloud, cloudSpeak } from "../ui/cloud-tts.js";
+import { teacherVoice } from "../ui/robot-prefs.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
@@ -157,7 +158,12 @@ export function openVoiceCall(opts = {}) {
       heard.textContent = "";
       setState(name + " habla...", true);
       bymaxEmote("happy");
-      speakBilingual(answer, () => { if (!ended && !paused) listen(); });
+      // Mathias (rol speaking) con voz de HOMBRE via OpenAI. Fallback a la voz
+      // bilingue del navegador si la nube falla.
+      const afterSpeak = () => { if (!ended && !paused) listen(); };
+      cloudSpeak(answer, targetLang || "en", { gender: "M", ttsVoice: teacherVoice("speaking") })
+        .then(afterSpeak)
+        .catch(() => speakBilingual(answer, afterSpeak));
     }
 
     // Llamada EN VIVO manos libres: tras hablar el bot, se escucha sola y vuelve

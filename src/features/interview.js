@@ -11,6 +11,7 @@
  */
 import { el } from "../ui/dom.js";
 import { teacherName } from "../ui/robot.js";
+import { teacherVoice } from "../ui/robot-prefs.js";
 import { bymaxEmote } from "../ui/avatars.js";
 import { speakBilingual } from "../ui/speech.js";
 import { cancelCloud, cloudSpeak } from "../ui/cloud-tts.js";
@@ -220,7 +221,7 @@ export function openInterview(opts = {}) {
       if (!greeted) { greeted = true; teacher?.greet(); } // saluda con la mano al inicio
       teacher?.setTalking(true);
       const finish = () => { teacher?.setTalking(false); if (!ended) onDone && onDone(); };
-      cloudSpeak(text, "en", { gender: "F" })
+      cloudSpeak(text, "en", { gender: "F", ttsVoice: teacherVoice("interview") })
         .then(finish)
         .catch(() => speakBilingual(text, finish)); // sin nube: cae a voz del navegador
     }

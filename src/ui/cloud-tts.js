@@ -105,7 +105,7 @@ async function fetchAudio(rawText, lang, opts) {
   const o = opts || {};
   const text = normalizeForTts(rawText);
   // La clave de cache incluye todo lo que cambia el audio (voz, voz HD, rate).
-  const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + (o.rate || "") + "|" + text;
+  const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + (o.ttsVoice || "") + "|" + (o.rate || "") + "|" + text;
   if (cache.has(key)) return cache.get(key);
   if (inflight.has(key)) return inflight.get(key); // DEDUP: no bajar 2 veces lo mismo
   const base = BYMAX_WORKER_URL.replace(/\/+$/, "");
@@ -117,6 +117,7 @@ async function fetchAudio(rawText, lang, opts) {
         text, lang,
         voice: o.voice,      // voz Aura (compat con Worker viejo)
         voiceHd: o.voiceHd,  // voz Google Chirp3-HD ingles (Worker nuevo)
+        ttsVoice: o.ttsVoice, // voz OpenAI por profe (Megan/Susan/Mathias)
         gender: o.gender,    // "F" | "M" (para elegir voz por defecto)
         rate: o.rate,        // velocidad (titulos mas lentos = mas carino)
       }),
