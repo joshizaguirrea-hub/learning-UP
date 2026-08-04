@@ -174,6 +174,39 @@ function runEngine(container, rig, opts = {}) {
 }
 
 /**
+ * Baja los brazos de una T-pose a una pose relajada (como Megan). Muchos avatares
+ * (Avaturn, Avatar SDK) vienen en T-pose (brazos horizontales); rota el hueso del
+ * brazo superior sobre el eje Z del mundo para dejarlos caer. El lado se deduce de
+ * la posicion del hueso (no del nombre), asi funciona con distintos rigs.
+ * @param {THREE.Object3D} root
+ * @param {number} [deg=68] - cuanto bajar (grados)
+ */
+function relaxArms(root, deg = 70) {
+  root.updateWorldMatrix(true, true);
+  const rootPos = new THREE.Vector3(); root.getWorldPosition(rootPos);
+  const Z = new THREE.Vector3(0, 0, 1);
+  const angle = (deg * Math.PI) / 180;
+  root.traverse((o) => {
+    if (!o.isBone) return;
+    const n = o.name.toLowerCase().replace(/[_\s.]/g, "");
+    // Solo el brazo SUPERIOR exacto (evita 'Armature', 'ForeArm', twist bones).
+    const isUpperArm = n.includes("upperarm") || n === "leftarm" || n === "rightarm";
+    if (!isUpperArm) return;
+    const child = o.children.find((c) => c.isBone);
+    if (!child) return;
+    const arm = new THREE.Vector3(); o.getWorldPosition(arm);
+    const fore = new THREE.Vector3(); child.getWorldPosition(fore);
+    const dir = fore.clone().sub(arm);
+    // Solo si esta en T-pose (brazo mas horizontal que vertical). Si ya cuelga
+    // (como Megan), no lo tocamos.
+    if (Math.abs(dir.x) <= Math.abs(dir.y)) return;
+    const sign = arm.x >= rootPos.x ? -1 : 1; // lado +X baja rotando -Z
+    o.rotateOnWorldAxis(Z, sign * angle);
+    o.updateWorldMatrix(true, true);
+  });
+}
+
+/**
  * Avatar desde un .glb (Ready Player Me, Mixamo, etc.). Requiere red para bajar
  * el modelo (readyplayer.me / tu host). Detecta morphs de boca y parpadeo.
  * @param {HTMLElement} container  @param {object} opts - { url }
@@ -252,6 +285,7 @@ export async function createAvatar3d(container, opts = {}) {
       });
     },
   };
+  relaxArms(root);   // T-pose -> brazos abajo (relajado como Megan)
   return runEngine(container, rig, opts);
 }
 
