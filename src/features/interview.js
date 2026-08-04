@@ -192,6 +192,7 @@ export function openInterview(opts = {}) {
 
     let paused = false;
     let waiting = false; // esperando respuesta de la IA
+    let greeted = false; // saludo con la mano solo la 1a vez
 
     const transcript = el("div", {
       class: "mt-1 space-y-3 overflow-y-auto pr-1", style: "max-height: 38vh",
@@ -216,6 +217,7 @@ export function openInterview(opts = {}) {
     // Hace "hablar" a Susan: voz de nube (lip-sync REAL por amplitud via el
     // analyser compartido) + boca animada. onDone se llama al terminar el audio.
     function say(text, onDone) {
+      if (!greeted) { greeted = true; teacher?.greet(); } // saluda con la mano al inicio
       teacher?.setTalking(true);
       const finish = () => { teacher?.setTalking(false); if (!ended) onDone && onDone(); };
       cloudSpeak(text, "en", { gender: "F" })

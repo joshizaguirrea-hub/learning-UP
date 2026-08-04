@@ -46,7 +46,7 @@ export function mountTeacher(container, opts = {}) {
   // Modo ROBOT (default): la mascota SVG de siempre. Cero descarga extra.
   if (pref.mode !== "human") {
     container.appendChild(bymaxMascot(opts.size || "md"));
-    return { is3d: false, setTalking: (on) => setBymaxTalking(on), dispose: () => {} };
+    return { is3d: false, setTalking: (on) => setBymaxTalking(on), greet: () => {}, dispose: () => {} };
   }
 
   // Modo HUMANO 3D: canvas con tamaño fijo (el renderer se ajusta al contenedor).
@@ -91,6 +91,8 @@ export function mountTeacher(container, opts = {}) {
       if (inst) inst.setTalking(!!on);
       else if (robotFallback) setBymaxTalking(!!on);
     },
+    /** Saludo con la mano + sonrisa (solo avatar 3D humano). */
+    greet: () => { if (inst && inst.greet) inst.greet(); },
     dispose: () => { disposed = true; if (inst) { inst.dispose(); inst = null; } },
   };
 }

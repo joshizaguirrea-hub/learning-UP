@@ -90,6 +90,25 @@ function runEngine(container, rig, opts = {}) {
   let raf = 0, disposed = false;
   const clock = new THREE.Clock();
   let nextBlink = 1 + Math.random() * 3, blink = 0, mouth = 0, procPhase = 0;
+  let smile = 0.12, brow = 0, greetT = -1; // greetT>=0 => saludando
+
+  // Precalcula la pose de "mano arriba" del ANTEBRAZO (elbow wave). El hombro NO
+  // se toca -> gesto amable y seguro. rest = reposo; raised = mano hacia arriba.
+  let armRest = null, armRaised = null, handRest = null;
+  if (rig.arm && rig.arm.fore && rig.arm.fore.children[0]) {
+    const fore = rig.arm.fore;
+    fore.updateWorldMatrix(true, true);
+    armRest = fore.quaternion.clone();
+    const a = new THREE.Vector3(); fore.getWorldPosition(a);
+    const c = new THREE.Vector3(); fore.children[0].getWorldPosition(c);
+    const dir = c.clone().sub(a).normalize();
+    const target = new THREE.Vector3(0.35, 0.95, 0.25).normalize(); // arriba + un pelin al frente
+    const dq = new THREE.Quaternion().setFromUnitVectors(dir, target);
+    const curW = new THREE.Quaternion(); fore.getWorldQuaternion(curW);
+    const parW = new THREE.Quaternion(); fore.parent.getWorldQuaternion(parW);
+    armRaised = parW.clone().invert().multiply(dq.multiply(curW));
+    if (rig.arm.hand) handRest = rig.arm.hand.quaternion.clone();
+  }
 
   function amplitude() {
     if (!analyser) return null;
@@ -135,6 +154,37 @@ function runEngine(container, rig, opts = {}) {
     mouth += (target - mouth) * Math.min(1, dt * 18); // suavizado
     rig.setMouth(mouth);
 
+    // --- Expresion calida + gesto de SALUDO (elbow wave) --------------------
+    let smileTarget = 0.12;  // sonrisa BASE amable (que no se vea severa)
+    let browTarget = 0;
+    if (greetT >= 0 && armRaised) {
+      greetT += dt;
+      const RAISE = 0.45, HOLD = 1.7, LOWER = 0.55, TOTAL = RAISE + HOLD + LOWER;
+      let raise;
+      if (greetT < RAISE) raise = greetT / RAISE;
+      else if (greetT < RAISE + HOLD) raise = 1;
+      else if (greetT < TOTAL) raise = 1 - (greetT - RAISE - HOLD) / LOWER;
+      else { raise = 0; greetT = -1; }
+      raise = Math.max(0, Math.min(1, raise));
+      // Sube el antebrazo (rest -> raised) y mece la mano mientras esta arriba.
+      rig.arm.fore.quaternion.copy(armRest).slerp(armRaised, raise);
+      if (rig.arm.hand && handRest) {
+        const wag = raise * Math.sin(t * 11) * 0.35;
+        rig.arm.hand.quaternion.copy(handRest)
+          .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), wag));
+      }
+      smileTarget = 0.14 + raise * 0.34;
+      browTarget = raise * 0.5;
+    } else if (armRest) {
+      rig.arm.fore.quaternion.copy(armRest); // reposo firme
+      if (rig.arm.hand && handRest) rig.arm.hand.quaternion.copy(handRest);
+    }
+    if (talking) smileTarget = Math.max(smileTarget, 0.2); // se ve animada al hablar
+    smile += (smileTarget - smile) * Math.min(1, dt * 6);
+    brow += (browTarget - brow) * Math.min(1, dt * 6);
+    rig.setSmile && rig.setSmile(smile);
+    rig.setBrow && rig.setBrow(brow);
+
     renderer.render(scene, camera);
   }
   loop();
@@ -147,6 +197,9 @@ function runEngine(container, rig, opts = {}) {
 
   return {
     setTalking(on) { talking = !!on; if (!on) { mouth = 0; rig.setMouth(0); } },
+    /** Saluda con la mano (elbow wave) + sonrisa y cejas amables. No-op si el
+     *  avatar no tiene brazo detectable (ej. cabeza demo). */
+    greet() { if (armRaised) greetT = 0; },
     /** Usa un AnalyserNode YA creado (singleton compartido, ver cloud-tts). */
     attachAnalyser(an) {
       if (analyser || !an) return;
@@ -268,6 +321,21 @@ export async function createAvatar3d(container, opts = {}) {
     canLipSync: !!mouthMorph,
     setMouth: (v) => { if (mouthMorph) setMorph(mouthMorph, v); },
     setBlink: blinkSet ? (v) => blinkSet.forEach((m) => setMorph(m, v)) : null,
+    // Sonrisa continua (0..1). La usamos para una sonrisa BASE calida (que no se
+    // vea severa) y para agrandarla al saludar. No apila blendshapes raros.
+    setSmile: (v) => {
+      const s = Math.max(0, Math.min(1, v));
+      if (has("mouthSmile")) setMorph("mouthSmile", s);
+      else { setMorph("mouthSmileLeft", s); setMorph("mouthSmileRight", s); }
+    },
+    // Cejas arriba (0..1): da expresion amable/sorpresa al saludar. No-op si el
+    // avatar no trae esos morphs.
+    setBrow: (v) => {
+      const b = Math.max(0, Math.min(1, v));
+      setMorph("browInnerUp", b);
+      setMorph("browOuterUpLeft", b);
+      setMorph("browOuterUpRight", b);
+    },
     setEmotion: (kind) => {
       // Sonrisa SUAVE y sin apilar: algunos avatares se deforman si se ponen
       // varios blendshapes de sonrisa a la vez o muy fuerte.
@@ -298,6 +366,16 @@ export async function createAvatar3d(container, opts = {}) {
     },
   };
   relaxArms(root);   // T-pose -> brazos abajo (relajado como Megan)
+  // Huesos del brazo DERECHO para el gesto de SALUDO. Usamos solo el ANTEBRAZO
+  // (+ mano) para un "elbow wave": sube la mano y la mece SIN tocar el hombro
+  // -> gesto amable y seguro (no deforma como pasaba al rotar el brazo entero).
+  let armFore = null, armHand = null;
+  root.traverse((o) => {
+    const n = (o.name || "").toLowerCase().replace(/[_\s.]/g, "");
+    if (!armFore && (n === "rightforearm" || n.includes("rightforearm") || n.includes("rightlowerarm"))) armFore = o;
+    else if (!armHand && n === "righthand") armHand = o;
+  });
+  rig.arm = (armFore && armFore.children && armFore.children[0]) ? { fore: armFore, hand: armHand } : null;
   return runEngine(container, rig, opts);
 }
 
