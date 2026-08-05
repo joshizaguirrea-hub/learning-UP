@@ -21,6 +21,7 @@ import { bymaxAiEnabled } from "../config/bymax.js";
 import { buildFeedbackPrompt, parseFeedback } from "../core/feedback.js";
 import { buildFeedbackDashboard } from "./feedback-dashboard.js";
 import { recordSpeakingScore, getSpeakingScore } from "../core/speaking-score.js";
+import { micCode, languageName } from "../data/languages.js";
 
 // Temas sugeridos (en ingles: la charla es en ingles). Bymax puede recomendar uno.
 const TOPIC_IDEAS = [
@@ -47,6 +48,7 @@ export function openVoiceCall(opts = {}) {
   const mode = opts.mode || "conversation";
   const callWord = opts.label || "Llamada";
   const targetLang = opts.targetLang || "en"; // idioma META (en | pt...)
+  const langEs = languageName(targetLang).toLowerCase(); // "ingles" | "italiano"...
 
   let ended = false;
   let dictation = null;
@@ -180,8 +182,8 @@ export function openVoiceCall(opts = {}) {
       stopAudio();
       if (!dictation) {
         dictation = createDictation({
-          lang: "en-US",
-          onStart: () => setState("Te escucho... habla en ingl\u00e9s", true),
+          lang: micCode(targetLang),
+          onStart: () => setState("Te escucho... habla en " + langEs, true),
           onInterim: (t) => { heard.textContent = t; },
           onFinal: (t) => { heard.textContent = t; },
           onEnd: (finalText) => {
@@ -260,6 +262,7 @@ export function openVoiceCall(opts = {}) {
         parsed,
         title: "Tu feedback de la llamada",
         stats,
+        lang: targetLang,
         onRetry: () => { ended = false; if (fixedTopic) startCall(fixedTopic); else renderTopicPicker(); },
         onClose: close,
         retryLabel: "Otra llamada",

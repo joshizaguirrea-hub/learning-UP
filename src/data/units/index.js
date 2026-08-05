@@ -161,7 +161,8 @@ export function findLesson(lessonId) {
 export function vocabById(vocabId) {
   for (const unit of UNITS) {
     const item = unit.vocab.find((v) => v.id === vocabId);
-    if (item) return item;
+    // Adjunta el idioma META de la unidad (para voz/mic correctos en el repaso).
+    if (item) return { ...item, language: unit.language || "en" };
   }
   return null;
 }

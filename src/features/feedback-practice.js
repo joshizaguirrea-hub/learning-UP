@@ -12,18 +12,31 @@ import { ICONS } from "../ui/icons.js";
 import { speak } from "../ui/speech.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { confettiBurst } from "../ui/confetti.js";
+import { micCode, languageName } from "../data/languages.js";
 
-/** Normaliza para comparar con tolerancia (minusculas, sin puntuacion, 1 espacio). */
+/** Normaliza para comparar con tolerancia (minusculas, SIN acentos, sin
+ *  puntuacion, 1 espacio). NFD -> quita diacriticos pero CONSERVA la letra base
+ *  (è -> e), asi funciona igual en ingles, espanol, italiano y portugues. */
 function norm(s) {
-  return String(s || "").toLowerCase().replace(/[^a-z0-9' ]/g, " ").replace(/\s+/g, " ").trim();
+  return String(s || "")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9' ]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Limpia un texto para pronunciarlo: conserva LETRAS (con acentos) y apostrofes. */
+function cleanForSpeech(s) {
+  return String(s || "").replace(/[^\p{L}' ]/gu, " ");
 }
 
 /**
  * Abre la practica de errores en un overlay.
  * @param {Array<{wrong,right,why}>} errors
+ * @param {string} [lang] codigo del idioma META (en|pt|it...) para voz y copia
  */
-export function openErrorPractice(errors) {
+export function openErrorPractice(errors, lang = "en") {
   const items = (errors || []).filter((e) => e && e.wrong && e.right);
+  const langEs = languageName(lang).toLowerCase();
   let idx = 0, correct = 0;
 
   const close = () => { if ("speechSynthesis" in window) window.speechSynthesis.cancel(); overlay.remove(); };
@@ -40,7 +53,7 @@ export function openErrorPractice(errors) {
 
     const input = el("input", {
       type: "text", autocomplete: "off", autocapitalize: "off", spellcheck: "false",
-      placeholder: "Escribe la forma correcta en ingl\u00e9s...",
+      placeholder: "Escribe la forma correcta en " + langEs + "...",
       class: "w-full rounded-xl bg-slate-800 border border-slate-600 text-slate-100 px-4 py-3 " +
         "focus:outline focus:outline-2 focus:outline-rose-400",
       onkeydown: (e) => { if (e.key === "Enter") check(); },
@@ -73,7 +86,7 @@ export function openErrorPractice(errors) {
       input.disabled = true;
       actions.replaceChildren();
       // Pronuncia la forma correcta (refuerza el oido).
-      setTimeout(() => speak(it.right.replace(/[^a-zA-Z' ]/g, " "), "en-US", { rate: 0.95 }), 150);
+      setTimeout(() => speak(cleanForSpeech(it.right), micCode(lang), { rate: 0.95 }), 150);
       fb.replaceChildren(
         el("div", { class: "rounded-xl border p-4 " + (ok ? "border-emerald-500/40 bg-emerald-500/10" : "border-amber-500/40 bg-amber-500/10") },
           el("p", { class: "font-bold " + (ok ? "text-emerald-300" : "text-amber-300") }, ok ? "\u2714 \u00a1Correcto!" : "As\u00ed se dice bien:"),

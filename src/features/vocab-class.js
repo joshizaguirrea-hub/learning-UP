@@ -132,7 +132,7 @@ export function openVocabClass(unit, opts = {}) {
           listening = false; repeatBtn.classList.remove("animate-pulse"); repeatBtn.lastChild.textContent = "Repetir palabra";
           if (finalText) {
             heardBox.textContent = "T\u00fa dijiste: \u201c" + finalText + "\u201d";
-            const { node } = coachView(w.clean, finalText);
+            const { node } = coachView(w.clean, finalText, mic);
             fb.replaceChildren(node);
           } else {
             heardBox.textContent = "No te escuch\u00e9. Toca y repite la palabra.";
