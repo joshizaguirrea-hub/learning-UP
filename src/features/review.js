@@ -19,6 +19,7 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 import { confettiBurst } from "../ui/confetti.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
+import { micCode } from "../data/languages.js";
 
 /** Tamano maximo de una tanda de repaso (evita el "monton de tarjetas"). */
 export const REVIEW_SESSION = 12;
@@ -59,8 +60,10 @@ export async function renderReview(container, user) {
     const es2en = Math.random() < 0.5 && vocab.translation;
     const promptText = es2en ? vocab.translation : vocab.term;
     const answerText = es2en ? vocab.term : vocab.translation;
-    const promptLang = es2en ? "es-MX" : "en-US";
-    const answerLang = es2en ? "en-US" : "es-MX";
+    // El lado en idioma META usa la voz/mic del idioma de la unidad (en/it/pt...).
+    const metaLang = micCode(vocab.language || "en");
+    const promptLang = es2en ? "es-MX" : metaLang;
+    const answerLang = es2en ? metaLang : "es-MX";
 
     // Distractores: 3 traducciones distintas del pool (del mismo "lado").
     const others = shuffle(pool)

@@ -16,6 +16,7 @@ import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
 import { currentLangCode } from "../ui/nav.js";
+import { micCode } from "../data/languages.js";
 import { speakButton, speak } from "../ui/speech.js";
 import { getAutoplay, getGenLevel, setGenLevel } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
@@ -138,8 +139,8 @@ export async function renderBonusDeck(container, params, user) {
   function showCard() {
     if (index >= deck.items.length) { showDone(); return; }
     const item = deck.items[index];
-    // Idioma de la VOZ del mazo (front + ejemplos). pt -> voz portuguesa.
-    const spLang = (deck.language || "en") === "pt" ? "pt-BR" : "en-US";
+    // Idioma de la VOZ del mazo (front + ejemplos). pt->voz pt, it->voz it, etc.
+    const spLang = micCode(deck.language || "en");
     const card = cardMap[item.id] || { ease: 2.5, interval: 0, reps: 0, due: null };
     const last = deck.items.length - 1;
 

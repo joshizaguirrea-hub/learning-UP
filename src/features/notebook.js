@@ -75,7 +75,7 @@ export function openNotebook(unit, user) {
       type: "button",
       class: "mt-3 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold " +
         "hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
-      onclick: () => openErrorPractice(errors),
+      onclick: () => openErrorPractice(errors, lang),
     }, "Practicar mis errores"));
   }
 

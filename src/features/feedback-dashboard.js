@@ -75,7 +75,7 @@ export function sectionCard(s) {
 /** Tarjeta de ERRORES estructurada: cada error tachado -> correcto (+ por que) y
  * un boton para PRACTICARLOS. Es lo que pidio el usuario: errores puntuales de
  * las oraciones que uso, y practicar desde ellos. */
-export function errorsCard(errors) {
+export function errorsCard(errors, lang = "en") {
   const rows = errors.map((e) => el("div", { class: "rounded-lg bg-slate-900/50 border border-rose-500/20 p-2.5" },
     el("p", { class: "text-sm" },
       el("span", { class: "text-rose-400 line-through" }, e.wrong),
@@ -90,7 +90,7 @@ export function errorsCard(errors) {
     el("button", {
       type: "button",
       class: "mt-3 w-full px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
-      onclick: () => openErrorPractice(errors),
+      onclick: () => openErrorPractice(errors, lang),
     }, "\uD83C\uDFAF Practicar mis errores (" + errors.length + ")"));
 }
 
@@ -113,7 +113,7 @@ export function vocabChipsCard(s, items, tone) {
 
 /** Elige como pintar cada seccion: las especiales van estructuradas. */
 function renderSection(s, data) {
-  if (s.title === "Errores clave" && data.errors.length) return errorsCard(data.errors);
+  if (s.title === "Errores clave" && data.errors.length) return errorsCard(data.errors, data.lang);
   if (s.title === "Vocabulario que usaste" && data.vocabUsed.length) return vocabChipsCard(s, data.vocabUsed, "emerald");
   if (s.title === "Podr\u00edas subir de nivel con" && data.vocabSuggested.length) return vocabChipsCard(s, data.vocabSuggested, "sky");
   return sectionCard(s);
@@ -165,11 +165,11 @@ export function tabsView(tabs) {
 
 /** Arma las pestanas de detalle del feedback de habla. La 1a (General) es la
  * parrilla de areas: al tocar una tarjeta saltas a la pestana de esa categoria. */
-function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas }) {
+function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas, lang = "en" }) {
   // Grammar: puntaje + errores puntuales (con boton practicar).
   const grammar = el("div", {},
     scorePill(findArea(areas, "GRAMATICA")),
-    errors.length ? errorsCard(errors) : emptyState("Sin errores gramaticales puntuales esta vez. \u00a1Muy bien!"));
+    errors.length ? errorsCard(errors, lang) : emptyState("Sin errores gramaticales puntuales esta vez. \u00a1Muy bien!"));
 
   // Vocabulary: usado + sugerido.
   const vocab = el("div", {},
@@ -230,7 +230,7 @@ function buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas })
  * @returns {HTMLElement}
  */
 export function buildFeedbackDashboard(p = {}) {
-  const { parsed, title = "Tu feedback", stats, prev, extra, onRetry, onClose, retryLabel = "Practicar otra vez" } = p;
+  const { parsed, title = "Tu feedback", stats, prev, extra, onRetry, onClose, retryLabel = "Practicar otra vez", lang = "en" } = p;
   const { score, areas, sections, errors = [], vocabUsed = [], vocabSuggested = [], raw } = parsed;
   const info = scoreLabel(score);
 
@@ -258,13 +258,13 @@ export function buildFeedbackDashboard(p = {}) {
     : null;
 
   const sectionEls = sections.length
-    ? sections.map((s) => renderSection(s, { errors, vocabUsed, vocabSuggested }))
+    ? sections.map((s) => renderSection(s, { errors, vocabUsed, vocabSuggested, lang }))
     : [el("p", { class: "mt-4 text-sm text-slate-200 whitespace-pre-line" }, raw)];
 
   // Feedback de habla -> pestanas (General/Grammar/Vocabulary/Pronunciacion/Recomendaciones).
   // Close-reading (u otro) -> secciones planas como antes.
   const detail = speaking
-    ? buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas })
+    ? buildDetailTabs({ sections, errors, vocabUsed, vocabSuggested, areas, lang })
     : el("div", { class: "mt-2" }, ...sectionEls);
 
   const buttons = el("div", { class: "mt-6 flex gap-2" },

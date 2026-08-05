@@ -25,6 +25,7 @@ import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
 import { recordSpeakingScore, scoreLabel } from "../core/speaking-score.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
+import { unitTts, unitMic } from "../data/languages.js";
 
 const SELF_OK = 0.85; // puntaje generoso cuando el alumno se autoevalua "la dije bien"
 
@@ -35,6 +36,8 @@ const SELF_OK = 0.85; // puntaje generoso cuando el alumno se autoevalua "la dij
  */
 export function openShadowing(unit, opts = {}) {
   const { userId, progressId, onComplete } = opts;
+  const tts = unitTts(unit); // voz del idioma META (en|pt|it...)
+  const mic = unitMic(unit); // reconocimiento del idioma META (en-US|it-IT...)
   const phrases = phrasesOf(unit);
   const supported = speechSupported();
   const rkey = makeResumeKey(userId, unit.id, "shadowing");
@@ -59,7 +62,7 @@ export function openShadowing(unit, opts = {}) {
 
   function say(text, rate) {
     stopVoice();
-    cancelSay = speakMono(text, "en", { rate });
+    cancelSay = speakMono(text, tts, { rate });
   }
 
   function renderPhrase() {
@@ -112,7 +115,7 @@ export function openShadowing(unit, opts = {}) {
       if (i === 0) stopVoice();
       if (i >= chunks.length) { highlight(-1); return; }
       highlight(i);
-      cancelSay = speakSequence([{ text: chunks[i], lang: "en-US", opts: { rate: 0.8 } }], null,
+      cancelSay = speakSequence([{ text: chunks[i], lang: mic, opts: { rate: 0.8 } }], null,
         () => { if (i + 1 < chunks.length) setTimeout(() => playChunks(i + 1), 380); else highlight(-1); });
     }
 
@@ -137,14 +140,14 @@ export function openShadowing(unit, opts = {}) {
       // Oye el modelo UNA vez y de inmediato abre el mic para el eco.
       say(target);
       dictation = createDictation({
-        lang: "en-US",
+        lang: mic,
         onStart: () => { listening = true; shadowBtn.classList.add("animate-pulse"); shadowBtn.lastChild.textContent = "Escuchando... (toca para parar)"; },
         onInterim: (t) => { heardBox.textContent = "\u201c" + t + "\u201d"; },
         onEnd: (finalText) => {
           listening = false; shadowBtn.classList.remove("animate-pulse"); shadowBtn.lastChild.textContent = "Sombrear";
           if (finalText) {
             heardBox.textContent = "T\u00fa dijiste: \u201c" + finalText + "\u201d";
-            const { score, ok, node } = coachView(target, finalText);
+            const { score, ok, node } = coachView(target, finalText, mic);
             ok ? playCorrect() : playWrong();
             fb.replaceChildren(node);
             finishPhrase(score);
