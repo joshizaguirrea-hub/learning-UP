@@ -66,7 +66,7 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
 
   const input = el("input", {
     type: "text", maxlength: "800",
-    placeholder: bymaxAiEnabled ? "Escribe tu duda de ingles..." : "Bymax IA no esta configurado aun",
+    placeholder: bymaxAiEnabled ? "Escribe tu duda de ingles..." : name + " no esta disponible aun",
     disabled: bymaxAiEnabled ? undefined : "true",
     class: "flex-1 rounded-xl bg-slate-800 border border-slate-700 px-4 py-3 text-slate-100 " +
       "focus:outline focus:outline-2 focus:outline-indigo-500 disabled:opacity-50",
@@ -126,7 +126,7 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
 
       if (netError) {
         bymaxEmote("sad");
-        push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
+        push("\u26A0\uFE0F No pude conectar con " + name + ". Revisa tu conexion o " +
           "intenta en un momento. (Detalle en consola F12).", "bot");
       } else if (!data || !data.answer) {
         bymaxEmote("sad");
@@ -167,7 +167,7 @@ export function openBymaxChat(grammar, lang = "es-MX", act = null) {
   if (bymaxAiEnabled) {
     push("Hola! Soy " + name + ". Preguntame lo que sea sobre ingles: gramatica, palabras, por que se dice algo... Estoy para ayudarte!", "bot");
   } else {
-    push("El Bymax con IA todavia no esta activado. Cuando el administrador conecte el Worker (ver carpeta /worker), podras preguntarme lo que sea aqui.", "bot");
+    push(name + " todavia no esta disponible. Cuando el administrador conecte el Worker (ver carpeta /worker), podras preguntarme lo que sea aqui.", "bot");
   }
 
   const card = el("div", {

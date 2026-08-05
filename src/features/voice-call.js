@@ -1,5 +1,5 @@
 /**
- * features/voice-call.js — "Llamada con Bymax": conversacion por VOZ manos libres.
+ * features/voice-call.js — "Llamada con el profe": conversacion por VOZ manos libres.
  *
  * Como una llamada: el habla, tu contestas hablando, y el ciclo sigue solo.
  * Inmersion total en ingles. Reusa askBymax (Worker), createDictation
@@ -126,7 +126,7 @@ export function openVoiceCall(opts = {}) {
     }
 
     body.replaceChildren(
-      el("p", { class: "text-sm text-slate-400 mb-3" }, "T\u00fa eliges. Bymax te habla en ingl\u00e9s de lo que quieras practicar."),
+      el("p", { class: "text-sm text-slate-400 mb-3" }, "T\u00fa eliges. " + name + " te habla en " + langEs + " de lo que quieras practicar."),
       input, chips, recommend, startBtn);
     setTimeout(() => input.focus(), 50);
   }

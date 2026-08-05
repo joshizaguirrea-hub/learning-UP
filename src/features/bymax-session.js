@@ -78,7 +78,7 @@ export function openBymaxSession(cfg) {
   const title = cfg?.title || (name + " \u00b7 " + topic);
   const subtitle = cfg?.subtitle || ("Practica en " + langLabel + " \u00b7 nivel " + level);
   const placeholder = cfg?.placeholder ||
-    (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : "Bymax IA no esta configurado aun");
+    (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : name + " no esta disponible aun");
 
   const close = () => { generateNotebook(); dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
@@ -265,7 +265,7 @@ export function openBymaxSession(cfg) {
 
     if (netError) {
       bymaxEmote("sad");
-      push("\u26A0\uFE0F No pude conectar con Bymax IA. Revisa tu conexion o " +
+      push("\u26A0\uFE0F No pude conectar con " + name + ". Revisa tu conexion o " +
         "intenta en un momento. (Detalle en consola F12).", "bot");
     } else if (!data || !data.answer) {
       bymaxEmote("sad");
@@ -381,7 +381,7 @@ export function openBymaxSession(cfg) {
   if (bymaxAiEnabled) {
     send("[BEGIN]", false);
   } else {
-    push("Bymax IA todavia no esta activado. Cuando el administrador conecte el Worker (ver carpeta /worker), podras practicar aqui.", "bot");
+    push(name + " todavia no esta disponible. Cuando el administrador conecte el Worker (ver carpeta /worker), podras practicar aqui.", "bot");
   }
 
   const teacherSlot = el("div", { class: "shrink-0" });

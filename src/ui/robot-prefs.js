@@ -26,10 +26,17 @@ const DEFAULT_NAME = (role) =>
 
 const DEFAULT = { name: DEFAULT_NAME("course"), avatar: "beep" };
 
+// Nombres "default" HISTORICOS del profe de curso. Antes el default era Horus;
+// hoy es Megan. Si el alumno nunca lo renombro a proposito y quedo con el viejo
+// default persistido, lo migramos a Megan (no pisa nombres realmente custom).
+const LEGACY_COURSE_NAMES = new Set(["Horus", "Profe Horus", "Teacher Horus"]);
+
 /** Config actual del teacher de CURSO (nombre + avatar), con valores por defecto. */
 export function getRobot() {
   try {
-    return { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    const cfg = { ...DEFAULT, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    if (LEGACY_COURSE_NAMES.has(cfg.name)) cfg.name = DEFAULT.name; // migra default viejo -> Megan
+    return cfg;
   } catch {
     return { ...DEFAULT };
   }
