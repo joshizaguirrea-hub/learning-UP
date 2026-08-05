@@ -12,7 +12,7 @@ import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
  * @returns {Promise<{answer?:string, error?:string}>}
  */
 export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en" } = {}) {
-  if (!bymaxAiEnabled) return { error: "Bymax IA no esta configurado (Worker inactivo)." };
+  if (!bymaxAiEnabled) return { error: "El profe con IA no esta disponible (Worker inactivo)." };
   try {
     const res = await fetch(BYMAX_WORKER_URL, {
       method: "POST",
@@ -25,6 +25,6 @@ export async function askBymax({ mode = "conversation", topic = "general", level
     return { error: why || "No pude responder ahora." };
   } catch (err) {
     console.error("[bymax-ai] fallo de red:", err);
-    return { error: "Sin conexion con Bymax IA." };
+    return { error: "Sin conexion con el profe IA." };
   }
 }
