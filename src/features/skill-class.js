@@ -98,6 +98,7 @@ export function openSkillClass(unit, key, opts = {}) {
     level,
     targetLang: lang, // idioma META -> el Worker ensena en este idioma (no ingles fijo)
     unitId: unit?.id, unitTitle: unit?.title, userId: opts.userId, // -> cuaderno de errores
+    skill: key, // competencia -> pestana del cuaderno de errores
     onFinish,
     title: name + " ensena: " + meta.label,
     subtitle: (unit?.title || "") + " \u00b7 " + meta.subtitle + " \u00b7 nivel " + level,

@@ -132,6 +132,7 @@ export function openBymaxSession(cfg) {
         const parsed = parseFeedback(data.answer);
         addToNotebook(cfg.userId, {
           unitId: cfg.unitId, title: cfg.unitTitle || topic, level, lang: targetLang,
+          skill: cfg.skill || "", // competencia de esta sesion -> pestana del cuaderno
         }, parsed);
       }
     } catch (e) { console.warn("[Bymax] no se pudo generar el cuaderno:", e); }

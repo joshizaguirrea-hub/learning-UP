@@ -24,6 +24,7 @@ export function openClass(unit, user) {
     topic, level,
     targetLang: unit?.language || "en", // Bymax ensena en el idioma de la unidad
     unitId: unit?.id, unitTitle: unit?.title, userId: user?.id, // -> cuaderno de errores
+    skill: "grammar", // clase general -> sus correcciones caen en la pestana Gramatica
     title: name + " \u00b7 Clase 1 a 1",
     subtitle: topic + " \u00b7 nivel " + level + " \u00b7 te corrige al instante",
     placeholder: "Responde en " + langName + " (o escribe/di 'ayuda')...",

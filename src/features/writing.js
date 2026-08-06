@@ -159,6 +159,8 @@ export function openWriting(unit, opts = {}) {
     openBymaxSession({
       mode: "class",
       topic, level, targetLang,
+      unitId: unit?.id, unitTitle: unit?.title, userId: opts.userId, // -> cuaderno de errores
+      skill: "writing", // competencia -> pestana Writing del cuaderno
       onFinish,
       finishGoal: 3,
       title: name + " \u00b7 Writing: " + item.label,

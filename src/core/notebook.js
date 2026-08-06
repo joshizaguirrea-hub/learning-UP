@@ -66,6 +66,26 @@ function vocabKey(v) {
   return String(v.word || "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+/** Competencias validas del cuaderno (una pestana por cada una). */
+export const NOTEBOOK_SKILLS = ["grammar", "vocabulary", "reading", "listening", "writing", "speaking"];
+
+/**
+ * Clasifica un error en una competencia. Usa la etiqueta explicita si viene de la
+ * sesion; si es un error viejo SIN etiqueta, lo deduce por su "por que" (heuristica
+ * simple en espanol) para no perder el historico. Default: "grammar".
+ * @param {{skill?:string, why?:string}} e
+ * @returns {string} una de NOTEBOOK_SKILLS
+ */
+export function errorSkill(e) {
+  const s = String((e && e.skill) || "").toLowerCase();
+  if (NOTEBOOK_SKILLS.includes(s)) return s;
+  const why = String((e && e.why) || "").toLowerCase();
+  if (/vocabular|palabra|l\u00e9xic|lexic|significad/.test(why)) return "vocabulary";
+  if (/pronunci|acento|fon\u00e9tic|fonetic|sonido/.test(why)) return "speaking";
+  if (/ortograf|escrit|spelling|puntuaci/.test(why)) return "writing";
+  return "grammar"; // pronombres, conjugacion, concordancia, genero, numero...
+}
+
 /** Limites para que el cuaderno no crezca sin fin (localStorage). */
 const MAX_ERRORS = 60;
 const MAX_VOCAB = 80;
@@ -74,26 +94,29 @@ const MAX_VOCAB = 80;
  * Acumula (dedup) el cuaderno previo con el resultado fresco de una sesion.
  * Mantiene lo mas RECIENTE al frente. No muta las entradas de entrada.
  * @param {object|null} prev - cuaderno guardado { errors[], vocab[], sessions } o null
- * @param {object} fresh - { errors:[{wrong,right,why}], vocabSuggested:[{word,note}], score }
+ * @param {object} fresh - { errors:[{wrong,right,why}], vocabSuggested:[{word,note}], score, skill }
  * @returns {{errors:Array, vocab:Array, lastScore:number, sessions:number}}
  */
 export function mergeNotebook(prev, fresh) {
   const now = Date.now();
   const prevErrors = (prev && prev.errors) || [];
   const prevVocab = (prev && prev.vocab) || [];
+  const freshSkill = String((fresh && fresh.skill) || "").toLowerCase();
 
   const errSeen = new Map();
   const errors = [];
-  const pushErr = (e, ts) => {
+  const pushErr = (e, ts, skill) => {
     if (!e || !e.wrong || !e.right) return;
     const k = errorKey(e);
     if (errSeen.has(k)) return;
     errSeen.set(k, true);
-    errors.push({ wrong: e.wrong, right: e.right, why: e.why || "", ts: ts || now });
+    const item = { wrong: e.wrong, right: e.right, why: e.why || "", skill: e.skill || skill || "", ts: ts || now };
+    item.skill = errorSkill(item); // normaliza (etiqueta explicita o heuristica)
+    errors.push(item);
   };
   // Los frescos primero (mas relevantes), luego el historico.
-  for (const e of (fresh.errors || [])) pushErr(e, now);
-  for (const e of prevErrors) pushErr(e, e.ts);
+  for (const e of (fresh.errors || [])) pushErr(e, now, freshSkill);
+  for (const e of prevErrors) pushErr(e, e.ts, e.skill);
 
   const vocSeen = new Map();
   const vocab = [];

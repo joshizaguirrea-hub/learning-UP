@@ -27,7 +27,7 @@ export function loadNotebook(userId, unitId) {
 /**
  * Acumula el resultado fresco de una sesion en el cuaderno de la unidad.
  * @param {string} userId
- * @param {object} meta - { unitId, title, level, lang }
+ * @param {object} meta - { unitId, title, level, lang, skill }
  * @param {object} fresh - { errors[], vocabSuggested[], score } (de parseFeedback)
  * @returns {object|null} el cuaderno actualizado de esa unidad (o null si no hay unitId)
  */
@@ -35,7 +35,9 @@ export function addToNotebook(userId, meta, fresh) {
   if (!meta || !meta.unitId) return null;
   const all = loadNotebooks(userId);
   const prev = all[meta.unitId] || null;
-  const merged = mergeNotebook(prev, fresh || {});
+  // Etiqueta TODOS los errores de esta sesion con la competencia (grammar,
+  // speaking, writing...) para que caigan en su pestana del cuaderno.
+  const merged = mergeNotebook(prev, { ...(fresh || {}), skill: meta.skill || "" });
   const entry = {
     unitId: meta.unitId,
     title: meta.title || (prev && prev.title) || "",
