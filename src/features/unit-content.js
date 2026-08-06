@@ -21,7 +21,7 @@ import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openVoiceCall } from "./voice-call.js";
-import { openDictogloss } from "./dictogloss.js";
+import { openListeningLab } from "./listening-lab.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openGrammarInput } from "./grammar-input.js";
@@ -226,7 +226,7 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       onComplete: markDone,
     });
   } else if (key === "listening") {
-    onclick = () => openDictogloss(unit, {
+    onclick = () => openListeningLab(unit, {
       userId: user?.id,
       onComplete: markDone,
     });
@@ -255,7 +255,7 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Dictogloss (dictado): " : key === "writing" ? "Escritura: " : key === "vocabulary" ? "Vocab Lab: " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening Lab (escucha una historia): " : key === "writing" ? "Escritura: " : key === "vocabulary" ? "Vocab Lab: " : "Clase de ") + meta.label + " con " + robotName(),
   },
     check,
     el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
