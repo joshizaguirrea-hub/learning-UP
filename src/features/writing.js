@@ -16,6 +16,7 @@ import { openBymaxSession } from "./bymax-session.js";
 import { lessonForSkill } from "./skill-class.js";
 import { DRILL_TYPES } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
+import { openDictogloss } from "./dictogloss.js";
 import { unitTts } from "../data/languages.js";
 
 // Como debe comportarse Bymax en CUALQUIER ejercicio de escritura. {LANG} se
@@ -138,6 +139,13 @@ export function openWriting(unit, opts = {}) {
     });
   }
 
+  // DICTADO (dictogloss): escuchar y ESCRIBIR lo que oyes. Es escritura guiada
+  // por el oido -> vive aqui en Writing. Marca la leccion de writing al terminar.
+  function launchDictado() {
+    close();
+    openDictogloss(unit, { userId: opts.userId, progressId: lesson?.id, onComplete: markDone });
+  }
+
   function launch(item) {
     // Idioma META de la unidad: el prompt (BEHAVIOR) y el Worker (targetLang)
     // deben saberlo para no generar ejercicios en ingles por defecto.
@@ -214,6 +222,19 @@ export function openWriting(unit, opts = {}) {
       el("p", { class: "text-sm text-slate-300" },
         name + " te dar\u00e1 una consigna, escribes tu respuesta y \u00e9l te corrige con tips. \u00a1Sin miedo a la hoja en blanco!"),
       drillsSection,
+      el("section", { class: "mt-4" },
+        el("div", { class: "flex items-center gap-2" },
+          el("h3", { class: "font-bold text-slate-100" }, "Dictado (escucha y escribe)"),
+          el("span", { class: "text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-200" }, "Oye \u00b7 escribe")),
+        el("p", { class: "text-xs text-slate-400 mt-0.5" }, name + " dice una frase (texto oculto) y t\u00fa escribes lo que o\u00edste; te corrige palabra por palabra."),
+        el("button", {
+          type: "button",
+          class: "mt-2 w-full text-left rounded-xl p-3 bg-gradient-to-br from-sky-600 to-cyan-700 text-white shadow hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/80 transition",
+          onclick: launchDictado,
+          "aria-label": "Dictado: escucha y escribe con " + name,
+        },
+          el("p", { class: "font-semibold text-sm" }, "Empezar dictado"),
+          el("p", { class: "text-xs text-white/85 mt-0.5 leading-snug" }, "Comprensi\u00f3n auditiva + ortograf\u00eda del vocabulario de la unidad."))),
       el("h3", { class: "font-bold text-slate-100 mt-6" }, "Con " + name + " (guiado por IA)"),
       list));
 
