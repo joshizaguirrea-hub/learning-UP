@@ -26,6 +26,7 @@ export function openConversation(unit, user) {
     role: "speaking",
     topic, level, targetLang,
     unitId: unit?.id, unitTitle: unit?.title, userId: user?.id, // -> cuaderno de errores
+    skill: "speaking", // competencia -> pestana Speaking del cuaderno
     teacher: name,
     title: name + " \u00b7 " + topic,
     subtitle: "Practica hablando en " + langLabel + " \u00b7 nivel " + level,
