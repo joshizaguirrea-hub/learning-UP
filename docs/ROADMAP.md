@@ -3,17 +3,18 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.304.0**  ·  Ultima actualizacion del roadmap: 2026-08-19
+Version actual: **v0.305.0**  ·  Ultima actualizacion del roadmap: 2026-08-19
 
 ---
 
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
-- [ ] **Boton "Rehacer plan"** para cuentas viejas sin plan en localStorage.
-      Hoy quien hizo el onboarding VIEJO no ve el coach del dia hasta rehacer el
-      cuestionario. Ofrecer un boton (o autogenerar plan por defecto desde el
-      `cefr_level` existente). Toca `features/daily-guide.js` + `study-plan-store.js`.
+- [x] **Boton "Ajustar mi plan"** en el coach del dia (v0.305.0). Reusa el flujo
+      de onboarding (`/examen`), que al terminar SOBREESCRIBE el plan (meta /
+      tiempo / nivel). Nota: las cuentas viejas sin plan YA no quedan sin coach
+      -> `coachCard` autogenera un plan por defecto desde el `cefr`; este boton
+      permite afinarlo cuando cambie la meta o el tiempo.
 - [ ] **Coach "Empezar la clase" lanza DIRECTO la actividad** de la competencia
       `startSkill` del plan, en vez de solo navegar a `#/unidad/:id`. Requiere
       integrar con los POPs de skill (`unit-content` / `skill-class`).

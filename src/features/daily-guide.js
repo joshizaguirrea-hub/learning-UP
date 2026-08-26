@@ -118,7 +118,15 @@ function renderInto(card, user, session, plan, resting) {
         el("p", { class: "text-[11px] text-slate-400 mb-1.5" }, "Ruta de hoy en adelante:"),
         el("div", { class: "flex flex-wrap gap-1.5" }, ...chips))
       : null,
-    el("div", { class: "mt-5 flex flex-wrap items-center gap-2" }, ...actions));
+    el("div", { class: "mt-5 flex flex-wrap items-center gap-2" }, ...actions),
+    // Rehacer el cuestionario para afinar el plan (meta / tiempo / nivel). Reusa
+    // el flujo de onboarding (/examen), que al terminar SOBREESCRIBE el plan.
+    el("button", {
+      type: "button",
+      class: "mt-3 text-xs text-slate-400 hover:text-slate-200 underline " +
+        "focus:outline focus:outline-2 focus:outline-indigo-400 rounded",
+      onclick: () => { cancelCloud(); go("/examen"); },
+    }, "\u00bfCambi\u00f3 tu meta o tu tiempo? Ajustar mi plan"));
 
   // El profe saluda en voz (fluida) SOLO si el mensaje cambio (no repite lo
   // mismo al revisitar el inicio; si cambio -p.ej. "avancemos"- si lo dice).
