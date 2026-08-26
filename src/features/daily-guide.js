@@ -13,7 +13,7 @@
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
 import { go } from "../ui/router.js";
-import { speakRobot } from "../ui/speech.js";
+import { speakMono } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { teacherFace } from "../ui/bymax-mascot.js";
 import { teacherName } from "../ui/robot.js";
@@ -93,7 +93,7 @@ function renderInto(card, user, session, plan, resting) {
   } else {
     actions.push(primaryBtn(session.doneToday > 0 ? "Avanzar a la siguiente \u2192" : "Empezar la clase de hoy \u2192", goToUnit));
   }
-  actions.push(iconBtn(ICONS.sound, "Escuchar de nuevo", () => speakRobot(session.speech, "es-MX")));
+  actions.push(iconBtn(ICONS.sound, "Escuchar de nuevo", () => speakMono(session.speech, "es-MX", { rate: 0.98 })));
 
   // Ruta de competencias del plan (la de arranque resaltada).
   const chips = (session.order || []).map((sk, i) => el("span", {
@@ -125,7 +125,7 @@ function renderInto(card, user, session, plan, resting) {
   // Si el navegador bloquea el autoplay, queda el boton de "escuchar de nuevo".
   if (session.speech !== lastSpoken) {
     lastSpoken = session.speech;
-    speakRobot(session.speech, "es-MX");
+    speakMono(session.speech, "es-MX", { rate: 0.98 });
   }
 }
 
