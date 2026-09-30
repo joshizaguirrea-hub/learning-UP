@@ -68,7 +68,8 @@ Estimado de uso: toda la app hablada 1 vez ~= 250,000 chars (1/4 del gratis). Un
 - Contenido: los 51 bloques de gramatica ya tienen campos `desc` (para que sirve) y `rule` (como funciona).
 
 ## Reglas del proyecto (recordatorio)
-- Proyecto PERSONAL: NO usar recursos de Walmart.
+- Proyecto PERSONAL e independiente: no se usan recursos, cuentas ni servicios de
+  ningun empleador. Todo corre en cuentas propias (Cloudflare, Supabase, GitHub).
 - El filtro de emojis/acentos recorta literales: escribir espanol en ASCII o con escapes `\uXXXX` en el codigo JS.
 - Declarar TODAS las const de modulo (estilos/config) al INICIO del archivo (evitar TDZ).
 - Al cambiar codigo front: subir version en sw.js (CACHE) y footer, commit + push.
@@ -80,11 +81,11 @@ Estimado de uso: toda la app hablada 1 vez ~= 250,000 chars (1/4 del gratis). Un
       pegandole 2 veces al Worker: intento 1 engine=google-cloud voice=es-US-Chirp3-HD-Aoede
       cached=(vacio); intento 2 mismo texto -> cached=True. CACHE KV FUNCIONA.
 - [x] Voz confirmada = es-US-Chirp3-HD-Aoede (la Chirp3-HD, la mas humana). No cayo a Neural2.
-- [x] El Worker responde en ~1.3s desde red Walmart via PowerShell (curl). El backend NO esta bloqueado.
+- [x] El Worker responde en ~1.3s por HTTP via PowerShell (curl). El backend NO esta bloqueado.
 - NOTA: el navegador del celular del usuario se quedaba en "Pidiendo audio a la nube" (fetch colgado)
-      tanto en WiFi Walmart como en datos moviles -> probable dispositivo/red corporativa que enruta
-      todo por la red de Walmart y bloquea el fetch del browser a workers.dev. La prueba limpia es
-      abrir voz-test.html desde una red 100% fuera de Walmart (casa). El backend esta OK, es tema de red.
+      tanto en WiFi como en datos moviles -> probable dispositivo/red con filtrado que enruta
+      todo por un proxy y bloquea el fetch del browser a workers.dev. La prueba limpia es
+      abrir voz-test.html desde una red domestica sin filtros. El backend esta OK, es tema de red.
 - El panel Preview de Cloudflare muestra "documento roto" porque hace GET y el Worker solo acepta POST. Normal.
 
 ### YA GANAMOS (2026-07-15 noche)

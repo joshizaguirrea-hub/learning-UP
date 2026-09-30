@@ -800,7 +800,7 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       (gramatica/vocab/coherencia...) el Worker de Bymax debe HONRAR la rubrica que va
       en el question tras [FEEDBACK]. Si el Worker usa su prompt viejo, saldra el
       formato de 3 areas (el parser lo soporta, sin romperse) pero NO las nuevas. Si
-      pasa eso -> actualizar el prompt del Worker (AI Launchpad) para respetar el
+      pasa eso -> actualizar el prompt del Worker (Cloudflare) para respetar el
       formato pedido. PENDIENTE usuario: correr node tests/feedback.test.mjs y probar
       en navegador una llamada y una entrevista.
 

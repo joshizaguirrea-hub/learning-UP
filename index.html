@@ -27,10 +27,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/app.css?v=0.287.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- three.js (avatar 3D del profe humano). Import-map local (vendor/three,
-       bajado del artifactory de Walmart) -> NO depende de CDN externo: funciona
-       offline y en redes bloqueadas, y lo cachea la PWA. Se carga solo cuando el
-       alumno abre el profe 3D (import dinamico en avatar3d.js). -->
+  <!-- three.js (avatar 3D del profe humano). Import-map LOCAL (vendor/three)
+       -> NO depende de CDN externo: funciona offline y en redes con filtros,
+       y lo cachea la PWA. Se carga solo cuando el alumno abre el profe 3D
+       (import dinamico en avatar3d.js). -->
   <script type="importmap">
   {
     "imports": {

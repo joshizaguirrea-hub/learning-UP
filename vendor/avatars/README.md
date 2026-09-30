@@ -1,8 +1,8 @@
 # Avatares 3D del profe (vendor/avatars)
 
 Estos `.glb` son los profesores humanos 3D. Viven en el repo para que funcionen
-en **cualquier red** (incluida la de Walmart) y **offline** (el Service Worker
-los cachea). Necesitan blendshapes de boca (`jawOpen`/`viseme_*`) y de ojos
+en **cualquier red** (incluidas las que tienen filtros) y **offline** (el Service
+Worker los cachea). Necesitan blendshapes de boca (`jawOpen`/`viseme_*`) y de ojos
 (`eyeBlink*`) para el lip-sync y el parpadeo (el motor los auto-detecta).
 
 ## Un profe por ROL (convencion de nombres)

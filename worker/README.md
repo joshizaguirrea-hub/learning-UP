@@ -1,4 +1,4 @@
-# Bymax IA — Guia de despliegue (gratis, fuera de Walmart)
+# Bymax IA - Guia de despliegue (gratis, en tu propia cuenta)
 
 Bymax puede responder dudas libres del alumno usando **Gemini** (gratis) escondido
 detras de un **Cloudflare Worker** (gratis). El navegador nunca ve tu API key.

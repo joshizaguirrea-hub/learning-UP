@@ -26,7 +26,7 @@ Instala estas 3 cosas (todas gratis, con instalador normal, tú tienes admin):
 | **VS Code** | Editar el código | https://code.visualstudio.com |
 | **Git** (opcional) | Guardar versiones | https://git-scm.com |
 
-> En tu compu personal NO hay proxy de Walmart, así que los instaladores
+> En tu compu personal no hay proxy corporativo, así que los instaladores
 > descargan sin problema. Solo dale "Siguiente → Siguiente → Instalar".
 
 ---

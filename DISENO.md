@@ -277,7 +277,8 @@ Payment         (id, user_id, amount, type, status, provider_ref)
 - **Auth:** sesiones/JWT + hashing seguro de contraseñas.
 - **Video:** integrar proveedor externo (no reinventar Zoom).
 - **Pagos:** **Stripe Connect** (soporta payouts a profesores internacionales).
-- **IA:** **AI Innovation Lab / AI Launchpad** de Walmart para los LLMs.
+- **IA:** proveedor de LLM por API (OpenAI / Cloudflare Workers AI) detras de un
+  Worker propio que esconde la clave.
 - **Accesibilidad:** WCAG 2.2 AA obligatorio.
 
 ---
@@ -314,7 +315,7 @@ Payment         (id, user_id, amount, type, status, provider_ref)
 | Falsificación de títulos | KYC real + video-entrevista |
 | Legal por menores | Definir política de edad en MVP; grabación + consentimiento |
 | Producir contenido de 5 idiomas × 6 niveles | Empezar SOLO inglés A1-B1 |
-| Costos de IA | Usar AI Launchpad; cachear; SRS reduce llamadas |
+| Costos de IA | Modelos economicos (gpt-4o-mini); cachear; SRS reduce llamadas |
 | Seguridad en video 1-a-1 | Grabación + moderación + botón de pánico |
 
 ---
