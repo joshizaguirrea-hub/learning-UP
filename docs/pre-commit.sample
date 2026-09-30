@@ -1,0 +1,31 @@
+#!/bin/sh
+# pre-commit — guarda de identidad.
+#
+# Este es un proyecto PERSONAL/ACADEMICO. Si alguna vez se commitea desde una
+# maquina cuya config global trae un correo corporativo, el commit queda con esa
+# huella en el historial publico para siempre. Este hook lo impide ANTES de que
+# pase, en vez de tener que reescribir el historial despues (que es caro,
+# irreversible y no borra del todo).
+#
+# Si necesitas cambiar el correo permitido, edita ALLOWED abajo.
+
+ALLOWED="joshizaguirrea-hub@users.noreply.github.com"
+EMAIL="$(git config user.email)"
+
+if [ "$EMAIL" != "$ALLOWED" ]; then
+  echo ""
+  echo "  COMMIT BLOQUEADO - correo incorrecto"
+  echo ""
+  echo "   Estas commiteando como : $EMAIL"
+  echo "   Este repo solo acepta  : $ALLOWED"
+  echo ""
+  echo "   Este es un proyecto personal/academico: no debe quedar ligado"
+  echo "   a ningun empleador. Arreglalo con:"
+  echo ""
+  echo "     git config --local user.email \"$ALLOWED\""
+  echo "     git config --local user.name  \"Johsua Izaguirre\""
+  echo ""
+  exit 1
+fi
+
+exit 0
