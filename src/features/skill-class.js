@@ -12,6 +12,7 @@ import { SKILL_META } from "../data/skill-meta.js";
 import { robotName } from "../ui/robot.js";
 import { languageName } from "../data/languages.js";
 import { completeLesson } from "../services/course.js";
+import { levelFromCefr } from "../core/difficulty.js";
 
 /** Primera leccion de la unidad que entrena la competencia `key` (o null). */
 export function lessonForSkill(unit, key) {
@@ -100,6 +101,11 @@ export function openSkillClass(unit, key, opts = {}) {
     unitId: unit?.id, unitTitle: unit?.title, userId: opts.userId, // -> cuaderno de errores
     skill: key, // competencia -> pestana del cuaderno de errores
     onFinish,
+    // Al terminar la clase: felicitar + ofrecer mas practica eligiendo
+    // dificultad 1..10. El escalon inicial se deduce del nivel MCER.
+    askMore: true,
+    level10: opts.level10 || levelFromCefr(level),
+    endSubtitle: meta.label + " \u00b7 " + (unit?.title || ""),
     title: name + " ensena: " + meta.label,
     subtitle: (unit?.title || "") + " \u00b7 " + meta.subtitle + " \u00b7 nivel " + level,
     placeholder: "Responde a " + name + " (o di 'ayuda')...",

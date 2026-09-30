@@ -3,13 +3,24 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.305.0**  ·  Ultima actualizacion del roadmap: 2026-08-19
+Version actual: **v0.306.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
+- [ ] **Extender el cierre `sessionEnd` al resto de ejercicios.** Ya existe UNA
+      pantalla de cierre reusable (`ui/session-end.js`: felicita + "¿seguir
+      practicando?" + dificultad 1..10) pero hoy solo la usa la clase de
+      competencia (`skill-class` -> `bymax-session`). Los labs deterministas
+      (`vocab-lab`, `reading-lab`, `listening-lab`, `dictogloss`,
+      `grammar-input`, `writing-drills-player`, `pronunciation-lab`,
+      `checkpoint`) siguen con su propio `renderDone` copy-pasteado. Migrarlos
+      borra ~8 duplicados y les regala el selector de dificultad.
+      Nota: en los labs el nivel 1..10 debe MODULAR los items generados
+      (cantidad/longitud), no un prompt -> `core/difficulty.js` ya expone
+      `levelInfo(n)` para eso.
 - [x] **Boton "Ajustar mi plan"** en el coach del dia (v0.305.0). Reusa el flujo
       de onboarding (`/examen`), que al terminar SOBREESCRIBE el plan (meta /
       tiempo / nivel). Nota: las cuentas viejas sin plan YA no quedan sin coach
@@ -43,6 +54,14 @@ Version actual: **v0.305.0**  ·  Ultima actualizacion del roadmap: 2026-08-19
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
 
+- [x] **v0.306.0 — Cierre de clase + dificultad 1..10.** La clase con la profe
+      no terminaba, se abandonaba: "Terminar y guardar" cerraba el modal en seco.
+      Ahora felicita (confeti), pregunta **"¿Quieres seguir practicando?"** y deja
+      elegir la intensidad **1..10**; si acepta, la profe da otra tanda SIN cerrar
+      la ventana. Nuevos `core/difficulty.js` (puro, 10 escalones + `suggestNext`)
+      y `ui/session-end.js` (pantalla de cierre compartida). La dificultad viaja
+      dentro del `topic` -> **no hace falta redeploy del Worker**.
+
 - [x] **v0.304.0 — Voz del coach del dia con UNA sola voz de mujer.** El saludo
       ("Buenas tardes, Joshua...") sonaba con 3 voces (es+en+hombre) porque
       `speakRobot` partia por idioma y algunos trozos traian audio masculino
@@ -66,6 +85,15 @@ Version actual: **v0.305.0**  ·  Ultima actualizacion del roadmap: 2026-08-19
 
 ## Notas de arquitectura utiles
 
+- **Niveles de practica 1..10:** `src/core/difficulty.js` (PURO). Eje distinto al
+  MCER: el MCER dice DONDE esta el alumno, el 1..10 cuanto quiere sudar hoy.
+  `difficultyPrompt(n)` se anexa al `topic` de la sesion (el Worker corta a 700
+  chars: `bymax-session.js` RESERVA el espacio antes de recortar el tema).
+  `suggestNext(nivel, pct)` solo PRESELECCIONA; la ultima palabra es del alumno.
+- **Cierre de practica:** `src/ui/session-end.js` `sessionEnd(cfg)` -> Promise
+  `{again, level}`. Activalo en una sesion con `askMore: true` + `level10`.
+  En `bymax-session.js`, `practiceLevel = 0` significa "no inyectar dificultad"
+  (asi conversacion/cuento/entrevista siguen intactos).
 - **Idioma meta por unidad:** `unit.language` ("en" | "pt" | "it" | "fr" | "ja").
   Helpers en `src/data/languages.js`: `unitTts(unit)` (voz), `unitMic(unit)` (STT).
 - **Feature flags de idioma:** `LANGUAGES` en `languages.js`. `draft: true` =

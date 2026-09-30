@@ -124,6 +124,52 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [x] CIERRE DE CLASE + DIFICULTAD 1..10 EN LA CLASE DE COMPETENCIA (2026-09-30,
+      v0.306.0). Peticion del usuario (sobre el POP "Grammar" de la orbita): la
+      clase con la profe no TERMINA, solo se abandona. El boton "Terminar y
+      guardar" cerraba el modal en seco: sin felicitacion, sin preguntar si
+      quiere seguir, sin poder subir la exigencia. Los otros ejercicios (vocab,
+      reading, listening, dictogloss) si llaman a celebrate() -> inconsistencia
+      real, no impresion del usuario.
+      NUEVO src/core/difficulty.js (PURO): los 10 escalones con {n,label,hint,
+      prompt}; clampLevel (encierra 1..10 y tolera NaN/null/strings),
+      levelInfo/levelLabel/allLevels (allLevels devuelve COPIA), levelFromCefr
+      (A1->2, A2->3, B1->4, B2->6, C1->8, C2->9) para el escalon inicial,
+      suggestNext(nivel,pct) (>=90 -> +2, >=75 -> +1, <55 -> -1, <40 -> -2, con
+      topes) y difficultyPrompt(n) -> instrucciones REALES para la IA (los 10
+      prompts son distintos entre si; hay test que lo verifica, si no el
+      selector seria decorativo).
+      NUEVO src/ui/session-end.js: UNA sola pantalla de cierre para TODAS las
+      competencias (hasta ahora cada feature repetia su propio renderDone con su
+      propio boton de repetir: 8 copias). sessionEnd(cfg) -> Promise<{again,
+      level}>; lanza celebrate() (confeti) y al cerrarla muestra "¿Quieres
+      seguir practicando?" + selector 1..10 (role=radiogroup, aria-checked,
+      flechas/Home/End, Esc = terminar) + descripcion del nivel + nota cuando la
+      sugerencia cambio por el resultado.
+      CAMBIOS en bymax-session.js: nueva funcion endClass() que reemplaza el
+      "finish(); close()" del boton; marca la leccion completada y, si la sesion
+      pidio askMore, ofrece otra ronda SIN cerrar el modal (manda [MORE_PRACTICE]
+      con la instruccion de no volver a saludar). `roundBase` hace que cada ronda
+      extra vuelva a exigir sus finishGoal respuestas (si no, nacia completada).
+      MARKERS excluye [BEGIN] y [MORE_PRACTICE] del conteo de turnos reales.
+      Nueva burbuja who="sys" (pildora violeta centrada) para anunciar la ronda.
+      DOS BUGS CAZADOS ESCRIBIENDO ESTO: (1) el topic ya venia cortado a 695 y el
+      Worker corta a 700 -> las instrucciones de dificultad morian en el
+      tijeretazo; ahora se RESERVA el espacio (TOPIC_MAX) y se recorta el tema
+      base. (2) clampLevel(undefined) devuelve 4, asi que TODAS las sesiones
+      (conversacion, cuento, entrevista) habrian recibido dificultad que nadie
+      pidio; ahora practiceLevel = 0 significa "no inyectar nada".
+      SIN TOCAR EL WORKER (no hace falta redeploy): la dificultad viaja dentro
+      del `topic`. Cableado en skill-class.js (askMore + level10 desde el MCER).
+      NUEVAS pruebas tests/difficulty.test.mjs (10). QA visual PASS en
+      dev-preview-session-end.html (gitignoreada): 11/11 aserciones, sugerencia
+      6 con 95% y 2 con 30%, ARIA/teclado OK, movil 390px sin overflow, sin
+      errores de consola. Validadores en verde.
+      PENDIENTE usuario: en la compu personal correr `node tests/difficulty.test.mjs`
+      (aqui no hay Node) y probar en Chrome el POP Grammar -> completar la clase
+      -> "Terminar y guardar" -> elegir nivel 9 -> confirmar que los ejercicios
+      nuevos salen mas dificiles.
+
 - [x] ~~Ajustar URLs en Supabase (para el login en el link público).~~  (2026-07-12)
 - [x] ~~Confirmar que RLS está activo en las tablas de Supabase.~~  (2026-07-12)
 - [x] Tests E2E con Playwright: LISTOS Y EN VERDE (6/6, 2026-07-12) en `tests-e2e/`.

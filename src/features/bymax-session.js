@@ -23,9 +23,21 @@ import { BYMAX_WORKER_URL, bymaxAiEnabled, multilingualEnabled } from "../config
 import { buildNotebookPrompt } from "../core/notebook.js";
 import { parseFeedback } from "../core/feedback.js";
 import { addToNotebook } from "../ui/notebook-store.js";
+import { sessionEnd } from "../ui/session-end.js";
+import { difficultyPrompt, clampLevel, levelLabel, DEFAULT_LEVEL } from "../core/difficulty.js";
 
-/** Burbuja de mensaje (alumno o Bymax). */
+/** Tope de `topic` que acepta el Worker (lo corta a 700). */
+const TOPIC_MAX = 700;
+
+/** Burbuja de mensaje (alumno o Bymax). `who="sys"` = aviso centrado de la app. */
 function bubble(text, who) {
+  if (who === "sys") {
+    return el("div", { class: "flex justify-center" },
+      el("div", {
+        class: "text-[11px] uppercase tracking-wider font-semibold text-violet-300 " +
+          "bg-violet-500/10 border border-violet-500/30 rounded-full px-3 py-1",
+      }, text));
+  }
   const mine = who === "me";
   return el("div", { class: "flex " + (mine ? "justify-end" : "justify-start") },
     el("div", {
@@ -60,15 +72,58 @@ export function openBymaxSession(cfg) {
   const finishGoal = Math.max(1, cfg?.finishGoal || 4);
   let finished = false;
   function finish() { if (finished) return; finished = true; try { onFinish && onFinish(); } catch (e) { console.error(e); } }
-  function userTurnCount() { return history.filter((h) => h.role === "user" && h.text !== "[BEGIN]").length; }
+  // Marcadores internos: son ordenes para la IA, no respuestas del alumno.
+  const MARKERS = ["[BEGIN]", "[MORE_PRACTICE]"];
+  function userTurnCount() {
+    return history.filter((h) => h.role === "user" && !MARKERS.includes(h.text)).length;
+  }
+  // Turnos que ya habia al empezar la ronda ACTUAL. Cada ronda extra vuelve a
+  // exigir `finishGoal` respuestas, en vez de nacer ya completada.
+  let roundBase = 0;
+  function roundTurns() { return Math.max(0, userTurnCount() - roundBase); }
   function refreshFinish() {
     if (!finishBtn) return;
-    const ready = userTurnCount() >= finishGoal;
-    finishBtn.disabled = finished ? true : !ready;
-    finishBtn.textContent = finished
-      ? "Completada \u2713"
-      : ready ? "Terminar y guardar \u2713"
-      : "Completa la practica (faltan " + (finishGoal - userTurnCount()) + ")";
+    const left = finishGoal - roundTurns();
+    const ready = left <= 0;
+    finishBtn.disabled = !ready;
+    finishBtn.textContent = ready
+      ? "Terminar y guardar \u2713"
+      : "Completa la practica (faltan " + left + ")";
+  }
+
+  // --- RONDAS EXTRA: al terminar, el alumno decide si sigue y con que nivel ---
+  // askMore=true (lo activa quien abre la sesion, ej. la clase de competencia).
+  const askMore = cfg?.askMore === true;
+  // 0 = sin escalon elegido -> NO se inyecta nada al prompt. Las sesiones que no
+  // usan dificultad (conversacion, cuento, entrevista) se quedan igual que antes.
+  let practiceLevel = cfg?.level10 ? clampLevel(cfg.level10) : 0;
+  let rounds = 0;
+
+  /**
+   * Cierre de la clase: guarda el progreso y, si la sesion lo pidio, ofrece
+   * otra ronda con dificultad a elegir. Si el alumno acepta, NO se cierra el
+   * modal: se le pide a la profe una tanda nueva con esa intensidad.
+   */
+  async function endClass() {
+    if (finishBtn) finishBtn.disabled = true;
+    finish();                    // marca la leccion completada (una sola vez)
+    stopAudio();
+    if (!askMore) { close(); return; }
+
+    rounds++;
+    const { again, level } = await sessionEnd({
+      title: rounds === 1 ? "\u00a1Clase completada!" : "\u00a1Ronda " + rounds + " completada!",
+      subtitle: (cfg?.endSubtitle || topic) + " \u00b7 " + roundTurns() + " respuestas",
+      level: practiceLevel || DEFAULT_LEVEL,
+    });
+    if (!again) { close(); return; }
+
+    practiceLevel = level;
+    roundBase = userTurnCount();  // la ronda nueva arranca su propio contador
+    refreshFinish();
+    push("\u2014 Nueva ronda \u00b7 dificultad " + practiceLevel + " de 10 (" +
+      levelLabel(practiceLevel) + ") \u2014", "sys");
+    send("[MORE_PRACTICE]", false);
   }
   const name = cfg?.teacher || robotName();
   const ttsVoice = teacherVoice(cfg?.role || "course"); // voz distinta por profe
@@ -245,15 +300,31 @@ export function openBymaxSession(cfg) {
     // va aparte para NO disfrazar un bug de UI/voz como "sin internet".
     let data = null;
     let netError = null;
+    // La dificultad elegida viaja DENTRO del topic: asi no hace falta redeploy
+    // del Worker para que la profe ajuste la intensidad. OJO: el Worker corta
+    // el topic a 700 chars, asi que le RESERVAMOS sitio a la dificultad y
+    // recortamos el tema base -> la instruccion nunca se pierde en el tijeretazo.
+    let topicNow = topic;
+    if (practiceLevel) {
+      const diff = difficultyPrompt(practiceLevel);
+      topicNow = topic.slice(0, Math.max(0, TOPIC_MAX - diff.length - 1)) + "\n" + diff;
+    }
+    // [MORE_PRACTICE] no es texto del alumno: es la orden de abrir otra tanda.
+    const question = q === "[MORE_PRACTICE]"
+      ? "[MORE_PRACTICE] El alumno ya termino la clase y PIDIO SEGUIR PRACTICANDO " +
+        "con dificultad " + practiceLevel + " de 10. No vuelvas a saludar ni repitas " +
+        "la teoria: da directamente un ejercicio nuevo del mismo tema, con la " +
+        "intensidad indicada, y pide UNA sola cosa concreta."
+      : q;
     try {
       const res = await fetch(BYMAX_WORKER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode, topic, level,
+          mode, topic: topicNow, level,
           targetLang: cfg?.targetLang || "en", // idioma META (en | pt...)
           immersive: !multilingualEnabled(), // inmersion salvo que Azure este activo
-          question: q, history: history.slice(-MAX_TURNS),
+          question, history: history.slice(-MAX_TURNS),
         }),
       });
       data = await res.json().catch(() => ({}));
@@ -375,7 +446,7 @@ export function openBymaxSession(cfg) {
     class: "text-xs px-3 py-1.5 rounded-full bg-emerald-600/20 border border-emerald-500/40 text-emerald-200 " +
       "hover:bg-emerald-600/30 focus:outline focus:outline-2 focus:outline-emerald-400 " +
       "disabled:opacity-40 disabled:cursor-not-allowed",
-    onclick: () => { if (finishBtn.disabled) return; finish(); close(); },
+    onclick: () => { if (finishBtn.disabled) return; endClass(); },
   }, "Completa la practica (faltan " + finishGoal + ")") : null;
 
   // Arranque: la IA saluda y hace la primera pregunta (no mostramos "[BEGIN]").
