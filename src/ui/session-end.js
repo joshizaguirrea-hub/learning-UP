@@ -13,6 +13,7 @@ import { el } from "./dom.js";
 import { teacherFace } from "./bymax-mascot.js";
 import { celebrate } from "./celebrate.js";
 import { allLevels, clampLevel, levelInfo, suggestNext } from "../core/difficulty.js";
+import { SKILL_META } from "../data/skill-meta.js";
 
 /** Selector 1..10: diez botones redondos + la descripcion del elegido debajo. */
 function levelPicker(initial, onChange) {
@@ -75,6 +76,8 @@ function levelPicker(initial, onChange) {
  * @param {string} [cfg.subtitle] - linea de detalle (resultado, unidad...)
  * @param {number} [cfg.pct]      - % de acierto; si viene, presugiere el nivel
  * @param {number} [cfg.level]    - nivel de practica actual (1..10)
+ * @param {string} [cfg.skill]    - competencia (grammar|vocabulary|...): deja
+ *   claro que el nivel es DE ESA competencia, no global
  * @param {boolean}[cfg.party]    - lanza la celebracion epica (confeti) antes
  * @param {string} [cfg.againLabel] - texto del boton de otra ronda
  * @param {string} [cfg.doneLabel]  - texto del boton de salir
@@ -87,6 +90,7 @@ export function sessionEnd(cfg = {}) {
     subtitle = "",
     pct,
     level,
+    skill,
     party = true,
     againLabel = "S\u00ed, otra ronda \u2192",
     doneLabel = "Terminar por hoy",
@@ -117,6 +121,10 @@ export function sessionEnd(cfg = {}) {
             : "Te costo un poco: te suger\u00ed bajar a " + suggested + ".")
       : null;
 
+    // El nivel es DE ESTA competencia: decirlo evita que el alumno crea que
+    // acaba de mover una dificultad global de toda la app.
+    const skillLabel = SKILL_META[skill]?.label;
+
     const card = el("div", {
       class: "max-w-md w-full bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-2xl " +
         "max-h-[92dvh] overflow-y-auto",
@@ -130,7 +138,14 @@ export function sessionEnd(cfg = {}) {
       el("div", { class: "mt-5 pt-5 border-t border-white/10" },
         el("p", { class: "font-semibold text-slate-100" }, "\u00bfQuieres seguir practicando?"),
         el("p", { class: "text-xs text-slate-400 mt-0.5" },
-          "Elige que tan dificiles quieres los ejercicios de la siguiente ronda."),
+          skillLabel
+            ? "Elige que tan dificil quieres " + skillLabel + ". Cada competencia guarda su propio nivel."
+            : "Elige que tan dificiles quieres los ejercicios de la siguiente ronda."),
+        skillLabel
+          ? el("p", { class: "mt-2 inline-flex items-center gap-1.5 text-xs font-semibold " +
+              "text-violet-200 bg-violet-500/15 border border-violet-500/30 rounded-full px-2.5 py-1" },
+              "Nivel de " + skillLabel)
+          : null,
         picker.node,
         nudge),
 

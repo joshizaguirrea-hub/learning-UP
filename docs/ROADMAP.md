@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.306.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.307.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
@@ -20,7 +20,11 @@ Version actual: **v0.306.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
       borra ~8 duplicados y les regala el selector de dificultad.
       Nota: en los labs el nivel 1..10 debe MODULAR los items generados
       (cantidad/longitud), no un prompt -> `core/difficulty.js` ya expone
-      `levelInfo(n)` para eso.
+      `levelInfo(n)` para eso, y `getSkillLevel` para leer el nivel de esa
+      competencia.
+- [ ] **Panel de niveles por competencia** en Ajustes o el perfil: mostrar las 6
+      dificultades de un vistazo y poder ajustarlas sin tener que terminar una
+      clase. `allSkillLevels(userId, lang)` ya devuelve el mapa listo.
 - [x] **Boton "Ajustar mi plan"** en el coach del dia (v0.305.0). Reusa el flujo
       de onboarding (`/examen`), que al terminar SOBREESCRIBE el plan (meta /
       tiempo / nivel). Nota: las cuentas viejas sin plan YA no quedan sin coach
@@ -53,6 +57,13 @@ Version actual: **v0.306.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.307.0 — La dificultad va POR COMPETENCIA.** El nivel 1..10 ya no es
+      global: cada competencia (Grammar / Vocabulary / Reading / Listening /
+      Writing / Speaking) recuerda el suyo, por usuario e idioma. Puedes ir en 7
+      de Reading y en 3 de Listening. Ademas `difficultyPrompt(n, skill)` sabe
+      QUE significa subir la exigencia en cada musculo (listening acelera;
+      writing pide textos mas largos; reading pasa a inferencia...).
 
 - [x] **v0.306.0 — Cierre de clase + dificultad 1..10.** La clase con la profe
       no terminaba, se abandonaba: "Terminar y guardar" cerraba el modal en seco.
@@ -87,13 +98,15 @@ Version actual: **v0.306.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 - **Niveles de practica 1..10:** `src/core/difficulty.js` (PURO). Eje distinto al
   MCER: el MCER dice DONDE esta el alumno, el 1..10 cuanto quiere sudar hoy.
-  `difficultyPrompt(n)` se anexa al `topic` de la sesion (el Worker corta a 700
-  chars: `bymax-session.js` RESERVA el espacio antes de recortar el tema).
+  **Es POR COMPETENCIA**, no global: `makeSkillKey(userId, lang, skill)` +
+  `getSkillLevel` / `setSkillLevel` / `allSkillLevels` (localStorage).
+  `difficultyPrompt(n, skill)` se anexa al `topic` de la sesion (el Worker corta
+  a 700 chars: `bymax-session.js` RESERVA el espacio antes de recortar el tema).
   `suggestNext(nivel, pct)` solo PRESELECCIONA; la ultima palabra es del alumno.
 - **Cierre de practica:** `src/ui/session-end.js` `sessionEnd(cfg)` -> Promise
-  `{again, level}`. Activalo en una sesion con `askMore: true` + `level10`.
-  En `bymax-session.js`, `practiceLevel = 0` significa "no inyectar dificultad"
-  (asi conversacion/cuento/entrevista siguen intactos).
+  `{again, level}`. Activalo en una sesion con `askMore: true` + `level10` +
+  `skill`. En `bymax-session.js`, `practiceLevel = 0` significa "no inyectar
+  dificultad" (asi conversacion/cuento/entrevista siguen intactos).
 - **Idioma meta por unidad:** `unit.language` ("en" | "pt" | "it" | "fr" | "ja").
   Helpers en `src/data/languages.js`: `unitTts(unit)` (voz), `unitMic(unit)` (STT).
 - **Feature flags de idioma:** `LANGUAGES` en `languages.js`. `draft: true` =

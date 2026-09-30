@@ -24,7 +24,7 @@ import { buildNotebookPrompt } from "../core/notebook.js";
 import { parseFeedback } from "../core/feedback.js";
 import { addToNotebook } from "../ui/notebook-store.js";
 import { sessionEnd } from "../ui/session-end.js";
-import { difficultyPrompt, clampLevel, levelLabel, DEFAULT_LEVEL } from "../core/difficulty.js";
+import { difficultyPrompt, clampLevel, levelLabel, DEFAULT_LEVEL, makeSkillKey, getSkillLevel, setSkillLevel } from "../core/difficulty.js";
 
 /** Tope de `topic` que acepta el Worker (lo corta a 700). */
 const TOPIC_MAX = 700;
@@ -94,9 +94,22 @@ export function openBymaxSession(cfg) {
   // --- RONDAS EXTRA: al terminar, el alumno decide si sigue y con que nivel ---
   // askMore=true (lo activa quien abre la sesion, ej. la clase de competencia).
   const askMore = cfg?.askMore === true;
+  // La dificultad es POR COMPETENCIA: el alumno puede ir en 7 de Reading y en 3
+  // de Listening. Se recuerda por (usuario, idioma, competencia) y se reusa la
+  // proxima vez que entre a ESA competencia.
+  const skillKey = (askMore && cfg?.skill)
+    ? makeSkillKey(cfg.userId, cfg?.targetLang || "en", cfg.skill)
+    : "";
   // 0 = sin escalon elegido -> NO se inyecta nada al prompt. Las sesiones que no
   // usan dificultad (conversacion, cuento, entrevista) se quedan igual que antes.
-  let practiceLevel = cfg?.level10 ? clampLevel(cfg.level10) : 0;
+  let practiceLevel = 0;
+  if (askMore) {
+    const base = cfg?.level10 ? clampLevel(cfg.level10) : DEFAULT_LEVEL;
+    // Si ya practico esta competencia antes, retoma SU nivel; si no, el sugerido.
+    practiceLevel = skillKey ? getSkillLevel(skillKey, base) : base;
+  } else if (cfg?.level10) {
+    practiceLevel = clampLevel(cfg.level10);
+  }
   let rounds = 0;
 
   /**
@@ -115,10 +128,13 @@ export function openBymaxSession(cfg) {
       title: rounds === 1 ? "\u00a1Clase completada!" : "\u00a1Ronda " + rounds + " completada!",
       subtitle: (cfg?.endSubtitle || topic) + " \u00b7 " + roundTurns() + " respuestas",
       level: practiceLevel || DEFAULT_LEVEL,
+      skill: cfg?.skill,
     });
+    // Recuerda el nivel de ESTA competencia aunque el alumno se vaya: la
+    // proxima vez que entre, arranca donde lo dejo.
+    practiceLevel = skillKey ? setSkillLevel(skillKey, level) : clampLevel(level);
     if (!again) { close(); return; }
 
-    practiceLevel = level;
     roundBase = userTurnCount();  // la ronda nueva arranca su propio contador
     refreshFinish();
     push("\u2014 Nueva ronda \u00b7 dificultad " + practiceLevel + " de 10 (" +
@@ -306,7 +322,7 @@ export function openBymaxSession(cfg) {
     // recortamos el tema base -> la instruccion nunca se pierde en el tijeretazo.
     let topicNow = topic;
     if (practiceLevel) {
-      const diff = difficultyPrompt(practiceLevel);
+      const diff = difficultyPrompt(practiceLevel, cfg?.skill);
       topicNow = topic.slice(0, Math.max(0, TOPIC_MAX - diff.length - 1)) + "\n" + diff;
     }
     // [MORE_PRACTICE] no es texto del alumno: es la orden de abrir otra tanda.

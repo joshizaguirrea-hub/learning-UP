@@ -143,12 +143,119 @@ export function suggestNext(current, pct) {
   return now;
 }
 
+/** Como se llama cada competencia en el texto que lee la IA. */
+const SKILL_NAME = {
+  grammar: "Gramatica",
+  vocabulary: "Vocabulario",
+  reading: "Comprension de lectura",
+  listening: "Comprension auditiva",
+  writing: "Expresion escrita",
+  speaking: "Expresion oral",
+};
+
+/**
+ * Que significa subir la exigencia EN CADA COMPETENCIA. Sin esto, "nivel 8"
+ * seria lo mismo para Listening que para Writing, y no lo es: en Listening se
+ * sube acelerando y quitando repeticiones; en Writing, pidiendo textos mas
+ * largos y exigiendo conectores.
+ */
+const SKILL_AXIS = {
+  grammar: "Sube la exigencia con estructuras menos frecuentes, excepciones de la " +
+    "regla y contrastes finos entre formas parecidas.",
+  vocabulary: "Sube la exigencia con palabras menos frecuentes, colocaciones y " +
+    "matices entre sinonimos cercanos.",
+  reading: "Sube la exigencia con textos mas largos y densos, y preguntas de " +
+    "inferencia en vez de literales.",
+  listening: "Sube la exigencia hablando mas rapido y natural, con frases mas " +
+    "largas y menos repeticiones. En niveles altos NO repitas salvo que te lo pidan.",
+  writing: "Sube la exigencia pidiendo textos mas largos y mejor conectados, y " +
+    "corrigiendo tambien estilo y precision, no solo lo correcto.",
+  speaking: "Sube la exigencia pidiendo respuestas mas largas y espontaneas, con " +
+    "menos tiempo para pensar, y corrigiendo pronunciacion y naturalidad.",
+};
+
 /**
  * Instrucciones para la profe (IA) segun el nivel elegido. Se anexa al `topic`
  * de la sesion -> los ejercicios salen con esa intensidad.
+ *
+ * @param {number} n - escalon 1..10
+ * @param {string} [skill] - competencia; si viene, se afina el sentido del
+ *   nivel a ese musculo concreto (un 8 de Listening != un 8 de Writing).
  */
-export function difficultyPrompt(n) {
+export function difficultyPrompt(n, skill) {
   const lv = levelInfo(n);
-  return `NIVEL DE PRACTICA ELEGIDO POR EL ALUMNO: ${lv.n} de 10 (${lv.label}). ` +
-    `Ajusta TODOS los ejercicios a esta intensidad: ${lv.prompt}`;
+  const name = SKILL_NAME[skill];
+  const axis = SKILL_AXIS[skill];
+  const head = name
+    ? `NIVEL DE PRACTICA para ${name}: ${lv.n} de 10 (${lv.label}).`
+    : `NIVEL DE PRACTICA ELEGIDO POR EL ALUMNO: ${lv.n} de 10 (${lv.label}).`;
+  return `${head} Ajusta TODOS los ejercicios a esta intensidad: ${lv.prompt}` +
+    (axis ? ` ${axis}` : "");
+}
+
+// --------------------------------------------------------------------------
+// MEMORIA POR COMPETENCIA
+//
+// El nivel NO es global: un alumno puede estar en 7 de Reading (lee bien) y en
+// 3 de Listening (le cuesta el oido). Son musculos distintos y se entrenan por
+// separado, asi que cada competencia recuerda SU escalon.
+//
+// Se guarda por (usuario, idioma, competencia): el mismo alumno aprendiendo
+// ingles y portugues no comparte dificultad entre idiomas.
+// --------------------------------------------------------------------------
+
+const PREFIX = "linguapath.difficulty.";
+
+/** Competencias con memoria de dificultad propia. */
+export const SKILLS = [
+  "grammar", "vocabulary", "reading", "listening", "writing", "speaking",
+];
+
+/** Acceso seguro a localStorage (null en Node o si esta bloqueado). */
+function store() {
+  try { return globalThis.localStorage || null; } catch (e) { return null; }
+}
+
+/** Clave estable por usuario + idioma + competencia. */
+export function makeSkillKey(userId, lang, skill) {
+  return [userId, lang, skill]
+    .map((p) => String(p ?? "anon").replace(/[^\w-]+/g, "_"))
+    .join(".");
+}
+
+/**
+ * Nivel guardado de una competencia, o `fallback` si nunca se ha elegido uno
+ * (tipicamente `levelFromCefr(unit.level)`).
+ */
+export function getSkillLevel(key, fallback = DEFAULT_LEVEL) {
+  const s = store();
+  if (!key || !s) return clampLevel(fallback);
+  try {
+    const raw = s.getItem(PREFIX + key);
+    return raw === null ? clampLevel(fallback) : clampLevel(raw);
+  } catch (e) {
+    return clampLevel(fallback);
+  }
+}
+
+/** Guarda el nivel de una competencia. Devuelve el valor efectivo (ya acotado). */
+export function setSkillLevel(key, n) {
+  const lv = clampLevel(n);
+  const s = store();
+  if (!key || !s) return lv;
+  try { s.setItem(PREFIX + key, String(lv)); } catch (e) { /* no es critico */ }
+  return lv;
+}
+
+/**
+ * Mapa {competencia: nivel} de un usuario/idioma, para pintarlo de un vistazo
+ * (ej. en Ajustes o en el perfil). Las que no tienen nivel guardado usan
+ * `fallback`.
+ */
+export function allSkillLevels(userId, lang, fallback = DEFAULT_LEVEL) {
+  const out = {};
+  for (const skill of SKILLS) {
+    out[skill] = getSkillLevel(makeSkillKey(userId, lang, skill), fallback);
+  }
+  return out;
 }

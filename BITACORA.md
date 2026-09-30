@@ -124,6 +124,58 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [x] DIFICULTAD LIGADA A LA COMPETENCIA (2026-09-30, v0.307.0). Peticion del
+      usuario sobre la v0.306: el nivel 1..10 no puede ser uno solo para todo,
+      tiene que ir por segmento de estudio (Grammar, Vocabulary, Reading,
+      Listening, Writing, Speaking). Tiene razon pedagogica: son musculos
+      distintos y un alumno puede ir en 7 de Reading y en 3 de Listening.
+      MEMORIA POR COMPETENCIA en core/difficulty.js (sigue PURO, localStorage
+      via globalThis igual que core/resume.js): SKILLS (las 6),
+      makeSkillKey(userId, lang, skill) -> clave saneada (separa por USUARIO,
+      IDIOMA y COMPETENCIA: aprender ingles y portugues no comparte dificultad),
+      getSkillLevel(key, fallback) (si nunca eligio -> fallback, normalmente
+      levelFromCefr(unit.level); valor corrupto -> DEFAULT_LEVEL sin explotar),
+      setSkillLevel(key, n) (acota y devuelve el efectivo) y
+      allSkillLevels(userId, lang, fallback) -> mapa de las 6 (para pintar el
+      panorama en Ajustes/perfil mas adelante).
+      EL PROMPT AHORA SABE DE QUE COMPETENCIA HABLA: difficultyPrompt(n, skill)
+      suma SKILL_NAME (como se llama en el texto que lee la IA) + SKILL_AXIS
+      (QUE significa subir la exigencia en ESE musculo). Sin esto un 8 seria
+      identico para Listening que para Writing, y no lo es: listening sube
+      acelerando y quitando repeticiones, writing pidiendo textos mas largos y
+      mejor conectados, reading con inferencia en vez de preguntas literales,
+      grammar con excepciones y contrastes finos, vocabulary con colocaciones y
+      matices, speaking con respuestas mas espontaneas y menos tiempo de pensar.
+      La firma es retrocompatible: sin skill se comporta como antes.
+      UI (ui/session-end.js): acepta cfg.skill y muestra pildora violeta
+      "Nivel de <Competencia>" + texto "Cada competencia guarda su propio
+      nivel" -> el alumno entiende que NO esta moviendo una dificultad global.
+      Toma el label de data/skill-meta.js (ui/ ya importa de data/ en nav.js,
+      la regla de capas lo permite).
+      CABLEADO (bymax-session.js): skillKey se arma si askMore && cfg.skill;
+      al abrir, practiceLevel = getSkillLevel(skillKey, level10) -> RETOMA el
+      nivel de esa competencia; al cerrar, setSkillLevel SIEMPRE (aunque el
+      alumno diga "terminar por hoy") -> la proxima vez arranca donde lo dejo.
+      difficultyPrompt recibe cfg.skill.
+      BUG DE TDZ CAZADO: skillKey usaba `targetLang`, que se declara ~45 lineas
+      DESPUES -> ReferenceError en runtime (el validador de sintaxis no lo ve).
+      Arreglado leyendo cfg?.targetLang directo. Recordatorio de la regla del
+      proyecto: declarar las const al INICIO o no adelantarse a usarlas.
+      PRUEBAS: tests/difficulty.test.mjs pasa de 10 a 19 (shim de localStorage
+      antes del import dinamico). QA visual en dev-preview-difficulty.html
+      (gitignoreada): 23/23 aserciones, listening=9 y grammar=7 conviven sin
+      pisarse y SOBREVIVEN al F5, cada dialogo abre en SU nivel, ARIA/teclado OK,
+      sin errores de consola.
+      OJO METODOLOGICO: el PRIMER QA reporto "la persistencia falla tras F5".
+      Era falsa alarma pero por un fallo REAL de la preview: las aserciones
+      escribian sobre el MISMO usuario que los botones, asi que cada carga
+      pisaba los valores. Se separo el usuario de test ("test") del de la demo
+      ("demo"). Leccion: cuando un test toca almacenamiento compartido, aislar
+      el espacio de nombres o el test miente.
+      PENDIENTE usuario: en la compu personal `node tests/difficulty.test.mjs`
+      (aqui no hay Node) y probar en Chrome que Grammar y Listening guarden
+      niveles distintos.
+
 - [x] CIERRE DE CLASE + DIFICULTAD 1..10 EN LA CLASE DE COMPETENCIA (2026-09-30,
       v0.306.0). Peticion del usuario (sobre el POP "Grammar" de la orbita): la
       clase con la profe no TERMINA, solo se abandona. El boton "Terminar y

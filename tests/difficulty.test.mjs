@@ -3,11 +3,22 @@
  * Correr con:  node tests/difficulty.test.mjs
  */
 import assert from "node:assert/strict";
-import {
-  MIN_LEVEL, MAX_LEVEL, DEFAULT_LEVEL,
+
+// Shim de localStorage ANTES de importar el modulo (guarda el nivel por skill).
+const _mem = new Map();
+globalThis.localStorage = {
+  getItem: (k) => (_mem.has(k) ? _mem.get(k) : null),
+  setItem: (k, v) => _mem.set(k, String(v)),
+  removeItem: (k) => _mem.delete(k),
+  clear: () => _mem.clear(),
+};
+
+const {
+  MIN_LEVEL, MAX_LEVEL, DEFAULT_LEVEL, SKILLS,
   clampLevel, levelInfo, levelLabel, allLevels,
   levelFromCefr, suggestNext, difficultyPrompt,
-} from "../src/core/difficulty.js";
+  makeSkillKey, getSkillLevel, setSkillLevel, allSkillLevels,
+} = await import("../src/core/difficulty.js");
 
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
@@ -86,6 +97,88 @@ test("difficultyPrompt incluye el numero, el nombre y las instrucciones", () => 
 test("los 10 prompts son todos DISTINTOS entre si", () => {
   const prompts = new Set(allLevels().map((lv) => difficultyPrompt(lv.n)));
   assert.equal(prompts.size, 10);
+});
+
+// --- MEMORIA POR COMPETENCIA ---------------------------------------------
+
+test("difficultyPrompt nombra la COMPETENCIA y su eje propio", () => {
+  const lis = difficultyPrompt(8, "listening");
+  const wri = difficultyPrompt(8, "writing");
+  assert.ok(lis.includes("Comprension auditiva"), "debe nombrar la competencia");
+  assert.ok(wri.includes("Expresion escrita"));
+  // El MISMO numero significa cosas distintas segun el musculo que se entrena.
+  assert.notEqual(lis, wri);
+  assert.ok(/rapido|repeticiones/i.test(lis), "listening sube por velocidad");
+  assert.ok(/largos|conectados/i.test(wri), "writing sube por longitud/cohesion");
+});
+
+test("difficultyPrompt sin competencia sigue funcionando (retrocompatible)", () => {
+  const p = difficultyPrompt(5);
+  assert.ok(p.includes("5 de 10"));
+  assert.ok(p.length > 60);
+});
+
+test("makeSkillKey separa por usuario, idioma y competencia", () => {
+  const a = makeSkillKey("u1", "en", "grammar");
+  assert.notEqual(a, makeSkillKey("u2", "en", "grammar"), "otro usuario, otra clave");
+  assert.notEqual(a, makeSkillKey("u1", "pt", "grammar"), "otro idioma, otra clave");
+  assert.notEqual(a, makeSkillKey("u1", "en", "reading"), "otra skill, otra clave");
+  // Sanea caracteres raros (no debe romper la clave de localStorage).
+  assert.ok(!makeSkillKey("a b@c", "en", "grammar").includes(" "));
+  // Sin usuario/idioma cae a "anon", no a "null"/"undefined".
+  assert.equal(makeSkillKey(null, undefined, "grammar"), "anon.anon.grammar");
+});
+
+test("cada competencia recuerda SU nivel, sin pisar a las demas", () => {
+  localStorage.clear();
+  const gram = makeSkillKey("u1", "en", "grammar");
+  const list = makeSkillKey("u1", "en", "listening");
+
+  setSkillLevel(gram, 8);
+  setSkillLevel(list, 3);
+
+  assert.equal(getSkillLevel(gram), 8);
+  assert.equal(getSkillLevel(list), 3, "listening NO se movio al tocar grammar");
+});
+
+test("el mismo idioma no contamina a otro idioma", () => {
+  localStorage.clear();
+  setSkillLevel(makeSkillKey("u1", "en", "grammar"), 9);
+  assert.equal(getSkillLevel(makeSkillKey("u1", "pt", "grammar"), 4), 4,
+    "portugues arranca en su propio fallback, no hereda el 9 de ingles");
+});
+
+test("getSkillLevel usa el fallback si nunca se guardo nada", () => {
+  localStorage.clear();
+  const k = makeSkillKey("nuevo", "en", "reading");
+  assert.equal(getSkillLevel(k, 6), 6);
+  assert.equal(getSkillLevel(k), DEFAULT_LEVEL, "sin fallback -> el default");
+});
+
+test("setSkillLevel acota y devuelve el valor efectivo", () => {
+  localStorage.clear();
+  const k = makeSkillKey("u1", "en", "speaking");
+  assert.equal(setSkillLevel(k, 99), 10);
+  assert.equal(getSkillLevel(k), 10);
+  assert.equal(setSkillLevel(k, -5), 1);
+  assert.equal(getSkillLevel(k), 1);
+});
+
+test("un valor corrupto en storage no rompe: cae al rango valido", () => {
+  localStorage.clear();
+  const k = makeSkillKey("u1", "en", "writing");
+  localStorage.setItem("linguapath.difficulty." + k, "basura");
+  assert.equal(getSkillLevel(k, 5), DEFAULT_LEVEL, "NaN -> default, no explota");
+});
+
+test("allSkillLevels devuelve las 6 competencias", () => {
+  localStorage.clear();
+  setSkillLevel(makeSkillKey("u1", "en", "grammar"), 7);
+  const all = allSkillLevels("u1", "en", 4);
+  assert.equal(Object.keys(all).length, 6);
+  assert.equal(all.grammar, 7, "la guardada");
+  assert.equal(all.listening, 4, "las demas usan el fallback");
+  for (const s of SKILLS) assert.ok(s in all, "falta " + s);
 });
 
 console.log(`\n${passed} pruebas en verde.`);
