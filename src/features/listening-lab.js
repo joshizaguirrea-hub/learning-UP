@@ -17,13 +17,13 @@ import { speakSequence, speakMono } from "../ui/speech.js";
 import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
-import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { generateListening } from "../services/comprehension-ai.js";
+import { practiceEnd } from "../ui/practice-end.js";
 
 const PASS = 60; // % de comprension para aprobar
 
@@ -53,6 +53,10 @@ export function openListeningLab(unit, opts = {}) {
   const lesson = lessonForSkill(unit, "listening");
   const progressId = opts.progressId || lesson?.id;
   const name = robotName();
+
+  // Cierre con dificultad: nivel propio de LISTENING. En esta competencia el
+  // nivel se NOTA de inmediato -> manda la velocidad de la narracion.
+  const ending = practiceEnd({ skill: "listening", unit, userId });
 
   let story = null;      // { title, body, moral }
   let questions = [];     // [{ q, options:[{text,correct}], explain }]
@@ -104,23 +108,29 @@ export function openListeningLab(unit, opts = {}) {
   // -------- FASE 1: escuchar (texto OCULTO) --------
   function renderListen() {
     setBar(15);
+    // La VELOCIDAD es la palanca principal de listening: en nivel bajo la
+    // profe habla pausado; en nivel alto, a ritmo natural. Y a partir de 8 se
+    // retira la muleta de "mas lento": ahi el reto es el oido, no el boton.
+    const { rate, repeat } = ending.shape;
     stage.replaceChildren(
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Paso 1 \u00b7 Escucha (texto oculto)"),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4 text-center" },
         el("div", { class: "w-16 mx-auto" }, teacherFace("md")),
         el("p", { class: "text-slate-300 text-sm mt-2" },
-          name + " te va a contar una historia. Esc\u00fachala con atenci\u00f3n las veces que quieras: no ver\u00e1s el texto hasta terminar el test."),
+          name + " te va a contar una historia. " + (repeat
+            ? "Esc\u00fachala con atenci\u00f3n las veces que quieras: no ver\u00e1s el texto hasta terminar el test."
+            : "En este nivel se escucha UNA vez, como en la vida real. No ver\u00e1s el texto hasta terminar el test.")),
         el("div", { class: "mt-4 flex flex-wrap gap-2 justify-center" },
           el("button", {
             type: "button",
             class: "inline-flex items-center gap-2 bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-cyan-300",
-            onclick: () => narrate(0.95),
-          }, el("span", { class: "w-5 h-5", html: ICONS.sound }), "Escuchar"),
-          el("button", {
+            onclick: () => narrate(rate),
+          }, el("span", { class: "w-5 h-5", html: ICONS.sound }), repeat ? "Escuchar" : "Escuchar (1 vez)"),
+          repeat ? el("button", {
             type: "button",
             class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-3 py-2.5 rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-cyan-300",
-            onclick: () => narrate(0.6),
-          }, "M\u00e1s lento"),
+            onclick: () => narrate(Math.max(0.5, rate - 0.3)),
+          }, "M\u00e1s lento") : null,
           el("button", {
             type: "button",
             class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-3 py-2.5 rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-cyan-300",
@@ -132,7 +142,7 @@ export function openListeningLab(unit, opts = {}) {
         onclick: () => { stopAudio(); renderQuestion(); },
       }, "Ya escuch\u00e9, ir al test (" + questions.length + " preguntas) \u2192"));
 
-    setTimeout(() => narrate(0.95), 400); // arranca la narracion sola
+    setTimeout(() => narrate(rate), 400); // arranca la narracion sola
   }
 
   // -------- FASE 2: preguntas (facil -> dificil) --------
@@ -203,12 +213,22 @@ export function openListeningLab(unit, opts = {}) {
   }
 
   // -------- FASE 3: resultado + transcripcion --------
-  function renderDone() {
+  async function renderDone() {
     setBar(100);
     const pct = questions.length ? Math.round((correct / questions.length) * 100) : 0;
     if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
     if (typeof onComplete === "function") onComplete(pct);
-    if (pct >= PASS) celebrate({ title: "\u00a1O\u00eddo afinado!", subtitle: `Acertaste ${correct} de ${questions.length} (${pct}%).`, grand: pct >= 80 });
+    stopAudio();
+
+    const again = await ending.show({
+      title: pct >= PASS ? "\u00a1Buen o\u00eddo!" : "Sigue entrenando el o\u00eddo",
+      subtitle: "Entendiste " + correct + " de " + questions.length + " (" + pct + "%).",
+      pct,
+      party: pct >= PASS,
+    });
+    // Otra ronda = historia NUEVA, y load() narra a la velocidad del nivel
+    // recien elegido (subir el nivel se NOTA: la profe habla mas rapido).
+    if (again) { load(); return; }
 
     const transcript = el("div", { class: "mt-4 rounded-2xl bg-white/5 border border-white/10 p-4 text-left" },
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Transcripci\u00f3n"),
@@ -223,7 +243,7 @@ export function openListeningLab(unit, opts = {}) {
       el("div", { class: "mt-4 flex flex-col sm:flex-row gap-2 justify-center" },
         el("button", {
           class: "border border-cyan-500/40 bg-cyan-500/10 text-cyan-200 font-semibold px-5 py-3 rounded-xl hover:bg-cyan-500/20",
-          onclick: () => narrate(0.95),
+          onclick: () => narrate(ending.shape.rate),
         }, "Reescuchar historia"),
         el("button", {
           class: "bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110",

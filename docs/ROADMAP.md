@@ -3,25 +3,18 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.307.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.308.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
-- [ ] **Extender el cierre `sessionEnd` al resto de ejercicios.** Ya existe UNA
-      pantalla de cierre reusable (`ui/session-end.js`: felicita + "¿seguir
-      practicando?" + dificultad 1..10) pero hoy solo la usa la clase de
-      competencia (`skill-class` -> `bymax-session`). Los labs deterministas
-      (`vocab-lab`, `reading-lab`, `listening-lab`, `dictogloss`,
-      `grammar-input`, `writing-drills-player`, `pronunciation-lab`,
-      `checkpoint`) siguen con su propio `renderDone` copy-pasteado. Migrarlos
-      borra ~8 duplicados y les regala el selector de dificultad.
-      Nota: en los labs el nivel 1..10 debe MODULAR los items generados
-      (cantidad/longitud), no un prompt -> `core/difficulty.js` ya expone
-      `levelInfo(n)` para eso, y `getSkillLevel` para leer el nivel de esa
-      competencia.
+- [x] **Extender el cierre `sessionEnd` al resto de ejercicios** (v0.308.0). Las
+      6 competencias ya felicitan + preguntan "\u00bfseguir?" + dejan elegir nivel.
+      El pegamento vive UNA vez en `ui/practice-end.js`. Faltan los labs
+      secundarios (`dictogloss`, `grammar-input`, `writing-drills-player`,
+      `pronunciation-lab`, `checkpoint`), que no son los POPs principales.
 - [ ] **Panel de niveles por competencia** en Ajustes o el perfil: mostrar las 6
       dificultades de un vistazo y poder ajustarlas sin tener que terminar una
       clase. `allSkillLevels(userId, lang)` ya devuelve el mapa listo.
@@ -57,6 +50,12 @@ Version actual: **v0.307.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.308.0 — Las 6 competencias cierran con dificultad.** Antes solo
+      Grammar. Nuevo `ui/practice-end.js` (pegamento reusable) y palancas
+      REALES para ejercicios deterministas: `levelShape(n)` (velocidad de voz,
+      ayudas, distractores, repeticiones) y `scaleCount(n,min,max)`. En
+      Listening el nivel se oye literalmente. Nuevo `tools/check_paths.py`.
 
 - [x] **v0.307.0 — La dificultad va POR COMPETENCIA.** El nivel 1..10 ya no es
       global: cada competencia (Grammar / Vocabulary / Reading / Listening /
@@ -107,6 +106,15 @@ Version actual: **v0.307.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
   `{again, level}`. Activalo en una sesion con `askMore: true` + `level10` +
   `skill`. En `bymax-session.js`, `practiceLevel = 0` significa "no inyectar
   dificultad" (asi conversacion/cuento/entrevista siguen intactos).
+- **Cierre en LABS deterministas:** `src/ui/practice-end.js`
+  `practiceEnd({skill, unit, userId})` -> `{level, shape, show()}`. Encapsula
+  leer-mostrar-persistir. Ahi el nivel NO es un prompt: `shape` trae las
+  palancas (`rate`, `hints`, `maxOptions`, `repeat`) y hay que RELEERLO en cada
+  ronda (`buildRound()`), porque el alumno pudo cambiar de nivel.
+- **Validadores (correlos todos antes de publicar):** `tools/check_js.py`
+  (sintaxis), `tools/check_imports.py` (referencias sin importar),
+  `tools/check_paths.py` (que la ruta importada EXISTA; los otros dos no lo
+  ven) y `tools/stamp_version.py --check` (version sincronizada).
 - **Idioma meta por unidad:** `unit.language` ("en" | "pt" | "it" | "fr" | "ja").
   Helpers en `src/data/languages.js`: `unitTts(unit)` (voz), `unitMic(unit)` (STT).
 - **Feature flags de idioma:** `LANGUAGES` en `languages.js`. `draft: true` =

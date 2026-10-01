@@ -124,6 +124,46 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [x] CIERRE CON DIFICULTAD EN LAS 6 COMPETENCIAS (2026-09-30, v0.308.0).
+      Cerramos la promesa de la v0.307: el sistema decia ser "por competencia"
+      pero SOLO Grammar lo usaba. Si entrabas a Listening esperando elegir tu
+      nivel, no aparecia nada. Ahora las 6 tienen cierre con dificultad.
+      NUEVO ui/practice-end.js: el pegamento (leer nivel guardado -> mostrar
+      sessionEnd -> persistir lo elegido) vivia una vez en bymax-session y
+      habria que copiarlo en cada lab. `practiceEnd({skill, unit, userId})`
+      devuelve {level, shape, show()} y lo encapsula; un lab solo hace
+      `if (await end.show({...})) restart()`.
+      PALANCAS REALES (core/difficulty.js): en la clase con IA basta pedirle a
+      la profe que suba la exigencia, pero los labs generan ejercicios con
+      CODIGO: no hay a quien pedirle nada. `levelShape(n)` devuelve lo que si
+      se puede mover honestamente -> rate (voz 0.70..1.15), hints (ayudas solo
+      <=4), maxOptions (2/3/4 distractores) y repeat (desde 8 se escucha UNA
+      vez). `scaleCount(n,min,max)` para cantidad de items. No se inventa
+      contenido mas dificil del que trae la unidad: se pide mas cantidad, mas
+      velocidad, mas distractores y menos muletas.
+      POR LAB: reading y vocabulary REARMAN la ronda con buildRound() (el nivel
+      decide cuantos distractores; nunca se recorta la opcion correcta).
+      listening es donde mas se NOTA: la narracion usa ending.shape.rate y en
+      nivel >=8 desaparece el boton "Mas lento" y el texto avisa "se escucha UNA
+      vez, como en la vida real". speaking reinicia la tanda. writing solo tuvo
+      que activar askMore + level10 (ya usaba bymax-session, como grammar).
+      Borra 5 pantallas de "terminaste" copy-pasteadas y 3 imports de celebrate
+      que quedaron muertos (ahora celebra sessionEnd).
+      BUG MIO, CAZADO POR QA: al insertar el import en listening-lab.js cambie
+      `../services/comprehension-ai.js` por `../services/ai-content.js`, que NO
+      EXISTE. check_js (sintaxis) y check_imports (referencias) pasaron los dos
+      en verde; el modulo solo reventaba al abrirlo en el navegador. Confirme
+      con `git show HEAD:` que el original estaba bien y el error era mio.
+      NUEVO tools/check_paths.py para cerrar ese hueco: verifica que TODA ruta
+      importada exista en disco (788 rutas hoy). Probado en los dos sentidos:
+      reintroduje el bug a proposito y lo detecto; restaurado, verde.
+      PRUEBAS: tests/difficulty.test.mjs 19 -> 25 (scaleCount monotono,
+      levelShape acelera/retira ayudas/suma distractores, acota invalidos).
+      QA: 34/34 aserciones y los 8 modulos tocados importan OK; la app real
+      carga sin errores de consola.
+      PENDIENTE usuario: probar en Chrome que subir el nivel en Listening se
+      oiga mas rapido, y que en nivel 10 ya no aparezca "Mas lento".
+
 - [x] DIFICULTAD LIGADA A LA COMPETENCIA (2026-09-30, v0.307.0). Peticion del
       usuario sobre la v0.306: el nivel 1..10 no puede ser uno solo para todo,
       tiene que ir por segmento de estudio (Grammar, Vocabulary, Reading,

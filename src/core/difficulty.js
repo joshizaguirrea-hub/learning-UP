@@ -259,3 +259,51 @@ export function allSkillLevels(userId, lang, fallback = DEFAULT_LEVEL) {
   }
   return out;
 }
+
+// --------------------------------------------------------------------------
+// PALANCAS PARA EJERCICIOS DETERMINISTAS
+//
+// En la clase con IA basta con pedirle a la profe que suba la exigencia
+// (difficultyPrompt). Pero los labs (reading, listening, vocab, dictado...)
+// generan sus ejercicios con codigo: no hay nadie a quien pedirle nada. Ahi el
+// nivel tiene que mover PALANCAS REALES, y hay que ser honestos sobre cuales
+// existen: no se puede inventar contenido mas dificil del que trae la unidad,
+// pero SI se puede pedir mas cantidad, hablar mas rapido, poner mas
+// distractores y quitar las ayudas.
+// --------------------------------------------------------------------------
+
+/** Interpola linealmente entre `min` y `max` segun el nivel 1..10. */
+function lerp(n, min, max) {
+  return min + ((clampLevel(n) - 1) / (MAX_LEVEL - MIN_LEVEL)) * (max - min);
+}
+
+/**
+ * Cuantos items pedir en un ejercicio, escalado por nivel.
+ * @param {number} n - nivel 1..10
+ * @param {number} min - items en nivel 1
+ * @param {number} max - items en nivel 10
+ */
+export function scaleCount(n, min, max) {
+  return Math.max(1, Math.round(lerp(n, min, max)));
+}
+
+/**
+ * Palancas concretas para un ejercicio determinista.
+ *
+ * - `items`      multiplicador de cantidad (usalo con scaleCount)
+ * - `rate`       velocidad de la voz: lento al principio, natural al final
+ * - `hints`      si se ofrecen pistas/ayudas visibles
+ * - `maxOptions` cuantas opciones mostrar (mas distractores = mas dificil)
+ * - `repeat`     si se permite repetir el audio sin penalizar
+ */
+export function levelShape(n) {
+  const lv = clampLevel(n);
+  return {
+    level: lv,
+    label: levelLabel(lv),
+    rate: Math.round(lerp(lv, 0.70, 1.15) * 100) / 100,
+    hints: lv <= 4,
+    maxOptions: lv <= 2 ? 2 : lv <= 6 ? 3 : 4,
+    repeat: lv <= 7,
+  };
+}

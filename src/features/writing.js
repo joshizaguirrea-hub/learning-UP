@@ -13,6 +13,7 @@ import { robotName } from "../ui/robot.js";
 import { isAtLeast } from "../data/cefr.js";
 import { completeLesson } from "../services/course.js";
 import { openBymaxSession } from "./bymax-session.js";
+import { levelFromCefr } from "../core/difficulty.js";
 import { lessonForSkill } from "./skill-class.js";
 import { DRILL_TYPES } from "../data/writing-drills.js";
 import { openDrillDeck } from "./writing-drills-player.js";
@@ -161,6 +162,9 @@ export function openWriting(unit, opts = {}) {
       topic, level, targetLang,
       unitId: unit?.id, unitTitle: unit?.title, userId: opts.userId, // -> cuaderno de errores
       skill: "writing", // competencia -> pestana Writing del cuaderno
+      askMore: true,    // al terminar: felicita + "\u00bfseguir?" + nivel 1..10 de Writing
+      level10: levelFromCefr(level),
+      endSubtitle: item.label,
       onFinish,
       finishGoal: 3,
       title: name + " \u00b7 Writing: " + item.label,

@@ -7,17 +7,19 @@
  *   2) Responder preguntas de comprension EN CAPAS con FEEDBACK inmediato:
  *      reusa las preguntas ya autoradas (content.check) + "palabra en contexto"
  *      autogenerada (core/reading-lab.js) -> DRY, deterministico, offline.
- *   3) Puntaje -> marca la leccion completada + ofrece leer en voz alta.
+ *   3) Puntaje -> marca la leccion completada + cierre con dificultad
+ *      (practiceEnd: felicita, pregunta si sigue y deja elegir nivel 1..10 de
+ *      READING) + ofrece leer en voz alta.
  *
- * Reutiliza: speech (voz), celebrate, mascota, completeLesson, y openReadingAloud
- * como capa opcional de pronunciacion. Presentacion pura: la logica esta en core.
+ * Reutiliza: speech (voz), practice-end (cierre + dificultad), mascota,
+ * completeLesson, y openReadingAloud como capa opcional de pronunciacion.
+ * Presentacion pura: la logica esta en core.
  */
 import { el } from "../ui/dom.js";
 import { speak, speakSequence, speakMono } from "../ui/speech.js";
 import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
-import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
@@ -25,6 +27,7 @@ import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
 import { splitTexts, buildQuestions, scorePct } from "../core/reading-lab.js";
+import { practiceEnd } from "../ui/practice-end.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
 const PASS = 60; // % de comprension para aprobar
@@ -54,9 +57,27 @@ export function openReadingLab(unit, opts = {}) {
   const lesson = lessonForSkill(unit, "reading");
   const progressId = opts.progressId || lesson?.id;
   const passages = splitTexts(lesson?.content?.reading);
-  const questions = buildQuestions(lesson, unit).map((q) => ({ ...q, options: shuffle(q.options) }));
   const name = robotName();
   const rkey = makeResumeKey(userId, unit.id, "readinglab");
+
+  // Cierre con dificultad: lee el nivel guardado de READING (no uno global).
+  const ending = practiceEnd({ skill: "reading", unit, userId });
+
+  // Las preguntas se RECONSTRUYEN en cada ronda porque el nivel manda cuantos
+  // distractores mostrar: en facil se descartan opciones, en dificil van todas.
+  // Cada opcion es {text, correct} (ver core/reading-lab.js).
+  let questions = [];
+  function buildRound() {
+    const { maxOptions } = ending.shape;
+    questions = buildQuestions(lesson, unit).map((q) => {
+      const right = q.options.filter((o) => o.correct);
+      const wrong = shuffle(q.options.filter((o) => !o.correct))
+        .slice(0, Math.max(1, maxOptions - right.length));
+      // Nunca se recorta la(s) correcta(s): solo se quitan distractores.
+      return { ...q, options: shuffle([...right, ...wrong]) };
+    });
+  }
+  buildRound();
 
   const stopAudio = () => { cancelCloud(); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
   const close = () => { stopAudio(); overlay.remove(); };
@@ -181,14 +202,33 @@ export function openReadingLab(unit, opts = {}) {
   }
 
   // -------- FASE 3: resultado --------
-  function renderDone() {
+  async function renderDone() {
     clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const pct = scorePct(correct, questions.length);
     if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
     if (typeof onComplete === "function") onComplete(pct);
-    if (pct >= PASS) celebrate({ title: "\u00a1Comprensi\u00f3n lograda!", subtitle: `Acertaste ${correct} de ${questions.length} (${pct}%).`, grand: pct >= 80 });
 
+    // Mientras el alumno ve el cierre, que no le siga hablando el pasaje.
+    stopAudio();
+
+    const again = await ending.show({
+      title: pct >= PASS ? "\u00a1Bien le\u00eddo!" : "Sigue practicando",
+      subtitle: "Entendiste " + correct + " de " + questions.length + " (" + pct + "%).",
+      pct,
+      party: pct >= PASS,
+    });
+
+    if (again) {
+      // Nueva ronda CON el nivel recien elegido: buildRound relee ending.shape.
+      qIdx = 0; correct = 0;
+      buildRound();
+      renderRead();
+      return;
+    }
+
+    // No quiere otra ronda: se queda la pantalla de siempre, con la puerta a
+    // leer en voz alta (es otra competencia, no una repeticion de esta).
     stage.replaceChildren(el("div", { class: "text-center py-6" },
       el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= PASS ? "\u00a1Bien le\u00eddo!" : "Sigue practicando"),
@@ -196,7 +236,7 @@ export function openReadingLab(unit, opts = {}) {
       el("div", { class: "mt-5 flex flex-col sm:flex-row gap-2 justify-center" },
         el("button", {
           class: "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110",
-          onclick: () => { qIdx = 0; correct = 0; questions.forEach((q) => { q.options = shuffle(q.options); }); renderRead(); },
+          onclick: () => { qIdx = 0; correct = 0; buildRound(); renderRead(); },
         }, "Leer otra vez"),
         el("button", {
           class: "border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 font-semibold px-5 py-3 rounded-xl hover:bg-emerald-500/20",

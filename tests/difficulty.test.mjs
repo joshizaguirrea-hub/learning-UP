@@ -18,6 +18,7 @@ const {
   clampLevel, levelInfo, levelLabel, allLevels,
   levelFromCefr, suggestNext, difficultyPrompt,
   makeSkillKey, getSkillLevel, setSkillLevel, allSkillLevels,
+  scaleCount, levelShape,
 } = await import("../src/core/difficulty.js");
 
 let passed = 0;
@@ -169,6 +170,57 @@ test("un valor corrupto en storage no rompe: cae al rango valido", () => {
   const k = makeSkillKey("u1", "en", "writing");
   localStorage.setItem("linguapath.difficulty." + k, "basura");
   assert.equal(getSkillLevel(k, 5), DEFAULT_LEVEL, "NaN -> default, no explota");
+});
+
+// --- PALANCAS PARA LABS DETERMINISTAS ------------------------------------
+
+test("scaleCount interpola entre min y max segun el nivel", () => {
+  assert.equal(scaleCount(1, 4, 12), 4, "nivel 1 -> el minimo");
+  assert.equal(scaleCount(10, 4, 12), 12, "nivel 10 -> el maximo");
+  assert.ok(scaleCount(5, 4, 12) > 4 && scaleCount(5, 4, 12) < 12, "en medio, en medio");
+  assert.equal(scaleCount(99, 4, 12), 12, "acota el nivel fuera de rango");
+  assert.ok(scaleCount(1, 0, 0) >= 1, "nunca devuelve 0 items");
+});
+
+test("scaleCount es monotono: mas nivel nunca da MENOS items", () => {
+  let prev = 0;
+  for (let n = 1; n <= 10; n++) {
+    const c = scaleCount(n, 3, 15);
+    assert.ok(c >= prev, `nivel ${n} dio ${c}, menos que el anterior ${prev}`);
+    prev = c;
+  }
+});
+
+test("levelShape: la voz acelera conforme sube el nivel", () => {
+  const lento = levelShape(1).rate;
+  const rapido = levelShape(10).rate;
+  assert.ok(lento < rapido, "nivel 10 debe hablar mas rapido que nivel 1");
+  assert.ok(lento >= 0.5 && rapido <= 1.5, "la velocidad se queda en rango audible");
+});
+
+test("levelShape: las ayudas se retiran en niveles altos", () => {
+  assert.equal(levelShape(2).hints, true, "principiante con pistas");
+  assert.equal(levelShape(9).hints, false, "avanzado sin pistas");
+  assert.equal(levelShape(5).repeat, true, "nivel medio puede repetir el audio");
+  assert.equal(levelShape(10).repeat, false, "nivel 10 escucha una sola vez");
+});
+
+test("levelShape: mas nivel = mas distractores (nunca menos de 2 opciones)", () => {
+  assert.ok(levelShape(1).maxOptions >= 2, "siempre hay algo que elegir");
+  assert.ok(levelShape(10).maxOptions > levelShape(1).maxOptions);
+  let prev = 0;
+  for (let n = 1; n <= 10; n++) {
+    const o = levelShape(n).maxOptions;
+    assert.ok(o >= prev, "maxOptions no debe bajar al subir el nivel");
+    prev = o;
+  }
+});
+
+test("levelShape acota niveles invalidos sin explotar", () => {
+  assert.equal(levelShape(0).level, MIN_LEVEL);
+  assert.equal(levelShape(99).level, MAX_LEVEL);
+  assert.equal(levelShape(NaN).level, DEFAULT_LEVEL);
+  assert.ok(typeof levelShape(5).label === "string");
 });
 
 test("allSkillLevels devuelve las 6 competencias", () => {

@@ -20,6 +20,7 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
+import { practiceEnd } from "../ui/practice-end.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
@@ -94,6 +95,8 @@ export function openSpeaking(unit, opts = {}) {
   // como extra opcional. Es el modo por defecto del hub; forzado si no hay mic.
   const repeat = opts.repeat === true || !supported;
   const rkey = makeResumeKey(userId, unit.id, "speaking");
+  // Cierre con dificultad: nivel propio de SPEAKING.
+  const ending = practiceEnd({ skill: "speaking", unit, userId });
   let idx = 0;
   let passed = 0;
   let dictation = null;
@@ -218,7 +221,7 @@ export function openSpeaking(unit, opts = {}) {
     setTimeout(() => speakMono(target, tts), 300);
   }
 
-  function renderDone() {
+  async function renderDone() {
     clearProgress(rkey);
     progress.firstChild.style.width = "100%";
     const pct = Math.round((passed / Math.max(1, phrases.length)) * 100);
@@ -229,6 +232,15 @@ export function openSpeaking(unit, opts = {}) {
       completeLesson(userId, progressId, pct).catch(() => {});
     }
     if (typeof onComplete === "function") onComplete(pct);
+
+    const again = await ending.show({
+      title: "\u00a1Practica terminada!",
+      subtitle: "Pronunciaste bien " + passed + " de " + phrases.length + " frases (" + pct + "%).",
+      pct,
+      party: pct >= 60,
+    });
+    if (again) { idx = 0; passed = 0; renderPhrase(); return; }
+
     stage.replaceChildren(el("div", { class: "text-center py-6" },
       el("div", { class: "text-5xl mb-2" }, pct >= 60 ? "\uD83C\uDF89" : "\uD83D\uDCAA"),
       el("h3", { class: "text-xl font-bold text-slate-100" }, "\u00a1Practica terminada!"),

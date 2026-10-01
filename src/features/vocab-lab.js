@@ -12,13 +12,13 @@ import { speak, speakMono } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { normalize } from "../core/activities.js";
 import { ICONS } from "../ui/icons.js";
-import { celebrate } from "../ui/celebrate.js";
 import { playCorrect, playWrong } from "../ui/sound.js";
 import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { buildVocabLadder, scorePct } from "../core/vocab-lab.js";
+import { practiceEnd } from "../ui/practice-end.js";
 import { ttsCode } from "../data/languages.js";
 import { ensureCards, getCardsByIds, saveCard } from "../services/srs.js";
 import { review, newCard } from "../core/srs.js";
@@ -38,8 +38,25 @@ export function openVocabLab(unit, opts = {}) {
   const { userId, onComplete } = opts;
   const lesson = lessonForSkill(unit, "vocabulary");
   const progressId = opts.progressId || lesson?.id;
-  const deck = buildVocabLadder(unit).map((ex) => ex.options ? { ...ex, options: shuffle(ex.options) } : ex);
   const name = robotName();
+
+  // Cierre con dificultad: nivel propio de VOCABULARY.
+  const ending = practiceEnd({ skill: "vocabulary", unit, userId });
+
+  // La escalera se rearma en cada ronda: el nivel decide cuantos distractores
+  // ve el alumno (menos opciones = mas facil acertar por descarte).
+  let deck = [];
+  function buildRound() {
+    const { maxOptions } = ending.shape;
+    deck = buildVocabLadder(unit).map((ex) => {
+      if (!Array.isArray(ex.options)) return ex;
+      const right = ex.options.filter((o) => o.correct);
+      const wrong = shuffle(ex.options.filter((o) => !o.correct))
+        .slice(0, Math.max(1, maxOptions - right.length));
+      return { ...ex, options: shuffle([...right, ...wrong]) };
+    });
+  }
+  buildRound();
   const tts = ttsCode(unit.language || "en"); // voz del idioma META (en | pt...) -> antes 'tts' no existia (bug de voz)
   const rkey = makeResumeKey(userId, unit.id, "vocablab");
   let idx = 0;
@@ -187,6 +204,30 @@ export function openVocabLab(unit, opts = {}) {
     clearProgress(rkey); // ejercicio terminado -> ya no hay que retomar
     progress.firstChild.style.width = "100%";
     const pct = scorePct(correct, deck.length);
+
+    if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
+    if (typeof onComplete === "function") onComplete(pct);
+
+    // El SRS se alimenta ANTES de preguntar si quiere otra ronda: lo que ya
+    // practico cuenta aunque decida irse en ese momento.
+    await syncSrs();
+
+    const again = await ending.show({
+      title: pct >= 60 ? "\u00a1Vocabulario dominado!" : "Buen intento",
+      subtitle: "Acertaste " + correct + " de " + deck.length + " (" + pct + "%) \u00b7 " +
+        "estas palabras entraron a tu repaso diario",
+      pct,
+      party: pct >= 60,
+    });
+
+    if (again) {
+      idx = 0; correct = 0;
+      for (const k in byVocab) delete byVocab[k];
+      buildRound();   // rearma la escalera con el nivel recien elegido
+      render();
+      return;
+    }
+
     stage.replaceChildren(el("div", { class: "text-center py-6" },
       el("div", { class: "w-24 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-2" }, pct >= 60 ? "\u00a1Vocabulario dominado!" : "Buen intento"),
@@ -194,31 +235,30 @@ export function openVocabLab(unit, opts = {}) {
       el("p", { class: "mt-1 text-xs text-slate-500" }, "Estas palabras entraron a tu repaso diario (SRS)."),
       el("button", {
         class: "mt-5 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold px-6 py-3 rounded-xl hover:brightness-110",
-        onclick: () => { idx = 0; correct = 0; for (const k in byVocab) delete byVocab[k]; render(); },
+        onclick: () => { idx = 0; correct = 0; for (const k in byVocab) delete byVocab[k]; buildRound(); render(); },
       }, "Practicar otra vez")));
+  }
 
-    if (pct >= 60) celebrate({ title: "\u00a1Palabras fijadas!", subtitle: `${pct}% \u00b7 y a tu repaso SRS`, grand: pct >= 80 });
-    if (userId && progressId) completeLesson(userId, progressId, pct).catch(() => {});
-    if (typeof onComplete === "function") onComplete(pct);
-
-    // Alimenta el SRS: crea tarjetas si faltan y reprograma cada palabra segun
-    // como te fue (>=60% aciertos -> "good"; si no -> "again", vuelve pronto).
-    if (userId) {
-      try {
-        const ids = Object.keys(byVocab);
-        await ensureCards(userId, (unit.vocab || []).filter((v) => ids.includes(v.id)));
-        const existing = await getCardsByIds(userId, ids);
-        await Promise.all(ids.map((vid) => {
-          const t = byVocab[vid];
-          const cur = existing[vid];
-          const card = cur
-            ? { ease: Number(cur.ease), interval: cur.interval, reps: cur.reps, due: cur.due }
-            : newCard();
-          const grade = (t.right / t.total) >= 0.6 ? "good" : "again";
-          return saveCard(userId, vid, review(card, grade));
-        }));
-      } catch (e) { console.error("[vocab-lab] SRS sync fallo:", e); }
-    }
+  /**
+   * Alimenta el SRS: crea tarjetas si faltan y reprograma cada palabra segun
+   * como te fue (>=60% aciertos -> "good"; si no -> "again", vuelve pronto).
+   */
+  async function syncSrs() {
+    if (!userId) return;
+    try {
+      const ids = Object.keys(byVocab);
+      await ensureCards(userId, (unit.vocab || []).filter((v) => ids.includes(v.id)));
+      const existing = await getCardsByIds(userId, ids);
+      await Promise.all(ids.map((vid) => {
+        const t = byVocab[vid];
+        const cur = existing[vid];
+        const card = cur
+          ? { ease: Number(cur.ease), interval: cur.interval, reps: cur.reps, due: cur.due }
+          : newCard();
+        const grade = (t.right / t.total) >= 0.6 ? "good" : "again";
+        return saveCard(userId, vid, review(card, grade));
+      }));
+    } catch (e) { console.error("[vocab-lab] SRS sync fallo:", e); }
   }
 
   const card = el("div", {
