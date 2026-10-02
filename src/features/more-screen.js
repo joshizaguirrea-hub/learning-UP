@@ -15,6 +15,7 @@ import { go } from "../ui/router.js";
 import { canInstall, promptInstall, isStandalone, isIOS } from "../ui/install.js";
 import { openCloseReading } from "./close-reading.js";
 import { openRolePlay } from "./role-play.js";
+import { openShareApp } from "./share-app.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
 
 // Es una FUNCION, no una constante: el alumno puede renombrar a su profe en
@@ -48,11 +49,28 @@ export async function renderMore(container) {
 
   mount(container, el("div", { class: "max-w-2xl mx-auto space-y-3" },
     screenHeader({ icon: ICONS.grid, grad: accentGrad("brand"), title: "Mas", subtitle: "Todo lo demas, en un solo lugar" }),
+    shareCard(),
     installCard(() => renderMore(container)),
     closeReadingCard(),
     rolePlayCard(),
     ...rows, salir));
   focusMainHeading(container);
+}
+
+// Tarjeta "Invita a alguien": la app no esta en ninguna tienda, asi que el
+// enlace + el QR SON el canal de distribucion. Va arriba a proposito.
+function shareCard() {
+  return el("button", {
+    type: "button",
+    class: "w-full flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500/15 to-teal-500/15 " +
+      "border border-emerald-400/40 p-4 hover:from-emerald-500/25 hover:to-teal-500/25 transition " +
+      "focus:outline focus:outline-2 focus:outline-emerald-400",
+    onclick: () => openShareApp(),
+  },
+    el("span", { class: "w-11 h-11 grid place-items-center rounded-xl bg-white/10 text-emerald-200 shrink-0", html: ICONS.share }),
+    el("div", { class: "flex-1 min-w-0 text-left" },
+      el("p", { class: "font-bold text-slate-100" }, "Invita a alguien"),
+      el("p", { class: "text-sm text-slate-400" }, "Comparte el enlace o el QR para que la instalen")));
 }
 
 // Tarjeta "Close-reading" (analisis literario C1/C2): abre un modal autocontenido.

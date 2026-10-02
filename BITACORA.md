@@ -124,6 +124,41 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [x] COMPARTIR LA APP (2026-09-30, v0.310.0). Johsua pidio una forma de que
+      otros la descarguen. La PWA YA era instalable (manifest + sw + iconos +
+      boton "Instalar app"); lo que faltaba era el canal: como se la pasas a
+      alguien. No esta en Play Store ni App Store, asi que EL ENLACE Y EL QR
+      SON la distribucion.
+      core/share-app.js (PURO, sin DOM ni navigator -> testeable en Node):
+      APP_URL, shareUrl(ref) (sanea el ?ref a \w, max 20 -> no se inyecta nada),
+      inviteText(name) (<320 chars a proposito: se lee en la notificacion de
+      WhatsApp sin abrirla), mailtoLink, whatsappLink, qrImageUrl(size) (acota
+      120..600) e installSteps(ua) -> pasos REALES por plataforma.
+      El detalle que importa en installSteps: en iOS hay que decir que use
+      SAFARI, porque "Agregar a pantalla de inicio" NO existe en Chrome iOS. Es
+      la trampa clasica que deja a la gente sin poder instalar.
+      features/share-app.js: modal con enlace + copiar, navigator.share (solo
+      si existe), WhatsApp, correo, QR e instrucciones. El QR es un <img> a
+      api.qrserver.com: cero dependencias, cero peso si nadie abre el modal, y
+      si falla la red se OCULTA (onerror) sin romper nada -- el enlace sigue ahi.
+      Entrada: tarjeta verde "Invita a alguien" ARRIBA en #/mas, antes de
+      "Instalar app" (primero consigues el enlace, luego instalas).
+      BUG TDZ CAZADO POR QA (el segundo de este tipo en el proyecto): `hint`
+      (el aviso de error) se declaraba DESPUES del boton que lo usa en su
+      catch. Sintaxis valida, check_js en verde... pero si el portapapeles
+      fallaba, el catch reventaba por TDZ y el usuario no veia NADA: ni
+      "Copiado" ni el aviso. Silencio total. Arreglado moviendo la declaracion
+      arriba, + guarda explicita `if (!navigator.clipboard) throw`, +
+      setSelectionRange (en movil select() no basta) + role="status".
+      Verificado forzando el fallo: ahora avisa y deja el texto seleccionado.
+      LECCION (ya van dos): en este proyecto, declarar SIEMPRE las const antes
+      de los handlers que las capturan. Los validadores no ven el TDZ.
+      PRUEBAS: tests/share-app.test.mjs (11 casos: saneo del ref, largo de la
+      invitacion, codificacion de mailto/whatsapp, acotado del QR, y que las
+      instrucciones cambien DE VERDAD por plataforma).
+      QA: logica OK, modal OK, QR carga, Escape y clic-fuera cierran, 390x844
+      sin overflow, ambos caminos de Copiar verificados, sin errores.
+
 - [x] LOS PROFES YA NO SE LLAMAN "BYMAX" (2026-09-30, v0.309.0). Johsua lo vio
       en "Habla con Mathias": la pantalla promete a Mathias pero la IA y varios
       textos decian Bymax. Rompia la ilusion: el profe se presentaba con otro

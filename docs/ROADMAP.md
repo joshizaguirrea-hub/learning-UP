@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.309.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
@@ -50,6 +50,11 @@ Version actual: **v0.309.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.310.0 — Compartir la app.** Tarjeta "Invita a alguien" en #/mas:
+      enlace + copiar + WhatsApp + correo + QR + c-mo instalarla segun la
+      plataforma (en iOS avisa que tiene que ser Safari). La app no esta en
+      tiendas, asi que el enlace y el QR SON el canal de distribucion.
 
 - [x] **v0.309.0 — Los profes se llaman por SU nombre.** "Bymax" es solo el
       nombre interno del motor. Los prompts del Worker usan `{TEACHER}` y el
@@ -117,6 +122,10 @@ Version actual: **v0.309.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
   leer-mostrar-persistir. Ahi el nivel NO es un prompt: `shape` trae las
   palancas (`rate`, `hints`, `maxOptions`, `repeat`) y hay que RELEERLO en cada
   ronda (`buildRound()`), porque el alumno pudo cambiar de nivel.
+- **Compartir / distribucion:** `core/share-app.js` (puro: URL, textos, pasos
+  de instalacion por plataforma) + `features/share-app.js` (modal). La app se
+  reparte por ENLACE y QR, no por tiendas. `APP_URL` es la fuente unica de la
+  direccion publica: si cambia el hosting, se toca ahi y nada mas.
 - **Nombres de los profes:** "Bymax" es el nombre INTERNO del motor (archivos,
   variables, el subdominio del Worker). El alumno habla con **Megan** (cursos),
   **Mathias** (speaking) o **Susan** (entrevistas/CV), y puede renombrarlos en
