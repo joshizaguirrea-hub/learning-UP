@@ -124,6 +124,40 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [x] LOS PROFES YA NO SE LLAMAN "BYMAX" (2026-09-30, v0.309.0). Johsua lo vio
+      en "Habla con Mathias": la pantalla promete a Mathias pero la IA y varios
+      textos decian Bymax. Rompia la ilusion: el profe se presentaba con otro
+      nombre que el del titulo.
+      LA RAIZ ESTABA EN EL WORKER: los 5 prompts empezaban con `Eres "Bymax"`,
+      asi que la IA se presentaba asi SIN IMPORTAR el contexto. Ahora llevan el
+      placeholder {TEACHER} y el Worker lo sustituye con lo que manda el cliente
+      (`body.teacher`), saneado a letras/espacios/guiones porque entra al prompt.
+      Default "Megan" si no llega nada.
+      CLIENTE: bymax-session manda `teacher: name` en sus DOS fetch (turno y
+      cuaderno). services/bymax-ai acepta `role` ("course"|"speaking"|
+      "interview") y resuelve el nombre con getTeacherName -> cualquier feature
+      que use askBymax queda cubierta sin repetir logica.
+      36 TEXTOS VISIBLES corregidos por CONTEXTO, no en bloque: entrevistas y CV
+      -> Susan ("reclutadora", en femenino); speaking -> Mathias; cursos/chat/
+      roleplay/close-reading -> Megan. Todos via getTeacherName(), asi que si el
+      alumno renombra a su profe en Ajustes, los textos lo siguen.
+      more-screen.js: ITEMS era una CONSTANTE evaluada al importar -> se quedaba
+      con el nombre viejo tras renombrar. Ahora es `items()`.
+      interview.js tenia un PARCHE revelador: "Tu nombre es X y NUNCA digas que
+      te llamas Bymax". Alguien ya habia chocado con esto y lo tapo desde el
+      cliente. Borrado: ahora se arregla en la raiz.
+      NUEVO tools/check_persona.py: distingue lo legitimo (archivos, variables,
+      imports, clases CSS bymax-*, console.log) de lo que NO (cadenas visibles
+      y prompts de identidad "Eres Bymax"). Excepcion documentada: el boton
+      "Robot Bymax" de Ajustes SI debe decir Bymax -- ahi es el nombre del AVATAR
+      robot que el alumno puede elegir, no el del profe. Probado en los dos
+      sentidos. De 36 menciones a 0.
+      QA: barrido del DOM en Inicio, #/mas y #/coach -> "sin menciones"; los 12
+      modulos cargan; Megan/Mathias/Susan se resuelven bien; sin errores.
+      PENDIENTE usuario: REDESPLEGAR EL WORKER en Cloudflare (worker/bymax-worker.js
+      cambio y NO viaja con GitHub Pages). Hasta entonces la IA seguira diciendo
+      "Bymax" aunque la interfaz ya este corregida.
+
 - [x] CIERRE CON DIFICULTAD EN LAS 6 COMPETENCIAS (2026-09-30, v0.308.0).
       Cerramos la promesa de la v0.307: el sistema decia ser "por competencia"
       pero SOLO Grammar lo usaba. Si entrabas a Listening esperando elegir tu

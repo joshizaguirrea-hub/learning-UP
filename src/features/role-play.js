@@ -1,5 +1,5 @@
 /**
- * features/role-play.js — Reading role-play: interpretar un dialogo con Bymax.
+ * features/role-play.js — Reading role-play: interpretar un dialogo con el profe.
  *
  * El alumno elige un personaje de un pasaje-dialogo y lo INTERPRETA leyendo sus
  * lineas en voz alta; Bymax hace el otro personaje (voz TTS). Cada linea del
@@ -20,6 +20,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { recordSpeakingScore, scoreLabel } from "../core/speaking-score.js";
 import { currentUser } from "../services/auth.js";
+import { getTeacherName } from "../ui/robot-prefs.js";
 
 /** Junta pasajes-dialogo de TODAS las unidades (cualquier nivel). */
 function gatherDialogues() {
@@ -93,7 +94,7 @@ export function openRolePlay(opts = {}) {
     body.replaceChildren(
       el("div", { class: "rounded-2xl bg-gradient-to-br from-teal-600/20 to-emerald-600/10 border border-teal-500/30 p-4" },
         el("p", { class: "text-sm text-slate-200 leading-relaxed" },
-          "Interpreta un ", el("b", {}, "di\u00e1logo"), " con Bymax: t\u00fa haces un personaje (lees sus l\u00edneas en voz alta) y \u00e9l hace el otro. ",
+          "Interpreta un ", el("b", {}, "di\u00e1logo"), " con " + getTeacherName("course") + ": t\u00fa haces un personaje (lees sus l\u00edneas en voz alta) y ella hace el otro. ",
           hasMic ? "Te puntuar\u00e9 cada l\u00ednea." : "(Sin micr\u00f3fono: practicas la lectura sin puntaje.)")),
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-teal-400 font-semibold" }, "Elige una escena"),
       el("div", { class: "mt-2 space-y-2" }, ...rows));
@@ -113,7 +114,7 @@ export function openRolePlay(opts = {}) {
         onclick: () => runScript(dialogue, buildScript(turns, sp), sp),
       },
         el("p", { class: "font-bold text-slate-100" }, "Personaje " + sp),
-        el("p", { class: "text-xs text-slate-400" }, lines + (lines === 1 ? " l\u00ednea" : " l\u00edneas") + " \u00b7 Bymax har\u00e1 el resto"));
+        el("p", { class: "text-xs text-slate-400" }, lines + (lines === 1 ? " l\u00ednea" : " l\u00edneas") + " \u00b7 " + getTeacherName("course") + " har\u00e1 el resto"));
     });
 
     body.replaceChildren(
@@ -146,7 +147,7 @@ export function openRolePlay(opts = {}) {
       body.replaceChildren(
         progress,
         el("div", { class: "mt-4 rounded-2xl bg-slate-800/60 border border-slate-700 p-4" },
-          el("p", { class: "text-xs uppercase tracking-wide text-teal-400 font-semibold" }, "Bymax (" + turn.speaker + ")"),
+          el("p", { class: "text-xs uppercase tracking-wide text-teal-400 font-semibold" }, getTeacherName("course") + " (" + turn.speaker + ")"),
           el("p", { class: "mt-1 text-lg text-slate-100 leading-relaxed" }, turn.line)),
         el("div", { class: "mt-4 flex gap-2" },
           el("button", {

@@ -69,7 +69,7 @@ export function openInterview(opts = {}) {
 
   if (!bymaxAiEnabled) {
     body.replaceChildren(el("p", { class: "text-slate-300 text-sm py-6 text-center" },
-      "La entrevista necesita a " + name + " IA activo (Worker). Vuelve pronto."));
+      "La entrevista necesita la IA activa (Worker). Vuelve pronto."));
     return;
   }
 
@@ -154,7 +154,7 @@ export function openInterview(opts = {}) {
 
     body.replaceChildren(el("div", { class: "w-full max-w-lg mx-auto pt-4" },
       el("p", { class: "text-sm text-slate-400" },
-        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutador senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
+        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutadora senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
       el("label", { class: "block mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Puesto"),
       roleInput,
       el("label", { class: "block mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Empresa"),
@@ -181,8 +181,7 @@ export function openInterview(opts = {}) {
     const history = [];
     // El coach retoma tus debilidades de la entrevista anterior (rol de entrenador).
     const prevFocus = lastImprovements(userId);
-    const topic = "IMPORTANTE: Tu nombre es " + name + ". Prese\u0301ntate SIEMPRE como " + name +
-      " y NUNCA digas que te llamas Bymax. | Puesto: " + role +
+    const topic = "Puesto: " + role +
       (company ? " | Empresa: " + company : "") +
       (seniority ? " | Seniority: " + seniority : "") +
       (details ? " | Detalles de la vacante: " + details : "") +
@@ -232,7 +231,7 @@ export function openInterview(opts = {}) {
       waiting = true;
       status.textContent = name + " est\u00e1 pensando...";
       bymaxEmote("think");
-      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: q, history: history.slice(-MAX_TURNS) });
+      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: q, history: history.slice(-MAX_TURNS), role: "interview" });
       waiting = false;
       if (ended) return;
       if (error || !answer) { status.textContent = "\u26a0\ufe0f " + (error || "No pude responder."); return; }
@@ -335,7 +334,7 @@ export function openInterview(opts = {}) {
       if (history.length < 2) { status.textContent = "Responde al menos una pregunta antes de terminar."; return; }
       dictation?.abort(); stopAudio(); paused = true;
       renderFeedbackLoading();
-      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: buildFeedbackPrompt("interview"), history: history.slice(-MAX_TURNS) });
+      const { answer, error } = await askBymax({ mode: "interview", topic, level, question: buildFeedbackPrompt("interview"), history: history.slice(-MAX_TURNS), role: "interview" });
       if (ended) return;
       if (error || !answer) { status.textContent = "\u26a0\ufe0f No pude generar el feedback: " + (error || ""); return; }
       renderFeedback(answer, cfg, () => startInterview(cfg));
@@ -400,7 +399,7 @@ export function openInterview(opts = {}) {
       setNextAppointment(userId, iso);
       downloadIcs({
         startIso: iso,
-        title: "Entrenamiento de entrevista con Bymax" + (cfg.role ? " (" + cfg.role + ")" : ""),
+        title: "Entrenamiento de entrevista con " + teacherName("interview") + (cfg.role ? " (" + cfg.role + ")" : ""),
         description: "Tu cita de practica de entrevista en Learning UP. A trabajar en: " +
           (improvements || "tus areas de mejora") + ". Abre la app -> Coach de Habla -> Entrevista.",
       });

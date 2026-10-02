@@ -21,6 +21,7 @@ import { completeLesson } from "../services/course.js";
 import { robotName } from "../ui/robot.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 import { practiceEnd } from "../ui/practice-end.js";
+import { getTeacherName } from "../ui/robot-prefs.js";
 
 const PASS = 0.6; // proporcion de palabras acertadas para aprobar la frase
 
@@ -128,7 +129,7 @@ export function openSpeaking(unit, opts = {}) {
       class: "inline-flex items-center gap-2 border border-white/15 bg-white/5 text-slate-200 px-4 py-2.5 " +
         "rounded-xl hover:bg-white/10 focus:outline focus:outline-2 focus:outline-fuchsia-400 transition",
       onclick: () => speakMono(target, tts),
-    }, el("span", { class: "w-5 h-5", html: ICONS.sound }), repeat ? "Escuchar a Bymax" : "Escuchar modelo");
+    }, el("span", { class: "w-5 h-5", html: ICONS.sound }), repeat ? ("Escuchar a " + getTeacherName("speaking")) : "Escuchar modelo");
 
     const micBtn = el("button", {
       type: "button",

@@ -15,6 +15,7 @@ import { buildCloseReading, buildAnalysisPrompt } from "../core/close-reading.js
 import { parseFeedback } from "../core/feedback.js";
 import { buildFeedbackDashboard } from "./feedback-dashboard.js";
 import { askBymax } from "../services/bymax-ai.js";
+import { getTeacherName } from "../ui/robot-prefs.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 
 /** Junta pasajes de lectura de las unidades C1/C2 (los mas ricos para analizar). */
@@ -65,7 +66,7 @@ export function openCloseReading() {
   function renderNoAi() {
     body.replaceChildren(el("div", { class: "text-center py-6" },
       el("p", { class: "text-4xl", "aria-hidden": "true" }, "\uD83E\uDD16"),
-      el("p", { class: "mt-3 text-slate-200 font-semibold" }, "El an\u00e1lisis necesita a Bymax IA"),
+      el("p", { class: "mt-3 text-slate-200 font-semibold" }, "El an\u00e1lisis necesita la IA activa"),
       el("p", { class: "mt-1 text-sm text-slate-400" }, "Activa el asistente de IA para que eval\u00fae tu close-reading."),
       el("button", { class: "mt-5 px-5 py-3 rounded-xl bg-white/5 border border-white/15 text-slate-200 hover:bg-white/10", onclick: close }, "Cerrar")));
   }
@@ -93,7 +94,7 @@ export function openCloseReading() {
         el("p", { class: "text-sm text-slate-200 leading-relaxed" },
           "Lee ", el("b", {}, "despacio y con lupa"), ": no solo ", el("i", {}, "qu\u00e9 dice"),
           " el texto, sino ", el("i", {}, "c\u00f3mo"), " y ", el("i", {}, "por qu\u00e9"),
-          ". Bymax evaluar\u00e1 tu an\u00e1lisis como un profe de literatura.")),
+          ". " + getTeacherName("course") + " evaluar\u00e1 tu an\u00e1lisis como un profe de literatura.")),
       el("p", { class: "mt-4 text-xs uppercase tracking-wide text-violet-400 font-semibold" }, "Elige un pasaje"),
       el("div", { class: "mt-2 space-y-2" }, ...rows));
   }
@@ -170,7 +171,7 @@ export function openCloseReading() {
   }
 
   function renderLoading() {
-    heading.textContent = "Bymax est\u00e1 leyendo...";
+    heading.textContent = getTeacherName("course") + " est\u00e1 leyendo...";
     body.replaceChildren(el("div", { class: "text-center py-10" },
       el("div", { class: "w-10 h-10 mx-auto rounded-full border-2 border-violet-400 border-t-transparent animate-spin" }),
       el("p", { class: "mt-4 text-sm text-slate-300" }, "Evaluando tu an\u00e1lisis literario...")));

@@ -1,4 +1,9 @@
-// bymax-worker.js — Cloudflare Worker: cerebro de Bymax (chat IA + voz).
+// bymax-worker.js — Cloudflare Worker: cerebro de los profes IA (chat + voz).
+//
+// NOTA DE NOMBRES: "bymax" es el nombre INTERNO del motor (archivo, variables,
+// subdominio). El ALUMNO nunca debe leerlo: habla con Megan (cursos), Mathias
+// (speaking) o Susan (entrevistas). Por eso los prompts traen el placeholder
+// {TEACHER}, que se sustituye con el nombre que manda el cliente.
 //
 // Endpoints (POST):
 //   /       -> CHAT con Gemini (secret GEMINI_API_KEY)
@@ -35,7 +40,7 @@ const GTTS_LANGS = {
   ja: { lang: "ja-JP", voices: ["ja-JP-Chirp3-HD-Aoede", "ja-JP-Neural2-B"] },
 };
 
-const SYSTEM_PROMPT = `Eres "Bymax", un profesor de ingles amigable, futurista y motivador
+const SYSTEM_PROMPT = `Eres "{TEACHER}", un profesor de ingles amigable, futurista y motivador
 dentro de una app llamada "Learning UP". Ayudas a hispanohablantes a aprender ingles.
 
 REGLAS:
@@ -62,7 +67,7 @@ asiste a hispanohablantes a conseguir empleo en ingles, dentro de la app "Learni
 
 REGLAS (OBLIGATORIAS):
 - NO saludes, NO te presentes, NO charles, NO hagas preguntas de vuelta. Nada de
-  "Hola", "Soy Bymax", "Con gusto", etc. Entrega DIRECTAMENTE lo que se pide.
+  "Hola", "Soy {TEACHER}", "Con gusto", etc. Entrega DIRECTAMENTE lo que se pide.
 - ENTREGA SIEMPRE el documento/seccion COMPLETO y listo para copiar y usar. Nunca
   respondas con un resumen, una intro ni "aqui tienes": ve directo al contenido.
 - Sigue AL PIE DE LA LETRA la estructura y el formato que pida el usuario.
@@ -79,7 +84,7 @@ REGLAS (OBLIGATORIAS):
 
 // Modo CONVERSACION: Bymax es un companero de charla en INGLES, guiado por tema
 // y nivel MCER. Inmersion real con ayuda en espanol si el alumno se traba.
-const CONVERSATION_PROMPT = `Eres "Bymax", un companero de conversacion en INGLES dentro de
+const CONVERSATION_PROMPT = `Eres "{TEACHER}", un companero de conversacion en INGLES dentro de
 la app "Learning UP", para hispanohablantes que aprenden ingles. Esto es una
 CONVERSACION REAL y guiada, no una clase de gramatica. TU DIRIGES la charla.
 
@@ -140,7 +145,7 @@ MODO EVALUACION (cuaderno de errores):
 // Modo CLASE (1 a 1): Bymax da una CLASE personalizada tipo tutor privado. A
 // diferencia de "conversation" (charla libre en ingles), aqui ENSENA en espanol
 // y hace practicar en ingles, corrigiendo AL INSTANTE cada turno (estilo Lerna).
-const CLASS_PROMPT = `Eres "Bymax", un profesor particular de ingles que da una CLASE
+const CLASS_PROMPT = `Eres "{TEACHER}", un profesor particular de ingles que da una CLASE
 1 a 1 EN VIVO a un alumno hispanohablante, dentro de la app "Learning UP". No es
 una charla libre: es una MINI-CLASE guiada, personalizada y con correccion al instante.
 
@@ -221,7 +226,7 @@ REGLAS:
 // Modo ENTREVISTA: Bymax actua como un RECLUTADOR SENIOR de elite que conduce una
 // entrevista de trabajo REAL en ingles, ESPECIFICA del puesto y CONSIDERANDO la
 // empresa. Al recibir "[FEEDBACK]" sale de personaje y entrega evaluacion en espanol.
-const INTERVIEW_PROMPT = `Eres "Bymax" en el rol de un HIRING MANAGER / RECLUTADOR SENIOR de ELITE
+const INTERVIEW_PROMPT = `Eres "{TEACHER}" en el rol de un HIRING MANAGER / RECLUTADOR SENIOR de ELITE
 (15+ anos de experiencia) que conduce una ENTREVISTA DE TRABAJO REAL y EXIGENTE en
 INGLES para preparar a un candidato hispanohablante. Tu objetivo: que esta practica
 se sienta como una entrevista de verdad en una empresa top, no un cuestionario generico.
@@ -292,7 +297,7 @@ CONSEJO FINAL: <1 frase motivadora en espanol>`;
 
 // Modo ROLEPLAY: Bymax interpreta un PERSONAJE de una escena real (mesero,
 // agente de aeropuerto, recepcionista...) para que el alumno practique hablar.
-const ROLEPLAY_PROMPT = `Eres "Bymax" haciendo un ROLEPLAY de una situacion de la vida real
+const ROLEPLAY_PROMPT = `Eres "{TEACHER}" haciendo un ROLEPLAY de una situacion de la vida real
 en INGLES para que un alumno hispanohablante practique hablar con confianza.
 Interpretas al PERSONAJE de la escena (abajo) de forma realista.
 
@@ -690,6 +695,14 @@ async function handleChat(request, env, origin) {
     : isConversation ? CONVERSATION_PROMPT
     : isCv ? CV_PROMPT
     : SYSTEM_PROMPT;
+
+  // NOMBRE DEL PROFE. "Bymax" es el nombre INTERNO del motor; el alumno habla
+  // con Megan (cursos), Mathias (speaking) o Susan (entrevistas), y ademas
+  // puede renombrarlos en Ajustes. El cliente manda cual toca: si la IA se
+  // presentara como "Bymax" se romperia la ilusion (Mathias diria otro nombre).
+  // Se sanea porque entra en el prompt: solo letras, espacios y guiones.
+  const teacher = String(body.teacher || "").slice(0, 24).replace(/[^\p{L}\s'-]/gu, "").trim() || "Megan";
+  systemText = systemText.replaceAll("{TEACHER}", teacher);
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
       `\nNIVEL del alumno (MCER): ${level || "B1"}` +
@@ -804,7 +817,7 @@ async function handleChat(request, env, origin) {
 
   const data = await res.json().catch(() => null);
   const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-  if (!answer) return json({ error: "Bymax no pudo responder esta vez." }, 502, origin);
+  if (!answer) return json({ error: "No pude responder esta vez." }, 502, origin);
 
   return json({ answer, brain: "gemini" }, 200, origin);
 }

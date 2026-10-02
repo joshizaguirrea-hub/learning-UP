@@ -15,18 +15,21 @@ import { go } from "../ui/router.js";
 import { canInstall, promptInstall, isStandalone, isIOS } from "../ui/install.js";
 import { openCloseReading } from "./close-reading.js";
 import { openRolePlay } from "./role-play.js";
+import { getTeacherName } from "../ui/robot-prefs.js";
 
-const ITEMS = [
+// Es una FUNCION, no una constante: el alumno puede renombrar a su profe en
+// Ajustes, y una lista estatica se quedaria con el nombre viejo hasta recargar.
+const items = () => [
   { href: "#/perfil", icon: ICONS.user, title: "Mi perfil", desc: "Avatar, nivel y progreso" },
   { href: "#/plan", icon: ICONS.map, title: "Mi Plan", desc: "Tu ruta de aprendizaje" },
   { href: "#/profesores", icon: ICONS.teachers, title: "Profesores", desc: "Encuentra un profe" },
   { href: "#/calendario", icon: ICONS.calendar, title: "Agenda", desc: "Tus clases y recordatorios" },
-  { href: "#/chat", icon: ICONS.chat, title: "Chat con Bymax", desc: "Escribe con Bymax" },
+  { href: "#/chat", icon: ICONS.chat, title: "Chat con " + getTeacherName("course"), desc: "Escribe con " + getTeacherName("course") },
   { href: "#/ajustes", icon: ICONS.settings, title: "Ajustes", desc: "Texto, contraste, voz y mas" },
 ];
 
 export async function renderMore(container) {
-  const rows = ITEMS.map((it) =>
+  const rows = items().map((it) =>
     el("a", { href: it.href,
       class: "flex items-center gap-4 rounded-2xl bg-slate-900 border border-slate-800 p-4 " +
         "hover:bg-slate-800/70 transition focus:outline focus:outline-2 focus:outline-indigo-400" },
@@ -64,10 +67,10 @@ function closeReadingCard() {
     el("span", { class: "w-11 h-11 grid place-items-center rounded-xl bg-white/10 text-violet-200 shrink-0", html: ICONS.bulb }),
     el("div", { class: "flex-1 min-w-0 text-left" },
       el("p", { class: "font-bold text-slate-100" }, "Close-reading (C1/C2)"),
-      el("p", { class: "text-sm text-slate-400" }, "Analiza un pasaje literario y recibe feedback de Bymax")));
+      el("p", { class: "text-sm text-slate-400" }, "Analiza un pasaje literario y recibe feedback de " + getTeacherName("course"))));
 }
 
-// Tarjeta "Reading role-play": interpretar un dialogo con Bymax (modal autocontenido).
+// Tarjeta "Reading role-play": interpretar un dialogo con el profe (modal autocontenido).
 function rolePlayCard() {
   return el("button", {
     type: "button",
@@ -79,7 +82,7 @@ function rolePlayCard() {
     el("span", { class: "w-11 h-11 grid place-items-center rounded-xl bg-white/10 text-teal-200 shrink-0", html: ICONS.chat }),
     el("div", { class: "flex-1 min-w-0 text-left" },
       el("p", { class: "font-bold text-slate-100" }, "Reading role-play"),
-      el("p", { class: "text-sm text-slate-400" }, "Interpreta un di\u00e1logo con Bymax y practica entonaci\u00f3n")));
+      el("p", { class: "text-sm text-slate-400" }, "Interpreta un di\u00e1logo con " + getTeacherName("course") + " y practica entonaci\u00f3n")));
 }
 
 // Tarjeta "Instalar app" (PWA). Se adapta al dispositivo:

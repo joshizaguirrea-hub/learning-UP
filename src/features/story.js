@@ -128,7 +128,7 @@ export function openStory(unit) {
 
   async function newStoryIA() {
     if (!bymaxAiEnabled) {
-      status.textContent = "El cuento con IA requiere el Worker de Bymax activo. Por ahora disfruta la lectura de la unidad.";
+      status.textContent = "El cuento con IA requiere el servicio activo. Por ahora disfruta la lectura de la unidad.";
       return;
     }
     iaBtn.disabled = true;

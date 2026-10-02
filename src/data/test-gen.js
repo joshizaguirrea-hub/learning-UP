@@ -178,7 +178,7 @@ export function buildUnitTest(unit) {
       "EXAMEN COMPLETO de la unidad. Reune TODO lo que practicaste: gramatica, " +
       "vocabulario, lectura, listening, repaso de verbos, idioms y expresiones de " +
       "tiempo, y termina con escritura y pronunciacion. Necesitas 60% para aprobar " +
-      "y desbloquear la siguiente unidad. Al final podras charlar con Bymax. \u00a1T\u00fa puedes!",
+      "y desbloquear la siguiente unidad. Al final podras charlar con tu profe. \u00a1T\u00fa puedes!",
     activities,
   };
 }

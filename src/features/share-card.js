@@ -35,7 +35,7 @@ function drawCard(canvas, { name, level, streak, xp }) {
   const evo = bymaxEvolution(xp || 0);
   ctx.font = "bold 40px system-ui, sans-serif";
   ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.fillText("Nivel " + (level || "A1") + "  \u00b7  Bymax " + evo.stage.name, W / 2, 600);
+  ctx.fillText("Nivel " + (level || "A1") + "  \u00b7  " + robotName() + " " + evo.stage.name, W / 2, 600);
 
   // Racha destacada.
   ctx.font = "bold 180px system-ui, sans-serif";

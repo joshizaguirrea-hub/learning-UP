@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.308.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.309.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
@@ -50,6 +50,12 @@ Version actual: **v0.308.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.309.0 — Los profes se llaman por SU nombre.** "Bymax" es solo el
+      nombre interno del motor. Los prompts del Worker usan `{TEACHER}` y el
+      cliente manda quien habla: Megan (cursos), Mathias (speaking), Susan
+      (entrevistas/CV). Nuevo `tools/check_persona.py` para que no recaiga.
+      **OJO: requiere redesplegar el Worker en Cloudflare.**
 
 - [x] **v0.308.0 — Las 6 competencias cierran con dificultad.** Antes solo
       Grammar. Nuevo `ui/practice-end.js` (pegamento reusable) y palancas
@@ -111,10 +117,18 @@ Version actual: **v0.308.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
   leer-mostrar-persistir. Ahi el nivel NO es un prompt: `shape` trae las
   palancas (`rate`, `hints`, `maxOptions`, `repeat`) y hay que RELEERLO en cada
   ronda (`buildRound()`), porque el alumno pudo cambiar de nivel.
+- **Nombres de los profes:** "Bymax" es el nombre INTERNO del motor (archivos,
+  variables, el subdominio del Worker). El alumno habla con **Megan** (cursos),
+  **Mathias** (speaking) o **Susan** (entrevistas/CV), y puede renombrarlos en
+  Ajustes. Fuente de verdad: `getTeacherName(role)` en `ui/robot-prefs.js`.
+  NUNCA escribas el nombre a mano en un texto visible. Los prompts del Worker
+  llevan `{TEACHER}` y se sustituyen con `body.teacher`. Verifica con
+  `tools/check_persona.py`.
 - **Validadores (correlos todos antes de publicar):** `tools/check_js.py`
   (sintaxis), `tools/check_imports.py` (referencias sin importar),
   `tools/check_paths.py` (que la ruta importada EXISTA; los otros dos no lo
-  ven) y `tools/stamp_version.py --check` (version sincronizada).
+  ven), `tools/check_persona.py` (que no se filtre "Bymax" al alumno) y
+  `tools/stamp_version.py --check` (version sincronizada).
 - **Idioma meta por unidad:** `unit.language` ("en" | "pt" | "it" | "fr" | "ja").
   Helpers en `src/data/languages.js`: `unitTts(unit)` (voz), `unitMic(unit)` (STT).
 - **Feature flags de idioma:** `LANGUAGES` en `languages.js`. `draft: true` =

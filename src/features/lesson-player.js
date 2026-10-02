@@ -284,7 +284,7 @@ export async function renderLessonPlayer(container, params, user) {
           class: "w-full flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 " +
             "text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300 transition",
           onclick: () => openConversation(unit),
-        }, el("span", { class: "w-5 h-5", html: ICONS.chat || ICONS.sound }), "Charla final con Bymax (opcional)") : null,
+        }, el("span", { class: "w-5 h-5", html: ICONS.chat || ICONS.sound }), "Charla final con " + robotName() + " (opcional)") : null,
         el("button", { class: lesson.kind === "test" ? PRIMARY : OK_BTN, onclick: () => go("/unidad/" + unit.id) }, "Volver a la unidad"))));
     focusMainHeading(container);
     playFanfare();

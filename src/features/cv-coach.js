@@ -18,6 +18,11 @@ import { backHome, screenHeader } from "../ui/hub-ui.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { extractTextFromFile } from "../ui/file-text.js";
+import { getTeacherName } from "../ui/robot-prefs.js";
+
+// El CV es contexto de RECLUTAMIENTO -> habla la reclutadora (Susan), no la
+// profe de cursos. El alumno puede renombrarla en Ajustes.
+const recruiter = () => getTeacherName("interview");
 
 // Prefijo comun: define el idioma de salida y el estilo (sin spanglish, sin markdown).
 const PREFIX =
@@ -118,7 +123,7 @@ export const CV_MODES = [
   },
   {
     id: "recruiter", title: "Actua como reclutador",
-    desc: "Bymax revisa tu CV como hiring manager.",
+    desc: recruiter() + " revisa tu CV como hiring manager.",
     fields: [{ key: "role", label: "Industria / Rol", type: "text", placeholder: "Ej. Marketing en Retail" }, F.cv],
     build: (v) => PREFIX + `Actua como un gerente de contratacion en "${v.role}". Con base en este CV, dime que te haria mas ` +
       "propenso a invitarme a una entrevista y que deberia cambiar, cortar o agregar para mejorar mis posibilidades. " +
@@ -194,7 +199,7 @@ export async function renderCvCoach(container, user) {
       privacyNote(),
       !bymaxAiEnabled
         ? el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-500/30 p-4 text-amber-200 text-sm" },
-            "Bymax IA no esta activo ahora mismo. Intenta mas tarde.")
+            "La IA no esta activa ahora mismo. Intenta mas tarde.")
         : null,
       el("p", { class: "text-sm text-slate-400" }, "Elige que quieres trabajar:"),
       featuredProCard(),
@@ -215,7 +220,7 @@ export async function renderCvCoach(container, user) {
         el("div", { class: "min-w-0" },
           el("p", { class: "text-lg font-black text-white" }, "CV de alta calidad (todo en uno)"),
           el("p", { class: "text-white/90 text-sm mt-0.5" },
-            "Sube tu CV, di el puesto y las skills requeridas. Bymax, como reclutador experto, te devuelve un CV completo optimizado para ATS."))));
+            "Sube tu CV, di el puesto y las skills requeridas. " + recruiter() + ", como reclutadora experta, te devuelve un CV completo optimizado para ATS."))));
   }
 
   // ---- Vista Pro: subir CV + puesto + skills -> CV de alta calidad ---------
@@ -264,14 +269,14 @@ export async function renderCvCoach(container, user) {
       const v = { cv: cvInput.value.trim(), jobTitle: jobInput.value.trim(), skills: skillsInput.value.trim() };
       if (!v.cv) { status.textContent = "Sube tu CV o pega su texto primero."; return; }
       if (!v.jobTitle) { status.textContent = "Dime el puesto al que aplicas."; return; }
-      if (!bymaxAiEnabled) { status.textContent = "Bymax IA no esta activo ahora."; return; }
+      if (!bymaxAiEnabled) { status.textContent = "La IA no esta activa ahora."; return; }
 
       genBtn.disabled = true;
-      status.textContent = "Bymax esta creando tu CV (esto puede tardar unos segundos)...";
+      status.textContent = recruiter() + " esta creando tu CV (esto puede tardar unos segundos)...";
       out.replaceChildren();
       announce("Generando CV");
 
-      const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question: buildPro(v) });
+      const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question: buildPro(v), role: "interview" });
       genBtn.disabled = false;
       if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }
       status.textContent = "Listo. Revisa, ajusta los placeholders y copialo.";
@@ -321,7 +326,7 @@ export async function renderCvCoach(container, user) {
     const genBtn = el("button", { type: "button",
       class: "mt-3 w-full bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-5 py-3 " +
         "rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
-      onclick: run }, "Generar con Bymax");
+      onclick: run }, "Generar con " + recruiter());
 
     async function run() {
       const values = {};
@@ -331,15 +336,15 @@ export async function renderCvCoach(container, user) {
         if (!values[f.key]) missing = true;
       }
       if (missing) { status.textContent = "Completa los campos primero."; return; }
-      if (!bymaxAiEnabled) { status.textContent = "Bymax IA no esta activo ahora."; return; }
+      if (!bymaxAiEnabled) { status.textContent = "La IA no esta activa ahora."; return; }
 
       genBtn.disabled = true;
-      status.textContent = "Bymax esta trabajando tu CV...";
+      status.textContent = recruiter() + " esta trabajando tu CV...";
       out.replaceChildren();
       announce("Generando");
 
       const question = mode.build(values);
-      const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question });
+      const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question, role: "interview" });
       genBtn.disabled = false;
 
       if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }

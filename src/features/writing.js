@@ -24,7 +24,7 @@ import { unitTts } from "../data/languages.js";
 // reemplaza por el idioma META de la unidad (Italian/Portuguese/English...) para
 // que las consignas y ejemplos NO salgan siempre en ingles.
 const BEHAVIOR =
-  "You are Bymax, a warm, encouraging writing coach for a Spanish-speaking learner who is learning {LANG}. " +
+  "You are {TEACHER}, a warm, encouraging writing coach for a Spanish-speaking learner who is learning {LANG}. " +
   "Run the writing exercise described below. Give ONE short, clear task at a time using the unit topic. " +
   "EVERY task, example sentence, and the text the student must write MUST be in {LANG} (never English unless {LANG} is English). " +
   "Wait for the student's written answer. Then reply: (1) a brief praise, (2) each correction on its own " +
@@ -152,7 +152,10 @@ export function openWriting(unit, opts = {}) {
     // deben saberlo para no generar ejercicios en ingles por defecto.
     const targetLang = unit?.language || "en";
     const langEn = { en: "English", es: "Spanish", pt: "Portuguese", fr: "French", it: "Italian", ja: "Japanese" }[targetLang] || "English";
-    const behavior = BEHAVIOR.replaceAll("{LANG}", langEn);
+    // {TEACHER} lo sustituye el Worker con el nombre real del profe (Megan por
+    // defecto, o como lo haya renombrado el alumno) -> la IA nunca se presenta
+    // con el nombre interno del motor.
+    const behavior = BEHAVIOR.replaceAll("{LANG}", langEn).replaceAll("{TEACHER}", name);
     const topic = (`${behavior}\nUnit: "${title}" (level ${level}).\n` +
       `EXERCISE: ${item.label} - ${item.instr}`).slice(0, 695);
     const onFinish = markDone;
