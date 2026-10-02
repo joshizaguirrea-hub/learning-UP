@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ---
 
@@ -51,6 +51,11 @@ Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
 
+- [x] **v0.311.0 — El profe de entrevistas: Susan → Lucien.** Nombre, voz
+      (shimmer → echo, masculina) y textos en masculino. Migracion para quien
+      ya tenia "Susan" guardado, sin pisar nombres custom.
+      **Pendiente: el avatar 3D sigue siendo femenino** (ver BITACORA).
+
 - [x] **v0.310.0 — Compartir la app.** Tarjeta "Invita a alguien" en #/mas:
       enlace + copiar + WhatsApp + correo + QR + c-mo instalarla segun la
       plataforma (en iOS avisa que tiene que ser Safari). La app no esta en
@@ -58,7 +63,7 @@ Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 - [x] **v0.309.0 — Los profes se llaman por SU nombre.** "Bymax" es solo el
       nombre interno del motor. Los prompts del Worker usan `{TEACHER}` y el
-      cliente manda quien habla: Megan (cursos), Mathias (speaking), Susan
+      cliente manda quien habla: Megan (cursos), Mathias (speaking), Lucien
       (entrevistas/CV). Nuevo `tools/check_persona.py` para que no recaiga.
       **OJO: requiere redesplegar el Worker en Cloudflare.**
 
@@ -128,7 +133,7 @@ Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
   direccion publica: si cambia el hosting, se toca ahi y nada mas.
 - **Nombres de los profes:** "Bymax" es el nombre INTERNO del motor (archivos,
   variables, el subdominio del Worker). El alumno habla con **Megan** (cursos),
-  **Mathias** (speaking) o **Susan** (entrevistas/CV), y puede renombrarlos en
+  **Mathias** (speaking) o **Lucien** (entrevistas/CV), y puede renombrarlos en
   Ajustes. Fuente de verdad: `getTeacherName(role)` en `ui/robot-prefs.js`.
   NUNCA escribas el nombre a mano en un texto visible. Los prompts del Worker
   llevan `{TEACHER}` y se sustituyen con `body.teacher`. Verifica con
@@ -148,7 +153,7 @@ Version actual: **v0.310.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
   - `speak()` / `speakSequence()` / `speakRobot()` -> PARTEN por idioma en varias
     voces. NO usar para saludos/instrucciones que deban ir con una sola voz.
 - **Voz por profe:** `src/ui/robot-prefs.js` `ROLE_TTS_VOICE` (course=nova Megan,
-  speaking=onyx Mathias, interview=shimmer Susan) + `teacherVoice(role)`. Con
+  speaking=onyx Mathias, interview=echo Lucien) + `teacherVoice(role)`. Con
   OpenAI activo el Worker usa `ttsVoice` (no `gender`); default en `cloud-tts.js`.
 - **Convencion i18n:** en cada feature, `const tts = unitTts(unit)` y se pasa
   como `lang` a las funciones de voz.

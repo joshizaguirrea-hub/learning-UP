@@ -108,7 +108,7 @@ async function fetchAudio(rawText, lang, opts) {
   // Voz por defecto = la de la profe de CURSO (Megan = nova, mujer). Asi TODO el
   // contenido que no especifica voz suena con la voz de Megan, no con la neutra
   // "alloy" del Worker. Si un item pide gender "M" (personajes hombres de un
-  // dialogo) usamos voz masculina (onyx). Mathias/Susan pasan su voz explicita.
+  // dialogo) usamos voz masculina (onyx). Mathias/Lucien pasan su voz explicita.
   const ttsVoice = o.ttsVoice || (o.gender === "M" ? "onyx" : teacherVoice("course"));
   // La clave de cache incluye todo lo que cambia el audio (voz, voz HD, rate).
   const key = lang + "|" + (o.voice || "") + "|" + (o.voiceHd || "") + "|" + ttsVoice + "|" + (o.rate || "") + "|" + text;

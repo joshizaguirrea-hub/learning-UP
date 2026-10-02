@@ -193,7 +193,7 @@ export function openBymaxSession(cfg) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode, topic, level, targetLang,
-          teacher: name, // la IA debe firmar como Megan/Mathias/Susan, no como el motor
+          teacher: name, // la IA debe firmar como Megan/Mathias/Lucien, no como el motor
           immersive: false, // queremos la evaluacion en espanol, sin protocolo TIP
           question: buildNotebookPrompt(targetLang),
           history: allTurns.slice(-24),
@@ -340,7 +340,7 @@ export function openBymaxSession(cfg) {
         body: JSON.stringify({
           mode, topic: topicNow, level,
           targetLang: cfg?.targetLang || "en", // idioma META (en | pt...)
-          teacher: name, // quien habla: Megan (clases), Mathias (speaking), Susan...
+          teacher: name, // quien habla: Megan (clases), Mathias (speaking), Lucien...
           immersive: !multilingualEnabled(), // inmersion salvo que Azure este activo
           question, history: history.slice(-MAX_TURNS),
         }),

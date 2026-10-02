@@ -3,7 +3,7 @@
 
 Por que existe: "Bymax" es el nombre INTERNO del motor (archivos, variables,
 config). Para el alumno los profes se llaman Megan (cursos), Mathias (speaking)
-y Susan (entrevistas). Si "Bymax" se filtra a un texto en pantalla o a un prompt
+y Lucien (entrevistas). Si "Bymax" se filtra a un texto en pantalla o a un prompt
 del Worker, se rompe la ilusion: Mathias se presenta como otro.
 
 Este script distingue lo legitimo de lo que no:
@@ -101,7 +101,7 @@ def main() -> int:
     print()
     if total:
         print(f"ERROR: {total} mencion(es) a Bymax que el alumno podria ver.")
-        print("Los profes se llaman Megan (cursos), Mathias (speaking), Susan (entrevistas).")
+        print("Los profes se llaman Megan (cursos), Mathias (speaking), Lucien (entrevistas).")
         return 1
     print("OK: ninguna mencion visible a Bymax (el nombre interno si puede quedarse)")
     return 0

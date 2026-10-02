@@ -25,7 +25,7 @@ import { getTtsAnalyser } from "./cloud-tts.js";
 // no existe todavia, cae con gracia a la profe de curso (profe-mujer).
 //   course    = Megan   (da las clases)
 //   speaking  = Mathias (conversacion)
-//   interview = Susan   (entrevista laboral)
+//   interview = Lucien  (entrevista laboral)
 // TODO: agregar profe-conversacion.glb (hombre, Mathias).
 const ROLE_AVATARS = {
   course: "./vendor/avatars/profe-curso.glb",

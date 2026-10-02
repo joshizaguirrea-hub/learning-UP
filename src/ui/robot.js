@@ -64,14 +64,6 @@ export function robotReact(ok, lang = "es-MX") {
   }, 220);
 }
 
-// Retrato PNG estatico de cada profe humano, por rol. Generado con
-// tools/gen_portraits.py a partir de los .glb (vendor/avatars).
-const ROLE_PORTRAITS = {
-  course: "./assets/teachers/megan.png",
-  speaking: "./assets/teachers/mathias.png",
-  interview: "./assets/teachers/susan.png",
-};
-
 /**
  * Avatar del profe. size: sm|md|lg. role: course|speaking|interview.
  * Modo humano (default): muestra el retrato del profe segun el rol.

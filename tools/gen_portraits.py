@@ -18,7 +18,7 @@ OUT = Path(__file__).resolve().parent.parent / "assets" / "teachers"
 AVATARS = {
     "megan": "./vendor/avatars/profe-curso.glb",
     "mathias": "./vendor/avatars/profe-conversacion.glb",
-    "susan": "./vendor/avatars/profe-entrevista.glb",
+    "lucien": "./vendor/avatars/profe-entrevista.glb",
 }
 
 

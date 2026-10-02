@@ -124,6 +124,43 @@ En **Supabase → Authentication → URL Configuration** quedó así:
 
 ##  Pendientes / próximos pasos
 
+- [ ] AVATAR 3D DE LUCIEN: `vendor/avatars/profe-entrevista.glb` SIGUE SIENDO LA
+      MUJER DE TRAJE de la epoca de Susan, y `assets/teachers/lucien.png` es ese
+      mismo retrato renombrado. El nombre y la voz ya son masculinos, la cara no.
+      Para cerrarlo: generar un avatar masculino en Ready Player Me, reemplazar
+      el .glb y correr `python tools/gen_portraits.py` (necesita el server en
+      :5500 y abre una ventana real: el WebGL headless sale en blanco).
+
+- [x] LA PROFE DE ENTREVISTAS: SUSAN -> LUCIEN (2026-09-30, v0.311.0).
+      No fue un find&replace: el rol arrastra NOMBRE + VOZ + RETRATO + GENERO
+      GRAMATICAL, y cada pieza vive en un sitio distinto.
+      * Nombre: TEACHER_ROLES[interview].defaultName.
+      * Voz: shimmer (mujer) -> "echo" (hombre). NO reuse onyx porque es la de
+        Mathias y la gracia es que los tres suenen distinto.
+      * Genero: "reclutadora/ella te entrevista" -> "reclutador/el" en
+        speaking-coach, interview y cv-coach. Renombrar sin esto deja a un
+        Lucien al que la app trata de "ella": peor que antes.
+      * Retrato: `git mv susan.png lucien.png` (renombrar, no duplicar) +
+        tools/gen_portraits.py apuntado a la clave nueva.
+      MIGRACION (lo que casi se escapa): el boton "Guardar nombres" de Ajustes
+      persiste TODOS los campos, y vienen PRECARGADOS con el default. O sea:
+      cualquiera que haya tocado ese boton tiene "Susan" grabado en
+      localStorage como si lo hubiera elegido, y el cambio de default NO le
+      llegaria nunca. Se agrego LEGACY_ROLE_NAMES (mismo patron que el
+      LEGACY_COURSE_NAMES de Horus->Megan): si el valor guardado es un default
+      VIEJO, se devuelve el nuevo; si es un nombre de verdad custom ("Carlos"),
+      se respeta. Verificado en los tres casos.
+      DRY: `ROLE_PORTRAITS` estaba DUPLICADO en robot.js y robot-prefs.js --
+      y la copia de robot.js ni siquiera se usaba (el archivo ya llamaba a
+      teacherPortraitSrc). Borrada: una sola fuente de verdad para "que cara
+      mostrar". Si no, este renombrado habria roto la mitad de las pantallas.
+      QA: defaults OK (Lucien/echo/lucien.png), migracion Susan->Lucien OK,
+      custom "Carlos" y "Lucia/Pedro" respetados, lucien.png carga 1024x1024,
+      susan.png devuelve 404, textos en masculino, sin errores.
+      NOTA: el primer QA dio FALLO en el caso custom, pero el bug estaba en MI
+      prompt (le pase la clave `lu_teachers`; la real es `linguapath.teachers`).
+      Escribia en una clave que nadie lee. El codigo estaba bien.
+
 - [x] COMPARTIR LA APP (2026-09-30, v0.310.0). Johsua pidio una forma de que
       otros la descarguen. La PWA YA era instalable (manifest + sw + iconos +
       boton "Instalar app"); lo que faltaba era el canal: como se la pasas a

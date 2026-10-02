@@ -20,8 +20,8 @@ import { bymaxAiEnabled } from "../config/bymax.js";
 import { extractTextFromFile } from "../ui/file-text.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
 
-// El CV es contexto de RECLUTAMIENTO -> habla la reclutadora (Susan), no la
-// profe de cursos. El alumno puede renombrarla en Ajustes.
+// El CV es contexto de RECLUTAMIENTO -> habla el coach de entrevistas (Lucien),
+// no la profe de cursos. El alumno puede renombrarlo en Ajustes.
 const recruiter = () => getTeacherName("interview");
 
 // Prefijo comun: define el idioma de salida y el estilo (sin spanglish, sin markdown).
@@ -220,7 +220,7 @@ export async function renderCvCoach(container, user) {
         el("div", { class: "min-w-0" },
           el("p", { class: "text-lg font-black text-white" }, "CV de alta calidad (todo en uno)"),
           el("p", { class: "text-white/90 text-sm mt-0.5" },
-            "Sube tu CV, di el puesto y las skills requeridas. " + recruiter() + ", como reclutadora experta, te devuelve un CV completo optimizado para ATS."))));
+            "Sube tu CV, di el puesto y las skills requeridas. " + recruiter() + ", como reclutador experto, te devuelve un CV completo optimizado para ATS."))));
   }
 
   // ---- Vista Pro: subir CV + puesto + skills -> CV de alta calidad ---------

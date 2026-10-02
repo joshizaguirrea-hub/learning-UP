@@ -2,7 +2,7 @@
 //
 // NOTA DE NOMBRES: "bymax" es el nombre INTERNO del motor (archivo, variables,
 // subdominio). El ALUMNO nunca debe leerlo: habla con Megan (cursos), Mathias
-// (speaking) o Susan (entrevistas). Por eso los prompts traen el placeholder
+// (speaking) o Lucien (entrevistas). Por eso los prompts traen el placeholder
 // {TEACHER}, que se sustituye con el nombre que manda el cliente.
 //
 // Endpoints (POST):
@@ -475,7 +475,7 @@ async function azureTts(text, env, rate) {
 // natural que lee texto mixto es+en y cambia de idioma sola. Requiere secret
 // OPENAI_API_KEY. Devuelve base64 mp3.
 const OPENAI_VOICE = "alloy"; // alloy/echo/fable/nova/shimmer/onyx (todas multilingues)
-// Voces OpenAI permitidas. Asi cada PROFE puede tener SU voz (Megan/Susan mujer,
+// Voces OpenAI permitidas. Asi cada PROFE puede tener SU voz (Megan mujer,
 // Mathias hombre) sin arriesgar una voz invalida (la API las rechaza).
 const OPENAI_VOICES = new Set(["alloy", "echo", "fable", "onyx", "nova", "shimmer", "ash", "sage", "coral"]);
 async function openaiTts(text, env, rate, ttsVoice) {
@@ -518,7 +518,7 @@ async function handleTts(request, env, origin) {
   // Voz Google Chirp3-HD ingles (Worker nuevo): solo se acepta el patron oficial.
   const voiceHd = typeof body.voiceHd === "string" && /^en-US-Chirp3-HD-[A-Za-z]+$/.test(body.voiceHd) ? body.voiceHd : "";
   const gender = body.gender === "M" ? "M" : "F";
-  // Voz OpenAI por PROFE (Megan=nova, Susan=shimmer, Mathias=onyx...). Si no viene
+  // Voz OpenAI por PROFE (Megan=nova, Lucien=shimmer, Mathias=onyx...). Si no viene
   // o es invalida, cae a la voz por defecto (alloy).
   const ttsVoice = OPENAI_VOICES.has(body.ttsVoice) ? body.ttsVoice : "";
   // Velocidad opcional (0.5-1.5). 0 = velocidad normal (no forzar).
@@ -697,7 +697,7 @@ async function handleChat(request, env, origin) {
     : SYSTEM_PROMPT;
 
   // NOMBRE DEL PROFE. "Bymax" es el nombre INTERNO del motor; el alumno habla
-  // con Megan (cursos), Mathias (speaking) o Susan (entrevistas), y ademas
+  // con Megan (cursos), Mathias (speaking) o Lucien (entrevistas), y ademas
   // puede renombrarlos en Ajustes. El cliente manda cual toca: si la IA se
   // presentara como "Bymax" se romperia la ilusion (Mathias diria otro nombre).
   // Se sanea porque entra en el prompt: solo letras, espacios y guiones.

@@ -5,7 +5,7 @@
  * Devuelve SIEMPRE { answer, error } — nunca lanza — para que la UI decida.
  *
  * NOMBRES: "bymax" es el nombre INTERNO del motor. Hacia el alumno el profe se
- * llama Megan / Mathias / Susan segun el contexto, asi que SIEMPRE se manda
+ * llama Megan / Mathias / Lucien segun el contexto, asi que SIEMPRE se manda
  * `teacher` al Worker: si no, la IA se presentaria con el nombre del motor.
  */
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
@@ -14,7 +14,7 @@ import { getTeacherName } from "../ui/robot-prefs.js";
 /**
  * Pregunta al profe IA.
  * @param {object} p - { mode, topic, level, question, history, role }
- *   `role`: "course" (Megan) | "speaking" (Mathias) | "interview" (Susan).
+ *   `role`: "course" (Megan) | "speaking" (Mathias) | "interview" (Lucien).
  * @returns {Promise<{answer?:string, error?:string}>}
  */
 export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en", role = "course", teacher } = {}) {

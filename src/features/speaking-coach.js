@@ -197,7 +197,7 @@ function interviewHero(level, userId) {
         el("span", { class: "w-12 h-12 rounded-xl bg-white/15 grid place-items-center text-white shrink-0", html: ICONS.briefcase }),
         el("div", {},
           el("p", { class: "text-white font-extrabold text-xl leading-tight" }, "Entrevista de trabajo con IA"),
-          el("p", { class: "text-white/85 text-sm mt-0.5" }, getTeacherName("interview") + " hace de reclutadora. T\u00fa detallas el puesto; ella te entrevista en serio y te da feedback."))),
+          el("p", { class: "text-white/85 text-sm mt-0.5" }, getTeacherName("interview") + " hace de reclutador. T\u00fa detallas el puesto; \u00e9l te entrevista en serio y te da feedback."))),
       el("button", {
         type: "button",
         class: "mt-5 inline-flex items-center gap-2 bg-white text-indigo-700 font-bold px-6 py-3 rounded-xl hover:bg-indigo-50 focus:outline focus:outline-2 focus:outline-white",

@@ -40,7 +40,7 @@ export function openInterview(opts = {}) {
 
   let ended = false;
   let dictation = null;
-  let teacher = null; // profe 3D ANIMADO (Susan); se monta al iniciar la entrevista
+  let teacher = null; // profe 3D ANIMADO del rol entrevista; se monta al iniciar
 
   const stopAudio = () => { cancelCloud(); teacher?.setTalking(false); if ("speechSynthesis" in window) window.speechSynthesis.cancel(); };
   const close = () => { ended = true; dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
@@ -154,7 +154,7 @@ export function openInterview(opts = {}) {
 
     body.replaceChildren(el("div", { class: "w-full max-w-lg mx-auto pt-4" },
       el("p", { class: "text-sm text-slate-400" },
-        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutadora senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
+        "Cu\u00e9ntame a qu\u00e9 puesto aspiras. " + name + " har\u00e1 de reclutador senior y te entrevistar\u00e1 en ingl\u00e9s, en serio y a la medida del puesto y la empresa."),
       el("label", { class: "block mt-4 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Puesto"),
       roleInput,
       el("label", { class: "block mt-3 text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Empresa"),
@@ -214,7 +214,7 @@ export function openInterview(opts = {}) {
       transcript.scrollTop = transcript.scrollHeight;
     }
 
-    // Hace "hablar" a Susan: voz de nube (lip-sync REAL por amplitud via el
+    // Hace "hablar" al profe: voz de nube (lip-sync REAL por amplitud via el
     // analyser compartido) + boca animada. onDone se llama al terminar el audio.
     function say(text, onDone) {
       if (!greeted) { greeted = true; teacher?.greet(); } // saluda con la mano al inicio
@@ -240,7 +240,7 @@ export function openInterview(opts = {}) {
       addMsg(answer, "them");
       status.textContent = name + " habla...";
       bymaxEmote("happy");
-      // Susan SIEMPRE habla (el avatar se anima), tanto en modo voz como texto.
+      // El profe SIEMPRE habla (el avatar se anima), tanto en modo voz como texto.
       say(answer, () => {
         if (ended || paused) return;
         if (useVoice) { status.textContent = ""; listen(); }
@@ -340,7 +340,7 @@ export function openInterview(opts = {}) {
       renderFeedback(answer, cfg, () => startInterview(cfg));
     }
 
-    // Escenario del avatar 3D ANIMADO (Susan). En modo robot cae a la mascota.
+    // Escenario del avatar 3D ANIMADO del profe. En modo robot cae a la mascota.
     const teacherStage = el("div", { class: "w-full flex justify-center pt-3" });
     teacher = mountTeacher(teacherStage, { role: "interview", size: "lg", stageClass: "w-full max-w-sm h-[42vh] mx-auto" });
 
@@ -353,7 +353,7 @@ export function openInterview(opts = {}) {
         transcript),
       controls));
 
-    // Arranca: Susan saluda y hace la primera pregunta.
+    // Arranca: el profe saluda y hace la primera pregunta.
     turn("[BEGIN]");
   }
 
