@@ -34,9 +34,13 @@ Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
       `course_progress`, no ejercicios sueltos).
 
 ### P2 — Contenido nuevo (mas trabajo, mas valor para alumnos)
-- [ ] **Frances A1** (fr1-fr8) en modo `draft`. Voz `fr-FR` ya cableada; falta
-      contenido. Espejo del arco it/pt: reading + vocabulary + grammar + writing
-      por unidad; registrar en `units/index.js`; `auditContent` 0 errores.
+- [ ] **Frances A1** (fr1-fr8) en modo `draft`. **2/8 hechas** (v0.312.0):
+      `fr1-bonjour` (saludos + etre) y `fr2-famille` (posesivos + avoir), al
+      estandar de `pt1-ola` (4 lecciones, 12 vocab, 24 actividades, ciclo PPP).
+      Faltan fr3-fr8. REGLA: no registrar una unidad en `units/index.js` hasta
+      que tenga contenido real; una unidad vacia hunde el score de
+      `content-audit` y le promete al alumno una leccion que no existe.
+      Validar con `tools\check_unit_content.py <archivo>`.
 - [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1.
 - [ ] **Portugues A2** (hoy pt solo tiene A1).
 - [ ] **Italiano A2** (hoy it solo tiene A1).
@@ -50,6 +54,16 @@ Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.312.0 — Modo inmersion + Frances A1 (2/8).** Las etiquetas visibles
+      ya no estan hardcodeadas en ingles. TRES capas separadas: contenido del
+      curso (siempre idioma meta, lo manda `unit.language`), nombres de
+      competencia (`skillLabel` en `data/skill-meta.js`) y navegacion
+      (`uiLabel` en `data/ui-labels.js`, NUEVO). Las dos ultimas obedecen al
+      interruptor **Modo inmersion** de Ajustes (`getImmersion` en `ui/prefs.js`),
+      **apagado por defecto**: la navegacion va en la L1 del alumno porque un
+      A1 que no sabe donde hacer clic abandona. Nuevo
+      `tools/check_unit_content.py` (valida content-audit sin Node).
 
 - [x] **v0.311.0 — El profe de entrevistas: Susan → Lucien.** Nombre, voz
       (shimmer → echo, masculina) y textos en masculino. Migracion para quien
