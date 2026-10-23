@@ -34,17 +34,33 @@ function skillFocus(unit, key, lesson) {
 
   if (key === "grammar") {
     const g = lesson?.grammar;
+    // ORDEN IMPORTANTE: el Worker recorta `topic` a ~695 chars, asi que lo que
+    // va primero es lo que sobrevive. El vocabulario va ANTES que los ejemplos
+    // y los errores comunes: sin el, la IA pide producir palabras que nunca
+    // presento ("di 'yo soy estudiante'" con 'etudiant' nunca visto) y el
+    // alumno se atora en LEXICO, no en gramatica, que es lo que toca entrenar.
     if (g) {
       if (g.title) out.push("Tema: " + g.title + ".");
       if (g.rule) out.push("Regla: " + g.rule);
-      if (g.form) out.push("Forma: " + g.form);
+    }
+    // Vocabulario de la unidad, deduplicado y acotado: el Worker recorta a ~695
+    // chars y la lista entera no cabe. 12 palabras bastan para que la IA no
+    // improvise lexico; mas solo empuja fuera a los ejemplos y los errores.
+    const known = [...new Set((unit?.vocab || [])
+      .map((v) => String(v.term).split(" / ")[0].trim()))]
+      .slice(0, 12).join(", ");
+    if (known) {
+      out.push("Vocabulario YA visto (usa SOLO esto; si metes una palabra nueva, dala traducida ANTES de pedirla): " + known + ".");
+    }
+    if (g) {
       if (g.examples?.length) out.push("Ejemplos: " + g.examples.slice(0, 4).join(" / "));
       if (g.mistakes?.length) {
         out.push("Errores comunes a corregir: " +
           g.mistakes.slice(0, 3).map((m) => m.wrong + " -> " + m.right).join(" ; "));
       }
+      if (g.form) out.push("Forma: " + g.form);
     }
-    out.push("Explica la regla en espanol con ejemplos en " + langName + " y hazlo practicar frase por frase. Las traducciones y ejemplos deben ser en " + langName + ", NUNCA en ingles (salvo que el idioma meta sea ingles).");
+    out.push("Explica la regla en espanol con ejemplos en " + langName + " y hazlo practicar frase por frase. Nunca en ingles (salvo que el idioma meta sea ingles).");
   } else if (key === "vocabulary") {
     const words = glossary.slice(0, 10)
       .map((v) => '"' + v.term + '" = ' + v.translation).join(" ; ");
@@ -99,6 +115,9 @@ export function openSkillClass(unit, key, opts = {}) {
     level,
     targetLang: lang, // idioma META -> el Worker ensena en este idioma (no ingles fijo)
     unitId: unit?.id, unitTitle: unit?.title, userId: opts.userId, // -> cuaderno de errores
+    // Glosario de la unidad -> POP "Palabras" dentro de la clase. El alumno ve
+    // el lexico que ya se presento sin tener que pedirlo por chat.
+    vocab: unit?.vocab || [],
     skill: key, // competencia -> pestana del cuaderno de errores
     onFinish,
     // Al terminar la clase: felicitar + ofrecer mas practica eligiendo
@@ -108,7 +127,7 @@ export function openSkillClass(unit, key, opts = {}) {
     endSubtitle: meta.label + " \u00b7 " + (unit?.title || ""),
     title: name + " ensena: " + meta.label,
     subtitle: (unit?.title || "") + " \u00b7 " + meta.subtitle + " \u00b7 nivel " + level,
-    placeholder: "Responde a " + name + " (o di 'ayuda')...",
+    placeholder: "Responde a " + name + " (o mira 'Palabras')...",
     ariaLabel: "Clase de " + meta.label + " con " + name,
   });
 }

@@ -19,6 +19,7 @@ import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
 import { ICONS } from "../ui/icons.js";
 import { micCode, languageName } from "../data/languages.js";
+import { openVocabHelp } from "./vocab-help.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled, multilingualEnabled } from "../config/bymax.js";
 import { buildNotebookPrompt } from "../core/notebook.js";
 import { parseFeedback } from "../core/feedback.js";
@@ -58,6 +59,8 @@ function bubble(text, who) {
  * @param {string} cfg.subtitle - subtitulo del encabezado
  * @param {string} [cfg.placeholder] - placeholder del input
  * @param {string} [cfg.ariaLabel] - etiqueta del dialogo
+ * @param {object[]} [cfg.vocab] - glosario de la unidad. Si viene, aparece el POP
+ *   "Palabras" con el lexico ya presentado (termino + traduccion + audio).
  */
 export function openBymaxSession(cfg) {
   const { mode = "conversation", topic = "general", level = "B1" } = cfg || {};
@@ -193,7 +196,7 @@ export function openBymaxSession(cfg) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode, topic, level, targetLang,
-          teacher: name, // la IA debe firmar como Megan/Mathias/Lucien, no como el motor
+          teacher: name, // la IA debe firmar como Megan/Mathias/Susan, no como el motor
           immersive: false, // queremos la evaluacion en espanol, sin protocolo TIP
           question: buildNotebookPrompt(targetLang),
           history: allTurns.slice(-24),
@@ -340,7 +343,7 @@ export function openBymaxSession(cfg) {
         body: JSON.stringify({
           mode, topic: topicNow, level,
           targetLang: cfg?.targetLang || "en", // idioma META (en | pt...)
-          teacher: name, // quien habla: Megan (clases), Mathias (speaking), Lucien...
+          teacher: name, // quien habla: Megan (clases), Mathias (speaking), Susan...
           immersive: !multilingualEnabled(), // inmersion salvo que Azure este activo
           question, history: history.slice(-MAX_TURNS),
         }),
@@ -455,6 +458,19 @@ export function openBymaxSession(cfg) {
     onclick: () => send("I'm stuck. Can you help me in Spanish and give me an example answer?", true),
   }, "Ayuda (en espanol)");
 
+  // POP de vocabulario: las palabras que la unidad YA presento, con audio. En un
+  // idioma nuevo el alumno se atora por LEXICO que nadie le dio, no por la regla
+  // que esta practicando. Tenerlo a la vista evita romper el ritmo de la clase.
+  // Solo aparece si la unidad trae glosario (en conversacion libre no hay).
+  const vocabBtn = (cfg?.vocab || []).length ? el("button", {
+    type: "button",
+    class: "text-xs px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/40 text-indigo-200 " +
+      "hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400 " +
+      "inline-flex items-center gap-1",
+    onclick: () => openVocabHelp(cfg.vocab, cfg.targetLang || "en", cfg.unitTitle),
+    "aria-label": "Ver las palabras que puedes usar en esta clase",
+  }, el("span", { class: "w-3.5 h-3.5", html: ICONS.book }), "Palabras") : null;
+
   // Boton para marcar la clase como completada. Arranca DESHABILITADO; se habilita
   // cuando el alumno completa la practica (finishGoal respuestas). Un audio suelto
   // NO la completa.
@@ -491,7 +507,8 @@ export function openBymaxSession(cfg) {
     el("div", { class: "mt-3 border-t border-slate-800 pt-2 flex-1 min-h-0 overflow-y-auto" }, log),
 
     el("div", { class: "mt-2 flex justify-between gap-2" },
-      finishBtn || el("span"), helpBtn),
+      finishBtn || el("span"),
+      el("div", { class: "flex gap-2" }, vocabBtn || el("span"), helpBtn)),
     el("div", { class: "mt-2 flex gap-2" }, ...(speechSupported() ? [micBtn] : []), input, sendBtn));
 
   const overlay = el("div", {
