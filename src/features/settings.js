@@ -10,7 +10,9 @@ import { resetSrsCards } from "../services/srs.js";
 import { updateStudentProfile } from "../services/profiles.js";
 import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
   getHighContrast, setHighContrast, getAutoplay, setAutoplay,
-  getTheme, setTheme, THEMES } from "../ui/prefs.js";
+  getTheme, setTheme, THEMES, getImmersion, setImmersion } from "../ui/prefs.js";
+import { languageName } from "../data/languages.js";
+import { currentLangCode } from "../ui/nav.js";
 import { el, mount } from "../ui/dom.js";
 import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
 import { TEACHER_ROLES, getTeacherName, setTeacherName } from "../ui/robot-prefs.js";
@@ -107,6 +109,22 @@ export function renderSettings(container, user) {
       getHighContrast(), (on) => { setHighContrast(on); announce(on ? "Alto contraste activado." : "Alto contraste desactivado."); renderSettings(container, user); }),
     toggleRow("Reproducir audio automatico", "Escucha la palabra en cuanto aparece (repaso y bonus).",
       getAutoplay(), (on) => { setAutoplay(on); announce(on ? "Audio automatico activado." : "Audio automatico desactivado."); renderSettings(container, user); }));
+
+  // Modo inmersion: la navegacion pasa al idioma meta. Apagado por defecto
+  // (ver ui/prefs.js). Se nombra el idioma concreto para que el alumno sepa
+  // exactamente a que se expone antes de encenderlo.
+  const targetLang = languageName(currentLangCode());
+  const immersionCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Modo inmersion"),
+    el("p", { class: "text-sm text-slate-400 mt-1" },
+      "Los botones de la app pasan al idioma que estudias. El contenido del curso ya va en ese idioma siempre."),
+    toggleRow("Navegacion en " + targetLang,
+      "Recomendado si ya tienes nivel A2 o mas. Si apenas empiezas, dejalo apagado.",
+      getImmersion(), (on) => {
+        setImmersion(on);
+        announce(on ? "Modo inmersion activado. La navegacion ahora va en " + targetLang + "." : "Modo inmersion desactivado. La navegacion vuelve al espanol.");
+        renderSettings(container, user);
+      }));
 
   // Zona de reinicio: borra progreso del curso + SRS + racha (empezar de cero).
   const resetMsg = el("div", { class: "text-sm mt-3" });
@@ -215,7 +233,7 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, robotCard, teachersCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
+    nameCard, robotCard, teachersCard, immersionCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
   focusMainHeading(container);
 }
 

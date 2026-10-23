@@ -9,9 +9,10 @@ import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
 import { unitsForLevel } from "../data/units/index.js";
 import { currentLangCode } from "../ui/nav.js";
-import { SKILL_META } from "../data/skill-meta.js";
+import { SKILL_META, skillLabel } from "../data/skill-meta.js";
 import { skillPlan } from "../data/skill-plans.js";
 import { comingSoon } from "../ui/placeholder.js";
+import { getImmersion } from "../ui/prefs.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
@@ -33,8 +34,11 @@ export async function renderCompetency(container, params, user) {
   }
 
   const level = profile.cefr_level;
+  const lang = currentLangCode();
+  // Mismo interruptor que el hub de la unidad: coherencia en toda la app.
+  const name = skillLabel(skill, getImmersion() ? lang : "es");
   const progress = await getCourseProgress(user.id);
-  const units = unitsForLevel(level, currentLangCode());
+  const units = unitsForLevel(level, lang);
 
   // Lecciones (de cualquier unidad del nivel) que entrenan esta competencia.
   const lessons = [];
@@ -48,7 +52,7 @@ export async function renderCompetency(container, params, user) {
     mount(container, el("div", {},
       backLink(),
       comingSoon({
-        title: `${meta.label} - ${level}`,
+        title: `${name} - ${level}`,
         desc: skillPlan(skill, level)?.focus || "Contenido en preparacion para tu nivel.",
         icon: meta.icon,
       })));
@@ -62,19 +66,19 @@ export async function renderCompetency(container, params, user) {
 
   mount(container, el("div", { class: "max-w-3xl mx-auto space-y-6" },
     backLink(),
-    hero(meta, level, pct, done, lessons.length),
+    hero(meta, name, level, pct, done, lessons.length),
     plan ? focusCard(plan) : null,
     lessonsCard(lessons, progress)));
   focusMainHeading(container);
 }
 
-function hero(meta, level, pct, done, total) {
+function hero(meta, name, level, pct, done, total) {
   return el("section", { class: `rounded-2xl overflow-hidden bg-gradient-to-r ${meta.gradient} shadow-lg` },
     el("div", { class: "p-6" },
       el("div", { class: "flex items-center gap-3" },
         el("div", { class: "w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-white", html: meta.icon }),
         el("div", {},
-          el("h1", { class: "text-2xl font-extrabold text-white" }, `${meta.label} - ${level}`),
+          el("h1", { class: "text-2xl font-extrabold text-white" }, `${name} - ${level}`),
           el("p", { class: "text-white/80 text-sm" }, meta.subtitle))),
       el("div", { class: "mt-4" },
         el("div", { class: "flex justify-between text-xs text-white/80 mb-1" },

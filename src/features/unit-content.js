@@ -7,7 +7,9 @@
  * la unidad (features/skill-class.js). Alrededor, POPs pequenos para el examen,
  * el cuento, la videollamada (llamada en vivo IA) y los bonos. Mas dinamico y personal.
  */
-import { SKILL_META } from "../data/skill-meta.js";
+import { SKILL_META, skillLabel } from "../data/skill-meta.js";
+import { uiLabel } from "../data/ui-labels.js";
+import { getImmersion } from "../ui/prefs.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
 import { bonusDecksForLanguage } from "../data/bonus-decks.js";
 import { ICONS } from "../ui/icons.js";
@@ -45,6 +47,17 @@ const BONUS_LINKS = [
 // arriba. Se posicionan con trigonometria sobre un circulo (ver orbit()).
 const ORBIT = ["grammar", "vocabulary", "reading", "listening", "speaking", "writing"];
 const ORBIT_RADIUS = 46; // radio en % del contenedor cuadrado
+
+/**
+ * Idioma en el que se escribe la NAVEGACION de esta unidad.
+ * Con inmersion ON -> el idioma meta de la unidad. OFF -> espanol (L1).
+ * Un solo sitio decide esto, para que ningun boton quede a medias.
+ * @param {object} unit
+ * @returns {string} codigo ISO
+ */
+function navLang(unit) {
+  return getImmersion() ? (unit?.language || "en") : "es";
+}
 
 /**
  * Bloque de contenido de la unidad: hub central con Bymax + POPs.
@@ -90,17 +103,17 @@ export function unitContent(unit, progressMap, user) {
   // IA, manos libres), input gramatical y -si el idioma tiene guia- pronunciacion.
   const extraPops = [
     examPop(unit, progressMap),
-    miniPop("Cuento", "Lee y escucha", ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
-    miniPop("Videollamada", "Llamada en vivo IA", SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
+    miniPop(uiLabel("story", navLang(unit)), uiLabel("storyDesc", navLang(unit)), ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
+    miniPop(uiLabel("call", navLang(unit)), uiLabel("callDesc", navLang(unit)), SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
       () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", targetLang: unit.language || "en", userId: user?.id })),
     grammarInputPop(unit, user),
   ];
   if (hasPronunciation(unit.language || "en")) {
-    extraPops.push(miniPop("Pronuncia", "Afina el oido", ICONS.sound, "from-cyan-500 to-sky-600",
+    extraPops.push(miniPop(uiLabel("pronunciation", navLang(unit)), uiLabel("pronunciationDesc", navLang(unit)), ICONS.sound, "from-cyan-500 to-sky-600",
       () => openPronunciationLab(unit)));
   }
   if (hasCheckpoint(unit)) {
-    extraPops.push(miniPop("Repaso", "Mezcla unidades", ICONS.target, "from-rose-500 to-pink-600",
+    extraPops.push(miniPop(uiLabel("review", navLang(unit)), uiLabel("reviewDesc", navLang(unit)), ICONS.target, "from-rose-500 to-pink-600",
       () => openCheckpoint(unit, { userId: user?.id })));
   }
   const extras = el("div", { class: "mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3" }, ...extraPops);
@@ -147,7 +160,7 @@ function notebookButton(unit, user) {
     "aria-label": "Abrir el cuaderno de la unidad (errores, vocabulario y pronombres)",
   },
     el("span", { class: "w-6 h-6", html: ICONS.book }),
-    el("span", {}, "Cuaderno de la unidad"));
+    el("span", {}, uiLabel("notebook", navLang(unit))));
 }
 
 /** Boton "Boletin de la unidad": abre el resumen/calificacion. Relee el progreso
@@ -167,7 +180,7 @@ function boletinButton(unit, progressMap, user) {
     "aria-label": "Ver el boletin de resultados de la unidad",
   },
     el("span", { class: "w-6 h-6", html: ICONS.star }),
-    el("span", {}, complete ? "Ver bolet\u00edn de la unidad" : "Bolet\u00edn de la unidad (resumen)"));
+    el("span", {}, complete ? uiLabel("reportDone", navLang(unit)) : uiLabel("report", navLang(unit))));
 }
 
 /**
@@ -201,6 +214,9 @@ function orbit(center, pops) {
  */
 function skillPop(key, unit, progressMap, user, onSkillDone) {
   const meta = SKILL_META[key];
+  // Nombre de la competencia. Sigue el MISMO interruptor que el resto de la
+  // navegacion: o toda la pantalla esta en inmersion, o ninguna parte lo esta.
+  const name = skillLabel(key, navLang(unit));
   const lesson = lessonForSkill(unit, key);
   // Al terminar una competencia: dispara el enganche de la unidad (revisa si ya
   // esta completa para abrir el boletin). Sin esto, el clic moria con
@@ -255,11 +271,11 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       "hover:brightness-110 hover:scale-105 transition-transform " +
       "focus:outline focus:outline-2 focus:outline-white/80",
     onclick,
-    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening Lab (escucha una historia): " : key === "writing" ? "Escritura: " : key === "vocabulary" ? "Vocab Lab: " : "Clase de ") + meta.label + " con " + robotName(),
+    "aria-label": (key === "reading" ? "Reading Lab (comprensi\u00f3n) de " : key === "speaking" ? "Escucha y repite: " : key === "listening" ? "Listening Lab (escucha una historia): " : key === "writing" ? "Escritura: " : key === "vocabulary" ? "Vocab Lab: " : "Clase de ") + meta.subtitle + " con " + robotName(),
   },
     check,
     el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: meta.icon }),
-    el("span", { class: "font-bold text-[10px] sm:text-xs leading-none" }, meta.label));
+    el("span", { class: "font-bold text-[10px] sm:text-xs leading-tight max-w-full break-words hyphens-auto" }, name));
 }
 
 /** POP del examen de unidad (paso final para desbloquear la siguiente). */
@@ -275,9 +291,9 @@ function examPop(unit, progressMap) {
     "aria-label": done ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
   },
     el("span", { class: "w-7 h-7", html: done ? ICONS.check : ICONS.star }),
-    el("span", { class: "font-bold text-sm leading-tight" }, "Examen"),
+    el("span", { class: "font-bold text-sm leading-tight" }, uiLabel("exam", navLang(unit))),
     el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
-      done ? "APROBADO" : "PARA PASAR"));
+      done ? uiLabel("examPassed", navLang(unit)) : uiLabel("examBadge", navLang(unit))));
 }
 
 /** POP de INPUT ESTRUCTURADO (Structured Input, VanPatten): procesar la forma
@@ -289,7 +305,7 @@ function grammarInputPop(unit, user) {
     const ok = openGrammarInput(unit, { userId: user?.id, progressId: grammarLesson?.id });
     if (!ok) openSkillClass(unit, "grammar", { userId: user?.id });
   };
-  return miniPop("Input gram.", "Procesa la forma", ICONS.grid, "from-violet-500 to-purple-600", onclick);
+  return miniPop(uiLabel("grammarInput", navLang(unit)), uiLabel("grammarInputDesc", navLang(unit)), ICONS.grid, "from-violet-500 to-purple-600", onclick);
 }
 
 /** POP pequeno generico (cuento, conversacion, anti-errores). */

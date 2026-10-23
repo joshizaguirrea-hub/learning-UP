@@ -60,6 +60,12 @@ import { PROFESSIONAL_COMM_C2 } from "./professional-comm-c2.js";
 import { HUMOR_SUBTEXT_C2 } from "./humor-subtext-c2.js";
 import { DEBATE_MASTERY_C2 } from "./debate-mastery-c2.js";
 import { CAPSTONE_C2 } from "./capstone-c2.js";
+// --- Frances (fr-FR) A1 --- (en construccion: solo las unidades con contenido
+// real se registran aqui. Una unidad vacia hunde el score de content-audit y le
+// promete al alumno una leccion que no existe.)
+import { FR1_BONJOUR } from "./fr1-bonjour.js";
+import { FR2_FAMILLE } from "./fr2-famille.js";
+
 // --- Portugues (pt-BR) A1 ---
 import { PT1_OLA } from "./pt1-ola.js";
 import { PT2_FAMILIA } from "./pt2-familia.js";
@@ -101,6 +107,8 @@ export const UNITS = [
   // --- C2 ---
   REGISTER_C2, IDIOM_C2, ADVANCED_WRITING_C2,
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
+  // --- Frances (fr-FR) A1 --- (en construccion)
+  FR1_BONJOUR, FR2_FAMILLE,
   // --- Portugues (pt-BR) A1 ---
   PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
   // --- Italiano (it) A1 ---

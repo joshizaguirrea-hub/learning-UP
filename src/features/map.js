@@ -14,7 +14,8 @@ import { getStudentProfile } from "../services/profiles.js";
 import { getCourseProgress } from "../services/course.js";
 import { unitsForCourse } from "../data/units/index.js";
 import { currentLangCode } from "../ui/nav.js";
-import { SKILL_META } from "../data/skill-meta.js";
+import { SKILL_META, skillLabel } from "../data/skill-meta.js";
+import { getImmersion } from "../ui/prefs.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount } from "../ui/dom.js";
 import { focusMainHeading } from "../ui/a11y.js";
@@ -23,11 +24,12 @@ import { openConversation } from "./conversation.js";
 import { openSpeaking } from "./speaking.js";
 import { openStory } from "./story.js";
 
-/** Etiqueta corta de una leccion: su competencia (o "Test final"). */
-function lessonLabel(lesson) {
+/** Etiqueta corta de una leccion: su competencia en el idioma META de la unidad
+ *  (o "Test final"). */
+function lessonLabel(lesson, lang) {
   if (lesson.kind === "test") return "Test final";
   const skill = (lesson.skills || [])[0];
-  return (skill && SKILL_META[skill]?.label) || lesson.title;
+  return (skill && skillLabel(skill, lang)) || lesson.title;
 }
 
 /** Icono de la competencia de una leccion. */
@@ -81,7 +83,7 @@ export async function renderMap(container, user) {
       const unlocked = unitUnlocked && prevDone;
       const state = isDone ? "done" : unlocked ? "current" : "locked";
       sections.push(pathNode({
-        label: lessonLabel(lesson),
+        label: lessonLabel(lesson, getImmersion() ? (unit.language || "en") : "es"),
         state, pos: pos++,
         icon: state === "done" ? ICONS.check : state === "locked" ? ICONS.lock : lessonIcon(lesson),
         onClick: state === "locked" ? null : () => go(`/leccion/${lesson.id}`),

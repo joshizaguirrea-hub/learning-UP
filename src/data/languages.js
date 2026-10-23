@@ -11,7 +11,7 @@ export const LANGUAGES = [
   { code: "en", name: "Ingles", flag: "GB", enabled: true },
   { code: "es", name: "Espanol", flag: "ES", enabled: false },
   { code: "pt", name: "Portugues", flag: "BR", enabled: true },
-  { code: "fr", name: "Frances", flag: "FR", enabled: false },
+  { code: "fr", name: "Frances", flag: "FR", enabled: false, draft: true },
   { code: "ja", name: "Japones", flag: "JP", enabled: false },
   { code: "it", name: "Italiano", flag: "IT", enabled: true },
 ];
@@ -23,6 +23,7 @@ const SPEECH = {
   en: { tts: "en", mic: "en-US" },
   es: { tts: "es", mic: "es-MX" },
   pt: { tts: "pt", mic: "pt-BR" },
+  fr: { tts: "fr", mic: "fr-FR" },
   it: { tts: "it", mic: "it-IT" },
 };
 

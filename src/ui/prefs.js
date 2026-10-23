@@ -9,6 +9,7 @@ const TEXT_SIZE_KEY = "linguapath.textsize";
 const CONTRAST_KEY = "linguapath.contrast";
 const AUTOPLAY_KEY = "linguapath.autoplay";
 const THEME_KEY = "linguapath.theme";
+const IMMERSION_KEY = "linguapath.immersion";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -141,4 +142,21 @@ export function getGenLevel() {
 /** Guarda el nivel preferido para generar ejemplos. */
 export function setGenLevel(id) {
   localStorage.setItem(GENLEVEL_KEY, id);
+}
+
+// --- Modo inmersion ---------------------------------------------------------
+// Por DEFECTO APAGADO, y es deliberado: la navegacion de la app va en la L1 del
+// alumno (espanol). Un principiante A1 que no sabe donde hacer clic abandona.
+// Quien ya tiene nivel lo enciende y se bana en el idioma meta.
+// OJO: solo afecta ETIQUETAS DE NAVEGACION. El contenido del curso (textos,
+// glosarios, ejercicios) SIEMPRE va en el idioma meta, encendido o apagado.
+
+/** True si el modo inmersion esta activo. */
+export function getImmersion() {
+  return localStorage.getItem(IMMERSION_KEY) === "on";
+}
+
+/** Activa/desactiva el modo inmersion. */
+export function setImmersion(on) {
+  localStorage.setItem(IMMERSION_KEY, on ? "on" : "off");
 }

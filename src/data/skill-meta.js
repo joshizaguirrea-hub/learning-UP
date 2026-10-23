@@ -4,11 +4,41 @@
  * Define como se ve cada habilidad en el dashboard estilo "tarjetas de colores"
  * (gradiente, icono SVG, subtitulo). El ORDEN de las claves define el orden en
  * pantalla. Los iconos son SVG (sin emojis) que heredan el color del texto.
+ *
+ * IDIOMA DE LAS ETIQUETAS: el nombre de la competencia se muestra en el idioma
+ * META que el alumno estudia (inmersion: si estudias frances, lees "Lecture").
+ * El SUBTITULO sigue en espanol (L1) porque explica, no ensena.
+ * Modulo PURO: no importa nada de ui/. Quien pinta pasa el `lang`
+ * (ui/nav.js: currentLangCode()). Asi data/ nunca depende de ui/.
  */
 
 const svg = (path) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ` +
   `stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">${path}</svg>`;
+
+/**
+ * Nombre de cada competencia por idioma META. Se eligen formas CORTAS: estas
+ * etiquetas viven dentro de un POP circular de 84px, no en un parrafo.
+ * Si falta un idioma o una clave, cae a ingles (ver skillLabel).
+ */
+const SKILL_LABELS = {
+  en: { grammar: "Grammar", vocabulary: "Vocabulary", reading: "Reading", listening: "Listening", writing: "Writing", speaking: "Speaking" },
+  es: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Lectura", listening: "Escucha", writing: "Escritura", speaking: "Habla" },
+  pt: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Leitura", listening: "Escuta", writing: "Escrita", speaking: "Fala" },
+  it: { grammar: "Grammatica", vocabulary: "Lessico", reading: "Lettura", listening: "Ascolto", writing: "Scrittura", speaking: "Parlato" },
+  fr: { grammar: "Grammaire", vocabulary: "Lexique", reading: "Lecture", listening: "Ecoute", writing: "Ecriture", speaking: "Oral" },
+  ja: { grammar: "\u6587\u6cd5", vocabulary: "\u5358\u8a9e", reading: "\u8aad\u89e3", listening: "\u8074\u89e3", writing: "\u4f5c\u6587", speaking: "\u4f1a\u8a71" },
+};
+
+/**
+ * Etiqueta de una competencia en el idioma META dado.
+ * @param {string} key - grammar | vocabulary | reading | listening | writing | speaking
+ * @param {string} lang - codigo ISO del idioma meta (default "en")
+ * @returns {string} nombre de la competencia, o la propia clave si no existe
+ */
+export function skillLabel(key, lang = "en") {
+  return SKILL_LABELS[lang]?.[key] || SKILL_LABELS.en[key] || key;
+}
 
 export const SKILL_META = {
   grammar: {
