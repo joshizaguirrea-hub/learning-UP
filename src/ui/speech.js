@@ -449,24 +449,100 @@ export function speakSequence(items, onEach, onDone) {
 /**
  * Crea un boton de altavoz que pronuncia `text`. Devuelve null si no hay soporte.
  * Uso: speakButton("hello") (ingles por defecto, para el contenido).
+ *
+ * MUESTRA EL ESTADO. En idiomas que no son es/en la voz viene de la NUBE: hay
+ * que pedirsela al Worker, esperar el mp3 y recien ahi suena. Sin aviso, el
+ * alumno toca y no pasa nada visible -> vuelve a tocar, o cree que esta roto.
+ * Por eso el boton pasa por tres estados:
+ *   reposo -> cargando (spinner, deshabilitado) -> sonando (pulso) -> reposo
+ * Si falla, lo dice en vez de quedarse mudo.
  */
 export function speakButton(text, { lang = "en-US", cls = "" } = {}) {
   if (!isSpeechSupported()) return null;
-  return el("button", {
+
+  const BASE = "inline-flex items-center justify-center w-7 h-7 rounded-full shrink-0 " +
+    "focus:outline focus:outline-2 focus:outline-indigo-400 " + cls;
+  const btn = el("button", {
     type: "button",
-    class: "inline-flex items-center justify-center w-7 h-7 rounded-full text-indigo-300 " +
-      "hover:bg-indigo-500/20 focus:outline focus:outline-2 focus:outline-indigo-400 shrink-0 " + cls,
+    class: BASE + " text-indigo-300 hover:bg-indigo-500/20",
     "aria-label": `Escuchar: ${text}`,
     title: "Escuchar",
-    onclick: (e) => {
-      e.preventDefault(); e.stopPropagation();
-      // El motor bilingue speak() solo domina es/en. Para otros idiomas (ej.
-      // portugues) usamos speakMono, que enruta a la nube (OpenAI TTS) y suena
-      // en el idioma correcto.
-      const base = String(lang).slice(0, 2).toLowerCase();
-      if (base !== "en" && base !== "es") speakMono(text, lang);
-      else speak(text, lang);
-    },
     html: ICONS.sound,
   });
+
+  const estado = (clase, etiqueta, icono, apagado) => {
+    btn.className = BASE + " " + clase;
+    btn.setAttribute("aria-label", etiqueta);
+    btn.title = etiqueta;
+    btn.innerHTML = icono;
+    btn.disabled = !!apagado;
+  };
+  const reposo = () => estado("text-indigo-300 hover:bg-indigo-500/20",
+    `Escuchar: ${text}`, ICONS.sound, false);
+
+  let ocupado = false;
+  btn.onclick = async (e) => {
+    e.preventDefault(); e.stopPropagation();
+    if (ocupado) return; // doble clic no encola dos audios
+    ocupado = true;
+
+    // El motor bilingue speak() solo domina es/en, y esas voces son LOCALES
+    // (instantaneas). Los demas idiomas van por speakMono -> nube -> hay espera.
+    const base = String(lang).slice(0, 2).toLowerCase();
+    const local = base === "en" || base === "es";
+
+    if (local) {
+      // Voz del navegador: es instantanea, no hay espera que avisar. Marcamos
+      // "sonando" y volvemos a reposo cuando el motor se calla. speak() devuelve
+      // cancel(), no una promesa, asi que sondeamos speechSynthesis.
+      estado("text-emerald-300 bg-emerald-500/10 animate-pulse", "Sonando", ICONS.sound, false);
+      speak(text, lang);
+      const fin = setInterval(() => {
+        if (!window.speechSynthesis.speaking) { clearInterval(fin); reposo(); ocupado = false; }
+      }, 150);
+      setTimeout(() => { clearInterval(fin); reposo(); ocupado = false; }, 20000); // red de seguridad
+      return;
+    }
+
+    estado("text-slate-400 bg-slate-700/40 cursor-wait", "Cargando el audio...", SPINNER, true);
+    try {
+      // OJO: speakMono() devuelve cancel(), NO una promesa -> un await sobre el
+      // se resolveria al instante y el spinner parpadearia sin esperar nada.
+      // Vamos directo a cloudSpeak, que SI resuelve cuando el audio termino.
+      if (cloudTtsEnabled()) {
+        const base2 = baseOf(lang);
+        cancelCloud();
+        if (isSpeechSupported()) window.speechSynthesis.cancel();
+        // DOS fases visibles: primero baja el mp3 (spinner), y en cuanto empieza
+        // a sonar pasa a "Sonando". Sin esto el spinner se queda girando sobre
+        // un audio que YA se oye, que confunde igual que no avisar.
+        prefetchCloud(String(text), base2, { rate: 0.95 }).then(() => {
+          if (ocupado) estado("text-emerald-300 bg-emerald-500/10 animate-pulse", "Sonando", ICONS.sound, false);
+        });
+        await cloudSpeak(String(text), base2, { rate: 0.95 });
+      } else {
+        speakMono(text, lang);
+      }
+      reposo();
+    } catch {
+      // La nube fallo: intentamos con la voz local del navegador (si la hay) y
+      // avisamos solo si tampoco se pudo.
+      try {
+        speakMono(text, lang);
+        reposo();
+      } catch {
+        estado("text-amber-300 bg-amber-500/10", "No se pudo cargar el audio. Toca para reintentar", ICONS.sound, false);
+        setTimeout(reposo, 2500);
+      }
+    }
+    ocupado = false;
+  };
+
+  return btn;
 }
+
+// Spinner del boton de audio (mismo tamano que el icono de altavoz).
+const SPINNER =
+  '<svg viewBox="0 0 24 24" fill="none" class="w-4 h-4 animate-spin" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" opacity="0.25"/>' +
+  '<path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>';

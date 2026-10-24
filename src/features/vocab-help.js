@@ -15,6 +15,7 @@
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
 import { speakButton } from "../ui/speech.js";
+import { prefetchCloud, cloudTtsEnabled } from "../ui/cloud-tts.js";
 import { micCode } from "../data/languages.js";
 import { openDictionary } from "./dictionary.js";
 
@@ -27,6 +28,25 @@ import { openDictionary } from "./dictionary.js";
 export function openVocabHelp(vocab, lang, unitTitle) {
   const items = (vocab || []).filter((v) => v && v.term);
   const voz = micCode(lang);
+
+  // PRECARGA. En idiomas que no son es/en la voz viene de la nube: la primera
+  // vez hay que pedirle el mp3 al Worker y eso tarda. Como el alumno abre el
+  // panel ANTES de tocar ningun altavoz, aprovechamos esos segundos para bajar
+  // el audio en segundo plano. Cuando toque, ya esta en cache y suena al vuelo.
+  // De dos en dos para no abrir 12 peticiones de golpe. Silencioso: si falla,
+  // el boton lo pide igual (y ahora muestra su spinner).
+  //
+  // La clave de cache tiene que ser IDENTICA a la que usa speakButton (misma
+  // base de idioma, mismo rate 0.95) o la precarga no sirve de nada.
+  const base = String(lang || "en").slice(0, 2).toLowerCase();
+  if (cloudTtsEnabled() && items.length) {
+    (async () => {
+      for (let i = 0; i < items.length; i += 2) {
+        await Promise.all(items.slice(i, i + 2)
+          .map((v) => prefetchCloud(v.term, base, { rate: 0.95 })));
+      }
+    })();
+  }
 
   const fila = (v) => el("li", {
     class: "flex items-center gap-2 py-2 border-b border-slate-800 last:border-0",
