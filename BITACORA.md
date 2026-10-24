@@ -131,6 +131,73 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el .glb y correr `python tools/gen_portraits.py` (necesita el server en
       :5500 y abre una ventana real: el WebGL headless sale en blanco).
 
+- [x] MODO INMERSION + FRANCES A1 + AUDIO QUE AVISA (2026-10-23, v0.312.0).
+      Cuatro commits que salieron de una sola observacion: "los nombres de las
+      skills salen en ingles aunque elija frances".
+
+      * EL BUG DE FONDO NO ERA EL IDIOMA, ERA GIT. Estuve tres rondas
+        persiguiendo cache, Service Worker e incognito porque los cambios "no
+        se veian". `git status` lo canto en un segundo: ` M src/data/languages.js`
+        sin commitear. El deploy es GitHub Pages desde main, asi que Johsua
+        estaba mirando la version PUBLICADA. Incognito NO sirve para descartar
+        esto: limpia el navegador, no el servidor. REGLA: si un cambio no se
+        ve, `git status` ANTES de teorizar; y para probar local,
+        `python -m http.server 8777`.
+
+      * TRES CAPAS DE IDIOMA, no una. (1) Contenido del curso: SIEMPRE en
+        idioma meta, lo manda `unit.language`. (2) Nombres de competencia:
+        `skillLabel(key, lang)` en data/skill-meta.js. (3) Navegacion (Examen,
+        Cuento, Boletin...): `uiLabel(key, lang)` en data/ui-labels.js, archivo
+        NUEVO. Las dos ultimas obedecen al interruptor MODO INMERSION de
+        Ajustes (`getImmersion` en ui/prefs.js), APAGADO por defecto: la
+        navegacion va en la L1 del alumno porque un A1 que no sabe donde hacer
+        clic abandona. Igual que Duolingo/Busuu. Un solo helper decide el
+        idioma -> `navLang(unit)`, para que ningun boton quede a medias.
+        `SKILL_META[key].label` (ingles) sobrevive como nombre CANONICO para
+        los prompts del Worker; ya no se pinta al alumno.
+
+      * BORRE 6 UNIDADES QUE YO MISMO HABIA GENERADO. fr3-fr8 eran cascarones
+        con `vocab: []` y `lessons: []`. No era avance: content-audit promedia
+        la completitud sobre TODAS las unidades, asi que hundian el score, y
+        aparecian en el curso prometiendo lecciones vacias. Quedan fr1-bonjour
+        y fr2-famille, ambas al estandar de pt1-ola (4 lecciones, 12 vocab, 24
+        actividades, ciclo PPP completo). REGLA: una unidad entra al catalogo
+        cuando tiene contenido, no antes.
+
+      * LA IA PEDIA PALABRAS QUE NUNCA ENSENO. Megan decia "dime 'yo soy
+        estudiante'" cuando 'etudiant' no se habia presentado: el alumno se
+        atora en LEXICO, no en la gramatica que toca entrenar. `skillFocus()`
+        no mandaba NADA del glosario. Ahora si, con la orden de usar solo esas
+        palabras. OJO AL ORDEN: el Worker recorta `topic` a ~695 chars y mi
+        primer intento puso el vocabulario al final -> se cortaba a la mitad y
+        la instruccion se perdia entera. Lo medi con una sonda antes de darlo
+        por bueno. Orden actual: tema -> regla -> VOCABULARIO -> ejemplos ->
+        errores -> forma. Y hay que deduplicar: `unit.vocab` daba 28 entradas
+        con repetidos, se acota a 12.
+
+      * POP "PALABRAS" (features/vocab-help.js, idea de Johsua). Boton junto a
+        "Ayuda (en espanol)" con el glosario ya presentado: termino,
+        traduccion, ejemplo y audio. Es ANDAMIO, no chuleta: no ensena nada
+        nuevo. Lo que no cubre lo resuelve `openDictionary()`, que ya existia.
+
+      * EL AUDIO NO ESTABA LENTO, ESTABA MUDO. En fr/it/pt la voz viene de la
+        NUBE (Worker -> mp3), no del navegador: hay espera real y el boton no
+        mostraba nada. Ahora: reposo -> spinner -> "Sonando" -> reposo, con
+        fallback a voz local y aviso en ambar si falla. TRAMPA: `speak()` y
+        `speakMono()` devuelven cancel(), NO una promesa -> un `await` sobre
+        ellos se resuelve al instante y el spinner parpadea sin esperar nada.
+        Hay que usar `cloudSpeak()` (si devuelve Promise) o sondear
+        `speechSynthesis.speaking`. Ademas el POP PRECARGA el audio al abrirse
+        con `prefetchCloud()` -- que ya existia y no se usaba aqui.
+
+      * tools/check_unit_content.py (NUEVO): valida las reglas de content-audit
+        (word_bank con words/answer coincidentes, indices de multiple_choice,
+        ids unicos, fases, minimos) sin Node, que NO esta instalado en esta
+        maquina -> `npm test` no corre aqui. Verificado inyectando un fallo.
+
+      PENDIENTE: npm test sin correr (falta Node) y la voz fr-FR sin probar en
+      navegador, aunque speech.js ya la soportaba (REGION_FALLBACK).
+
 - [x] LA PROFE DE ENTREVISTAS: SUSAN -> LUCIEN (2026-09-30, v0.311.0).
       No fue un find&replace: el rol arrastra NOMBRE + VOZ + RETRATO + GENERO
       GRAMATICAL, y cada pieza vive en un sitio distinto.

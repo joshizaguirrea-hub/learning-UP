@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
+Version actual: **v0.312.0**  ·  Ultima actualizacion del roadmap: 2026-10-23
 
 ---
 
@@ -46,6 +46,12 @@ Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 - [ ] **Italiano A2** (hoy it solo tiene A1).
 
 ### P3 — QA / calidad
+- [ ] **Instalar Node en la maquina de trabajo.** `npm test` (los 29 tests de
+      `tests/`) y Playwright NO se pueden correr: no hay `node` en el PATH.
+      Mientras tanto la red de seguridad son los validadores de `tools/`, que
+      cubren sintaxis e integridad de contenido pero NO logica.
+- [ ] **Probar la voz fr-FR en navegador** recorriendo fr1/fr2: lectura,
+      glosario, POP "Palabras" y actividades deben sonar en frances.
 - [ ] **QA de microfono** (v0.266) en Chrome: avisos no-speech / permiso /
       idioma no soportado / red, en la clase con IA.
 - [ ] **Validar voces it/pt/fr** recorriendo unidades: lectura, dialogos,
@@ -55,14 +61,17 @@ Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
 
-- [x] **v0.312.0 — Modo inmersion + Frances A1 (2/8).** Las etiquetas visibles
-      ya no estan hardcodeadas en ingles. TRES capas separadas: contenido del
-      curso (siempre idioma meta, lo manda `unit.language`), nombres de
-      competencia (`skillLabel` en `data/skill-meta.js`) y navegacion
-      (`uiLabel` en `data/ui-labels.js`, NUEVO). Las dos ultimas obedecen al
-      interruptor **Modo inmersion** de Ajustes (`getImmersion` en `ui/prefs.js`),
-      **apagado por defecto**: la navegacion va en la L1 del alumno porque un
-      A1 que no sabe donde hacer clic abandona. Nuevo
+- [x] **v0.312.0 — Modo inmersion + Frances A1 (2/8) + POP "Palabras".** Las
+      etiquetas visibles ya no estan hardcodeadas en ingles. TRES capas
+      separadas: contenido del curso (siempre idioma meta, lo manda
+      `unit.language`), nombres de competencia (`skillLabel` en
+      `data/skill-meta.js`) y navegacion (`uiLabel` en `data/ui-labels.js`,
+      NUEVO). Las dos ultimas obedecen al interruptor **Modo inmersion** de
+      Ajustes (`getImmersion` en `ui/prefs.js`), **apagado por defecto**: la
+      navegacion va en la L1 del alumno porque un A1 que no sabe donde hacer
+      clic abandona. Ademas: la IA ya no pide lexico que no enseno (el `topic`
+      lleva el glosario), POP "Palabras" con audio (`features/vocab-help.js`) y
+      el boton de altavoz avisa cuando esta cargando. Nuevo
       `tools/check_unit_content.py` (valida content-audit sin Node).
 
 - [x] **v0.311.0 — El profe de entrevistas: Susan → Lucien.** Nombre, voz
@@ -124,6 +133,36 @@ Version actual: **v0.311.0**  ·  Ultima actualizacion del roadmap: 2026-09-30
 ---
 
 ## Notas de arquitectura utiles
+
+- **Si un cambio "no se ve": `git status` ANTES de teorizar.** El deploy es
+  GitHub Pages desde `main`, asi que un archivo modificado sin commitear = el
+  navegador muestra la version PUBLICADA. Probar en incognito NO descarta esto
+  (limpia el navegador, no el servidor). Para ver cambios locales:
+  `python -m http.server 8777` en la raiz y abrir `localhost:8777`
+  (con `?preview=1` para los idiomas en `draft`). El `sw.js` es network-first,
+  asi que casi nunca es el culpable.
+- **Idioma de los textos: TRES capas, no una.** (1) Contenido del curso ->
+  SIEMPRE en idioma meta, lo manda `unit.language`. (2) Nombres de competencia
+  -> `skillLabel(key, lang)` en `data/skill-meta.js`. (3) Navegacion ->
+  `uiLabel(key, lang)` en `data/ui-labels.js`. Las capas 2 y 3 obedecen a
+  `getImmersion()` (`ui/prefs.js`); un solo helper decide, `navLang(unit)` en
+  `features/unit-content.js`. `SKILL_META[key].label` (ingles) es el nombre
+  CANONICO para prompts del Worker y reportes: NUNCA pintarlo al alumno.
+- **Las funciones de voz devuelven `cancel()`, NO una promesa.** `speak()`,
+  `speakMono()`, `speakSequence()` y `speakSmart()`: hacerles `await` se
+  resuelve al instante. Para saber cuando TERMINO el audio usa `cloudSpeak()`
+  de `ui/cloud-tts.js` (esa si devuelve Promise) o sondea
+  `speechSynthesis.speaking`. Para anticipar audio de nube: `prefetchCloud()`,
+  con el MISMO lang base y `rate` que la reproduccion (si no, otra clave de
+  cache y la precarga no sirve).
+- **El `topic` de la clase se recorta a ~695 chars.** Lo que va al final se
+  PIERDE. En `skillFocus()` (`features/skill-class.js`) el orden es
+  tema -> regla -> VOCABULARIO -> ejemplos -> errores -> forma: el glosario va
+  tercero porque sin el la IA pide producir palabras que nunca presento.
+- **Una unidad entra a `units/index.js` cuando tiene CONTENIDO.** Registrar un
+  cascaron (`vocab: []`, `lessons: []`) hunde el score de `content-audit` (la
+  completitud se promedia sobre todas) y le promete al alumno una leccion que
+  no existe. Molde: `pt1-ola.js`. Validar con `tools\check_unit_content.py`.
 
 - **Niveles de practica 1..10:** `src/core/difficulty.js` (PURO). Eje distinto al
   MCER: el MCER dice DONDE esta el alumno, el 1..10 cuanto quiere sudar hoy.
