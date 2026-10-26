@@ -1,0 +1,1124 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desplegar el Worker - Learning UP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Fondo propio: esta pagina se abre sola, sin el CSS de la app. */
+  body { background:#0f172a; }
+  pre { tab-size: 2; }
+  /* El numero de paso no se selecciona: asi copiar el texto no arrastra "1." */
+  .step::before {
+    content: counter(step); counter-increment: step;
+    position:absolute; left:0; top:2px; width:1.75rem; height:1.75rem;
+    display:grid; place-items:center; border-radius:9999px;
+    background:#4338ca; color:#fff; font-weight:700; font-size:.8rem;
+    user-select:none;
+  }
+  ol.steps { counter-reset: step; }
+</style>
+</head>
+<body class="text-slate-200 antialiased">
+<main class="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+
+  <header class="mb-8">
+    <p class="text-xs uppercase tracking-wider text-indigo-400 font-semibold">Learning UP</p>
+    <h1 class="text-3xl sm:text-4xl font-bold text-white mt-1">Desplegar el Worker</h1>
+    <p class="mt-3 text-slate-400 leading-relaxed">
+      El Worker vive en <b class="text-slate-200">Cloudflare</b>, no en GitHub Pages.
+      Por eso no se actualiza solo cuando publicas la app: hay que pegarlo a mano.
+      Hasta que lo hagas, la IA sigue con los prompts viejos.
+    </p>
+  </header>
+
+  <!-- Aviso: lo que de verdad cambia para el alumno -->
+  <section class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 mb-8">
+    <h2 class="font-bold text-amber-200">Que arregla este despliegue</h2>
+    <p class="mt-1.5 text-sm text-amber-100/90 leading-relaxed">
+      Los prompts decian <code class="bg-black/30 px-1 rounded">Eres "Bymax"</code>, asi que la IA
+      se presentaba con el nombre interno del motor aunque la pantalla dijera otra cosa.
+      Ahora usan <code class="bg-black/30 px-1 rounded">{TEACHER}</code> y el nombre llega desde la app:
+      <b>Megan</b> (cursos), <b>Mathias</b> (speaking), <b>Lucien</b> (entrevistas).
+    </p>
+  </section>
+
+  <!-- Pasos -->
+  <ol class="steps space-y-5 mb-8">
+    <li class="step relative pl-10">
+      <h3 class="font-semibold text-white">Abre tu Worker en Cloudflare</h3>
+      <p class="text-sm text-slate-400 mt-0.5">
+        <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener"
+           class="text-indigo-300 underline hover:text-indigo-200">dash.cloudflare.com</a>
+        &rarr; Workers &amp; Pages &rarr; tu Worker &rarr; boton <b>Edit code</b>.
+      </p>
+    </li>
+    <li class="step relative pl-10">
+      <h3 class="font-semibold text-white">Borra TODO lo que haya en el editor</h3>
+      <p class="text-sm text-slate-400 mt-0.5">
+        Clic dentro, <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-xs">Ctrl</kbd>
+        + <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-600 rounded text-xs">A</kbd>, luego Suprimir.
+        Esto reemplaza el archivo entero, no es un parche.
+      </p>
+    </li>
+    <li class="step relative pl-10">
+      <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 966 lineas.</p>
+    </li>
+    <li class="step relative pl-10">
+      <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
+      <p class="text-sm text-slate-400 mt-0.5">Arriba a la derecha. Tarda unos segundos.</p>
+    </li>
+    <li class="step relative pl-10">
+      <h3 class="font-semibold text-white">Compruebalo</h3>
+      <p class="text-sm text-slate-400 mt-0.5">
+        Abre la app &rarr; <b>Llamada con Mathias</b> y preguntale
+        <i>&ldquo;what's your name?&rdquo;</i>. Debe responder Mathias, no Bymax.
+      </p>
+    </li>
+  </ol>
+
+  <!-- Variables de entorno -->
+  <section class="rounded-2xl border border-slate-700 bg-slate-900/60 p-4 sm:p-5 mb-8">
+    <h2 class="font-bold text-white">Antes de pegar: revisa tus variables</h2>
+    <p class="mt-1.5 text-sm text-slate-400 leading-relaxed">
+      El codigo <b>no lleva ninguna clave dentro</b> (se verifica al generar esta pagina).
+      Las lee de las variables del Worker. Si alguna falta, esa funcion se cae sola
+      pero el resto sigue andando. Estan en <b>Settings &rarr; Variables and Secrets</b>.
+      Este codigo usa 9:
+    </p>
+    <ul class="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-slate-300 list-disc list-inside font-mono">
+      <li><code>AI</code></li>
+      <li><code>ALLOWED_ORIGIN</code></li>
+      <li><code>AUDIO_KV</code></li>
+      <li><code>AZURE_TTS_KEY</code></li>
+      <li><code>AZURE_TTS_REGION</code></li>
+      <li><code>GEMINI_API_KEY</code></li>
+      <li><code>GOOGLE_TTS_KEY</code></li>
+      <li><code>LIMITE_DIARIO</code></li>
+      <li><code>OPENAI_API_KEY</code></li>
+    </ul>
+    <p class="mt-3 text-xs text-slate-500">
+      Pegar el codigo NO borra las variables: se configuran aparte.
+    </p>
+  </section>
+
+  <!-- Codigo -->
+  <section class="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden">
+    <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
+        <p class="text-xs text-slate-500">966 lineas &middot; 49.4 KB &middot; commit 2fb4ca5 2026-10-26</p>
+      </div>
+      <button id="copy" type="button"
+        class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
+               text-sm transition focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-400">
+        Copiar todo
+      </button>
+    </div>
+    <p id="copyMsg" role="status" class="hidden px-4 py-2 text-xs bg-amber-500/15 text-amber-200
+       border-b border-amber-500/30"></p>
+    <pre id="code" class="p-4 overflow-x-auto text-xs leading-relaxed text-slate-300"><code>// bymax-worker.js — Cloudflare Worker: cerebro de los profes IA (chat + voz).
+//
+// NOTA DE NOMBRES: &quot;bymax&quot; es el nombre INTERNO del motor (archivo, variables,
+// subdominio). El ALUMNO nunca debe leerlo: habla con Megan (cursos), Mathias
+// (speaking) o Susan (entrevistas). Por eso los prompts traen el placeholder
+// {TEACHER}, que se sustituye con el nombre que manda el cliente.
+//
+// Endpoints (POST):
+//   /       -&gt; CHAT con Gemini (secret GEMINI_API_KEY)
+//   /tts    -&gt; VOZ: texto -&gt; audio
+//              ESPANOL: Google Cloud TTS (voz latina natural, secret GOOGLE_TTS_KEY)
+//                       fallback -&gt; Google Translate TTS (robotico) si algo falla.
+//              INGLES : Google Chirp3-HD (voz humana, con genero y velocidad) si
+//                       hay GOOGLE_TTS_KEY; fallback -&gt; Deepgram Aura (binding &quot;AI&quot;).
+//
+// CACHE (opcional): si existe el binding KV &quot;AUDIO_KV&quot;, cada audio generado se
+// guarda por hash(lang+voice+text). Como los textos de la app son fijos, cada
+// audio se genera UNA sola vez -&gt; costo ~$0 y carga instantanea. Si el binding
+// no existe, el Worker funciona igual (solo se salta el cache).
+
+const MODEL = &quot;gemini-flash-latest&quot;;   // alias rolling de Google al flash actual (2.0 y 2.5 bloqueados para cuentas nuevas)
+const TTS_MODEL_EN = &quot;@cf/deepgram/aura-1&quot;;         // ingles MUY natural (humano)
+// Voces Aura permitidas (voz distinta a cada persona del dialogo).
+const AURA_VOICES = new Set([
+  &quot;asteria&quot;, &quot;luna&quot;, &quot;stella&quot;, &quot;athena&quot;, &quot;hera&quot;,
+  &quot;orion&quot;, &quot;arcas&quot;, &quot;perseus&quot;, &quot;angus&quot;, &quot;orpheus&quot;, &quot;helios&quot;, &quot;zeus&quot;,
+]);
+// Voces espanol latino de Google Cloud, de MAS humana a mas segura.
+// Chirp3-HD = lo mas natural (persona real). Neural2 = respaldo solido.
+const GTTS_LANG = &quot;es-US&quot;;
+const GTTS_VOICES = [&quot;es-US-Chirp3-HD-Aoede&quot;, &quot;es-US-Neural2-A&quot;];
+
+// Voces Google Cloud para los DEMAS idiomas meta (it/pt/fr/ja). Chirp3-HD-Aoede
+// existe en muchos locales (misma &quot;persona&quot; en cada idioma); Neural2/Standard de
+// respaldo. Se usa cuando OpenAI no esta configurado (respaldo Google puro).
+const GTTS_LANGS = {
+  pt: { lang: &quot;pt-BR&quot;, voices: [&quot;pt-BR-Chirp3-HD-Aoede&quot;, &quot;pt-BR-Neural2-A&quot;] },
+  it: { lang: &quot;it-IT&quot;, voices: [&quot;it-IT-Chirp3-HD-Aoede&quot;, &quot;it-IT-Neural2-A&quot;] },
+  fr: { lang: &quot;fr-FR&quot;, voices: [&quot;fr-FR-Chirp3-HD-Aoede&quot;, &quot;fr-FR-Neural2-A&quot;] },
+  ja: { lang: &quot;ja-JP&quot;, voices: [&quot;ja-JP-Chirp3-HD-Aoede&quot;, &quot;ja-JP-Neural2-B&quot;] },
+};
+
+const SYSTEM_PROMPT = `Eres &quot;{TEACHER}&quot;, un profesor de ingles amigable, futurista y motivador
+dentro de una app llamada &quot;Learning UP&quot;. Ayudas a hispanohablantes a aprender ingles.
+
+REGLAS:
+- Responde SIEMPRE en espanol claro y sencillo (el alumno esta aprendiendo).
+- Se BREVE: 2 a 5 frases. Ve al grano, como un buen profe.
+- Da ejemplos concretos cuando ayuden.
+- Tono calido, con chispa, animando. Nunca reganas.
+- Si la pregunta NO es sobre ingles/aprendizaje, redirige con amabilidad al tema.
+- No inventes. Si no estas seguro, dilo y da la mejor guia posible.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA, NO NEGOCIABLE)]
+- PROHIBIDO el Spanglish. NUNCA mezcles ingles y espanol dentro de una misma oracion.
+- Explicas SIEMPRE en espanol al 100%. Cada palabra, frase o ejemplo en INGLES
+  va OBLIGATORIAMENTE entre comillas dobles, sin excepcion: &quot;good morning&quot;.
+- Nunca dejes una palabra en ingles suelta en medio del espanol sin comillas.
+- EJEMPLO CORRECTO: Hoy aprenderas los saludos en ingles, como &quot;hello&quot; y &quot;how are you?&quot;.
+- EJEMPLO INCORRECTO: Hoy aprenderas los greetings para que puedas hablar fluently.`;
+
+// Modo CV: Bymax como reclutador/experto ATS. NO saluda, NO conversa: ENTREGA el
+// documento pedido, completo y listo para usar. Las instrucciones detalladas
+// (estructura, secciones) llegan en la propia pregunta del cliente (buildPro).
+const CV_PROMPT = `Eres un reclutador senior y experto en CV (curriculum) y ATS que
+asiste a hispanohablantes a conseguir empleo en ingles, dentro de la app &quot;Learning UP&quot;.
+
+REGLAS (OBLIGATORIAS):
+- NO saludes, NO te presentes, NO charles, NO hagas preguntas de vuelta. Nada de
+  &quot;Hola&quot;, &quot;Soy {TEACHER}&quot;, &quot;Con gusto&quot;, etc. Entrega DIRECTAMENTE lo que se pide.
+- ENTREGA SIEMPRE el documento/seccion COMPLETO y listo para copiar y usar. Nunca
+  respondas con un resumen, una intro ni &quot;aqui tienes&quot;: ve directo al contenido.
+- Sigue AL PIE DE LA LETRA la estructura y el formato que pida el usuario.
+- El contenido del CV va en INGLES. Las notas o explicaciones para el alumno van
+  en ESPANOL, al final, bajo un encabezado &quot;Notas:&quot;.
+- Sin markdown ni asteriscos: usa saltos de linea, MAYUSCULAS para titulos de
+  seccion y guiones simples &quot;-&quot; para las vinetas.
+- Donde falten datos del candidato, usa placeholders claros entre corchetes, ej.
+  [Email], [Telefono], [X%], [N], para que el usuario los complete.
+
+[REGLA DE ORO - IDIOMA]
+- PROHIBIDO el Spanglish: no mezcles ingles y espanol dentro de una misma linea.
+  El CV en ingles; las notas en espanol, separadas.`;
+
+// Modo CONVERSACION: Bymax es un companero de charla en INGLES, guiado por tema
+// y nivel MCER. Inmersion real con ayuda en espanol si el alumno se traba.
+const CONVERSATION_PROMPT = `Eres &quot;{TEACHER}&quot;, un companero de conversacion en INGLES dentro de
+la app &quot;Learning UP&quot;, para hispanohablantes que aprenden ingles. Esto es una
+CONVERSACION REAL y guiada, no una clase de gramatica. TU DIRIGES la charla.
+
+REGLAS:
+- Conversa SIEMPRE en INGLES, ajustando la dificultad al nivel MCER del alumno
+  (abajo): frases cortas y simples en A1-A2; mas ricas en B1-B2; naturales e
+  idiomaticas en C1-C2.
+- LIDERA la conversacion (esto es lo mas importante): no te limites a reaccionar
+  y preguntar. Toma la iniciativa. En cada turno haz al menos una de estas cosas:
+  * comparte una mini-opinion, ejemplo o anecdota corta tuya (para MODELAR el
+    idioma y dar de que hablar),
+  * propon un nuevo angulo o subtema dentro del tema principal,
+  * introduce de forma natural 1 palabra o expresion util del tema y usala.
+  Luego cierra con UNA pregunta concreta que empuje al alumno a hablar mas.
+- AVANZA por el tema con un mini-plan mental: cubre distintas facetas (pasado,
+  presente, planes futuros, opiniones, comparaciones) para que la charla progrese
+  y no se estanque en la misma pregunta.
+- Es una conversacion, no un interrogatorio: reacciona con calidez a lo que dice
+  el alumno ANTES de llevar la charla adelante.
+- Se BREVE: 2 a 4 frases por turno (aunque dirijas, no des discursos).
+- Si el alumno da respuestas muy cortas o se queda callado, sube tu iniciativa:
+  ofrece opciones (&quot;Do you prefer X or Y?&quot;), da tu ejemplo primero y pide el suyo.
+- Si el alumno comete un error importante, primero responde con naturalidad a lo
+  que dijo y luego agrega en una linea aparte &quot;(tip: ...)&quot; con la correccion
+  amable. Ignora errores menores para no abrumar.
+- Si el alumno se traba, escribe en espanol, o pide ayuda, dale una mano BREVE en
+  espanol entre parentesis y sigue en ingles.
+- El PRIMER mensaje del alumno sera &quot;[BEGIN]&quot;: cuando lo veas, saluda con calidez
+  en ingles, presenta el tema en una frase, comparte un mini-gancho tuyo (una
+  frase de opinion o dato) y haz la primera pregunta sencilla.
+- Tono calido, alentador y con chispa. No rompas el personaje ni cambies de tema
+  salvo que el alumno lo pida.
+
+ENSENAR UNA PALABRA (cuando el alumno la pide o no la sabe):
+- Si el alumno dice que no conoce una palabra, pregunta como se dice algo, o
+  recurre al espanol porque no le sale, NO sigas de largo: ENSENASELA como un
+  profe real, en este orden:
+  1) Di la palabra o expresion en el idioma meta y una frase de ejemplo CORTA que
+     la use (en el cuerpo hablado, en el idioma meta).
+  2) En una linea aparte que empiece EXACTAMENTE con &quot;TIP:&quot; pon su significado en
+     espanol.
+  3) Luego invita al alumno a usarla en su siguiente respuesta.
+- Es una charla, no una clase: no abuses; pero cada palabra que el alumno no sepa
+  es una oportunidad de oro para ensenarsela bien, no de saltarla.
+
+MODO EVALUACION (cuaderno de errores):
+- Si el mensaje del alumno empieza con &quot;[FEEDBACK]&quot;, SAL del rol de companero: no
+  sigas la charla. Lee TODA la conversacion previa y responde SOLO la evaluacion,
+  en ESPANOL, siguiendo EXACTAMENTE el formato (puntajes y secciones) que se te
+  pide en ese mensaje. No agregues texto fuera de ese formato.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. NUNCA mezcles ingles y espanol dentro de una misma oracion.
+- Tu conversacion va 100% en INGLES. La UNICA excepcion es una ayuda breve al
+  alumno: va SIEMPRE en su propia frase entre parentesis, ej: &quot;(ayuda: &#x27;quiero&#x27; = I want)&quot;.
+- Fuera de esos parentesis de ayuda, jamas metas palabras en espanol en tus frases en ingles.`;
+
+// Modo CLASE (1 a 1): Bymax da una CLASE personalizada tipo tutor privado. A
+// diferencia de &quot;conversation&quot; (charla libre en ingles), aqui ENSENA en espanol
+// y hace practicar en ingles, corrigiendo AL INSTANTE cada turno (estilo Lerna).
+const CLASS_PROMPT = `Eres &quot;{TEACHER}&quot;, un profesor particular de ingles que da una CLASE
+1 a 1 EN VIVO a un alumno hispanohablante, dentro de la app &quot;Learning UP&quot;. No es
+una charla libre: es una MINI-CLASE guiada, personalizada y con correccion al instante.
+
+COMO DAR LA CLASE:
+- ENSENA en ESPANOL y haz PRACTICAR en INGLES. Tu explicas siempre en espanol
+  claro; el alumno produce en ingles.
+- Ve por PASOS pequenos (micro-clase): en cada turno (1) da UN mini-punto util del
+  tema (una palabra, frase o mini-regla, con ejemplo en ingles entre comillas), y
+  (2) pide UNA cosa concreta al alumno (que traduzca, complete o diga una frase en ingles).
+- Una sola consigna por turno. Espera su respuesta antes de seguir. No des discursos.
+- Ajusta la dificultad al nivel MCER del alumno (abajo): A1-A2 muy simple; B1-B2
+  frases naturales; C1-C2 rico e idiomatico.
+
+CORRECCION AL INSTANTE (lo mas importante, estilo tutor real):
+- Cada vez que el alumno responda, CORRIGELO en el acto, amable pero directo.
+- Formato de correccion (siempre en este orden, en lineas separadas):
+  1) Un breve refuerzo (&quot;Muy bien&quot; / &quot;Casi&quot;).
+  2) Si hubo error: &quot;Correccion:&quot; seguido de la version correcta en ingles entre
+     comillas, y en una linea aparte &quot;Por que:&quot; con la razon en espanol (1 frase).
+  3) Si estuvo perfecto, dilo y sube un poquito la dificultad.
+- Corrige TODO lo relevante (gramatica, palabra, orden, tiempo verbal), sin abrumar:
+  ve al error principal primero.
+- Despues de corregir, SIGUE la clase con el siguiente mini-punto y su consigna.
+
+ARRANQUE:
+- El primer mensaje del alumno sera &quot;[BEGIN]&quot;: saluda con calidez en espanol, di
+  en una frase que van a practicar (el tema de abajo) y arranca con el primer
+  mini-punto + su primera consigna para el alumno.
+
+TONO: calido, motivador, con chispa; eres su profe de bolsillo. Nunca reganas.
+
+ENSENAR UNA PALABRA (cuando el alumno la pide o no la sabe):
+- Si el alumno dice que no conoce una palabra, pregunta &quot;como se dice X&quot;, o
+  recurre al espanol porque no le sale, NO respondas por el ni sigas de largo:
+  ENSENASELA como un profe real, en este orden:
+  1) Di la palabra o expresion en el idioma meta y una frase de ejemplo CORTA que
+     la use (esto va en el cuerpo hablado, en el idioma meta).
+  2) En una linea aparte que empiece EXACTAMENTE con &quot;TIP:&quot; pon su significado en
+     espanol (y, si ayuda, como se pronuncia).
+  3) Luego pide al alumno que la USE: que arme una frase con esa palabra o que la
+     repita. Espera su intento.
+- Trata cada palabra que le falte como una MINI-LECCION, no como un dato suelto.
+  Es lo que mas valor le da a la clase.
+
+MODO EVALUACION (cuaderno de errores):
+- Si el mensaje del alumno empieza con &quot;[FEEDBACK]&quot;, SAL del rol de clase: no
+  sigas ensenando. Lee TODA la conversacion previa y responde SOLO la evaluacion,
+  en ESPANOL, siguiendo EXACTAMENTE el formato (puntajes y secciones) que se te
+  pide en ese mensaje. No agregues texto fuera de ese formato.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA, NO NEGOCIABLE)]
+- PROHIBIDO el Spanglish. NUNCA mezcles ingles y espanol dentro de una misma oracion.
+- Explicaciones, instrucciones y correcciones: 100% en ESPANOL.
+- Toda palabra, frase o ejemplo en INGLES va OBLIGATORIAMENTE entre comillas dobles: &quot;good morning&quot;.
+- Nunca dejes una palabra en ingles suelta en medio del espanol sin comillas.`;
+
+// Modo CUENTO: narrador que crea un cuento corto en INGLES, tematico y nivelado,
+// para alimentar el contenido de lectura de la unidad.
+const STORY_PROMPT = `Eres un narrador de &quot;Learning UP&quot;. Escribe un CUENTO CORTO en INGLES
+para un hispanohablante que aprende ingles, ajustado a su nivel MCER.
+
+REGLAS:
+- El cuento va en INGLES, con vocabulario y gramatica del nivel indicado
+  (A1-A2: muy simple, frases cortas; B1-B2: parrafos naturales; C1-C2: rico e idiomatico).
+- Tematica: el TEMA indicado. Usa de forma natural las PALABRAS CLAVE dadas.
+- Longitud: 110 a 160 palabras, con inicio, nudo y desenlace claros.
+- La PRIMERA linea es un TITULO corto (sin escribir &quot;Title:&quot;).
+- Luego el cuento en 2 a 4 parrafos. Nada de listas, notas ni explicaciones.
+- La ULTIMA linea empieza con &quot;MORAL: &quot; y una frase breve EN ESPANOL.
+- No expliques gramatica: solo cuenta la historia con calidez.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. El cuento va 100% en INGLES: NI UNA palabra en espanol
+  dentro de la historia (ni nombres, ni notas, ni traducciones).
+- La UNICA linea en espanol es la ultima &quot;MORAL: ...&quot;, que va 100% en espanol.
+- Nunca mezcles los dos idiomas en una misma oracion.`;
+
+// Modo ENTREVISTA: Bymax actua como un RECLUTADOR SENIOR de elite que conduce una
+// entrevista de trabajo REAL en ingles, ESPECIFICA del puesto y CONSIDERANDO la
+// empresa. Al recibir &quot;[FEEDBACK]&quot; sale de personaje y entrega evaluacion en espanol.
+const INTERVIEW_PROMPT = `Eres &quot;{TEACHER}&quot; en el rol de un HIRING MANAGER / RECLUTADOR SENIOR de ELITE
+(15+ anos de experiencia) que conduce una ENTREVISTA DE TRABAJO REAL y EXIGENTE en
+INGLES para preparar a un candidato hispanohablante. Tu objetivo: que esta practica
+se sienta como una entrevista de verdad en una empresa top, no un cuestionario generico.
+
+DATOS DEL PUESTO Y EMPRESA (abajo, en TEMA/CONTEXTO): usa el PUESTO y la EMPRESA
+como el eje de TODO. Personaliza cada pregunta a ese rol y a esa empresa.
+
+COMO ENTREVISTAR COMO UN PRO:
+- INVESTIGA MENTALMENTE: aprovecha lo que sabes de la empresa mencionada (su
+  industria, productos, cultura, valores, escala, clientes y retos tipicos) y del
+  puesto (responsabilidades reales, habilidades clave, herramientas, KPIs/metricas).
+  Si conoces la empresa, referencia cosas concretas de ella por su nombre de forma
+  natural (&quot;Here at [company], we care a lot about... how would you...?&quot;).
+- Haz preguntas SERIAS y ESPECIFICAS del rol, no genericas. Mezcla:
+  (a) TECNICAS / de competencia propias del puesto (que sepa hacer el trabajo),
+  (b) de COMPORTAMIENTO con metodo STAR (&quot;Tell me about a time when...&quot;),
+  (c) SITUACIONALES realistas de ese rol en esa empresa (&quot;Imagine a customer...&quot;),
+  (d) de MOTIVACION y encaje cultural (&quot;Why [company]? Why this role?&quot;).
+- Adapta la PROFUNDIDAD al nivel/seniority que se infiera del puesto: mas
+  estrategica y de liderazgo si es senior; mas fundamentos y actitud si es junior.
+- HAZ SEGUIMIENTO como un entrevistador real: no aceptes respuestas vagas. Repregunta
+  pidiendo EJEMPLOS CONCRETOS, METRICAS y el &quot;como&quot; (&quot;Can you give me a specific
+  example? What was the impact? How did you measure success?&quot;).
+- Calibra el idioma al nivel MCER del candidato (abajo): claro en A1-B1, natural y
+  profesional en B2-C2. Aunque el ingles sea simple, las PREGUNTAS siguen siendo serias.
+
+ARCO DE LA ENTREVISTA (una sola pregunta por turno, espera la respuesta):
+1) Saludo profesional breve + &quot;Tell me about yourself&quot; / &quot;Walk me through your background&quot;.
+2) Experiencia y logros relevantes al puesto (pide metricas).
+3) Preguntas TECNICAS/de competencia especificas del rol.
+4) Preguntas de comportamiento/situacionales (STAR) del rol en esa empresa.
+5) Motivacion y encaje: &quot;Why this role? Why [company]?&quot;.
+6) &quot;Do you have any questions for me?&quot; + cierre cordial y profesional.
+
+REGLAS DE ESTILO:
+- Se CONCISO: 2-4 frases por turno. Profesional, serio y cordial (no un amigo casual).
+- UNA sola pregunta por turno. No adelantes varias preguntas juntas.
+- NO des feedback ni correcciones DURANTE la entrevista: mantente en personaje.
+- Si el candidato se traba o pide ayuda, da UNA pista breve en espanol entre
+  parentesis y sigue en ingles.
+
+MODO PREGUNTAS TRAMPA (solo si en TEMA/CONTEXTO aparece &quot;PREGUNTAS TRAMPA: si&quot;):
+- Ademas de lo anterior, incluye a lo largo de la entrevista 2 o 3 preguntas
+  dificiles y clasicas de descarte, adaptadas al puesto, tales como:
+  &quot;What is your greatest weakness?&quot;, &quot;Why should we hire you over other candidates?&quot;,
+  &quot;What are your salary expectations?&quot;, huecos o cambios en el CV, o un caso
+  incomodo/hipotetico del rol. Hazlas con tacto profesional pero sin suavizarlas.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. La entrevista va 100% en INGLES. La unica excepcion es
+  una ayuda breve entre parentesis en espanol si el candidato la necesita.
+
+Cuando recibas EXACTAMENTE el mensaje &quot;[FEEDBACK]&quot;, SAL del personaje y entrega
+una EVALUACION FINAL en ESPANOL, honesta y accionable (como un coach de carrera
+experto), especifica del puesto y la empresa. Usa este formato EXACTO (sin markdown,
+sin asteriscos, con saltos de linea). Los tres puntajes por area van de 0 a 100:
+PUNTAJE: &lt;numero del 0 al 100 (global)&gt;
+FLUIDEZ: &lt;numero del 0 al 100 (soltura y claridad del ingles hablado/escrito)&gt;
+CONTENIDO: &lt;numero del 0 al 100 (relevancia y calidad de las respuestas al rol)&gt;
+ESTRUCTURA: &lt;numero del 0 al 100 (orden, metodo STAR, respuestas completas)&gt;
+LO QUE HICISTE BIEN:
+- &lt;2 a 3 puntos concretos&gt;
+A MEJORAR:
+- &lt;2 a 3 puntos concretos y accionables, ligados al puesto&gt;
+FRASES MODELO:
+- &lt;2 a 3 mejores respuestas de ejemplo en ingles para ese rol, entre comillas&gt;
+CONSEJO FINAL: &lt;1 frase motivadora en espanol&gt;`;
+
+// Modo ROLEPLAY: Bymax interpreta un PERSONAJE de una escena real (mesero,
+// agente de aeropuerto, recepcionista...) para que el alumno practique hablar.
+const ROLEPLAY_PROMPT = `Eres &quot;{TEACHER}&quot; haciendo un ROLEPLAY de una situacion de la vida real
+en INGLES para que un alumno hispanohablante practique hablar con confianza.
+Interpretas al PERSONAJE de la escena (abajo) de forma realista.
+
+REGLAS:
+- Habla SIEMPRE en INGLES, ajustado al nivel MCER del alumno (abajo).
+- Mantente EN PERSONAJE segun la escena. Se natural, realista y amable.
+- Una intervencion corta por turno (2-4 frases) y termina invitando al alumno a
+  responder o a actuar el siguiente paso.
+- No rompas el personaje ni des clases de gramatica.
+- Si el alumno se traba, da UNA pista breve en espanol entre parentesis y sigue.
+- Al ver &quot;[BEGIN]&quot; inicia la escena con calidez y da el primer paso.
+
+[REGLA DE ORO - IDIOMA (OBLIGATORIA)]
+- PROHIBIDO el Spanglish. 100% en INGLES, salvo una pista breve entre parentesis
+  en espanol si el alumno la necesita.`;
+
+function corsHeaders(origin) {
+  return {
+    &quot;Access-Control-Allow-Origin&quot;: origin || &quot;*&quot;,
+    &quot;Access-Control-Allow-Methods&quot;: &quot;POST, OPTIONS&quot;,
+    &quot;Access-Control-Allow-Headers&quot;: &quot;Content-Type&quot;,
+    &quot;Access-Control-Max-Age&quot;: &quot;86400&quot;,
+  };
+}
+
+function json(data, status, origin) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { &quot;Content-Type&quot;: &quot;application/json&quot;, ...corsHeaders(origin) },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// LIMITE DE USO (anti-abuso)
+// ---------------------------------------------------------------------------
+// POR QUE: cada peticion de chat o de voz NUEVA cuesta dinero real (OpenAI es
+// prepago). Un alumno normal gasta ~$0.18/mes; uno que deje un script dandole
+// 3 h/dia cuesta ~$11/mes, o sea MAS de lo que paga la suscripcion. Sin un
+// tope, un solo abusador (o un bot que encuentre el endpoint) se come el saldo
+// y la app se queda muda para todos los demas.
+//
+// COMO: un contador diario por IP en KV. Se escribe EN LOTES de LOTE: el plan
+// gratis de Cloudflare da 1.000 escrituras KV/dia, asi que escribir en cada
+// peticion se agotaria con ~35 alumnos. Escribiendo 1 de cada 5 el mismo plan
+// aguanta ~150 alumnos.
+//
+// EL CONTADOR VA POR DETRAS, NO POR DELANTE. Entre escritura y escritura el
+// valor de KV se queda quieto, asi que el tope real es (tope + LOTE - 1) en el
+// peor caso. Es deliberado: pasarse 4 peticiones no cuesta ni un centavo, pero
+// bloquear a un alumno que no llego al limite es inaceptable. La primera
+// version hacia justo lo contrario (sumaba el lote entero en cada peticion) y
+// la simulacion lo cazo: un alumno normal de 30 peticiones se bloqueaba a las
+// 12. Medir antes de dar algo por bueno.
+//
+// EL LIMITE ES GENEROSO A PROPOSITO: un alumno intenso usa ~30 peticiones de
+// IA al dia. 60 solo lo toca si esta claramente abusando. Es preferible dejar
+// pasar a un usuario entusiasta que bloquear a uno legitimo.
+//
+// DEGRADACION: si no hay binding KV o KV falla, NO se bloquea a nadie. El
+// limite es una red de seguridad, no un portero: que se caiga el contador no
+// puede dejar sin clase a un alumno que pago.
+const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por IP y dia
+const LOTE = 5;             // se escribe en KV 1 de cada LOTE peticiones
+
+// Pendientes EN MEMORIA del isolate: &quot;ip&quot; -&gt; peticiones aun no escritas a KV.
+// Aqui esta el ahorro real: entre escritura y escritura no se toca KV (80%
+// menos escrituras -&gt; el plan gratis pasa de ~33 a ~166 alumnos).
+//
+// LIMITACION CONOCIDA: Cloudflare recicla los isolates cuando quiere. Si uno
+// muere, sus pendientes se pierden y esa IP recupera hasta LOTE-1 peticiones.
+// Simulado: con reciclados normales (cada 10-20 peticiones) el tope aguanta
+// exacto; solo si Cloudflare reciclara cada 2-3 peticiones el limite se
+// escaparia. Es un techo &quot;blando&quot; a proposito: frena el abuso sostenido (que
+// es lo que cuesta dinero) sin arriesgarse a bloquear a un alumno legitimo.
+// Si algun dia hace falta un tope duro, la pieza correcta es Durable Objects.
+let pendientes = new Map();
+let diaPendientes = &quot;&quot;;
+
+/** Dia UTC &#x27;YYYY-MM-DD&#x27; para que el contador se resetee solo. */
+function diaUtc() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Suma uno al contador de la IP y dice si se paso del limite.
+ * @returns {{bloquear: boolean, usadas: number}}
+ */
+async function controlarUso(request, env) {
+  const kv = env.AUDIO_KV;
+  if (!kv) return { bloquear: false, usadas: 0 }; // sin KV no se limita
+
+  const tope = Number(env.LIMITE_DIARIO) &gt; 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
+  const hoy = diaUtc();
+  const ip = request.headers.get(&quot;CF-Connecting-IP&quot;) || &quot;anon&quot;;
+  const clave = &quot;uso:&quot; + hoy + &quot;:&quot; + ip;
+
+  if (diaPendientes !== hoy) { pendientes = new Map(); diaPendientes = hoy; } // dia nuevo
+
+  try {
+    const confirmadas = Number(await kv.get(clave)) || 0;
+    const enVuelo = (pendientes.get(ip) || 0) + 1;
+    const usadas = confirmadas + enVuelo;
+
+    if (usadas &gt; tope) return { bloquear: true, usadas: usadas - 1 };
+
+    if (enVuelo &gt;= LOTE) {
+      // Consolida el lote en KV y vacia las pendientes de esta IP.
+      // TTL de 48 h: cubre el dia con holgura y la clave se borra sola.
+      await kv.put(clave, String(confirmadas + enVuelo), { expirationTtl: 172800 });
+      pendientes.delete(ip);
+    } else {
+      pendientes.set(ip, enVuelo); // sin tocar KV: ESTE es el ahorro
+    }
+    return { bloquear: false, usadas };
+  } catch (e) {
+    return { bloquear: false, usadas: 0 }; // KV caido: mejor dejar pasar
+  }
+}
+
+// Convierte ArrayBuffer / Response / stream a base64 (para el audio de Aura).
+function abToBase64(ab) {
+  const bytes = new Uint8Array(ab);
+  let bin = &quot;&quot;;
+  const chunk = 0x8000;
+  for (let i = 0; i &lt; bytes.length; i += chunk) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(bin);
+}
+
+async function toBase64Audio(out) {
+  if (out &amp;&amp; typeof out.audio === &quot;string&quot;) return out.audio;
+  if (out instanceof ArrayBuffer) return abToBase64(out);
+  if (typeof Response !== &quot;undefined&quot; &amp;&amp; out instanceof Response) return abToBase64(await out.arrayBuffer());
+  if (typeof ReadableStream !== &quot;undefined&quot; &amp;&amp; out instanceof ReadableStream) return abToBase64(await new Response(out).arrayBuffer());
+  if (out &amp;&amp; out.audio instanceof ArrayBuffer) return abToBase64(out.audio);
+  return null;
+}
+
+// ---- CACHE de audio (Cloudflare KV, opcional) ----------------------------
+// Clave estable por (lang, voice, text). SHA-256 en hex, prefijo versionado
+// para poder invalidar todo el cache cambiando &quot;v1&quot; si cambia la voz global.
+async function cacheKey(lang, voice, text) {
+  const raw = `${lang}|${voice}|${text}`;
+  const buf = await crypto.subtle.digest(&quot;SHA-256&quot;, new TextEncoder().encode(raw));
+  const hex = [...new Uint8Array(buf)].map((b) =&gt; b.toString(16).padStart(2, &quot;0&quot;)).join(&quot;&quot;);
+  return `tts:v2:${lang}:${hex}`;
+}
+
+// Divide texto largo en trozos &lt;= max chars (Google Translate TTS limita ~200).
+function splitForTts(text, max) {
+  const out = [];
+  let rest = String(text).trim();
+  while (rest.length &gt; max) {
+    let cut = rest.lastIndexOf(&quot;. &quot;, max);
+    if (cut &lt; 40) cut = rest.lastIndexOf(&quot;, &quot;, max);
+    if (cut &lt; 40) cut = rest.lastIndexOf(&quot; &quot;, max);
+    if (cut &lt; 1) cut = max;
+    out.push(rest.slice(0, cut + 1).trim());
+    rest = rest.slice(cut + 1).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+}
+
+// ESPANOL con voz NATURAL latina: Google Cloud Text-to-Speech.
+// Intenta cada voz de GTTS_VOICES en orden (Chirp3-HD primero); usa la que funcione.
+// Devuelve base64 mp3. Lanza error solo si TODAS fallan.
+async function googleCloudTts(text, env, rate) {
+  return gctts(text, env.GOOGLE_TTS_KEY, GTTS_LANG, GTTS_VOICES, rate);
+}
+
+// Google Cloud TTS generico (ES o EN). Prueba las voces en orden y usa la 1a que
+// funcione. `rate` (0.5-1.5) ajusta la velocidad (titulos mas lentos = carino).
+// Chirp3-HD soporta speakingRate; si una voz no lo acepta, reintenta sin rate.
+async function gctts(text, key, langCode, voiceNames, rate) {
+  if (!key) throw new Error(&quot;sin GOOGLE_TTS_KEY&quot;);
+  const url = &quot;https://texttospeech.googleapis.com/v1/text:synthesize?key=&quot; + key;
+  const useRate = rate &gt;= 0.5 &amp;&amp; rate &lt;= 1.5;
+  let lastErr = &quot;&quot;;
+  for (const name of voiceNames) {
+    for (const withRate of (useRate ? [true, false] : [false])) {
+      const audioConfig = { audioEncoding: &quot;MP3&quot; };
+      if (withRate) audioConfig.speakingRate = rate;
+      const body = { input: { text }, voice: { languageCode: langCode, name }, audioConfig };
+      const r = await fetch(url, {
+        method: &quot;POST&quot;,
+        headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+        body: JSON.stringify(body),
+      });
+      if (r.ok) {
+        const data = await r.json();
+        if (data.audioContent) return { audio: data.audioContent, voice: name };
+        lastErr = &quot;sin audioContent (&quot; + name + &quot;)&quot;;
+        break; // sin audio: prueba la siguiente voz, no el mismo con/sin rate
+      }
+      lastErr = &quot;gctts &quot; + r.status + &quot; &quot; + (await r.text().catch(() =&gt; &quot;&quot;)).slice(0, 120);
+      // si fallo CON rate, el bucle interno reintenta SIN rate antes de rendirse.
+    }
+  }
+  throw new Error(lastErr || &quot;gctts fallo&quot;);
+}
+
+// Fallback robotico: Google Translate TTS. Concatena los mp3. `tl` = idioma
+// (es por defecto; it/pt/fr/ja para los demas idiomas meta).
+async function googleTts(text, tl = &quot;es&quot;) {
+  const chunks = splitForTts(text, 190);
+  const parts = [];
+  let total = 0;
+  for (const c of chunks) {
+    const url = &quot;https://translate.google.com/translate_tts?ie=UTF-8&amp;client=tw-ob&amp;tl=&quot; + encodeURIComponent(tl) + &quot;&amp;q=&quot; + encodeURIComponent(c);
+    const r = await fetch(url, {
+      headers: {
+        &quot;User-Agent&quot;: &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64)&quot;,
+        &quot;Referer&quot;: &quot;https://translate.google.com/&quot;,
+      },
+    });
+    if (!r.ok) throw new Error(&quot;gtts &quot; + r.status);
+    const b = new Uint8Array(await r.arrayBuffer());
+    parts.push(b); total += b.length;
+  }
+  const all = new Uint8Array(total);
+  let off = 0;
+  for (const b of parts) { all.set(b, off); off += b.length; }
+  return abToBase64(all.buffer);
+}
+
+// VOZ MULTILINGUE (Camino 3, estilo Lerna): UNA sola voz que lee texto MIXTO
+// espanol+ingles en UNA peticion y cambia de idioma sola (sin pegar audios -&gt;
+// sin micro-pausas). Usa Azure Speech (voces *MultilingualNeural). Requiere
+// secrets AZURE_TTS_KEY + AZURE_TTS_REGION. Devuelve base64 mp3.
+const AZURE_VOICE = &quot;en-US-AvaMultilingualNeural&quot;; // habla 40+ idiomas, code-switching natural
+function xmlEscape(s) {
+  return String(s).replace(/&amp;/g, &quot;&amp;amp;&quot;).replace(/&lt;/g, &quot;&amp;lt;&quot;).replace(/&gt;/g, &quot;&amp;gt;&quot;).replace(/&quot;/g, &quot;&amp;quot;&quot;);
+}
+async function azureTts(text, env, rate) {
+  const key = env.AZURE_TTS_KEY;
+  const region = env.AZURE_TTS_REGION;
+  if (!key || !region) throw new Error(&quot;sin AZURE_TTS_KEY/REGION&quot;);
+  const url = `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
+  const useRate = rate &gt;= 0.5 &amp;&amp; rate &lt;= 1.5;
+  const prosody = useRate
+    ? `&lt;prosody rate=&quot;${Math.round((rate - 1) * 100)}%&quot;&gt;${xmlEscape(text)}&lt;/prosody&gt;`
+    : xmlEscape(text);
+  const ssml = `&lt;speak version=&#x27;1.0&#x27; xml:lang=&#x27;en-US&#x27;&gt;` +
+    `&lt;voice name=&#x27;${AZURE_VOICE}&#x27;&gt;${prosody}&lt;/voice&gt;&lt;/speak&gt;`;
+  const r = await fetch(url, {
+    method: &quot;POST&quot;,
+    headers: {
+      &quot;Ocp-Apim-Subscription-Key&quot;: key,
+      &quot;Content-Type&quot;: &quot;application/ssml+xml&quot;,
+      &quot;X-Microsoft-OutputFormat&quot;: &quot;audio-24khz-48kbitrate-mono-mp3&quot;,
+      &quot;User-Agent&quot;: &quot;learning-up&quot;,
+    },
+    body: ssml,
+  });
+  if (!r.ok) throw new Error(&quot;azure &quot; + r.status + &quot; &quot; + (await r.text().catch(() =&gt; &quot;&quot;)).slice(0, 120));
+  return abToBase64(await r.arrayBuffer());
+}
+
+// VOZ MULTILINGUE alternativa 1: OpenAI TTS (gpt-4o-mini-tts). Una sola voz muy
+// natural que lee texto mixto es+en y cambia de idioma sola. Requiere secret
+// OPENAI_API_KEY. Devuelve base64 mp3.
+const OPENAI_VOICE = &quot;alloy&quot;; // alloy/echo/fable/nova/shimmer/onyx (todas multilingues)
+// Voces OpenAI permitidas. Asi cada PROFE puede tener SU voz (Megan mujer,
+// Mathias hombre) sin arriesgar una voz invalida (la API las rechaza).
+const OPENAI_VOICES = new Set([&quot;alloy&quot;, &quot;echo&quot;, &quot;fable&quot;, &quot;onyx&quot;, &quot;nova&quot;, &quot;shimmer&quot;, &quot;ash&quot;, &quot;sage&quot;, &quot;coral&quot;]);
+async function openaiTts(text, env, rate, ttsVoice) {
+  const key = env.OPENAI_API_KEY;
+  if (!key) throw new Error(&quot;sin OPENAI_API_KEY&quot;);
+  const body = {
+    model: &quot;gpt-4o-mini-tts&quot;,
+    voice: OPENAI_VOICES.has(ttsVoice) ? ttsVoice : OPENAI_VOICE,
+    input: String(text),
+    response_format: &quot;mp3&quot;,
+  };
+  if (rate &gt;= 0.5 &amp;&amp; rate &lt;= 1.5) body.speed = rate;
+  const r = await fetch(&quot;https://api.openai.com/v1/audio/speech&quot;, {
+    method: &quot;POST&quot;,
+    headers: { &quot;Authorization&quot;: &quot;Bearer &quot; + key, &quot;Content-Type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify(body),
+  });
+  if (!r.ok) throw new Error(&quot;openai &quot; + r.status + &quot; &quot; + (await r.text().catch(() =&gt; &quot;&quot;)).slice(0, 120));
+  return abToBase64(await r.arrayBuffer());
+}
+
+// VOZ MULTILINGUE alternativa 2 (SIN key nueva): Google Chirp3-HD. NO hace
+// code-switching perfecto, PERO lee TODO el texto mixto con UNA sola voz (misma
+// persona) en UNA peticion -&gt; sin pegar dos audios = fluido. Reusa GOOGLE_TTS_KEY.
+const GMULTI_VOICE = &quot;es-US-Chirp3-HD-Aoede&quot;; // misma persona que el espanol de la app
+async function googleMultiTts(text, env, rate) {
+  const gc = await gctts(text, env.GOOGLE_TTS_KEY, &quot;es-US&quot;, [GMULTI_VOICE, &quot;en-US-Chirp3-HD-Aoede&quot;], rate);
+  return gc &amp;&amp; gc.audio ? gc.audio : null;
+}
+
+// ---- VOZ: texto -&gt; audio -------------------------------------------------
+async function handleTts(request, env, origin, controlarUsoFn) {
+  let body;
+  try { body = await request.json(); }
+  catch { return json({ error: &quot;JSON invalido.&quot; }, 400, origin); }
+
+  const text = String(body.text || &quot;&quot;).slice(0, 600).trim();
+  const lang = String(body.lang || &quot;es&quot;).slice(0, 5);
+  const voice = AURA_VOICES.has(body.voice) ? body.voice : &quot;asteria&quot;;
+  // Voz Google Chirp3-HD ingles (Worker nuevo): solo se acepta el patron oficial.
+  const voiceHd = typeof body.voiceHd === &quot;string&quot; &amp;&amp; /^en-US-Chirp3-HD-[A-Za-z]+$/.test(body.voiceHd) ? body.voiceHd : &quot;&quot;;
+  const gender = body.gender === &quot;M&quot; ? &quot;M&quot; : &quot;F&quot;;
+  // Voz OpenAI por PROFE (Megan=nova, Susan=shimmer, Mathias=onyx...). Si no viene
+  // o es invalida, cae a la voz por defecto (alloy).
+  const ttsVoice = OPENAI_VOICES.has(body.ttsVoice) ? body.ttsVoice : &quot;&quot;;
+  // Velocidad opcional (0.5-1.5). 0 = velocidad normal (no forzar).
+  let rate = Number(body.rate);
+  if (!(rate &gt;= 0.5 &amp;&amp; rate &lt;= 1.5)) rate = 0;
+  if (!text) return json({ error: &quot;Sin texto.&quot; }, 400, origin);
+
+  const isEn = lang.toLowerCase().startsWith(&quot;en&quot;);
+  // Voz HD ingles efectiva: la pedida, o una por genero (para que TODO el ingles
+  // suene humano por defecto, no solo los dialogos). Vacia si no hay clave Google.
+  const hdEn = env.GOOGLE_TTS_KEY ? (voiceHd || (gender === &quot;M&quot; ? &quot;en-US-Chirp3-HD-Charon&quot; : &quot;en-US-Chirp3-HD-Aoede&quot;)) : &quot;&quot;;
+
+  // 1) CACHE HIT: si hay binding KV y ya generamos este audio, lo servimos ya.
+  //    La clave incluye la voz REAL usada (HD o Aura) y el rate (afectan el audio).
+  //    Si OpenAI esta activo, la clave se namespacea a su voz -&gt; audio consistente.
+  const kv = env.AUDIO_KV;
+  const keyVoice = (env.OPENAI_API_KEY ? &quot;openai:&quot; + (ttsVoice || OPENAI_VOICE) : (isEn ? (hdEn || voice) : &quot;es&quot;)) + &quot;@&quot; + (rate || &quot;n&quot;);
+  let key = null;
+  if (kv) {
+    try {
+      key = await cacheKey(lang, keyVoice, text);
+      const hit = await kv.get(key, { type: &quot;json&quot; });
+      if (hit &amp;&amp; hit.audio) {
+        return json({ ...hit, cached: true }, 200, origin);
+      }
+    } catch { /* si el cache falla, seguimos generando normal */ }
+  }
+
+  // 2) Generar el audio (y, si hay KV, guardarlo para la proxima).
+  //    AQUI es donde se cuenta para el limite: no hubo cache, asi que esta
+  //    peticion SI va a costar dinero. Lo de arriba (cache hit) sale gratis y
+  //    no debe penalizar al alumno que repasa.
+  if (controlarUsoFn) {
+    const uso = await controlarUsoFn();
+    if (uso.bloquear) {
+      return json({
+        error: &quot;Has usado mucho la IA hoy. Vuelve manana y seguimos.&quot;,
+        limite: true,
+      }, 429, origin);
+    }
+  }
+
+  const store = async (payload) =&gt; {
+    if (kv &amp;&amp; key &amp;&amp; payload &amp;&amp; payload.audio) {
+      // 30 dias de TTL: texto fijo, pero deja que se refresque si cambia la voz.
+      try { await kv.put(key, JSON.stringify(payload), { expirationTtl: 2592000 }); }
+      catch { /* mejor sin cache que romper la respuesta */ }
+    }
+    return json(payload, 200, origin);
+  };
+
+  try {
+    // MOTOR PRINCIPAL: OpenAI TTS (gpt-4o-mini-tts). Es la voz que queremos en
+    // TODA la app: ingles, espanol y texto mixto, con UNA sola voz natural. Si
+    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE; los demas motores
+    // (Azure/Google/Aura) quedan solo de respaldo si OpenAI falla o no esta.
+    if (env.OPENAI_API_KEY) {
+      try {
+        const audio = await openaiTts(text, env, rate, ttsVoice);
+        if (audio) return store({ audio, engine: &quot;openai&quot;, voice: ttsVoice || OPENAI_VOICE });
+      } catch (e) { /* cae a los motores de respaldo abajo */ }
+    }
+
+    // VOZ MULTILINGUE (una sola voz para texto mixto es+en). Cadena de motores
+    // por orden de calidad; usa el PRIMERO que este configurado:
+    //   1) Azure (AZURE_TTS_KEY+REGION)  2) OpenAI (OPENAI_API_KEY)
+    //   3) Google Chirp3-HD (GOOGLE_TTS_KEY, misma persona, SIN key nueva).
+    // Si ninguno esta, 501 -&gt; el cliente cae a mono (una voz por idioma).
+    if (lang === &quot;multi&quot;) {
+      if (env.AZURE_TTS_KEY &amp;&amp; env.AZURE_TTS_REGION) {
+        const audio = await azureTts(text, env, rate);
+        if (audio) return store({ audio, engine: &quot;azure-multi&quot;, voice: AZURE_VOICE });
+      }
+      if (env.OPENAI_API_KEY) {
+        const audio = await openaiTts(text, env, rate, ttsVoice);
+        if (audio) return store({ audio, engine: &quot;openai-multi&quot;, voice: ttsVoice || OPENAI_VOICE });
+      }
+      if (env.GOOGLE_TTS_KEY) {
+        const audio = await googleMultiTts(text, env, rate);
+        if (audio) return store({ audio, engine: &quot;google-multi&quot;, voice: GMULTI_VOICE });
+      }
+      return json({ error: &quot;Voz multilingue no configurada (Azure/OpenAI/Google).&quot; }, 501, origin);
+    }
+    if (isEn) {
+      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
+      //    defecto TODO el ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
+      if (hdEn) {
+        try {
+          const gc = await gctts(text, env.GOOGLE_TTS_KEY, &quot;en-US&quot;, [hdEn], rate);
+          if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud-en&quot;, voice: gc.voice });
+        } catch (e) { /* cae a Aura abajo */ }
+      }
+      // 2) Respaldo: Deepgram Aura (Workers AI).
+      if (!env.AI) return json({ error: &quot;Falta el binding &#x27;AI&#x27; (Workers AI).&quot; }, 500, origin);
+      const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: &quot;mp3&quot; });
+      const audio = await toBase64Audio(out);
+      if (!audio) return json({ error: &quot;TTS sin audio.&quot; }, 502, origin);
+      return store({ audio, engine: &quot;aura&quot;, voice });
+    }
+    // OTROS IDIOMAS META (it/pt/fr/ja) -&gt; Google Cloud TTS con la voz de ESE
+    // idioma. Antes caian por error a la rama de espanol (voz es-US leyendo
+    // italiano = suena gringo/espanol). Solo se llega aqui si OpenAI no atendio
+    // (OpenAI es multilingue y ya cubre estos idiomas cuando esta configurado).
+    const other = GTTS_LANGS[lang.slice(0, 2).toLowerCase()];
+    if (other) {
+      try {
+        const gc = await gctts(text, env.GOOGLE_TTS_KEY, other.lang, other.voices, rate);
+        if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud-&quot; + lang.slice(0, 2), voice: gc.voice });
+      } catch (e) {
+        // Ultimo recurso: Google Translate TTS en el idioma correcto (robotico
+        // pero al menos NO suena en otro idioma). No se cachea.
+        return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: &quot;google-translate&quot;, gcttsError: String(e).slice(0, 180) }, 200, origin);
+      }
+    }
+    // ESPANOL -&gt; Google Cloud TTS (voz latina natural). Si falla, Google Translate.
+    try {
+      const gc = await googleCloudTts(text, env, rate);
+      if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud&quot;, voice: gc.voice });
+    } catch (e) {
+      // Fallback robotico NO se cachea (para que reintente Chirp3-HD la proxima).
+      return json({ audio: await googleTts(text), engine: &quot;google&quot;, gcttsError: String(e).slice(0, 180) }, 200, origin);
+    }
+    const audio = await googleTts(text);
+    if (!audio) return json({ error: &quot;TTS sin audio.&quot; }, 502, origin);
+    return json({ audio, engine: &quot;google&quot; }, 200, origin);
+  } catch (e) {
+    return json({ error: &quot;TTS fallo.&quot;, detail: String(e).slice(0, 200) }, 502, origin);
+  }
+}
+
+// ---- CHAT: dudas de ingles con Gemini ------------------------------------
+
+// CEREBRO alternativo: OpenAI Chat (gpt-4o-mini). Se usa para las CLASES; el
+// resto (llamadas con Bymax, entrevistas...) sigue con Gemini. Convierte el hilo
+// estilo Gemini (role user/model, parts[{text}]) al formato de OpenAI.
+async function openaiChat(systemText, alt, env, maxTokens) {
+  const messages = [{ role: &quot;system&quot;, content: systemText }];
+  for (const c of alt) {
+    const text = (c.parts || []).map((p) =&gt; p.text).join(&quot;&quot;);
+    messages.push({ role: c.role === &quot;model&quot; ? &quot;assistant&quot; : &quot;user&quot;, content: text });
+  }
+  const r = await fetch(&quot;https://api.openai.com/v1/chat/completions&quot;, {
+    method: &quot;POST&quot;,
+    headers: { &quot;Authorization&quot;: &quot;Bearer &quot; + env.OPENAI_API_KEY, &quot;Content-Type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({ model: &quot;gpt-4o-mini&quot;, messages, temperature: 0.7, max_tokens: maxTokens || 800 }),
+  });
+  if (!r.ok) throw new Error(&quot;openai-chat &quot; + r.status + &quot; &quot; + (await r.text().catch(() =&gt; &quot;&quot;)).slice(0, 160));
+  const data = await r.json().catch(() =&gt; null);
+  const answer = data &amp;&amp; data.choices &amp;&amp; data.choices[0] &amp;&amp; data.choices[0].message &amp;&amp; data.choices[0].message.content;
+  if (!answer || !answer.trim()) throw new Error(&quot;openai-chat sin respuesta&quot;);
+  return answer.trim();
+}
+
+async function handleChat(request, env, origin) {
+  if (!env.GEMINI_API_KEY) {
+    return json({ error: &quot;Falta configurar GEMINI_API_KEY en el Worker.&quot; }, 500, origin);
+  }
+  let body;
+  try { body = await request.json(); }
+  catch { return json({ error: &quot;JSON invalido.&quot; }, 400, origin); }
+
+  const question = String(body.question || &quot;&quot;).slice(0, 800).trim();
+  const context = String(body.context || &quot;&quot;).slice(0, 600).trim();
+  if (!question) return json({ error: &quot;Escribe una pregunta.&quot; }, 400, origin);
+
+  // MODO CONVERSACION: companero de charla en ingles guiado por tema + nivel.
+  const isConversation = body.mode === &quot;conversation&quot;;
+  const isClass = body.mode === &quot;class&quot;;
+  const isStory = body.mode === &quot;story&quot;;
+  const isInterview = body.mode === &quot;interview&quot;;
+  const isRoleplay = body.mode === &quot;roleplay&quot;;
+  // Modos &quot;libres&quot;: el tema/contexto vive en el system prompt y el turno va tal cual.
+  const freeMode = isConversation || isClass || isStory || isInterview || isRoleplay;
+  const topic = String(body.topic || &quot;&quot;).slice(0, 700).trim();
+  const level = String(body.level || &quot;&quot;).slice(0, 4).trim();
+  // IDIOMA META (que aprende el alumno). Default ingles (retrocompatible).
+  // El alumno SIEMPRE es hispanohablante -&gt; explicaciones/TIP en espanol.
+  const TARGET_NAMES = { en: &quot;English&quot;, pt: &quot;Brazilian Portuguese (pt-BR)&quot;, fr: &quot;French&quot;, it: &quot;Italian&quot;, ja: &quot;Japanese&quot; };
+  const targetLang = String(body.targetLang || &quot;en&quot;).slice(0, 5).toLowerCase().split(&quot;-&quot;)[0];
+  const targetName = TARGET_NAMES[targetLang] || &quot;English&quot;;
+  // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea &quot;chat&quot;.
+  const isCv = topic === &quot;cv&quot;;
+  let systemText = isStory ? STORY_PROMPT
+    : isInterview ? INTERVIEW_PROMPT
+    : isRoleplay ? ROLEPLAY_PROMPT
+    : isClass ? CLASS_PROMPT
+    : isConversation ? CONVERSATION_PROMPT
+    : isCv ? CV_PROMPT
+    : SYSTEM_PROMPT;
+
+  // NOMBRE DEL PROFE. &quot;Bymax&quot; es el nombre INTERNO del motor; el alumno habla
+  // con Megan (cursos), Mathias (speaking) o Susan (entrevistas), y ademas
+  // puede renombrarlos en Ajustes. El cliente manda cual toca: si la IA se
+  // presentara como &quot;Bymax&quot; se romperia la ilusion (Mathias diria otro nombre).
+  // Se sanea porque entra en el prompt: solo letras, espacios y guiones.
+  const teacher = String(body.teacher || &quot;&quot;).slice(0, 24).replace(/[^\p{L}\s&#x27;-]/gu, &quot;&quot;).trim() || &quot;Megan&quot;;
+  systemText = systemText.replaceAll(&quot;{TEACHER}&quot;, teacher);
+  if (freeMode) {
+    systemText += `\n\nTEMA/CONTEXTO: ${topic || &quot;general&quot;}` +
+      `\nNIVEL del alumno (MCER): ${level || &quot;B1&quot;}` +
+      `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
+      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
+  }
+
+  // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
+  //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
+  //    correccion o ayuda en espanol va en lineas &quot;TIP:&quot; que el alumno LEE (no se
+  //    hablan) -&gt; el audio nunca mezcla idiomas = fluidez total.
+  //  - immersive=false (voz multilingue Azure activa): puede hablar en espanol e
+  //    ingles con naturalidad; una sola voz bilingue lee todo.
+  if (isClass || isConversation) {
+    const immersive = body.immersive !== false; // default: inmersion (sin Azure)
+    systemText += immersive
+      ? `\n\n[MODO INMERSION - VOZ]\n` +
+        `- HABLA (lo que se lee en voz alta) SIEMPRE en ${targetName}, a nivel del alumno.\n` +
+        `- Toda explicacion, traduccion, correccion o ayuda en ESPANOL va en lineas\n` +
+        `  aparte que empiezan EXACTAMENTE con &quot;TIP:&quot; (el alumno las LEE, no se hablan).\n` +
+        `- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
+        `  &lt;frase de practica en ${targetName}&gt;\n` +
+        `  TIP: &lt;ayuda breve en espanol&gt;\n` +
+        `- NUNCA metas espanol fuera de una linea &quot;TIP:&quot;. El cuerpo hablado es 100% ${targetName}.`
+      : `\n\n[MODO VOZ MULTILINGUE]\n` +
+        `- Puedes explicar en espanol y hacer practicar en ${targetName} con naturalidad.\n` +
+        `- Si corriges, puedes usar una linea aparte que empiece con &quot;TIP:&quot;.\n` +
+        `- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
+  }
+
+  // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`
+  // ([{role:&quot;user&quot;|&quot;model&quot;, text}]). Reconstruimos el hilo para que Bymax
+  // recuerde de que hablabamos. Guardrails (presupuesto $1): max 10 turnos y
+  // ~6000 chars totales; textos largos se recortan. El contexto de la leccion
+  // solo viaja en el 1er turno (ya vive en el historial despues) -&gt; ahorra tokens.
+  const rawHistory = Array.isArray(body.history) ? body.history : [];
+  const contents = [];
+  let histChars = 0;
+  for (const h of rawHistory.slice(-10)) {
+    const role = h &amp;&amp; h.role === &quot;model&quot; ? &quot;model&quot; : &quot;user&quot;;
+    const text = String((h &amp;&amp; h.text) || &quot;&quot;).slice(0, 1200).trim();
+    if (!text) continue;
+    histChars += text.length;
+    contents.push({ role, parts: [{ text }] });
+  }
+  // Recorte por tamano total: soltamos los turnos mas viejos si nos pasamos.
+  while (histChars &gt; 6000 &amp;&amp; contents.length &gt; 1) {
+    const dropped = contents.shift();
+    histChars -= dropped.parts[0].text.length;
+  }
+  // Gemini exige que la conversacion empiece con un turno &quot;user&quot;.
+  while (contents.length &amp;&amp; contents[0].role !== &quot;user&quot;) contents.shift();
+
+  // En modos libres (conversacion/cuento/entrevista/roleplay) el contexto vive en
+  // el system prompt -&gt; el turno va tal cual. En tutoria, el contexto de la
+  // leccion se antepone a la pregunta.
+  const userText = freeMode
+    ? question
+    : (context
+        ? `Contexto de la leccion actual: ${context}\n\nPregunta del alumno: ${question}`
+        : `Pregunta del alumno: ${question}`);
+  contents.push({ role: &quot;user&quot;, parts: [{ text: userText }] });
+
+  // BLINDAJE: Gemini exige roles ALTERNOS (user/model/user...). Si llegan dos
+  // turnos seguidos del mismo rol (historial raro, turno perdido), colapsamos la
+  // racha quedandonos con el ultimo -&gt; nunca mandamos un hilo invalido (400).
+  const alt = [];
+  for (const c of contents) {
+    if (alt.length &amp;&amp; alt[alt.length - 1].role === c.role) alt[alt.length - 1] = c;
+    else alt.push(c);
+  }
+
+  // CEREBRO por actividad: las CLASES usan OpenAI (GPT-4o-mini); las llamadas con
+  // Bymax (conversacion/listening) y las entrevistas usan Gemini. Si OpenAI falla
+  // en una clase, caemos a Gemini (el alumno nunca se queda sin respuesta).
+  if (isClass &amp;&amp; env.OPENAI_API_KEY) {
+    try {
+      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
+      return json({ answer, brain: &quot;openai&quot; }, 200, origin);
+    } catch (e) { /* respaldo: Gemini abajo */ }
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
+  // thinkingConfig SOLO lo aceptan los modelos &quot;thinking&quot; (Gemini 2.5). Como MODEL
+  // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
+  // 400 INVALID_ARGUMENT. Por eso, si hay 400, reintentamos SIN thinkingConfig.
+  // Presupuesto de salida: un CV completo necesita MUCHO mas que una respuesta de
+  // chat. CV -&gt; 4096 tokens; resto -&gt; 800 (ahorra costo/latencia).
+  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : 800 };
+  const callGemini = (withThinking) =&gt; fetch(url, {
+    method: &quot;POST&quot;,
+    headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: systemText }] },
+      contents: alt,
+      generationConfig: withThinking ? { ...baseGen, thinkingConfig: { thinkingBudget: 0 } } : baseGen,
+    }),
+  });
+
+  let res;
+  try {
+    res = await callGemini(true);
+    if (res.status === 400) res = await callGemini(false); // alias sin &quot;thinking&quot;
+  } catch (e) {
+    return json({ error: &quot;No se pudo contactar a Gemini.&quot; }, 502, origin);
+  }
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() =&gt; &quot;&quot;);
+    return json({ error: &quot;Gemini respondio con error.&quot;, status: res.status, detail: detail.slice(0, 300) }, 502, origin);
+  }
+
+  const data = await res.json().catch(() =&gt; null);
+  const answer = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!answer) return json({ error: &quot;No pude responder esta vez.&quot; }, 502, origin);
+
+  return json({ answer, brain: &quot;gemini&quot; }, 200, origin);
+}
+
+export default {
+  async fetch(request, env) {
+    const allowed = env.ALLOWED_ORIGIN || &quot;*&quot;;
+    const origin = request.headers.get(&quot;Origin&quot;) || allowed;
+    const url = new URL(request.url);
+
+    if (request.method === &quot;OPTIONS&quot;) {
+      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+    }
+    if (request.method !== &quot;POST&quot;) {
+      return json({ error: &quot;Usa POST.&quot; }, 405, origin);
+    }
+    if (env.ALLOWED_ORIGIN &amp;&amp; origin &amp;&amp; !origin.startsWith(env.ALLOWED_ORIGIN)) {
+      return json({ error: &quot;Origen no permitido.&quot; }, 403, origin);
+    }
+
+    // BLINDAJE: cualquier excepcion NO controlada se devuelve como JSON CON
+    // headers CORS. Si no, el navegador ve un 500 sin CORS y lo reporta como
+    // &quot;error de red&quot; (falso &quot;sin internet&quot;). Asi siempre llega la causa real.
+    try {
+      // Tope de uso ANTES de gastar en IA. OJO: solo se cuenta el CHAT aqui.
+      // El /tts se cuenta DENTRO de handleTts y solo cuando hay que generar
+      // audio de verdad: si sale del cache KV no cuesta nada, y penalizar un
+      // repaso (que es justo lo que queremos que el alumno haga) seria
+      // absurdo. Pasa el control como callback para no duplicar logica.
+      if (url.pathname === &quot;/tts&quot;) {
+        return await handleTts(request, env, origin, () =&gt; controlarUso(request, env));
+      }
+
+      const uso = await controlarUso(request, env);
+      if (uso.bloquear) {
+        return json({
+          error: &quot;Has usado mucho la IA hoy. Vuelve manana y seguimos.&quot;,
+          limite: true,
+        }, 429, origin);
+      }
+      return await handleChat(request, env, origin);
+    } catch (e) {
+      return json({ error: &quot;Error interno del Worker.&quot;, detail: String(e &amp;&amp; e.message ? e.message : e).slice(0, 300) }, 500, origin);
+    }
+  },
+};
+</code></pre>
+  </section>
+
+  <footer class="mt-6 text-center text-xs text-slate-600">
+    Generado el 26/10/2026 16:16 por <code>tools/gen_worker_page.py</code> &middot;
+    no edites este archivo a mano: vuelve a correr el script.
+  </footer>
+</main>
+
+<script>
+  // Se lee del <pre>, no de una copia en JS: una sola fuente de verdad.
+  const codeEl = document.getElementById("code");
+  const btn = document.getElementById("copy");
+  const msg = document.getElementById("copyMsg");
+
+  btn.addEventListener("click", async () => {
+    const text = codeEl.innerText;
+    try {
+      if (!navigator.clipboard) throw new Error("sin portapapeles");
+      await navigator.clipboard.writeText(text);
+      btn.textContent = "Copiado";
+      msg.classList.add("hidden");
+      setTimeout(() => { btn.textContent = "Copiar todo"; }, 2000);
+    } catch {
+      // Plan B: seleccionar el bloque para que un Ctrl+C funcione igual.
+      const r = document.createRange();
+      r.selectNodeContents(codeEl);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      msg.textContent = "No pude copiarlo solo. Ya te lo deje seleccionado: usa Ctrl+C (o Cmd+C).";
+      msg.classList.remove("hidden");
+    }
+  });
+</script>
+</body>
+</html>
