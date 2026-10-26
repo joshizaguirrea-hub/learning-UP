@@ -13,6 +13,7 @@ import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
   getTheme, setTheme, THEMES, getImmersion, setImmersion } from "../ui/prefs.js";
 import { languageName } from "../data/languages.js";
 import { currentLangCode } from "../ui/nav.js";
+import { skillLevelsCard } from "./skill-levels.js";
 import { el, mount } from "../ui/dom.js";
 import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
 import { TEACHER_ROLES, getTeacherName, setTeacherName } from "../ui/robot-prefs.js";
@@ -126,6 +127,10 @@ export function renderSettings(container, user) {
         renderSettings(container, user);
       }));
 
+  // Niveles 1..10 por competencia. Antes solo se podian tocar al TERMINAR una
+  // practica: para bajarle a Listening habia que jugar una ronda entera.
+  const levelsCard = skillLevelsCard(user.id, PANEL);
+
   // Zona de reinicio: borra progreso del curso + SRS + racha (empezar de cero).
   const resetMsg = el("div", { class: "text-sm mt-3" });
   const resetActions = el("div", { class: "mt-4" });
@@ -233,7 +238,7 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, robotCard, teachersCard, immersionCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
+    nameCard, robotCard, teachersCard, levelsCard, immersionCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
   focusMainHeading(container);
 }
 

@@ -131,6 +131,41 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el .glb y correr `python tools/gen_portraits.py` (necesita el server en
       :5500 y abre una ventana real: el WebGL headless sale en blanco).
 
+- [x] FRANCES A1 COMPLETO + PANEL DE NIVELES + CUADERNO EN LOS LABS
+      (2026-10-26, v0.313.0).
+
+      * FRANCES A1 (8/8). fr3-routine (pronominales: el pronombre va DELANTE,
+        'je me leve'), fr4-nourriture (partitivos du/de la/des, y en negativo
+        todos pasan a 'de'), fr5-maison (il y a invariable + contraccion
+        'a cote du'), fr6-shopping (ce/cette/ces + los numeros raros: 70 es
+        soixante-dix, 80 es quatre-vingts), fr7-tempslibre (faire/aller y
+        'a + le = au'), fr8-hier (passe compose: avoir para la mayoria, etre
+        para los de movimiento, con concordancia 'elle est allee').
+        Cada una: 4 lecciones, 12 vocab, 24 actividades, ciclo PPP completo.
+        Las 8 pasan check_unit_content. Idioma PUBLICADO (enabled: true).
+        El contenido ataca errores REALES del hispanohablante, no es relleno:
+        'je leve' en vez de 'je me leve', 'je mange pain' sin partitivo,
+        'je suis dix ans' en vez de 'j'ai dix ans'.
+
+      * PANEL DE NIVELES (features/skill-levels.js, NUEVO). La dificultad 1..10
+        es POR COMPETENCIA desde v0.307, pero solo se podia tocar al TERMINAR
+        una practica: para bajarle a Listening habia que jugar una ronda
+        entera de Listening. Ahora en Ajustes hay un deslizador por
+        competencia. El core ya lo daba todo hecho (`allSkillLevels`,
+        `setSkillLevel`): solo faltaba pintarlo. Modulo aparte para no inflar
+        settings.js.
+        OJO: el descriptor del nivel usa `hint`, NO `desc`. Lo supuse mal y lo
+        verifique antes de dar por bueno: con `desc` la pista salia vacia.
+
+      * CUADERNO EN READING/LISTENING. Las dos pestanas vivian vacias porque
+        solo las clases de texto libre (bymax-session) alimentaban el cuaderno.
+        Ahora los labs de opcion multiple registran el fallo con su `skill`.
+        El `why` usa la explicacion REAL de la pregunta (`q.explain`): un
+        "error de comprension lectora" generico no ensena nada al releerlo.
+
+      PENDIENTE: npm test sigue sin correr (no hay node en la maquina) y nada
+      de esto esta probado en navegador.
+
 - [x] MODO INMERSION + FRANCES A1 + AUDIO QUE AVISA (2026-10-23, v0.312.0).
       Cuatro commits que salieron de una sola observacion: "los nombres de las
       skills salen en ingles aunque elija frances".

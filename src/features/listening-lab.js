@@ -24,6 +24,7 @@ import { completeLesson } from "../services/course.js";
 import { lessonForSkill } from "./skill-class.js";
 import { generateListening } from "../services/comprehension-ai.js";
 import { practiceEnd } from "../ui/practice-end.js";
+import { addToNotebook } from "../ui/notebook-store.js";
 
 const PASS = 60; // % de comprension para aprobar
 
@@ -184,7 +185,23 @@ export function openListeningLab(unit, opts = {}) {
         if (done || !selected) return;
         done = true;
         const ok = !!selected.correct;
-        if (ok) { correct++; playCorrect(); } else playWrong();
+        if (ok) { correct++; playCorrect(); }
+        else {
+          playWrong();
+          // Al cuaderno, pestana Listening. Antes solo las clases de texto
+          // libre alimentaban el cuaderno, asi que esta pestana vivia vacia
+          // aunque el alumno fallara aqui.
+          addToNotebook(userId, {
+            unitId: unit.id, title: unit.title, level: unit.level, lang: tts, skill: "listening",
+          }, {
+            errors: [{
+              wrong: selected.text,
+              right: q.options.find((o) => o.correct)?.text || "",
+              why: q.explain || "Error de comprension auditiva",
+            }],
+            score: null,
+          });
+        }
         btns.forEach((b) => {
           if (b._opt.correct) b.className += " " + OK_CLS;
           else if (b._opt === selected) b.className += " " + BAD_CLS;

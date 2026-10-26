@@ -24,6 +24,7 @@ import { playCorrect, playWrong } from "../ui/sound.js";
 import { teacherFace } from "../ui/bymax-mascot.js";
 import { robotName } from "../ui/robot.js";
 import { completeLesson } from "../services/course.js";
+import { addToNotebook } from "../ui/notebook-store.js";
 import { lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
 import { splitTexts, buildQuestions, scorePct } from "../core/reading-lab.js";
@@ -171,7 +172,23 @@ export function openReadingLab(unit, opts = {}) {
         if (done || !selected) return;
         done = true;
         const ok = !!selected.correct;
-        if (ok) { correct++; playCorrect(); } else playWrong();
+        if (ok) { correct++; playCorrect(); }
+        else {
+          playWrong();
+          // Al cuaderno, pestana Reading. El `why` usa la explicacion REAL de
+          // la pregunta: un "error de comprension lectora" generico no le
+          // ensena nada al alumno cuando lo relea.
+          addToNotebook(userId, {
+            unitId: unit.id, title: unit.title, level: unit.level, lang: tts, skill: "reading",
+          }, {
+            errors: [{
+              wrong: selected.text,
+              right: q.options.find((o) => o.correct)?.text || "",
+              why: q.explain || "Error de comprension lectora",
+            }],
+            score: null,
+          });
+        }
         btns.forEach((b) => {
           if (b._opt.correct) b.className += " " + OK_CLS;
           else if (b._opt === selected) b.className += " " + BAD_CLS;

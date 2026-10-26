@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.312.0**  ·  Ultima actualizacion del roadmap: 2026-10-23
+Version actual: **v0.313.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 
 ---
 
@@ -15,9 +15,9 @@ Version actual: **v0.312.0**  ·  Ultima actualizacion del roadmap: 2026-10-23
       El pegamento vive UNA vez en `ui/practice-end.js`. Faltan los labs
       secundarios (`dictogloss`, `grammar-input`, `writing-drills-player`,
       `pronunciation-lab`, `checkpoint`), que no son los POPs principales.
-- [ ] **Panel de niveles por competencia** en Ajustes o el perfil: mostrar las 6
-      dificultades de un vistazo y poder ajustarlas sin tener que terminar una
-      clase. `allSkillLevels(userId, lang)` ya devuelve el mapa listo.
+- [x] **Panel de niveles por competencia** (v0.313.0). Ajustes -> "Nivel de
+      practica": las 6 competencias con su deslizador 1..10, editable sin tener
+      que terminar una clase. `features/skill-levels.js`.
 - [x] **Boton "Ajustar mi plan"** en el coach del dia (v0.305.0). Reusa el flujo
       de onboarding (`/examen`), que al terminar SOBREESCRIBE el plan (meta /
       tiempo / nivel). Nota: las cuentas viejas sin plan YA no quedan sin coach
@@ -26,21 +26,18 @@ Version actual: **v0.312.0**  ·  Ultima actualizacion del roadmap: 2026-10-23
 - [ ] **Coach "Empezar la clase" lanza DIRECTO la actividad** de la competencia
       `startSkill` del plan, en vez de solo navegar a `#/unidad/:id`. Requiere
       integrar con los POPs de skill (`unit-content` / `skill-class`).
-- [ ] **Reading/Listening -> cuaderno de errores.** Hoy los labs de opcion
-      multiple (`reading-lab` / `listening-lab`) NO alimentan el cuaderno; solo
-      las clases de texto libre (`bymax-session`) lo hacen -> esas pestanas
-      quedan vacias. Hacer que registren errores con su `skill`.
+- [x] **Reading/Listening -> cuaderno de errores** (v0.313.0). Los labs de
+      opcion multiple ya registran sus fallos con su `skill`, asi que esas
+      pestanas del cuaderno dejan de estar vacias. El `why` usa la explicacion
+      real de la pregunta, no un texto generico.
 - [ ] **Meta diaria por POPs individuales** (hoy cuenta lecciones completas,
       `course_progress`, no ejercicios sueltos).
 
 ### P2 — Contenido nuevo (mas trabajo, mas valor para alumnos)
-- [ ] **Frances A1** (fr1-fr8) en modo `draft`. **2/8 hechas** (v0.312.0):
-      `fr1-bonjour` (saludos + etre) y `fr2-famille` (posesivos + avoir), al
-      estandar de `pt1-ola` (4 lecciones, 12 vocab, 24 actividades, ciclo PPP).
-      Faltan fr3-fr8. REGLA: no registrar una unidad en `units/index.js` hasta
-      que tenga contenido real; una unidad vacia hunde el score de
-      `content-audit` y le promete al alumno una leccion que no existe.
-      Validar con `tools\check_unit_content.py <archivo>`.
+- [x] **Frances A1** (fr1-fr8) **COMPLETO** (v0.313.0). Arco entero: saludos +
+      etre / familia + posesivos / rutina + pronominales / comida + partitivos /
+      casa + il y a / compras + demostrativos / ocio + faire-aller / pasado +
+      passe compose. Idioma PUBLICADO (`enabled: true`).
 - [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1.
 - [ ] **Portugues A2** (hoy pt solo tiene A1).
 - [ ] **Italiano A2** (hoy it solo tiene A1).
@@ -60,6 +57,14 @@ Version actual: **v0.312.0**  ·  Ultima actualizacion del roadmap: 2026-10-23
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.313.0 — Frances A1 COMPLETO + panel de niveles + cuaderno de
+      Reading/Listening.** Las 8 unidades de frances con contenido real (24
+      actividades cada una) y el idioma PUBLICADO. En Ajustes, nueva tarjeta
+      "Nivel de practica": las 6 competencias con su deslizador 1..10, sin
+      tener que terminar una clase para tocarlos. Y los labs de opcion multiple
+      ya alimentan el cuaderno de errores: esas dos pestanas dejan de estar
+      vacias.
 
 - [x] **v0.312.0 — Modo inmersion + Frances A1 (2/8) + POP "Palabras".** Las
       etiquetas visibles ya no estan hardcodeadas en ingles. TRES capas
