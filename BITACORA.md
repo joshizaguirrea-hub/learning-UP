@@ -131,6 +131,53 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el .glb y correr `python tools/gen_portraits.py` (necesita el server en
       :5500 y abre una ventana real: el WebGL headless sale en blanco).
 
+- [x] EL LISTENING DE fr/it PREGUNTABA POR ARTICULOS (2026-10-26, v0.315.0).
+
+      Salio de una auditoria de contenido en la que YO ME EQUIVOQUE primero:
+      conte las lecciones de listening en los archivos de unidad, vi 1 de 80 y
+      le dije a Joshua que el listening casi no existia. FALSO:
+      data/listening-gen.js las inyecta en runtime desde units/index.js
+      (`.map(withListening)`), asi que 78 de 80 ya tenian. Medir el contenido
+      estatico cuando hay generadores da una foto que no es la del alumno.
+
+      Pero al mirar QUE generaba aparecio el bug de verdad. El generador nacio
+      para ingles, donde `mainWord("to book") -> "book"` funciona. En fr/it el
+      glosario guarda el genero en el termino ("la mere", "il pane"), que es
+      CORRECTO pedagogicamente -- en esos idiomas la palabra se aprende con su
+      articulo -- pero mainWord se quedaba con la PRIMERA palabra: "la".
+      Resultado: 11 unidades preguntaban "que palabra clave escuchaste" con las
+      opciones "le", "la" y "les". Eso no entrena el oido, entrena a adivinar.
+      Nadie lo noto nunca porque la leccion EXISTIA y todo pasaba en verde.
+      Portugues se libro por casualidad: su vocab se escribio sin articulos.
+
+      TRES BUGS EN EL MISMO ARCHIVO:
+      1. Articulos como clave -> lista PARTICULAS (en/fr/it/pt/es + pronombres
+         reflexivos) y se descartan mientras queden al principio del termino.
+         Tambien elisiones (l'eau -> eau) y variantes ("le fils / la fille").
+      2. `lang: "en-US"` HARDCODEADO en el payload: una frase francesa se leia
+         con voz inglesa. Ahora el idioma sale de la unidad (unitTts).
+      3. Las opciones mostraban el termino completo con articulo; ahora
+         muestran la palabra clave, que es lo que de verdad hay que reconocer.
+      Ademas "to go (went)": en las unidades de pasado la forma que SUENA es la
+      del parentesis, no el infinitivo -> si hay parentesis, manda su
+      contenido. Sin eso a2-last-weekend se quedaba sin leccion.
+
+      RESULTADO: 11 lecciones con articulos -> 0. Unidades sin listening: 2 ->
+      0. Las 80 tienen comprension auditiva con clave audible y voz correcta.
+
+      EL GUARDIAN ME ENGANO PRIMERO (lo importante de esta entrada).
+      Escribi tools/check_listening.py, paso en verde y casi lo doy por bueno.
+      Al romper el generador A PROPOSITO siguio diciendo OK: el script REPLICA
+      mainWord() en Python, asi que validaba su propia copia, no el JS que
+      corre en produccion. Un guardian que no se prueba es decoracion.
+      Lo arregle para que verifique el ARCHIVO (que exista PARTICULAS, que se
+      descarten las particulas, que el payload use ttsLang) y que la lista de
+      PARTICULAS del .py coincida con la del .js. Banco de pruebas con 3
+      sabotajes: a la primera cazaba 1 de 3 (las condiciones estaban mal
+      escritas: `"ttsLang" not in gen` seguia siendo cierto con el codigo roto,
+      y renombrar la constante no la borraba). Endurecidas -> 3 de 3 cazados y
+      verde al restaurar.
+
 - [x] EL EXAMEN DE UBICACION YA NO EXAMINA EN EL IDIOMA QUE NO ES
       (2026-10-26, v0.314.0).
 

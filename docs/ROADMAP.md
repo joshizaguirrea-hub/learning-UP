@@ -3,7 +3,7 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.313.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
+Version actual: **v0.315.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 
 ---
 
@@ -63,6 +63,13 @@ Version actual: **v0.313.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.315.0 — El listening de fr/it preguntaba por articulos.** El
+      generador (`data/listening-gen.js`) nacio para ingles: en fr/it tomaba la
+      primera palabra del termino, que es el articulo ("la mere" -> "la"), asi
+      que 11 unidades hacian elegir entre "le", "la" y "les". Ademas el audio
+      estaba fijado a `en-US` (frases francesas con voz inglesa). Arreglado y
+      blindado con `tools/check_listening.py`, probado con 3 sabotajes.
 
 - [x] **v0.313.0 — Frances A1 COMPLETO + panel de niveles + cuaderno de
       Reading/Listening.** Las 8 unidades de frances con contenido real (24
@@ -144,6 +151,16 @@ Version actual: **v0.313.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 ---
 
 ## Notas de arquitectura utiles
+
+- **El contenido que ve el alumno NO es el que esta en los archivos.**
+  `data/units/index.js` aplica generadores en cadena:
+  `.map(withClozeChoices).map(withListening).map(withTest)`. Auditar solo
+  `data/units/*.js` da una foto FALSA (me paso: conte 1 leccion de listening
+  cuando habia 78). Para medir de verdad hay que simular los generadores.
+- **Los generadores nacieron para INGLES.** Al tocarlos, probar siempre con
+  fr/it/pt: el glosario de fr/it guarda el genero en el termino ("la mere",
+  "il pane") y cualquier heuristica de "primera palabra" se queda con el
+  articulo. Ver `PARTICULAS` en `listening-gen.js`.
 
 - **Si un cambio "no se ve": `git status` ANTES de teorizar.** El deploy es
   GitHub Pages desde `main`, asi que un archivo modificado sin commitear = el
