@@ -131,6 +131,43 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el .glb y correr `python tools/gen_portraits.py` (necesita el server en
       :5500 y abre una ventana real: el WebGL headless sale en blanco).
 
+- [x] EL EXAMEN DE UBICACION YA NO EXAMINA EN EL IDIOMA QUE NO ES
+      (2026-10-26, v0.314.0).
+
+      Lo encontre al revisar que pasaba DESPUES de publicar frances: si el
+      alumno elige frances y marca "Intermedio", entra al examen de ubicacion
+      y la primera pregunta es "___ name is Ana". En ingles. Para ubicarlo
+      en FRANCES.
+
+      CAUSA: `data/placement-questions.js` es 100% ingles (33 preguntas, sin
+      campo `lang` porque nacio monolingue) y `core/placement.js` nunca miro
+      el idioma: `createSession(PLACEMENT_QUESTIONS)` a pelo. El nivel MCER
+      que salia de ahi no medía el frances del alumno, medía su ingles, y con
+      ese nivel se le armaba el curso entero.
+
+      NO LO CAUSE YO AL PUBLICAR FRANCES: pt e it llevaban con el mismo bug
+      desde que se publicaron. Publicar frances solo lo hizo visible.
+
+      ARREGLO EN DOS PIEZAS, y la segunda es la importante:
+      * `bankForLanguage(bank, lang)` filtra el banco. Una pregunta SIN `lang`
+        cuenta como inglesa -> las 33 existentes siguen valiendo sin tocarlas.
+      * `canTestLanguage(bank, lang, min=6)` decide SI SE PUEDE examinar. Si no
+        hay banco suficiente NO se examina: se le dice al alumno con todas las
+        letras ("todavia no tenemos examen en frances") y se arranca en A2.
+        La tentacion era generar preguntas de relleno para que el examen
+        existiera; un examen de 2 preguntas no ubica a nadie y un examen falso
+        es peor que ninguno. Se elige A2 y no A1 porque esta rama solo la pisan
+        los que se autodeclararon "Intermedio" o "Avanzado": empezar un pelin
+        bajo y subir es recuperable, mandar a un principiante a B2 no.
+
+      GUARDIAN: `tools/check_placement_lang.py` comprueba (1) que la vista no
+      pase el banco crudo a createSession y (2) que todo idioma publicado o
+      tenga banco o caiga por la rama sin-examen. Verificado REINTRODUCIENDO
+      el bug a proposito: el guardian lo caza y vuelve a verde al restaurar.
+
+      PENDIENTE (en ROADMAP P1): escribir banco de ubicacion fr/pt/it. Hasta
+      entonces esos idiomas arrancan en A2 a conciencia.
+
 - [x] FRANCES A1 COMPLETO + PANEL DE NIVELES + CUADERNO EN LOS LABS
       (2026-10-26, v0.313.0).
 

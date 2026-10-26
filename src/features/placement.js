@@ -14,7 +14,12 @@
  * persistencia (services/placement + study-plan-store) y la presentacion (ui/).
  */
 import { PLACEMENT_QUESTIONS, SKILL_LABELS } from "../data/placement-questions.js";
-import { createSession, nextQuestion, answer, progress, result, startIndexFor } from "../core/placement.js";
+import {
+  createSession, nextQuestion, answer, progress, result, startIndexFor,
+  bankForLanguage, canTestLanguage,
+} from "../core/placement.js";
+import { currentLangCode } from "../ui/nav.js";
+import { languageName } from "../data/languages.js";
 import { savePlacement } from "../services/placement.js";
 import { CEFR_INFO } from "../data/cefr.js";
 import {
@@ -122,12 +127,42 @@ function showMinutes(container, user, prefs) {
 // Router: prueba o nivel conocido
 // --------------------------------------------------------------------------
 function afterQuestionnaire(container, user, prefs) {
+  const lang = currentLangCode();
+  // El banco de ubicacion solo tiene preguntas de INGLES. Examinar a alguien de
+  // frances con preguntas inglesas da un nivel que no mide nada, asi que si no
+  // hay banco en su idioma NO se examina: se le cree su autoevaluacion y se
+  // empieza por A2 (el escalon prudente de "me defiendo"). Mejor empezar un
+  // pelin bajo y subir que mandar a un principiante a B2.
+  if (needsTest(prefs.selfLevel) && !canTestLanguage(PLACEMENT_QUESTIONS, lang)) {
+    finishWithoutTest(container, user, prefs, lang);
+    return;
+  }
   if (needsTest(prefs.selfLevel)) {
-    const session = createSession(PLACEMENT_QUESTIONS, { startIndex: startIndexFor(prefs.selfLevel) });
+    const session = createSession(bankForLanguage(PLACEMENT_QUESTIONS, lang),
+      { startIndex: startIndexFor(prefs.selfLevel) });
     showQuestion(container, user, session, prefs);
   } else {
     finishKnownLevel(container, user, prefs);
   }
+}
+
+/**
+ * Cierre honesto cuando no hay examen en ese idioma: se lo decimos al alumno en
+ * vez de fingir una prueba, y le ofrecemos que ajuste el nivel luego.
+ */
+async function finishWithoutTest(container, user, prefs, lang) {
+  const cefr = "A2";
+  mount(container, el("div", { class: CARD },
+    el("h1", { class: "text-2xl font-extrabold" }, "Empezamos sin prueba"),
+    el("p", { class: "text-slate-300 mt-2" },
+      "Todavia no tenemos examen de ubicacion en " + languageName(lang) + ", asi que " +
+      "no te hacemos perder el tiempo con uno de ingles: arrancamos en " + cefr + "."),
+    el("p", { class: "text-slate-400 text-sm mt-2" },
+      "Si te queda grande o pequeno, puedes cambiar el ritmo cuando quieras en " +
+      "Ajustes > Nivel de practica.")));
+  announce("Sin examen disponible en " + languageName(lang) + ". Empiezas en " + cefr + ".");
+  await savePlacement(user.id, { cefr, correct: 0, total: 0, byLevel: {}, bySkill: {} });
+  setTimeout(() => showPlan(container, user, prefs, cefr, null), 2200);
 }
 
 async function finishKnownLevel(container, user, prefs) {

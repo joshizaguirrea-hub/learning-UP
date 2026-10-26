@@ -23,6 +23,29 @@ const DEFAULT_MAX_QUESTIONS = 12;
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
+/**
+ * Preguntas disponibles para un idioma. Una pregunta SIN `lang` se considera
+ * INGLESA, que es como nacio el banco (y asi no hay que tocar las 30 ya
+ * escritas).
+ *
+ * Existe porque el banco es 100% ingles y el motor no lo miraba: un alumno de
+ * frances que elegia "Intermedio" acababa respondiendo "___ name is Ana" para
+ * ubicarse en FRANCES. El nivel que salia de ahi no medía nada.
+ */
+export function bankForLanguage(bank, lang) {
+  const want = String(lang || "en").slice(0, 2).toLowerCase();
+  return (bank || []).filter((q) => String(q.lang || "en").slice(0, 2).toLowerCase() === want);
+}
+
+/**
+ * True si hay preguntas suficientes para que el examen signifique algo.
+ * Por debajo de `min` es mejor NO examinar y creerle al alumno su
+ * autoevaluacion: un examen de 2 preguntas no ubica a nadie.
+ */
+export function canTestLanguage(bank, lang, min = 6) {
+  return bankForLanguage(bank, lang).length >= min;
+}
+
 /** Traduce la autoevaluacion a un indice de inicio del examen. */
 export function startIndexFor(selfLevel) {
   switch (selfLevel) {

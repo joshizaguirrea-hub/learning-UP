@@ -10,6 +10,12 @@ Version actual: **v0.313.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
+- [ ] **Banco de ubicacion en fr / pt / it.** Hoy solo hay preguntas de INGLES,
+      asi que esos tres idiomas SE SALTAN el examen y arrancan en A2 (ver
+      v0.314.0). Para que la prueba sirva hacen falta >= 6 preguntas por idioma
+      (ideal: 5 niveles x las competencias). Las nuevas se etiquetan con
+      `lang: "fr"` en `data/placement-questions.js`; las que no llevan `lang`
+      se consideran inglesas. Verificar con `tools\check_placement_lang.py`.
 - [x] **Extender el cierre `sessionEnd` al resto de ejercicios** (v0.308.0). Las
       6 competencias ya felicitan + preguntan "\u00bfseguir?" + dejan elegir nivel.
       El pegamento vive UNA vez en `ui/practice-end.js`. Faltan los labs
