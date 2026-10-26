@@ -131,6 +131,60 @@ En **Supabase → Authentication → URL Configuration** quedó así:
       el .glb y correr `python tools/gen_portraits.py` (necesita el server en
       :5500 y abre una ventana real: el WebGL headless sale en blanco).
 
+- [x] LIMITE DE USO EN EL WORKER: UN ABUSADOR COSTABA MAS QUE LA SUSCRIPCION
+      (2026-10-26, v0.316.0).
+
+      Joshua pregunto si cobrar $3-5/mes seria rentable. Los numeros salieron
+      muy bien (coste medio $0.18/alumno/mes, ~96% de margen a $5; la pasarela
+      de pago cuesta MAS que la IA), pero al revisar el Worker aparecio el
+      agujero: NO habia ningun rate limiting. Ni un contador.
+
+      Un alumno normal gasta ~$0.18/mes. Uno con un script pidiendo 3 h/dia
+      cuesta ~$11/mes: mas de lo que paga. Sin tope, un solo abusador (o un bot
+      que encuentre el endpoint) se come el saldo de OpenAI, que es PREPAGO, y
+      la app se queda muda PARA TODOS.
+
+      SOLUCION: contador diario por IP en KV, reusando el binding AUDIO_KV que
+      ya existia para el cache de audio. 60 peticiones/dia (configurable con la
+      variable LIMITE_DIARIO). Coste: $0.
+
+      TRES DECISIONES QUE IMPORTAN:
+      * EL AUDIO EN CACHE NO CUENTA. La primera version ponia el control en el
+        router, antes de handleTts -> un cache hit (que cuesta CERO) gastaba
+        cupo. Habria penalizado justo el repaso espaciado, que es la mecanica
+        que queremos que el alumno use. Ahora el control entra como callback y
+        solo se dispara DESPUES de fallar el cache, o sea cuando de verdad se
+        va a pagar.
+      * SI KV FALLA, NO SE BLOQUEA A NADIE. Red de seguridad, no portero: que
+        se caiga el contador no puede dejar sin clase a alguien que pago.
+      * 429 CON FLAG `limite`, no un error generico. El alumno lee "has usado
+        mucho la IA hoy", no un rojo de averia que parezca culpa suya.
+
+      LA SIMULACION CAZO UN BUG QUE HABRIA SIDO HORRIBLE. Escribi el contador
+      "sumando el lote entero de golpe" para ahorrar escrituras y me parecio
+      correcto. Lo simule en Python antes de darlo por bueno: un alumno normal
+      de 30 peticiones se bloqueaba a las 12. El contador corria 5x mas rapido
+      que el uso real. Habria bloqueado a CLIENTES QUE PAGAN mientras el
+      abusador real apenas lo notaba, y en produccion se habria visto como
+      "la app falla" sin motivo aparente.
+      Segundo intento (confirmadas|pendientes en KV): tope correcto, pero
+      escribia SIEMPRE -> adios al ahorro, solo aguantaba 33 alumnos.
+      Tercero (confirmadas en KV + pendientes en memoria del isolate): tope
+      exacto en 60, ningun perfil legitimo bloqueado, 80% menos escrituras y
+      ~166 alumnos en el plan gratis.
+
+      TECHO BLANDO, A PROPOSITO: las pendientes viven en el isolate y
+      Cloudflare los recicla cuando quiere; al morir uno, esa IP recupera hasta
+      4 peticiones. Simulado: con reciclados normales (cada 10-20 peticiones)
+      el tope aguanta exacto; solo se escaparia reciclando cada 2-3. Frena el
+      abuso SOSTENIDO, que es el que cuesta dinero. Para un tope duro de verdad
+      la pieza correcta son los Durable Objects.
+
+      PENDIENTE DE JOSHUA (yo no puedo hacerlo: el Worker corre en Cloudflare,
+      no aqui): desplegar el Worker nuevo y confirmar que el binding AUDIO_KV
+      existe. SIN ese binding el limite NO se activa -- y encima se estaria
+      pagando 4x de mas en audio por regenerar lo mismo.
+
 - [x] EL LISTENING DE fr/it PREGUNTABA POR ARTICULOS (2026-10-26, v0.315.0).
 
       Salio de una auditoria de contenido en la que YO ME EQUIVOQUE primero:

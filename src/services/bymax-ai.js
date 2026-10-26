@@ -5,7 +5,7 @@
  * Devuelve SIEMPRE { answer, error } — nunca lanza — para que la UI decida.
  *
  * NOMBRES: "bymax" es el nombre INTERNO del motor. Hacia el alumno el profe se
- * llama Megan / Mathias / Lucien segun el contexto, asi que SIEMPRE se manda
+ * llama Megan / Mathias / Susan segun el contexto, asi que SIEMPRE se manda
  * `teacher` al Worker: si no, la IA se presentaria con el nombre del motor.
  */
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
@@ -30,6 +30,12 @@ export async function askBymax({ mode = "conversation", topic = "general", level
     });
     const data = await res.json().catch(() => ({}));
     if (data && data.answer) return { answer: data.answer };
+    // 429 = tope diario de IA, NO una averia. Se marca aparte para que la UI
+    // lo cuente como lo que es ("ya estudiaste mucho hoy") en vez de pintar un
+    // error rojo de "algo fallo", que asusta y parece culpa del alumno.
+    if (res.status === 429 || (data && data.limite)) {
+      return { error: data.error || "Has usado mucho la IA hoy. Vuelve manana.", limite: true };
+    }
     const why = [data && data.error, data && data.detail, !res.ok && res.status].filter(Boolean).join(" | ");
     return { error: why || "No pude responder ahora." };
   } catch (err) {

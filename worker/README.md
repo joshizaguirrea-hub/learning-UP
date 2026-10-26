@@ -80,6 +80,47 @@ Detalles tecnicos (ya implementados en `bymax-worker.js`):
 
 ---
 
+## Paso 3.7 — Limite de uso diario (anti-abuso, GRATIS)
+
+**Por que importa (dinero real).** OpenAI es PREPAGO: cada clase y cada audio
+nuevo gastan saldo. Un alumno normal cuesta ~$0.18/mes, pero uno que deje un
+script pidiendo 3 h/dia cuesta ~$11/mes, o sea MAS de lo que paga una
+suscripcion de $5. Sin tope, un solo abusador se come el saldo y la app se
+queda muda **para todos**.
+
+**No hay que configurar nada**: si ya hiciste el Paso 3.6, el limite usa el
+MISMO binding `AUDIO_KV` y se activa solo. Sin `AUDIO_KV` no se limita nada
+(el Worker funciona igual, pero quedas expuesto).
+
+### Como funciona
+
+- **60 peticiones de IA por IP y dia.** Un alumno intenso usa ~30, asi que solo
+  toca a quien esta claramente abusando. Para cambiarlo: **Settings** ->
+  **Variables** -> `LIMITE_DIARIO` = el numero que quieras.
+- **El audio en cache NO cuenta.** Si la frase ya estaba en KV no cuesta nada,
+  asi que repasar (que es justo lo que queremos) nunca gasta cupo.
+- **Se escribe en KV 1 de cada 5 peticiones** (las otras 4 viven en memoria del
+  isolate). Eso baja las escrituras un 80%: el plan gratis de Cloudflare
+  (1.000 escrituras/dia) aguanta ~166 alumnos en vez de ~33.
+- **Si KV falla o no existe, NO se bloquea a nadie.** El limite es una red de
+  seguridad, no un portero: que se caiga el contador no puede dejar sin clase
+  a alguien que pago.
+- Al pasarse, el Worker responde **429** con
+  `{ error: "Has usado mucho la IA hoy...", limite: true }`. La app lo muestra
+  como aviso amable, no como error rojo.
+
+### Limitacion conocida (techo blando)
+
+Las peticiones "en vuelo" (las que aun no se han escrito a KV) viven en la
+memoria del isolate, y Cloudflare los recicla cuando quiere. Si uno muere, esa
+IP recupera hasta 4 peticiones. Simulado: con reciclados normales el tope
+aguanta exacto; solo se escaparia si Cloudflare reciclara cada 2-3 peticiones.
+Es deliberado: frena el abuso **sostenido** (que es lo que cuesta dinero) sin
+arriesgarse a bloquear a un alumno legitimo. Si algun dia hiciera falta un tope
+duro de verdad, la pieza correcta son los **Durable Objects**.
+
+---
+
 ## Paso 4 — Copiar la URL del Worker
 
 En la pagina del Worker veras una URL tipo:

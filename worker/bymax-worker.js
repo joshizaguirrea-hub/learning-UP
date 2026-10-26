@@ -2,7 +2,7 @@
 //
 // NOTA DE NOMBRES: "bymax" es el nombre INTERNO del motor (archivo, variables,
 // subdominio). El ALUMNO nunca debe leerlo: habla con Megan (cursos), Mathias
-// (speaking) o Lucien (entrevistas). Por eso los prompts traen el placeholder
+// (speaking) o Susan (entrevistas). Por eso los prompts traen el placeholder
 // {TEACHER}, que se sustituye con el nombre que manda el cliente.
 //
 // Endpoints (POST):
@@ -330,6 +330,93 @@ function json(data, status, origin) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// LIMITE DE USO (anti-abuso)
+// ---------------------------------------------------------------------------
+// POR QUE: cada peticion de chat o de voz NUEVA cuesta dinero real (OpenAI es
+// prepago). Un alumno normal gasta ~$0.18/mes; uno que deje un script dandole
+// 3 h/dia cuesta ~$11/mes, o sea MAS de lo que paga la suscripcion. Sin un
+// tope, un solo abusador (o un bot que encuentre el endpoint) se come el saldo
+// y la app se queda muda para todos los demas.
+//
+// COMO: un contador diario por IP en KV. Se escribe EN LOTES de LOTE: el plan
+// gratis de Cloudflare da 1.000 escrituras KV/dia, asi que escribir en cada
+// peticion se agotaria con ~35 alumnos. Escribiendo 1 de cada 5 el mismo plan
+// aguanta ~150 alumnos.
+//
+// EL CONTADOR VA POR DETRAS, NO POR DELANTE. Entre escritura y escritura el
+// valor de KV se queda quieto, asi que el tope real es (tope + LOTE - 1) en el
+// peor caso. Es deliberado: pasarse 4 peticiones no cuesta ni un centavo, pero
+// bloquear a un alumno que no llego al limite es inaceptable. La primera
+// version hacia justo lo contrario (sumaba el lote entero en cada peticion) y
+// la simulacion lo cazo: un alumno normal de 30 peticiones se bloqueaba a las
+// 12. Medir antes de dar algo por bueno.
+//
+// EL LIMITE ES GENEROSO A PROPOSITO: un alumno intenso usa ~30 peticiones de
+// IA al dia. 60 solo lo toca si esta claramente abusando. Es preferible dejar
+// pasar a un usuario entusiasta que bloquear a uno legitimo.
+//
+// DEGRADACION: si no hay binding KV o KV falla, NO se bloquea a nadie. El
+// limite es una red de seguridad, no un portero: que se caiga el contador no
+// puede dejar sin clase a un alumno que pago.
+const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por IP y dia
+const LOTE = 5;             // se escribe en KV 1 de cada LOTE peticiones
+
+// Pendientes EN MEMORIA del isolate: "ip" -> peticiones aun no escritas a KV.
+// Aqui esta el ahorro real: entre escritura y escritura no se toca KV (80%
+// menos escrituras -> el plan gratis pasa de ~33 a ~166 alumnos).
+//
+// LIMITACION CONOCIDA: Cloudflare recicla los isolates cuando quiere. Si uno
+// muere, sus pendientes se pierden y esa IP recupera hasta LOTE-1 peticiones.
+// Simulado: con reciclados normales (cada 10-20 peticiones) el tope aguanta
+// exacto; solo si Cloudflare reciclara cada 2-3 peticiones el limite se
+// escaparia. Es un techo "blando" a proposito: frena el abuso sostenido (que
+// es lo que cuesta dinero) sin arriesgarse a bloquear a un alumno legitimo.
+// Si algun dia hace falta un tope duro, la pieza correcta es Durable Objects.
+let pendientes = new Map();
+let diaPendientes = "";
+
+/** Dia UTC 'YYYY-MM-DD' para que el contador se resetee solo. */
+function diaUtc() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Suma uno al contador de la IP y dice si se paso del limite.
+ * @returns {{bloquear: boolean, usadas: number}}
+ */
+async function controlarUso(request, env) {
+  const kv = env.AUDIO_KV;
+  if (!kv) return { bloquear: false, usadas: 0 }; // sin KV no se limita
+
+  const tope = Number(env.LIMITE_DIARIO) > 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
+  const hoy = diaUtc();
+  const ip = request.headers.get("CF-Connecting-IP") || "anon";
+  const clave = "uso:" + hoy + ":" + ip;
+
+  if (diaPendientes !== hoy) { pendientes = new Map(); diaPendientes = hoy; } // dia nuevo
+
+  try {
+    const confirmadas = Number(await kv.get(clave)) || 0;
+    const enVuelo = (pendientes.get(ip) || 0) + 1;
+    const usadas = confirmadas + enVuelo;
+
+    if (usadas > tope) return { bloquear: true, usadas: usadas - 1 };
+
+    if (enVuelo >= LOTE) {
+      // Consolida el lote en KV y vacia las pendientes de esta IP.
+      // TTL de 48 h: cubre el dia con holgura y la clave se borra sola.
+      await kv.put(clave, String(confirmadas + enVuelo), { expirationTtl: 172800 });
+      pendientes.delete(ip);
+    } else {
+      pendientes.set(ip, enVuelo); // sin tocar KV: ESTE es el ahorro
+    }
+    return { bloquear: false, usadas };
+  } catch (e) {
+    return { bloquear: false, usadas: 0 }; // KV caido: mejor dejar pasar
+  }
+}
+
 // Convierte ArrayBuffer / Response / stream a base64 (para el audio de Aura).
 function abToBase64(ab) {
   const bytes = new Uint8Array(ab);
@@ -507,7 +594,7 @@ async function googleMultiTts(text, env, rate) {
 }
 
 // ---- VOZ: texto -> audio -------------------------------------------------
-async function handleTts(request, env, origin) {
+async function handleTts(request, env, origin, controlarUsoFn) {
   let body;
   try { body = await request.json(); }
   catch { return json({ error: "JSON invalido." }, 400, origin); }
@@ -518,7 +605,7 @@ async function handleTts(request, env, origin) {
   // Voz Google Chirp3-HD ingles (Worker nuevo): solo se acepta el patron oficial.
   const voiceHd = typeof body.voiceHd === "string" && /^en-US-Chirp3-HD-[A-Za-z]+$/.test(body.voiceHd) ? body.voiceHd : "";
   const gender = body.gender === "M" ? "M" : "F";
-  // Voz OpenAI por PROFE (Megan=nova, Lucien=shimmer, Mathias=onyx...). Si no viene
+  // Voz OpenAI por PROFE (Megan=nova, Susan=shimmer, Mathias=onyx...). Si no viene
   // o es invalida, cae a la voz por defecto (alloy).
   const ttsVoice = OPENAI_VOICES.has(body.ttsVoice) ? body.ttsVoice : "";
   // Velocidad opcional (0.5-1.5). 0 = velocidad normal (no forzar).
@@ -548,6 +635,19 @@ async function handleTts(request, env, origin) {
   }
 
   // 2) Generar el audio (y, si hay KV, guardarlo para la proxima).
+  //    AQUI es donde se cuenta para el limite: no hubo cache, asi que esta
+  //    peticion SI va a costar dinero. Lo de arriba (cache hit) sale gratis y
+  //    no debe penalizar al alumno que repasa.
+  if (controlarUsoFn) {
+    const uso = await controlarUsoFn();
+    if (uso.bloquear) {
+      return json({
+        error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",
+        limite: true,
+      }, 429, origin);
+    }
+  }
+
   const store = async (payload) => {
     if (kv && key && payload && payload.audio) {
       // 30 dias de TTL: texto fijo, pero deja que se refresque si cambia la voz.
@@ -697,7 +797,7 @@ async function handleChat(request, env, origin) {
     : SYSTEM_PROMPT;
 
   // NOMBRE DEL PROFE. "Bymax" es el nombre INTERNO del motor; el alumno habla
-  // con Megan (cursos), Mathias (speaking) o Lucien (entrevistas), y ademas
+  // con Megan (cursos), Mathias (speaking) o Susan (entrevistas), y ademas
   // puede renombrarlos en Ajustes. El cliente manda cual toca: si la IA se
   // presentara como "Bymax" se romperia la ilusion (Mathias diria otro nombre).
   // Se sanea porque entra en el prompt: solo letras, espacios y guiones.
@@ -842,7 +942,22 @@ export default {
     // headers CORS. Si no, el navegador ve un 500 sin CORS y lo reporta como
     // "error de red" (falso "sin internet"). Asi siempre llega la causa real.
     try {
-      if (url.pathname === "/tts") return await handleTts(request, env, origin);
+      // Tope de uso ANTES de gastar en IA. OJO: solo se cuenta el CHAT aqui.
+      // El /tts se cuenta DENTRO de handleTts y solo cuando hay que generar
+      // audio de verdad: si sale del cache KV no cuesta nada, y penalizar un
+      // repaso (que es justo lo que queremos que el alumno haga) seria
+      // absurdo. Pasa el control como callback para no duplicar logica.
+      if (url.pathname === "/tts") {
+        return await handleTts(request, env, origin, () => controlarUso(request, env));
+      }
+
+      const uso = await controlarUso(request, env);
+      if (uso.bloquear) {
+        return json({
+          error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",
+          limite: true,
+        }, 429, origin);
+      }
       return await handleChat(request, env, origin);
     } catch (e) {
       return json({ error: "Error interno del Worker.", detail: String(e && e.message ? e.message : e).slice(0, 300) }, 500, origin);

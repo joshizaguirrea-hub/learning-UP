@@ -3,13 +3,20 @@
 > Backlog vivo del proyecto. Lo abierto y priorizado arriba; lo terminado se
 > resume abajo y el detalle fino vive en `BITACORA.md` (el diario).
 
-Version actual: **v0.315.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
+Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 
 ---
 
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
+- [ ] **Desplegar el Worker con el limite de uso** (v0.316.0) y CONFIRMAR en
+      Cloudflare que el binding `AUDIO_KV` existe (Workers & Pages -> tu
+      Worker -> Settings -> Bindings). Sin ese binding el limite no se activa
+      Y ademas se paga ~4x de mas en audio (sin cache: $0.71/alumno/mes; con
+      cache: $0.18). Ver `worker/README.md`, paso 3.7.
+- [ ] **Pre-generar el audio del catalogo**: ~3.600 frases fijas, ~$4.86 UNA
+      vez, y luego sirve gratis a todos los alumnos durante 30 dias.
 - [ ] **Banco de ubicacion en fr / pt / it.** Hoy solo hay preguntas de INGLES,
       asi que esos tres idiomas SE SALTAN el examen y arrancan en A2 (ver
       v0.314.0). Para que la prueba sirva hacen falta >= 6 preguntas por idioma
@@ -63,6 +70,13 @@ Version actual: **v0.315.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 ---
 
 ## Enviado recientemente (resumen — detalle en BITACORA.md)
+
+- [x] **v0.316.0 — Limite de uso en el Worker (anti-abuso).** OpenAI es
+      prepago: un alumno normal cuesta ~$0.18/mes, pero uno con un script a
+      3 h/dia cuesta ~$11 — mas que una suscripcion de $5. No habia NINGUN
+      rate limiting. Ahora: 60 peticiones de IA por IP y dia (variable
+      `LIMITE_DIARIO`), reusando el binding `AUDIO_KV`. El audio en cache NO
+      cuenta (repasar es gratis) y si KV falla no se bloquea a nadie.
 
 - [x] **v0.315.0 — El listening de fr/it preguntaba por articulos.** El
       generador (`data/listening-gen.js`) nacio para ingles: en fr/it tomaba la
