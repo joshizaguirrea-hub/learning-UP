@@ -383,13 +383,16 @@ function diaUtc() {
 
 /**
  * Suma uno al contador de la IP y dice si se paso del limite.
- * @returns {{bloquear: boolean, usadas: number}}
+ * @param {boolean} [soloLectura] - true = CONSULTA el gasto sin sumar nada.
+ *   Lo usa /status para pintar la barra en Ajustes: mirar cuanto llevas no
+ *   puede gastarte cupo, seria absurdo.
+ * @returns {{bloquear: boolean, usadas: number, tope: number}}
  */
-async function controlarUso(request, env) {
-  const kv = env.AUDIO_KV;
-  if (!kv) return { bloquear: false, usadas: 0 }; // sin KV no se limita
-
+async function controlarUso(request, env, soloLectura) {
   const tope = Number(env.LIMITE_DIARIO) > 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
+  const kv = env.AUDIO_KV;
+  if (!kv) return { bloquear: false, usadas: 0, tope }; // sin KV no se limita
+
   const hoy = diaUtc();
   const ip = request.headers.get("CF-Connecting-IP") || "anon";
   const clave = "uso:" + hoy + ":" + ip;
@@ -398,10 +401,16 @@ async function controlarUso(request, env) {
 
   try {
     const confirmadas = Number(await kv.get(clave)) || 0;
+
+    if (soloLectura) {
+      const yaUsadas = confirmadas + (pendientes.get(ip) || 0);
+      return { bloquear: yaUsadas >= tope, usadas: yaUsadas, tope };
+    }
+
     const enVuelo = (pendientes.get(ip) || 0) + 1;
     const usadas = confirmadas + enVuelo;
 
-    if (usadas > tope) return { bloquear: true, usadas: usadas - 1 };
+    if (usadas > tope) return { bloquear: true, usadas: usadas - 1, tope };
 
     if (enVuelo >= LOTE) {
       // Consolida el lote en KV y vacia las pendientes de esta IP.
@@ -411,10 +420,24 @@ async function controlarUso(request, env) {
     } else {
       pendientes.set(ip, enVuelo); // sin tocar KV: ESTE es el ahorro
     }
-    return { bloquear: false, usadas };
+    return { bloquear: false, usadas, tope };
   } catch (e) {
-    return { bloquear: false, usadas: 0 }; // KV caido: mejor dejar pasar
+    return { bloquear: false, usadas: 0, tope }; // KV caido: mejor dejar pasar
   }
+}
+
+/**
+ * GET|POST /status -> { usados, limite, restantes }. Solo CONSULTA: no suma.
+ * Sirve para que el alumno vea en Ajustes cuanto le queda, en vez de toparse
+ * de golpe con un "ya no puedes". Transparencia > sorpresa.
+ */
+async function handleStatus(request, env, origin) {
+  const uso = await controlarUso(request, env, true);
+  return json({
+    usados: uso.usadas,
+    limite: uso.tope,
+    restantes: Math.max(0, uso.tope - uso.usadas),
+  }, 200, origin);
 }
 
 // Convierte ArrayBuffer / Response / stream a base64 (para el audio de Aura).
@@ -931,6 +954,18 @@ export default {
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
+
+    // /status va ANTES del filtro de POST: es una consulta de solo lectura y
+    // tiene que poder abrirse con un GET desde el navegador para diagnosticar
+    // ("?esta vivo el limite?") sin montar nada. No gasta cupo ni toca la IA.
+    if (url.pathname === "/status") {
+      try {
+        return await handleStatus(request, env, origin);
+      } catch (e) {
+        return json({ error: "No pude leer el uso." }, 500, origin);
+      }
+    }
+
     if (request.method !== "POST") {
       return json({ error: "Usa POST." }, 405, origin);
     }

@@ -16,6 +16,7 @@ import { skillLabel, SKILL_META } from "../data/skill-meta.js";
 import { getImmersion } from "../ui/prefs.js";
 import { currentLangCode } from "../ui/nav.js";
 import { languageName } from "../data/languages.js";
+import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
 import {
   allSkillLevels, makeSkillKey, setSkillLevel,
   levelLabel, levelInfo, MIN_LEVEL, MAX_LEVEL,
@@ -43,7 +44,51 @@ export function skillLevelsCard(userId, panelCls) {
       "Cada competencia guarda SU propio nivel, del 1 al 10. Puedes ir fuerte en " +
       "una y suave en otra. Esto no cambia tu nivel MCER: solo cuanto quieres sudar hoy."),
     el("p", { class: "text-xs text-slate-500 mt-1" }, "Idioma: " + languageName(lang)),
-    el("div", { class: "mt-4 space-y-4" }, ...filas));
+    el("div", { class: "mt-4 space-y-4" }, ...filas),
+    usoDiarioBloque());
+}
+
+/**
+ * Barra "Uso de IA de hoy". Consulta /status del Worker (solo lectura: mirar
+ * NO gasta cupo).
+ *
+ * POR QUE: hay un tope diario de peticiones de IA para que un abusador no se
+ * coma el saldo de todos. Sin esto el alumno se topa de golpe con un "ya no
+ * puedes" y parece una averia. Verlo venir es menos frustrante que chocarse.
+ *
+ * Se pinta en DOS tiempos: primero el hueco, y cuando responde el Worker se
+ * rellena. Si falla, el bloque se BORRA entero en vez de dejar un error: es
+ * informacion de cortesia, no puede ensuciar Ajustes.
+ */
+function usoDiarioBloque() {
+  if (!bymaxAiEnabled) return el("span"); // sin Worker no hay nada que medir
+
+  const barra = el("div", { class: "h-2 rounded-full bg-indigo-500 transition-all", style: "width:0%" });
+  const cifra = el("span", { class: "font-bold tabular-nums text-slate-300" }, "...");
+  const nota = el("p", { class: "text-xs text-slate-500 mt-1" }, "Consultando...");
+
+  const caja = el("div", { class: "mt-6 pt-4 border-t border-slate-800" },
+    el("div", { class: "flex justify-between text-sm" },
+      el("span", { class: "text-slate-400" }, "Uso de IA de hoy"), cifra),
+    el("div", { class: "w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden" }, barra),
+    nota);
+
+  fetch(BYMAX_WORKER_URL.replace(/\/+$/, "") + "/status")
+    .then((r) => r.json())
+    .then((d) => {
+      if (typeof d.limite !== "number") throw new Error("sin datos");
+      const pct = Math.min(100, Math.round((d.usados / d.limite) * 100));
+      barra.style.width = pct + "%";
+      // Ambar al acercarse: avisa ANTES de bloquear, no despues.
+      if (pct >= 80) barra.className = barra.className.replace("bg-indigo-500", "bg-amber-500");
+      cifra.textContent = d.usados + " / " + d.limite;
+      nota.textContent = d.restantes > 0
+        ? "Te quedan " + d.restantes + " clases o audios nuevos hoy. El repaso de audio ya escuchado no gasta."
+        : "Has llegado al limite de hoy. Manana se reinicia solo.";
+    })
+    .catch(() => caja.remove()); // mejor nada que un error inutil
+
+  return caja;
 }
 
 /** Una fila: competencia + deslizador 1..10 + etiqueta del escalon. */
