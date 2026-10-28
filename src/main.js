@@ -24,6 +24,7 @@ import { renderTeachers } from "./features/teachers.js";
 import { renderCalendar } from "./features/calendar.js";
 import { renderChat } from "./features/chat.js";
 import { renderSettings } from "./features/settings.js";
+import { renderWelcomeGuide } from "./features/welcome-guide.js";
 import { renderQuality } from "./features/quality.js";
 import { renderCompetency } from "./features/competency.js";
 import { renderProfile } from "./features/profile.js";
@@ -98,6 +99,7 @@ function setupRoutes() {
   on("/calendario", () => requireAuth(() => renderCalendar(app)));
   on("/chat", () => requireAuth(() => renderChat(app)));
   on("/ajustes", () => requireAuth((u) => renderSettings(app, u)));
+  on("/guia", () => requireAuth(() => renderWelcomeGuide(app, () => go("/student"))));
   on("/calidad", () => requireAuth(() => renderQuality(app)));
   on("/competencia/:skill", (params) => requireAuth((u) => renderCompetency(app, params, u)));
   on("/perfil", () => requireAuth((u) => renderProfile(app, u)));

@@ -14,6 +14,7 @@ import { getAccent, setAccent, ACCENTS, getTextSize, setTextSize, TEXT_SIZES,
 import { languageName } from "../data/languages.js";
 import { currentLangCode } from "../ui/nav.js";
 import { skillLevelsCard } from "./skill-levels.js";
+import { setWelcomeSeen } from "./welcome-guide.js";
 import { el, mount } from "../ui/dom.js";
 import { robotAvatar, robotName, openRobotSetup } from "../ui/robot.js";
 import { TEACHER_ROLES, getTeacherName, setTeacherName } from "../ui/robot-prefs.js";
@@ -131,6 +132,21 @@ export function renderSettings(container, user) {
   // practica: para bajarle a Listening habia que jugar una ronda entera.
   const levelsCard = skillLevelsCard(user.id, PANEL);
 
+  // Reabrir la guia de bienvenida. Se muestra sola la primera vez, pero nadie
+  // retiene un tutorial a la primera: tiene que poder volver a verlo sin
+  // reiniciar el progreso.
+  const guideCard = el("section", { class: PANEL + " mt-6" },
+    el("h2", { class: "font-bold text-lg" }, "Como funciona el curso"),
+    el("p", { class: "text-sm text-slate-400 mt-1" },
+      "Las fases de cada unidad, que hace falta para aprobar y para que sirven " +
+      "los bonos."),
+    el("button", {
+      class: "mt-3 border border-indigo-500/50 text-indigo-300 font-semibold " +
+        "px-5 py-2.5 rounded-lg hover:bg-indigo-500/10 focus:outline " +
+        "focus:outline-2 focus:outline-indigo-400",
+      onclick: () => { setWelcomeSeen(false); go("#/guia"); },
+    }, "Ver la guia otra vez"));
+
   // Zona de reinicio: borra progreso del curso + SRS + racha (empezar de cero).
   const resetMsg = el("div", { class: "text-sm mt-3" });
   const resetActions = el("div", { class: "mt-4" });
@@ -238,7 +254,7 @@ export function renderSettings(container, user) {
 
   mount(container, el("div", { class: "max-w-xl mx-auto" },
     el("h1", { class: "text-2xl font-bold mb-4" }, "Ajustes"),
-    nameCard, robotCard, teachersCard, levelsCard, immersionCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
+    nameCard, robotCard, teachersCard, levelsCard, guideCard, immersionCard, themeCard, sizeCard, a11yCard, accentCard, toolsCard, resetCard, sessionCard));
   focusMainHeading(container);
 }
 

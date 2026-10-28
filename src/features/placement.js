@@ -20,6 +20,7 @@ import {
 } from "../core/placement.js";
 import { currentLangCode } from "../ui/nav.js";
 import { levelAvailableFor } from "../data/units/index.js";
+import { hasSeenWelcome } from "./welcome-guide.js";
 import { languageName } from "../data/languages.js";
 import { savePlacement } from "../services/placement.js";
 import { CEFR_INFO } from "../data/cefr.js";
@@ -278,7 +279,14 @@ function showPlan(container, user, prefs, cefr, examResult) {
       "(No pude guardar el plan en este dispositivo, pero igual puedes empezar.)"));
   }
 
-  children.push(el("button", { class: "mt-6 w-full py-2.5 " + BTN, onclick: () => go("/student") }, "Empezar mi plan"));
+  // Al terminar el onboarding, la guia de "como funciona el curso" se muestra
+  // UNA vez. Es el unico momento en que el alumno tiene contexto para
+  // entenderla: ya sabe su nivel, aun no ha visto una unidad y no esta a mitad
+  // de nada. Despues solo se abre a peticion desde Ajustes.
+  children.push(el("button", {
+    class: "mt-6 w-full py-2.5 " + BTN,
+    onclick: () => go(hasSeenWelcome() ? "/student" : "/guia"),
+  }, "Empezar mi plan"));
 
   mount(container, el("div", { class: CARD + " text-center" }, ...children));
   focusMainHeading(container);
