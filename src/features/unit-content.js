@@ -85,9 +85,17 @@ export function unitContent(unit, progressMap, user) {
   //
   // Se crea aqui, antes del boton, porque el onclick lo necesita. La burbuja
   // en si no se pinta hasta que el alumno toca: nada de abrumar al entrar.
+  // Megan guia desde la PROPIA pantalla (ver unit-coach.js). Se crea ANTES
+  // del boton porque su onclick la necesita; el callback usa `ring`, que se
+  // declara mas abajo, y eso es correcto porque solo se ejecuta cuando el
+  // alumno pulsa, con todo ya construido.
+  //
+  // El fallo se REPORTA en vez de morir en silencio: si el POP no aparece, un
+  // boton que no hace nada deja al alumno pensando que la app esta rota.
   const coach = coachBubble(unit, progressMap, user, (skillId) => {
-    const pop = ring.querySelector('[data-skill="' + skillId + '"]');
-    if (pop) pop.click();
+    const pop = ring && ring.querySelector('[data-skill="' + skillId + '"]');
+    if (pop) { pop.click(); return; }
+    console.warn("[unit-coach] no encuentro el POP de", skillId);
   });
 
   const faceSrc = teacherPortraitSrc("course");

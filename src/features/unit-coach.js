@@ -140,8 +140,12 @@ export function coachBubble(unit, progressMap, user, onGoSkill) {
     }, s.label));
 
     const burbuja = el("div", {
+      // SIN animate-[fadeIn]: ese keyframe NO existe en el proyecto. Tailwind
+      // generaba `animation: fadeIn ...` apuntando a nada, y segun el
+      // navegador la burbuja podia quedarse invisible. Una animacion bonita
+      // que esconde el contenido es peor que ninguna animacion.
       class: "relative max-w-md rounded-2xl bg-slate-800/90 border " +
-        "border-violet-400/25 p-4 shadow-lg animate-[fadeIn_.2s_ease-out]",
+        "border-violet-400/25 p-4 shadow-lg",
       role: "status",
     },
       el("p", { class: "text-xs font-bold text-violet-300 mb-1" }, name),
