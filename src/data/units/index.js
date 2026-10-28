@@ -155,6 +155,34 @@ export function unitsForCourse(level, lang = "en") {
   return [];
 }
 
+/**
+ * Ajusta un nivel MCER a lo que ese idioma PUEDE ofrecer de verdad.
+ *
+ * POR QUE: fr/it/pt solo tienen A1, pero al alumno que dice "me defiendo" se
+ * le asignaba A2. unitsForCourse() tiene un fallback que evita la pantalla
+ * vacia, asi que nadie veia un error: su perfil decia A2, estudiaba A1, y su
+ * certificado iba a hablar de un nivel que nunca curso. Un dato falso que
+ * nadie podia detectar es peor que un hueco visible.
+ *
+ * Devuelve el nivel pedido si existe; si no, el MAS ALTO disponible por debajo
+ * (nunca inventa hacia arriba); y si no hay ninguno, el primero que exista.
+ *
+ * @param {string} level - nivel deseado (p.ej. "A2")
+ * @param {string} [lang] - idioma meta
+ * @returns {string} nivel que el alumno va a estudiar de verdad
+ */
+export function levelAvailableFor(level, lang = "en") {
+  if (unitsForLevel(level, lang).length) return level;
+
+  const pedido = LEVEL_ORDER.indexOf(level);
+  if (pedido > 0) {
+    for (let i = pedido - 1; i >= 0; i--) {
+      if (unitsForLevel(LEVEL_ORDER[i], lang).length) return LEVEL_ORDER[i];
+    }
+  }
+  return LEVEL_ORDER.find((lv) => unitsForLevel(lv, lang).length) || level;
+}
+
 /** Busca una unidad por su id. */
 export function unitById(id) {
   return UNITS.find((u) => u.id === id) || null;

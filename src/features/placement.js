@@ -19,6 +19,7 @@ import {
   bankForLanguage, canTestLanguage,
 } from "../core/placement.js";
 import { currentLangCode } from "../ui/nav.js";
+import { levelAvailableFor } from "../data/units/index.js";
 import { languageName } from "../data/languages.js";
 import { savePlacement } from "../services/placement.js";
 import { CEFR_INFO } from "../data/cefr.js";
@@ -151,7 +152,10 @@ function afterQuestionnaire(container, user, prefs) {
  * vez de fingir una prueba, y le ofrecemos que ajuste el nivel luego.
  */
 async function finishWithoutTest(container, user, prefs, lang) {
-  const cefr = "A2";
+  // A2 es el escalon prudente de "me defiendo", pero solo si ese idioma TIENE
+  // A2. fr/it/pt hoy solo llegan a A1: prometer A2 pondria en su perfil un
+  // nivel que nunca va a estudiar.
+  const cefr = levelAvailableFor("A2", lang);
   mount(container, el("div", { class: CARD },
     el("h1", { class: "text-2xl font-extrabold" }, "Empezamos sin prueba"),
     el("p", { class: "text-slate-300 mt-2" },
@@ -166,7 +170,11 @@ async function finishWithoutTest(container, user, prefs, lang) {
 }
 
 async function finishKnownLevel(container, user, prefs) {
-  const cefr = cefrForSelfLevel(prefs.selfLevel) || "A1";
+  // Mismo cuidado que arriba: si el alumno se autodeclara A2 en un idioma que
+  // solo tiene A1, se le registra A1. Lo que diga su perfil y lo que estudie
+  // tienen que ser la misma cosa.
+  const lang = currentLangCode();
+  const cefr = levelAvailableFor(cefrForSelfLevel(prefs.selfLevel) || "A1", lang);
   mount(container, el("div", { class: CARD }, el("p", { class: "text-slate-300" }, "Preparando tu plan...")));
   await savePlacement(user.id, { cefr, correct: 0, total: 0, byLevel: {}, bySkill: {} });
   showPlan(container, user, prefs, cefr, null);
