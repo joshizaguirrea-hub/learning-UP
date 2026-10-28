@@ -34,8 +34,10 @@ import { openUnitReport } from "./unit-report.js";
 import { openNotebook } from "./notebook.js";
 import { isUnitComplete } from "../core/unit-report.js";
 
-// Bonos de verbos que se ofrecen en cada unidad (mazos en data/bonus-decks.js).
-// Deben coincidir con lo que evalua el examen (data/test-gen.js).
+// Bonos de verbos que se ofrecen en las unidades de INGLES (mazos en
+// data/bonus-decks.js). Deben coincidir con lo que evalua el examen
+// (data/test-gen.js). Los demas idiomas NO usan esta lista: piden sus
+// propios mazos con bonusDecksForLanguage() -- ver mas abajo.
 const BONUS_LINKS = [
   { id: "irregular-verbs", label: "Verbos irregulares" },
   { id: "regular-past", label: "Pasado regular (-ed)" },
