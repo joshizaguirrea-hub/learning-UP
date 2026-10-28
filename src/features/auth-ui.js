@@ -4,7 +4,7 @@
  * Capa de feature: orquesta el servicio de auth con la UI. No habla con
  * Supabase directamente (eso es responsabilidad de services/auth.js).
  */
-import { register, login } from "../services/auth.js";
+import { register, login, requestPasswordReset } from "../services/auth.js";
 import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
@@ -122,9 +122,29 @@ export function renderLogin(container) {
     el("h1", { class: "text-2xl font-bold" }, "Iniciar sesion"),
     errSlot,
     form,
-    el("p", { class: "mt-4 text-sm text-slate-400" },
-      "No tienes cuenta? ",
-      el("a", { href: "#/register", class: "text-indigo-400 hover:text-indigo-300" }, "Registrate")),
+    el("div", { class: "mt-4 flex justify-between text-sm" },
+      el("p", { class: "text-slate-400" },
+        "No tienes cuenta? ",
+        el("a", { href: "#/register", class: "text-indigo-400 hover:text-indigo-300" }, "Registrate")
+      ),
+      el("button", {
+        type: "button",
+        class: "text-indigo-400 hover:text-indigo-300",
+        onclick: async () => {
+          const email = form.querySelector('input[type="email"]').value;
+          if (!email) {
+            mount(errSlot, errorBox("Por favor ingresa tu correo primero."));
+            return;
+          }
+          const result = await requestPasswordReset(email);
+          if (result.ok) {
+            mount(errSlot, el("div", { class: "mt-4 bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-sm rounded-md px-3 py-2" }, "Revisa tu correo para recuperar la contrase\u00f1a."));
+          } else {
+            mount(errSlot, errorBox(result.error));
+          }
+        }
+      }, "Olvid\u00e9 mi contrase\u00f1a")
+    ),
   );
 
   mount(container, view);

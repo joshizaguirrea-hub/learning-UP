@@ -42,6 +42,15 @@ export async function login({ email, password }) {
   return { ok: true };
 }
 
+/** Solicita reset de contrasena. */
+export async function requestPasswordReset(email) {
+  // Nota: Asegurate de tener configurado el sitio en Supabase Auth Settings -> Site URL
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + "/#/login",
+  });
+  return error ? { ok: false, error: error.message } : { ok: true };
+}
+
 /** Cierra sesion. */
 export async function logout() {
   await supabase.auth.signOut();

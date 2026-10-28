@@ -20,7 +20,7 @@ import { bymaxAiEnabled } from "../config/bymax.js";
 import { extractTextFromFile } from "../ui/file-text.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
 
-// El CV es contexto de RECLUTAMIENTO -> habla el coach de entrevistas (Lucien),
+// El CV es contexto de RECLUTAMIENTO -> habla el coach de entrevistas (Susan),
 // no la profe de cursos. El alumno puede renombrarlo en Ajustes.
 const recruiter = () => getTeacherName("interview");
 

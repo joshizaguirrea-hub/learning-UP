@@ -79,8 +79,17 @@ function renderInto(card, user, session, plan, resting) {
 
   const goToUnit = () => {
     cancelCloud();
-    if (session.unit) go("/unidad/" + session.unit.id);
-    else go("/curso");
+    if (session.unit) {
+      // Si tenemos un plan con una skill sugerida, vamos directo a ella
+      const skill = session.order && session.order[0];
+      if (skill) {
+        go("/competencia/" + skill + "?unit=" + session.unit.id);
+      } else {
+        go("/unidad/" + session.unit.id);
+      }
+    } else {
+      go("/curso");
+    }
   };
 
   // Botones segun el momento del dia.

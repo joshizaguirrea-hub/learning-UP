@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1001 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1011 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -86,9 +86,10 @@
       El codigo <b>no lleva ninguna clave dentro</b> (se verifica al generar esta pagina).
       Las lee de las variables del Worker. Si alguna falta, esa funcion se cae sola
       pero el resto sigue andando. Estan en <b>Settings &rarr; Variables and Secrets</b>.
-      Este codigo usa 9:
+      Este codigo usa 10:
     </p>
     <ul class="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-slate-300 list-disc list-inside font-mono">
+      <li><code>ADMIN_KEY</code></li>
       <li><code>AI</code></li>
       <li><code>ALLOWED_ORIGIN</code></li>
       <li><code>AUDIO_KV</code></li>
@@ -109,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1001 lineas &middot; 50.7 KB &middot; commit 2fb4ca5 2026-10-26</p>
+        <p class="text-xs text-slate-500">1011 lineas &middot; 51.2 KB &middot; commit 17d23cf 2026-10-27</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -513,6 +514,16 @@ async function controlarUso(request, env, soloLectura) {
   const tope = Number(env.LIMITE_DIARIO) &gt; 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
   const kv = env.AUDIO_KV;
   if (!kv) return { bloquear: false, usadas: 0, tope }; // sin KV no se limita
+
+  // LLAVE DE SERVICIO: salta el tope para tareas de MANTENIMIENTO (pre-generar
+  // el audio del catalogo son ~3.600 frases, 60 veces el limite diario).
+  // Es un secreto que solo esta en tu maquina, NUNCA en el cliente: la app del
+  // alumno jamas manda esta cabecera. Si no defines ADMIN_KEY en el Worker,
+  // esto queda muerto y no abre ninguna puerta.
+  const adminKey = env.ADMIN_KEY;
+  if (adminKey &amp;&amp; request.headers.get(&quot;X-Admin-Key&quot;) === adminKey) {
+    return { bloquear: false, usadas: 0, tope, admin: true };
+  }
 
   const hoy = diaUtc();
   const ip = request.headers.get(&quot;CF-Connecting-IP&quot;) || &quot;anon&quot;;
@@ -1124,7 +1135,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 27/10/2026 11:02 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 28/10/2026 09:08 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>

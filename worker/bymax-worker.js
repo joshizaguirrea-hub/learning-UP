@@ -393,6 +393,16 @@ async function controlarUso(request, env, soloLectura) {
   const kv = env.AUDIO_KV;
   if (!kv) return { bloquear: false, usadas: 0, tope }; // sin KV no se limita
 
+  // LLAVE DE SERVICIO: salta el tope para tareas de MANTENIMIENTO (pre-generar
+  // el audio del catalogo son ~3.600 frases, 60 veces el limite diario).
+  // Es un secreto que solo esta en tu maquina, NUNCA en el cliente: la app del
+  // alumno jamas manda esta cabecera. Si no defines ADMIN_KEY en el Worker,
+  // esto queda muerto y no abre ninguna puerta.
+  const adminKey = env.ADMIN_KEY;
+  if (adminKey && request.headers.get("X-Admin-Key") === adminKey) {
+    return { bloquear: false, usadas: 0, tope, admin: true };
+  }
+
   const hoy = diaUtc();
   const ip = request.headers.get("CF-Connecting-IP") || "anon";
   const clave = "uso:" + hoy + ":" + ip;

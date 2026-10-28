@@ -15,8 +15,17 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
       Worker -> Settings -> Bindings). Sin ese binding el limite no se activa
       Y ademas se paga ~4x de mas en audio (sin cache: $0.71/alumno/mes; con
       cache: $0.18). Ver `worker/README.md`, paso 3.7.
-- [ ] **Pre-generar el audio del catalogo**: ~3.600 frases fijas, ~$4.86 UNA
-      vez, y luego sirve gratis a todos los alumnos durante 30 dias.
+- [x] **Desplegar el Worker con el limite de uso** (v0.316.0) y CONFIRMAR en
+      Cloudflare que el binding `AUDIO_KV` existe. HECHO 27-Oct: binding
+      confirmado (`AUDIO_KV` -> `bymax-audio`), Worker desplegado y la barra
+      "Uso de IA de hoy" ya pinta en Ajustes (prueba de circuito completo).
+- [ ] **Pre-generar el audio del catalogo** con `tools/pregen_audio.py`.
+      MEDIDO (no estimado): 2.757 frases unicas, 45.896 caracteres, **$0.69**
+      una sola vez -- no los $4.86 que decia este roadmap, que venian de
+      suponer 3.600 frases largas. Requiere `ADMIN_KEY` en el Worker y en el
+      entorno; sin ella el propio rate limiting corta a las 60 frases.
+      No se puede lanzar desde la maquina de Walmart (el proxy bloquea el
+      Worker).
 - [ ] **Banco de ubicacion en fr / pt / it.** Hoy solo hay preguntas de INGLES,
       asi que esos tres idiomas SE SALTAN el examen y arrancan en A2 (ver
       v0.314.0). Para que la prueba sirva hacen falta >= 6 preguntas por idioma

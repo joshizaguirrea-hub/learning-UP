@@ -18,7 +18,7 @@ const TKEY = "linguapath.teachers";    // nombres de speaking + interview
 export const TEACHER_ROLES = [
   { id: "course", defaultName: "Megan", label: "Cursos", desc: "Te da las clases y las pistas." },
   { id: "speaking", defaultName: "Mathias", label: "Speaking (Llamada)", desc: "Tu profe para hablar por voz." },
-  { id: "interview", defaultName: "Lucien", label: "Entrevistas", desc: "Tu coach de entrevistas." },
+  { id: "interview", defaultName: "Susan", label: "Entrevistas", desc: "Tu coach de entrevistas." },
 ];
 
 const DEFAULT_NAME = (role) =>
@@ -36,7 +36,7 @@ const LEGACY_COURSE_NAMES = new Set(["Horus", "Profe Horus", "Teacher Horus"]);
 // tiene el default viejo guardado como si fuera un nombre elegido. Sin esta
 // migracion, cambiar el default no les llegaria nunca.
 const LEGACY_ROLE_NAMES = {
-  interview: new Set(["Susan"]), // antes Susan; hoy Lucien
+  interview: new Set(["Lucien"]), // antes Lucien; hoy Susan
 };
 
 /** Config actual del teacher de CURSO (nombre + avatar), con valores por defecto. */
@@ -107,7 +107,7 @@ export function teacherPortraitSrc(role = "course") {
 export const ROLE_TTS_VOICE = {
   course: "nova",      // Megan (mujer)
   speaking: "onyx",    // Mathias (hombre, grave)
-  interview: "echo",   // Lucien (hombre, distinto de onyx)
+  interview: "nova",   // Susan (mujer, volviendo a nova como Megan)
 };
 
 /** Voz OpenAI para un rol (default: la de curso, Megan). */
