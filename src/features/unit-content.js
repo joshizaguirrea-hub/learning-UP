@@ -17,9 +17,9 @@ import { robotName, teacherPortraitSrc } from "../ui/robot.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
 import { portraitImg } from "../ui/avatars.js";
 import { el } from "../ui/dom.js";
-import { openClass } from "./class-tutor.js";
 import { openStory } from "./story.js";
 import { openSkillClass, lessonForSkill } from "./skill-class.js";
+import { coachBubble } from "./unit-coach.js";
 import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openVoiceCall } from "./voice-call.js";
@@ -81,7 +81,15 @@ export function unitContent(unit, progressMap, user) {
 
   // POP central: el profe mirando al alumno. En modo humano (default) llena el
   // circulo con su RETRATO (Megan, rol course); en modo robot, la mascota Bymax.
-  // Al tocarlo, abre la clase 1 a 1.
+  // Al tocarlo, Megan dice QUE TE FALTA en una burbuja (ver unit-coach.js).
+  //
+  // Se crea aqui, antes del boton, porque el onclick lo necesita. La burbuja
+  // en si no se pinta hasta que el alumno toca: nada de abrumar al entrar.
+  const coach = coachBubble(unit, progressMap, user, (skillId) => {
+    const pop = ring.querySelector('[data-skill="' + skillId + '"]');
+    if (pop) pop.click();
+  });
+
   const faceSrc = teacherPortraitSrc("course");
   const face = faceSrc
     ? el("div", { class: "w-full h-full" }, portraitImg(faceSrc))
@@ -92,8 +100,8 @@ export function unitContent(unit, progressMap, user) {
       "bg-[radial-gradient(circle_at_50%_42%,rgba(167,139,250,0.35),rgba(139,92,246,0.12)_62%,transparent_72%)] " +
       "ring-2 ring-violet-400/40 hover:ring-violet-300/70 " +
       "focus:outline focus:outline-2 focus:outline-white/80",
-    onclick: () => openClass(unit, user),
-    "aria-label": "Hablar con " + name + " para elegir que practicar",
+    onclick: () => coach.mostrar(),
+    "aria-label": "Preguntar a " + name + " que me falta en esta unidad",
   }, face);
 
   // Las 6 competencias ORBITANDO a Bymax en un circulo real (posicion absoluta
@@ -143,8 +151,9 @@ export function unitContent(unit, progressMap, user) {
       el("h2", { class: "font-bold text-lg" }, "Tu clase con " + name),
       el("span", { class: "text-[10px] font-black tracking-widest bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full" }, "NUEVO")),
     el("p", { class: "text-sm text-slate-400 mb-4" },
-      "Toca a " + name + " para que te guie, o elige una competencia y te la explica al momento."),
+      "Toca a " + name + " para que te diga que te falta, o elige una competencia y te la explica al momento."),
     ring,
+    coach.caja,
     extras,
     boletinButton(unit, progressMap, user),
     notebookButton(unit, user),
@@ -267,6 +276,10 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
 
   return el("button", {
     type: "button",
+    // data-skill: lo usa la burbuja de Megan (unit-coach.js) para llevarte
+    // directo a la competencia que te falta, reusando ESTE mismo onclick en
+    // vez de duplicar la logica de apertura de cada lab.
+    "data-skill": key,
     class: `relative flex flex-col items-center justify-center gap-0.5 rounded-full ` +
       `w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] px-1 text-center ` +
       `bg-gradient-to-br ${meta.gradient} shadow-lg text-white ` +
