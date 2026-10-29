@@ -18,6 +18,7 @@ import { backHome, screenHeader } from "../ui/hub-ui.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { extractTextFromFile } from "../ui/file-text.js";
+import { parseCv, printCv, downloadCvDoc, mensajeError } from "./cv-document.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
 
 // El CV es contexto de RECLUTAMIENTO -> habla el coach de entrevistas (Susan),
@@ -144,7 +145,7 @@ function buildResultBlock(text) {
     } },
     el("span", { class: "w-5 h-5", html: ICONS.check }), el("span", {}, "Copiar"));
   const dlBtn = el("button", { type: "button",
-    class: "inline-flex items-center gap-2 border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 px-3 py-2 rounded-xl hover:bg-emerald-500/20",
+    class: "inline-flex items-center gap-2 border border-slate-600 bg-slate-700/30 text-slate-300 px-3 py-2 rounded-xl hover:bg-slate-700/50",
     onclick: () => {
       // Descarga efimera: genera el .txt en el navegador; el CV nunca sale del equipo.
       const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
@@ -152,11 +153,55 @@ function buildResultBlock(text) {
       const a = el("a", { href: url, download: "CV_Learning_UP.txt" });
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
-      dlBtn.lastChild.textContent = "Descargado!"; setTimeout(() => (dlBtn.lastChild.textContent = "Descargar (.txt)"), 1500);
+      dlBtn.lastChild.textContent = "Descargado!"; setTimeout(() => (dlBtn.lastChild.textContent = "Texto plano"), 1500);
     } },
-    el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.check }), el("span", {}, "Descargar (.txt)"));
+    el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.check }), el("span", {}, "Texto plano"));
+
   return el("div", { class: "space-y-2" },
-    el("div", { class: "flex flex-wrap justify-end gap-2" }, dlBtn, copyBtn), pre);
+    el("div", { class: "flex flex-wrap justify-end gap-2" },
+      ...documentButtons(text), dlBtn, copyBtn), pre);
+}
+
+/**
+ * Botones que entregan el CV como DOCUMENTO, no como texto suelto.
+ *
+ * Antes la unica salida era un .txt. Nadie manda un .txt a un reclutador: el
+ * usuario tenia que copiarlo a Word y maquetarlo, que es justo el trabajo que
+ * venia a ahorrarse. Ahora puede imprimir a PDF o bajar un .doc editable.
+ *
+ * Si el parser no reconoce la estructura, estos botones NO se pintan y queda
+ * el texto plano de siempre: mejor una salida menos que un PDF roto.
+ */
+function documentButtons(text) {
+  let cv;
+  try {
+    cv = parseCv(text);
+  } catch (e) {
+    console.warn("[cv] no pude estructurar el CV:", e);
+    return [];
+  }
+  if (!cv.secciones.length) return [];
+
+  const pdfBtn = el("button", { type: "button",
+    class: "inline-flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 " +
+      "text-white font-semibold px-4 py-2 rounded-xl hover:brightness-110 " +
+      "focus:outline focus:outline-2 focus:outline-emerald-300",
+    onclick: () => printCv(cv) },
+    el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.check }),
+    el("span", {}, "Guardar PDF"));
+
+  const docBtn = el("button", { type: "button",
+    class: "inline-flex items-center gap-2 border border-sky-500/40 bg-sky-500/10 " +
+      "text-sky-200 px-3 py-2 rounded-xl hover:bg-sky-500/20",
+    onclick: () => {
+      downloadCvDoc(cv);
+      docBtn.lastChild.textContent = "Descargado!";
+      setTimeout(() => (docBtn.lastChild.textContent = "Word (.doc)"), 1500);
+    } },
+    el("span", { class: "w-5 h-5", html: ICONS.download || ICONS.check }),
+    el("span", {}, "Word (.doc)"));
+
+  return [pdfBtn, docBtn];
 }
 
 /** Prompt del flujo estrella: CV completo de alta calidad, listo para ATS. */
@@ -278,7 +323,7 @@ export async function renderCvCoach(container, user) {
 
       const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question: buildPro(v), role: "interview" });
       genBtn.disabled = false;
-      if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }
+      if (error || !answer) { status.textContent = mensajeError(error); return; }
       status.textContent = "Listo. Revisa, ajusta los placeholders y copialo.";
       out.replaceChildren(buildResultBlock(stripMd(answer)));
     }
@@ -347,7 +392,7 @@ export async function renderCvCoach(container, user) {
       const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question, role: "interview" });
       genBtn.disabled = false;
 
-      if (error || !answer) { status.textContent = "No pude ahora: " + (error || "intenta de nuevo."); return; }
+      if (error || !answer) { status.textContent = mensajeError(error); return; }
       status.textContent = "Listo. Revisa y ajusta a tu gusto.";
       out.replaceChildren(buildResultBlock(stripMd(answer)));
     }

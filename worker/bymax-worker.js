@@ -908,10 +908,15 @@ async function handleChat(request, env, origin) {
     else alt.push(c);
   }
 
-  // CEREBRO por actividad: las CLASES usan OpenAI (GPT-4o-mini); las llamadas con
-  // Bymax (conversacion/listening) y las entrevistas usan Gemini. Si OpenAI falla
-  // en una clase, caemos a Gemini (el alumno nunca se queda sin respuesta).
-  if (isClass && env.OPENAI_API_KEY) {
+  // CEREBRO por actividad: las CLASES y el CV usan OpenAI (GPT-4o-mini); las
+  // llamadas con Bymax (conversacion/listening) y las entrevistas usan Gemini.
+  // Si OpenAI falla, caemos a Gemini (el alumno nunca se queda sin respuesta).
+  //
+  // EL CV ENTRA AQUI A PROPOSITO. Antes iba como "interview" -> solo Gemini,
+  // sin respaldo: un 503 de Google ("model is currently experiencing high
+  // demand") dejaba al usuario sin CV y sin alternativa. Es justo el caso que
+  // menos puede fallar: alguien preparando una candidatura real.
+  if ((isClass || isCv) && env.OPENAI_API_KEY) {
     try {
       const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
       return json({ answer, brain: "openai" }, 200, origin);
@@ -945,7 +950,18 @@ async function handleChat(request, env, origin) {
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    return json({ error: "Gemini respondio con error.", status: res.status, detail: detail.slice(0, 300) }, 502, origin);
+    // 503/429 de Google = saturacion temporal, NO un fallo del usuario. Se
+    // distingue para que la pantalla pueda decir "reintenta" en vez de soltar
+    // un volcado tecnico que no ayuda a nadie.
+    const saturado = res.status === 503 || res.status === 429;
+    return json({
+      error: saturado
+        ? "El servicio de IA esta saturado ahora mismo. Reintenta en un momento."
+        : "Gemini respondio con error.",
+      retry: saturado,
+      status: res.status,
+      detail: detail.slice(0, 300),
+    }, 502, origin);
   }
 
   const data = await res.json().catch(() => null);

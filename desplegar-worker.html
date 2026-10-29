@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1011 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1027 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1011 lineas &middot; 51.2 KB &middot; commit 17d23cf 2026-10-27</p>
+        <p class="text-xs text-slate-500">1027 lineas &middot; 51.9 KB &middot; commit 2d8a47e 2026-10-28</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -1030,10 +1030,15 @@ async function handleChat(request, env, origin) {
     else alt.push(c);
   }
 
-  // CEREBRO por actividad: las CLASES usan OpenAI (GPT-4o-mini); las llamadas con
-  // Bymax (conversacion/listening) y las entrevistas usan Gemini. Si OpenAI falla
-  // en una clase, caemos a Gemini (el alumno nunca se queda sin respuesta).
-  if (isClass &amp;&amp; env.OPENAI_API_KEY) {
+  // CEREBRO por actividad: las CLASES y el CV usan OpenAI (GPT-4o-mini); las
+  // llamadas con Bymax (conversacion/listening) y las entrevistas usan Gemini.
+  // Si OpenAI falla, caemos a Gemini (el alumno nunca se queda sin respuesta).
+  //
+  // EL CV ENTRA AQUI A PROPOSITO. Antes iba como &quot;interview&quot; -&gt; solo Gemini,
+  // sin respaldo: un 503 de Google (&quot;model is currently experiencing high
+  // demand&quot;) dejaba al usuario sin CV y sin alternativa. Es justo el caso que
+  // menos puede fallar: alguien preparando una candidatura real.
+  if ((isClass || isCv) &amp;&amp; env.OPENAI_API_KEY) {
     try {
       const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
       return json({ answer, brain: &quot;openai&quot; }, 200, origin);
@@ -1067,7 +1072,18 @@ async function handleChat(request, env, origin) {
 
   if (!res.ok) {
     const detail = await res.text().catch(() =&gt; &quot;&quot;);
-    return json({ error: &quot;Gemini respondio con error.&quot;, status: res.status, detail: detail.slice(0, 300) }, 502, origin);
+    // 503/429 de Google = saturacion temporal, NO un fallo del usuario. Se
+    // distingue para que la pantalla pueda decir &quot;reintenta&quot; en vez de soltar
+    // un volcado tecnico que no ayuda a nadie.
+    const saturado = res.status === 503 || res.status === 429;
+    return json({
+      error: saturado
+        ? &quot;El servicio de IA esta saturado ahora mismo. Reintenta en un momento.&quot;
+        : &quot;Gemini respondio con error.&quot;,
+      retry: saturado,
+      status: res.status,
+      detail: detail.slice(0, 300),
+    }, 502, origin);
   }
 
   const data = await res.json().catch(() =&gt; null);
@@ -1135,7 +1151,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 28/10/2026 09:08 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 29/10/2026 11:52 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
