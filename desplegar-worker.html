@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1027 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1039 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1027 lineas &middot; 51.9 KB &middot; commit 2d8a47e 2026-10-28</p>
+        <p class="text-xs text-slate-500">1039 lineas &middot; 52.6 KB &middot; commit c550eb3 2026-10-29</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -922,7 +922,19 @@ async function handleChat(request, env, origin) {
   try { body = await request.json(); }
   catch { return json({ error: &quot;JSON invalido.&quot; }, 400, origin); }
 
-  const question = String(body.question || &quot;&quot;).slice(0, 800).trim();
+  // El CV necesita MUCHO mas espacio que un turno de chat: el prompt lleva la
+  // estructura pedida (~1.400 chars) MAS el CV entero del candidato, que son
+  // varios miles. Con el tope de 800 se cortaba en el 11% del prompt y el CV
+  // NO LLEGABA NUNCA: la IA veia la estructura, no veia los datos, y devolvia
+  // una plantilla con [placeholders]. El usuario subia su CV para nada.
+  //
+  // 24.000 chars ~ 6.000 tokens de entrada: cabe de sobra en gpt-4o-mini y en
+  // Gemini Flash, y cuesta centimos. El tope sigue existiendo para que nadie
+  // mande un libro entero.
+  const esCv = String(body.topic || &quot;&quot;).trim().toLowerCase() === &quot;cv&quot;;
+  const TOPE_PREGUNTA = esCv ? 24000 : 800;
+
+  const question = String(body.question || &quot;&quot;).slice(0, TOPE_PREGUNTA).trim();
   const context = String(body.context || &quot;&quot;).slice(0, 600).trim();
   if (!question) return json({ error: &quot;Escribe una pregunta.&quot; }, 400, origin);
 
@@ -1151,7 +1163,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 29/10/2026 11:52 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 29/10/2026 17:05 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>

@@ -239,6 +239,16 @@ function buildPro(v) {
     "MISION: Actua como reclutador senior y experto en ATS. Con el CV base, el puesto objetivo y las skills " +
     "requeridas, ENTREGA UN CV COMPLETO DE ALTA CALIDAD en ingles, listo para aplicar, optimizado para ATS y " +
     "con estandares actuales.\n" +
+    // REGLA DURA, primero del todo. Antes el Worker cortaba el prompt y la IA
+    // nunca veia el CV: devolvia una plantilla con [Job Title] y [Skill 1].
+    // Ya llega entero, pero el modelo tiende igual a la plantilla si no se le
+    // prohibe: el usuario sube SU CV para ver SUS datos reestructurados.
+    "REGLA CRITICA: USA LOS DATOS REALES DEL CV DE ABAJO. Nombre, empresas, " +
+    "puestos, fechas, titulos y certificaciones son los del candidato: copialos " +
+    "tal cual, traducidos al ingles. PROHIBIDO devolver una plantilla generica " +
+    "con [Job Title], [Company Name] o [Skill 1]: eso es un fallo total. Los " +
+    "corchetes SOLO valen para datos que de verdad NO aparecen en el CV (tipico: " +
+    "[Email], [Telefono]) o para metricas que el candidato debe rellenar ([X%]).\n" +
     "ESTRUCTURA (en este orden, una sola columna, sin tablas ni iconos para que el ATS lo lea):\n" +
     "1) Nombre + headline (puesto objetivo)\n2) Contacto (usa placeholders [Email] [Telefono] [LinkedIn] [Ciudad] si faltan)\n" +
     "3) Professional Summary (3-4 lineas, orientado a resultados)\n4) Core Skills (agrupadas; incluye NATURALMENTE las skills requeridas)\n" +

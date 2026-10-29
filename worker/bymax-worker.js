@@ -800,7 +800,19 @@ async function handleChat(request, env, origin) {
   try { body = await request.json(); }
   catch { return json({ error: "JSON invalido." }, 400, origin); }
 
-  const question = String(body.question || "").slice(0, 800).trim();
+  // El CV necesita MUCHO mas espacio que un turno de chat: el prompt lleva la
+  // estructura pedida (~1.400 chars) MAS el CV entero del candidato, que son
+  // varios miles. Con el tope de 800 se cortaba en el 11% del prompt y el CV
+  // NO LLEGABA NUNCA: la IA veia la estructura, no veia los datos, y devolvia
+  // una plantilla con [placeholders]. El usuario subia su CV para nada.
+  //
+  // 24.000 chars ~ 6.000 tokens de entrada: cabe de sobra en gpt-4o-mini y en
+  // Gemini Flash, y cuesta centimos. El tope sigue existiendo para que nadie
+  // mande un libro entero.
+  const esCv = String(body.topic || "").trim().toLowerCase() === "cv";
+  const TOPE_PREGUNTA = esCv ? 24000 : 800;
+
+  const question = String(body.question || "").slice(0, TOPE_PREGUNTA).trim();
   const context = String(body.context || "").slice(0, 600).trim();
   if (!question) return json({ error: "Escribe una pregunta." }, 400, origin);
 
