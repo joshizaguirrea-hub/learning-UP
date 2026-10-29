@@ -30,7 +30,7 @@ import { el } from "../ui/dom.js";
 import { announce } from "../ui/a11y.js";
 import { buildUnitReport } from "../core/unit-report.js";
 import { skillLabel } from "../data/skill-meta.js";
-import { robotName } from "../ui/robot-prefs.js";
+import { robotName } from "../ui/robot.js";
 
 // Frases de arranque. Se elige una al azar para que Megan no suene a disco
 // rayado, pero NINGUNA afirma nada sobre el progreso: eso va aparte y medido.
