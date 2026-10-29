@@ -203,6 +203,35 @@ function documentButtons(text) {
 
   return [pdfBtn, docBtn];
 }
+/**
+ * Aviso de que el CV completo YA aplica los 10 puntos de la lista de abajo.
+ *
+ * POR QUE: la lista de 10 tarjetas hacia creer que habia que pasar por las
+ * diez, una por una, para tener un CV decente. No es asi: el flujo estrella
+ * las aplica todas de una vez. Las tarjetas sueltas son para pulir UNA parte
+ * con calma, no un requisito.
+ *
+ * La lista de puntos se deriva de CV_MODES, no se escribe a mano: si manana
+ * se anade un modo 11, aparece aqui solo. Una promesa copiada a mano se
+ * desincroniza del codigo el primer dia.
+ */
+function incluyeTodoCard() {
+  const puntos = CV_MODES.map((m) => m.title);
+  return el("div", {
+    class: "rounded-2xl bg-emerald-500/5 border border-emerald-500/25 p-4",
+  },
+    el("p", { class: "text-sm font-bold text-emerald-300" },
+      "El CV completo ya incluye los " + puntos.length + " puntos de abajo"),
+    el("p", { class: "text-sm text-slate-400 mt-1" },
+      "Al reestructurar tu CV se aplican todos a la vez: resumen reescrito, " +
+      "logros con metricas, keywords para el ATS, frases vagas eliminadas, " +
+      "skills agrupadas y formato de una sola columna que el filtro puede leer."),
+    el("ul", { class: "mt-3 flex flex-wrap gap-1.5" },
+      ...puntos.map((t) => el("li", {
+        class: "text-xs font-medium px-2 py-1 rounded-lg bg-emerald-500/10 " +
+          "text-emerald-200/90 border border-emerald-500/20",
+      }, t))));
+}
 
 /** Prompt del flujo estrella: CV completo de alta calidad, listo para ATS. */
 function buildPro(v) {
@@ -216,7 +245,15 @@ function buildPro(v) {
     "5) Professional Experience (bullets con verbos de accion y metricas; usa [X%] o [N] donde falten datos)\n" +
     "6) Education\n7) Certifications / Extras si aplica\n" +
     "REGLAS ATS: integra keywords del puesto y de las skills de forma natural; fechas claras; sin graficos ni caracteres raros.\n" +
-    "Al final, en 'Notas:' (espanol): (a) que keywords agregaste, (b) 3 cosas que el candidato debe completar, (c) puntaje ATS estimado 0-100.\n\n" +
+    // AUDITORIA + CAMBIO DE CARRERA: son dos de los 10 modos sueltos, y la
+    // pantalla ahora PROMETE que el CV completo los incluye. Si no estuvieran
+    // aqui, esa promesa seria falsa (medido: antes solo cubria 8 de 10).
+    "AUDITORIA: elimina frases vagas o de relleno ('responsible for', 'team player', 'hard worker') " +
+    "y sustituyelas por evidencia concreta. Corta lo que no aporte al puesto objetivo.\n" +
+    "HABILIDADES TRANSFERIBLES: si el historial del candidato viene de otro campo distinto al puesto " +
+    "objetivo, reencuadra su experiencia resaltando lo que SI transfiere, sin inventar experiencia que no tiene.\n" +
+    "Al final, en 'Notas:' (espanol): (a) que keywords agregaste, (b) que frases vagas quitaste y por que, " +
+    "(c) 3 cosas que el candidato debe completar, (d) puntaje ATS estimado 0-100.\n\n" +
     "Puesto objetivo:\n" + v.jobTitle + "\n\nSkills requeridas:\n" + (v.skills || "(no especificadas)") + "\n\nCV base del candidato:\n" + v.cv;
 }
 
@@ -248,7 +285,9 @@ export async function renderCvCoach(container, user) {
         : null,
       el("p", { class: "text-sm text-slate-400" }, "Elige que quieres trabajar:"),
       featuredProCard(),
-      el("p", { class: "text-sm text-slate-400 pt-1" }, "O trabaja una parte especifica:"),
+      incluyeTodoCard(),
+      el("p", { class: "text-sm text-slate-400 pt-1" },
+        "O trabaja UNA parte por separado, para pulir con calma:"),
       el("div", { class: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, ...cards)));
     focusMainHeading(container);
   }
