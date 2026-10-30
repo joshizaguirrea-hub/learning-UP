@@ -123,20 +123,43 @@ const ESTILOS = `
   * { box-sizing: border-box; }
   body { margin: 0; padding: 0; background: #fff; color: #1a1a1a;
          font-family: Georgia, "Times New Roman", serif; font-size: 10.5pt;
-         line-height: 1.45; }
-  .hoja { max-width: 8.5in; margin: 0 auto; padding: 0.55in 0.65in; }
-  .nombre { font-size: 21pt; font-weight: 700; letter-spacing: .4px; margin: 0; }
-  .headline { font-size: 11.5pt; color: #444; margin: 2px 0 0; font-style: italic; }
-  .contacto { font-size: 9.5pt; color: #333; margin: 7px 0 0;
-              border-bottom: 1.5px solid #222; padding-bottom: 9px; }
-  h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 1.1px;
-       border-bottom: 1px solid #999; padding-bottom: 3px;
-       margin: 15px 0 7px; font-weight: 700; }
-  p { margin: 4px 0; text-align: justify; }
-  ul { margin: 4px 0 4px 17px; padding: 0; }
-  li { margin: 2.5px 0; }
-  /* Evita que una seccion quede partida entre dos paginas. */
-  section { break-inside: avoid; }
+         line-height: 1.38; }
+  .hoja { max-width: 8.5in; margin: 0 auto; padding: 0.5in 0.6in; }
+  .nombre { font-size: 20pt; font-weight: 700; letter-spacing: .3px; margin: 0; }
+  .headline { font-size: 11pt; color: #444; margin: 1px 0 0; font-style: italic; }
+  .contacto { font-size: 9.5pt; color: #333; margin: 5px 0 0;
+              border-bottom: 1.5px solid #222; padding-bottom: 6px; }
+  h2 { font-size: 10.5pt; text-transform: uppercase; letter-spacing: 1px;
+       border-bottom: 1px solid #999; padding-bottom: 2px;
+       margin: 11px 0 5px; font-weight: 700; }
+  p { margin: 3px 0; text-align: justify; }
+  ul { margin: 3px 0 3px 15px; padding: 0; }
+  li { margin: 1.5px 0; }
+
+  /* SKILLS A DOS COLUMNAS. Son lineas cortas (3-6 palabras): en una sola
+   * columna dejan media hoja de blanco a la derecha y empujan la experiencia
+   * -- lo importante -- fuera de la primera pagina. El reclutador escanea el
+   * CV en segundos, asi que lo que mas pesa debe caber arriba. */
+  ul.cols { columns: 2; column-gap: 26px; margin-left: 15px; }
+  ul.cols li { break-inside: avoid; }
+
+  /* PAGINACION.
+   * Antes habia "section { break-inside: avoid }", que obliga a que la
+   * seccion entera quepa en la pagina. "Professional Experience" con varios
+   * empleos mide mas que el hueco restante casi siempre, asi que saltaba
+   * COMPLETA a la hoja siguiente y dejaba medio folio en blanco.
+   *
+   * OJO: aqui NO se pueden usar backticks. Este comentario vive DENTRO del
+   * template literal ESTILOS, y un backtick lo cierra antes de tiempo: el
+   * archivo entero deja de parsear. Me paso al escribir este mismo aviso.
+   *
+   * Lo correcto es dejar que el contenido fluya y proteger solo lo pequeno:
+   * que un titulo no quede solo al final de la pagina (orphans/widows) y que
+   * una vineta no se parta por la mitad. */
+  h2 { break-after: avoid; page-break-after: avoid; }
+  li { break-inside: avoid; page-break-inside: avoid; }
+  p { orphans: 2; widows: 2; }
+
   @media print {
     @page { margin: 0.5in; size: letter; }
     .hoja { padding: 0; max-width: none; }
@@ -162,10 +185,19 @@ export function cvToHtml(cv, { conEstilos = true } = {}) {
 
   for (const s of cv.secciones) {
     partes.push(`<section><h2>${esc(s.titulo)}</h2>`);
+    // Las skills van a dos columnas: son lineas cortas y en una sola columna
+    // desperdician media hoja. Solo si son varias y de verdad cortas; una
+    // seccion con frases largas a dos columnas se lee fatal.
+    const vinetas = s.bloques.filter((b) => b.tipo === "vineta");
+    const esListaCorta = /SKILL|COMPETEN|LANGUAGE|IDIOMA|CERTIFIC/i.test(s.titulo) &&
+      vinetas.length >= 4 &&
+      vinetas.every((b) => b.texto.length <= 60);
+    const claseUl = esListaCorta ? ' class="cols"' : "";
+
     let enLista = false;
     for (const b of s.bloques) {
       if (b.tipo === "vineta") {
-        if (!enLista) { partes.push("<ul>"); enLista = true; }
+        if (!enLista) { partes.push(`<ul${claseUl}>`); enLista = true; }
         partes.push(`<li>${esc(b.texto)}</li>`);
       } else {
         if (enLista) { partes.push("</ul>"); enLista = false; }
