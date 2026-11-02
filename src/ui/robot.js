@@ -8,13 +8,14 @@
  */
 import { el } from "./dom.js";
 import { ICONS } from "./icons.js";
-import { speakButton, speakRobot, speakMono, robotChirp } from "./speech.js";
+import { speakButton, speakRobot, speakMono, robotChirp, prefetchSpeak } from "./speech.js";
 import { richText, stripMarkup } from "./richtext.js";
 import { avatarNode, AVATAR_LIST, avatarSvg, bymaxEmote, portraitNode } from "./avatars.js";
 import { getRobot, setRobot, getTeacherName, getTeacher3d, setTeacher3d, teacherPortraitSrc } from "./robot-prefs.js";
 import { HAIR_COLORS, SKIN_TONES } from "./avatar-palette.js";
 import { ACCENTS, getAccent, setAccent } from "./prefs.js";
 import { line } from "./robot-lines.js";
+import { prefetchCloud } from "./cloud-tts.js";
 import { openRuleExplainer } from "../features/rule-explainer.js";
 import { openBymaxChat } from "../features/bymax-chat.js";
 
@@ -47,6 +48,27 @@ const REACT = {
     fr: ["Presque! Tu peux le faire.", "R\u00e9essaie!", "Bel essai!", "Tu y es presque!"],
   },
 };
+
+/**
+ * Pre-descarga TODAS las frases de reaccion (acierto/error) de un idioma, para
+ * que robotReact() suene AL INSTANTE la primera vez que se usa en la sesion.
+ *
+ * POR QUE: sin esto, la voz de nube tiene que esperar la respuesta del Worker
+ * justo en el momento en que el alumno mas espera feedback -- recien contesto
+ * y se siente como un delay. El pool de frases es chico y fijo (ver REACT
+ * arriba), asi que vale la pena precargarlo ENTERO una vez al entrar a la
+ * leccion/examen, no frase por frase cuando ya es tarde.
+ * @param {string} [lang] idioma de la voz del profe (es-MX | en-US | it-IT...)
+ */
+export function warmupRobotReact(lang = "es-MX") {
+  const base = String(lang).slice(0, 2).toLowerCase();
+  const pools = [REACT.ok[base] || REACT.ok.en, REACT.no[base] || REACT.no.en];
+  const useBilingualEngine = base === "es" || base === "en";
+  pools.flat().forEach((phrase) => {
+    if (useBilingualEngine) prefetchSpeak(phrase, lang, { rate: 1.05, pitch: 1.18 });
+    else prefetchCloud(phrase, base, { rate: 1.02, pitch: 1.12 }); // misma ruta que speakMono en robotReact
+  });
+}
 
 /** El profe reacciona con voz al acierto/error (frase corta al azar). */
 export function robotReact(ok, lang = "es-MX") {

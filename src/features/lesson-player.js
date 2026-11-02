@@ -18,7 +18,7 @@ import { el, mount } from "../ui/dom.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 import { playCorrect, playWrong, playAchievement, playFanfare } from "../ui/sound.js";
-import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact, openWhyWrong } from "../ui/robot.js";
+import { robotBubble, robotHelpButton, openRobotHint, robotAvatar, robotReadButton, robotName, openRobotSetup, robotReact, openWhyWrong, warmupRobotReact } from "../ui/robot.js";
 import { isRobotConfigured } from "../ui/robot-prefs.js";
 import { richText } from "../ui/richtext.js";
 import { speak, speakSequence } from "../ui/speech.js";
@@ -57,6 +57,11 @@ export async function renderLessonPlayer(container, params, user) {
   // Elogio de acierto/animo en el idioma META (lo que se aprende): en inmersion
   // "Perfect!"/"Great job!" con voz inglesa, NO "Perfecto" con acento gringo.
   const praiseLang = unitTts(unit);
+  // Precarga el audio de los elogios ANTES de la primera pregunta: sin esto, la
+  // voz de nube esperaba la respuesta del Worker justo al contestar (el delay
+  // que se notaba). El pool es chico (REACT en ui/robot.js), se calienta entero
+  // una sola vez al abrir la leccion/examen.
+  warmupRobotReact(praiseLang);
   const steps = buildSteps(unit, lesson, robotLang);
   const activityTotal = steps.filter((s) => s.kind === "activity").length;
   // La regla de la unidad (de su leccion de gramatica) para las pistas del Profe Robo.

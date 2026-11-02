@@ -102,11 +102,13 @@ function pickVoice(lang) {
 // Pronuncia un texto en el idioma indicado (no lo parte por idioma: el profe de
 // cada rol dice su frase entera). Normaliza simbolos y lo pasa a speakSequence.
 // @param text  @param lang idioma (es-MX | en-US)  @param opts { rate, pitch, gap }
-export function speak(text, lang = "en-US", opts = {}) {
-  if (!text) return;
-
-  // Normaliza simbolos para que suene NATURAL (como un profe, no una maquina):
-  //   "=" -> pausa (coma); "\u00B7"/flechas -> separan ideas; "+ ( ) * _ :" -> pausa.
+// Arma los "items" {text, lang, opts} que consume speakSequence, a partir de
+// un texto suelto. Pura (sin reproducir nada) para que speak() Y prefetchSpeak()
+// compartan EXACTAMENTE la misma segmentacion -- si se duplicara a mano, tarde
+// o temprano una copia se desincroniza y el prefetch deja de calzar con lo que
+// de verdad se reproduce (cache que nunca pega).
+function buildSpeakItems(text, lang, opts) {
+  if (!text) return [];
   const norm = String(text)
     .replace(/\s*=\s*/g, ", ")
     .replace(/\u00B7/g, " / ")
@@ -117,19 +119,33 @@ export function speak(text, lang = "en-US", opts = {}) {
     .replace(/\s+/g, " ")
     .trim();
   const parts = norm.split(/\s*\/\s*/).map((s) => s.trim().replace(/^[,.\s]+/, "")).filter(Boolean);
-  if (!parts.length) return;
+  if (!parts.length) return [];
+  if (monoBase(lang)) return parts.map((p) => ({ text: p, lang, opts }));
+  return parts.flatMap((p) => toBilingualItems(p, lang).map((it) => ({ ...it, opts: { ...it.opts, ...opts } })));
+}
 
-  // Idioma MONO (it/pt/fr/ja): NO pasa por el motor bilingue es/en (que lo
-  // clasificaria palabra por palabra y lo leeria en ingles). Cada parte va
-  // entera con su idioma -> speakSequence la enruta a la nube por su base.
-  if (monoBase(lang)) {
-    speakSequence(parts.map((p) => ({ text: p, lang, opts })));
-    return;
-  }
+export function speak(text, lang = "en-US", opts = {}) {
+  const items = buildSpeakItems(text, lang, opts);
+  if (items.length) speakSequence(items);
+}
 
-  // Cada parte se re-segmenta por idioma (garantia anti-Spanglish): aunque una
-  // parte traiga mezcla es/en, toBilingualItems le da a cada trozo su voz.
-  speakSequence(parts.flatMap((p) => toBilingualItems(p, lang).map((it) => ({ ...it, opts: { ...it.opts, ...opts } }))));
+/**
+ * Pre-descarga (warm cache) el audio que speak() reproduciria para este texto,
+ * SIN reproducirlo. Pensado para frases cortas que se repiten mucho (ej. los
+ * elogios de acierto/error de robotReact): si se precargan ANTES de que el
+ * alumno conteste, la voz suena AL INSTANTE justo cuando mas se nota un
+ * retraso, en vez de esperar la respuesta del Worker en ese momento.
+ * Reusa buildSpeakItems/expandForSpeech (misma segmentacion que speak()), asi
+ * la clave de cache de cloud-tts.js coincide exacto con la reproduccion real.
+ */
+export function prefetchSpeak(text, lang = "en-US", opts = {}) {
+  if (!cloudTtsEnabled()) return;
+  const items = buildSpeakItems(text, lang, opts);
+  expandForSpeech(items).forEach((it) => {
+    const base = it.base || (String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en");
+    const ct = base === "es" ? fixSpanishAccents(String(it.text)) : String(it.text);
+    prefetchCloud(ct, base, cloudPreOpts(base, it.opts || {}));
+  });
 }
 
 // --- Deteccion de idioma por frase (anti-Spanglish en respuestas MIXTAS) ---
@@ -323,25 +339,20 @@ export function splitForSpeech(text, maxChars = 160) {
   return byComma.length ? byComma : [t];
 }
 
-let seqGen = 0; // generacion global: solo la ultima secuencia sigue viva
-export function speakSequence(items, onEach, onDone) {
-  cancelCloud();
-  if (isSpeechSupported()) window.speechSynthesis.cancel();
-
-  // Solo la ULTIMA secuencia manda: si alguien arranca otra, esta se detiene
-  // sola (evita que dos secuencias se pisen -> "dice palabras y reinicia").
-  const myGen = ++seqGen;
-
-  // MODELO DOS PROFES: cada item se dice ENTERO en el idioma de su rol. El profe
-  // de ESPANOL (explicaciones, preguntas, logica) no corta a ingles a media
-  // frase; el profe de INGLES lee el contenido (ejemplos, dialogos, lecturas).
-  // El idioma lo fija quien crea el item (lang: es-MX | en-US).
-  // GARANTIA anti-Spanglish (punto UNICO): cada item se re-segmenta por idioma a
-  // nivel de palabra/racha. Aunque un item traiga mezcla es/en (IA, contenido,
-  // reglas...), aqui se parte en trozos de UN idioma -> la voz NUNCA mezcla.
-  // El it.lang original es solo el idioma POR DEFECTO para palabras ambiguas.
-  // Las opts del item mandan sobre las del segmentador (rate/pitch del rol).
-  const expanded = items.flatMap((it) => {
+// Arma los trozos finales {text, lang, base, opts, gapAfter} a partir de los
+// "items" de alto nivel. MODELO DOS PROFES: cada item se dice ENTERO en el
+// idioma de su rol. El profe de ESPANOL (explicaciones, preguntas, logica) no
+// corta a ingles a media frase; el profe de INGLES lee el contenido (ejemplos,
+// dialogos, lecturas). El idioma lo fija quien crea el item (lang: es-MX | en-US).
+// GARANTIA anti-Spanglish (punto UNICO): cada item se re-segmenta por idioma a
+// nivel de palabra/racha. Aunque un item traiga mezcla es/en (IA, contenido,
+// reglas...), aqui se parte en trozos de UN idioma -> la voz NUNCA mezcla.
+// El it.lang original es solo el idioma POR DEFECTO para palabras ambiguas.
+// Las opts del item mandan sobre las del segmentador (rate/pitch del rol).
+// Pura (sin reproducir nada): la usan speakSequence() Y prefetchSpeak(), asi
+// el prefetch arma EXACTAMENTE los mismos trozos que se van a reproducir.
+function expandForSpeech(items) {
+  return items.flatMap((it) => {
     const mono = monoBase(it.lang);
     // Idioma MONO (it/pt/fr/ja): NO se re-segmenta por idioma (no hay mezcla
     // es/en que separar). Se parte solo por oraciones y se lee ENTERO en la nube
@@ -372,6 +383,26 @@ export function speakSequence(items, onEach, onDone) {
     });
     return out;
   });
+}
+
+// Ingles/otros idiomas PAUSADOS por defecto (0.9) si nadie fijo un rate;
+// espanol queda normal (ya suena nitido). Un solo punto de verdad: antes esta
+// cuenta vivia copiada en el warm-up Y en next(), y las dos copias se podian
+// desincronizar (el prefetch calienta una clave y la reproduccion pide otra).
+function cloudPreOpts(base, baseOpts = {}) {
+  return (base !== "es" && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
+}
+
+let seqGen = 0; // generacion global: solo la ultima secuencia sigue viva
+export function speakSequence(items, onEach, onDone) {
+  cancelCloud();
+  if (isSpeechSupported()) window.speechSynthesis.cancel();
+
+  // Solo la ULTIMA secuencia manda: si alguien arranca otra, esta se detiene
+  // sola (evita que dos secuencias se pisen -> "dice palabras y reinicia").
+  const myGen = ++seqGen;
+
+  const expanded = expandForSpeech(items);
 
   let i = 0;
   let cancelled = false;
@@ -385,9 +416,7 @@ export function speakSequence(items, onEach, onDone) {
     for (const it of expanded) {
       const base = it.base || (String(it.lang || "es-MX").toLowerCase().startsWith("es") ? "es" : "en");
       const isEs = base === "es";
-      const baseOpts = it.opts || {};
-      const preOpts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
-      prefetchCloud(isEs ? fixSpanishAccents(String(it.text)) : String(it.text), base, preOpts);
+      prefetchCloud(isEs ? fixSpanishAccents(String(it.text)) : String(it.text), base, cloudPreOpts(base, it.opts || {}));
     }
   }
 
@@ -408,10 +437,7 @@ export function speakSequence(items, onEach, onDone) {
     // por su base), independiente del dispositivo. Cae al navegador si falla.
     if (cloudTtsEnabled()) {
       const ct = isEs ? fixSpanishAccents(String(it.text)) : String(it.text);
-      // Ingles/otros idiomas PAUSADOS por defecto (0.9) si nadie fijo un rate;
-      // espanol queda normal (ya suena nitido). Asi nunca sale atropellado.
-      const baseOpts = it.opts || {};
-      const opts = (!isEs && baseOpts.rate == null) ? { ...baseOpts, rate: 0.9 } : baseOpts;
+      const opts = cloudPreOpts(base, it.opts || {});
       cloudSpeak(ct, base, opts)
         .then(() => advance(it))
         .catch(() => {
