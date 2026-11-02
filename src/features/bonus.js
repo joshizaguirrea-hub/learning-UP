@@ -11,7 +11,7 @@ import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { buildPractice } from "../core/verb-practice.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
-import { generateTips } from "../core/verb-tips.js";
+import { buildVerbTeaser, buildVerbTimeline } from "./verb-timeline.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
@@ -162,9 +162,11 @@ export async function renderBonusDeck(container, params, user) {
       announce("Verbo aprendido.");
     };
 
-    const back = el("div", { class: "mt-4 hidden" },
-      el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
-      formsRow(item),
+    // Antes de revelar: candados (cuantas formas faltan), sin dar la respuesta.
+    const teaser = buildVerbTeaser(item);
+
+    const back = el("div", { class: "mt-2 hidden" },
+      buildVerbTimeline(item, { lang: spLang }) || el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
       examplesBlock(item.examples, spLang),
       deck.practice ? generatorBlock(item) : null,
       deck.practice ? practiceBlock(item, completeVerb) : null);
@@ -172,6 +174,7 @@ export async function renderBonusDeck(container, params, user) {
     const showBtn = el("button", { class: "mt-6 " + BTN,
       onclick: () => {
         back.classList.remove("hidden");
+        teaser?.classList.add("hidden");
         showBtn.classList.add("hidden");
         if (!deck.practice) completeVerb(); // sin practicas: aprende al revelar
       } },
@@ -193,63 +196,17 @@ export async function renderBonusDeck(container, params, user) {
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-11 h-11", lang: spLang })),
       statusHolder,
+      teaser,
       el("p", { class: "mt-2 text-xs text-slate-500" },
         deck.practice ? "Completa las practicas para aprender el verbo." : "Piensa la respuesta y luego comprueba."),
       back, showBtn, doneMsg, nav);
 
-    // Panel lateral con "pops" de ayuda (regla, usos, tips). Solo verbos.
-    const aside = deck.practice ? tipsAside(item) : null;
-
-    mount(container, el("div", { class: "grid lg:grid-cols-3 gap-6 items-start" },
-      el("div", { class: "lg:col-span-2" }, cardEl),
-      aside ? el("aside", { class: "lg:col-span-1" }, aside) : null));
+    mount(container, el("div", { class: "max-w-2xl mx-auto" }, cardEl));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
     if (getAutoplay()) speak(item.front);
   }
 
-  // Panel lateral de "pops": iconos estilo iPhone que despliegan la regla al tocar.
-function tipsAside(item) {
-  const tips = generateTips(item);
-  return el("div", { class: "space-y-2 text-left" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-1" }, "Toca para aprender"),
-    ...tips.map(tipAccordion));
-}
-
-// Un "pop" plegable: icono llamativo + titulo; al tocar despliega el contenido.
-function tipAccordion(t) {
-  const body = el("div", { class: "hidden mt-3 text-sm text-slate-200 leading-relaxed" }, t.body);
-  const chev = el("span", { class: "w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0", html: ICONS.chevron });
-  let open = false;
-
-  const header = el("button", {
-    type: "button",
-    "aria-expanded": "false",
-    class: "w-full flex items-center gap-3 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded-xl",
-    onclick: () => {
-      open = !open;
-      body.classList.toggle("hidden", !open);
-      header.setAttribute("aria-expanded", open ? "true" : "false");
-      chev.style.transform = open ? "rotate(180deg)" : "";
-    },
-  },
-    iosIcon(t.icon, t.grad),
-    el("span", { class: "flex-1 font-semibold text-slate-100" }, t.title),
-    chev);
-
-  return el("div", { class: "rounded-2xl bg-slate-800/40 border border-slate-700/60 p-3 hover:bg-slate-800/70 transition-colors" },
-    header, body);
-}
-
-// Tile estilo icono de iPhone: cuadrado redondeado, degradado vibrante y brillo.
-function iosIcon(icon, grad) {
-  return el("span", {
-    class: "relative inline-flex items-center justify-center w-12 h-12 rounded-2xl " +
-      "bg-gradient-to-br " + (grad || "from-slate-500 to-slate-700") + " text-white shadow-lg shrink-0 overflow-hidden",
-  },
-    el("span", { class: "absolute inset-x-0 top-0 h-1/2 bg-white/25" }),
-    el("span", { class: "relative w-6 h-6", html: ICONS[icon] || ICONS.info }));
-}
 
 // Generador de mas ejemplos adaptados al nivel (offline, plantillas).
 function generatorBlock(item) {
@@ -319,20 +276,6 @@ function clozeFromExample(ex) {
     el("div", { class: "mt-2 flex gap-2" }, input,
       el("button", { type: "button", class: "px-4 rounded-md bg-indigo-600 text-white font-semibold hover:bg-indigo-500", onclick: check }, "Comprobar")),
     fb);
-}
-
-// Fila con las tres formas del verbo, cada una con su audio.
-function formsRow(item) {
-  if (!item.past && !item.participle) return null;
-  const chip = (label, value) => el("div", { class: "px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-center" },
-    el("p", { class: "text-[10px] uppercase tracking-wide text-slate-500" }, label),
-    el("div", { class: "flex items-center justify-center gap-1" },
-      el("p", { class: "text-sm font-semibold text-slate-100" }, value),
-      speakButton(value, { cls: "w-6 h-6" })));
-  return el("div", { class: "mt-3 flex flex-wrap justify-center gap-2" },
-    chip("Base", item.front),
-    chip("Pasado", item.past),
-    chip("Participio", item.participle));
 }
 
 // Bloque de ejemplos de uso (ingles con audio + traduccion).
