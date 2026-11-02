@@ -8,24 +8,24 @@
  * ACORDEON APARTE, en la columna derecha, sin ninguna conexion visual con el
  * verbo. El alumno tenia que saltar la vista entre "la palabra" y "la teoria".
  *
- * AHORA: una sola LINEA DE TIEMPO -> HOY (presente) -> AYER (pasado) -> HASTA
- * HOY (present perfect). Es la tecnica mas usada para ensenar tiempos verbales
- * en idiomas: el eje temporal es intuitivo (el alumno YA entiende "antes" y
- * "ahora"), y cada forma se ancla a SU momento en vez de flotar suelta. El
- * conector entre nodos muestra la TRANSFORMACION (+ed / irregular / have+
- * participio), que es justo la parte que mas le cuesta memorizar a un
- * hispanohablante.
+ * Primer intento (descartado): esconder pasado/participio detras de un boton
+ * "Comprobar respuesta", como reto de memoria. Feedback directo del alumno:
+ * eso no sirve para APRENDER un verbo nuevo, solo para poner a prueba algo que
+ * ya viste. Aqui la meta es ENSENAR, no examinar: todo el contenido se muestra
+ * de una sola vez. El "comprobar" de verdad vive en los 3 ejercicios de
+ * core/verb-practice.js (cada uno con su propio boton), que SI exigen recordar.
+ *
+ * AHORA: una sola LINEA DE TIEMPO, siempre visible -> HOY (presente) -> AYER
+ * (pasado) -> HASTA HOY (present perfect). Es la tecnica mas usada para
+ * ensenar tiempos verbales: el eje temporal es intuitivo (el alumno YA
+ * entiende "antes" y "ahora"), y cada forma se ancla a SU momento en vez de
+ * flotar suelta. El conector entre nodos muestra la TRANSFORMACION (+ed /
+ * irregular / have+participio), que es justo la parte que mas le cuesta
+ * memorizar a un hispanohablante.
  *
  * CERO logica nueva: toda la explicacion sigue saliendo de core/verb-tips.js
  * (generateTips). Este modulo solo la REACOMODA en una linea de tiempo en vez
  * de un acordeon suelto -- "verlo de otra manera", no inventar contenido.
- *
- * DOS PIEZAS, por el principio de no-spoiler:
- *   - buildVerbTeaser()   -> ANTES de revelar: solo candados, sin respuesta.
- *   - buildVerbTimeline() -> DESPUES de revelar: la linea completa.
- * generateTips() escribe la respuesta DENTRO del texto de "La regla" (a
- * proposito, es la explicacion), asi que antes de revelar NO se puede mostrar
- * ningun tip sin arruinar la practica. Por eso el teaser no usa generateTips.
  */
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
@@ -33,32 +33,6 @@ import { speakButton } from "../ui/speech.js";
 import { generateTips } from "../core/verb-tips.js";
 
 const findTip = (tips, title) => tips.find((t) => t.title === title) || null;
-
-/** Candado: un nodo cuya forma AUN no se revela. */
-function lockedNode(label) {
-  return el("div", { class: "flex flex-col items-center gap-1" },
-    el("div", {
-      class: "w-11 h-11 rounded-2xl bg-slate-700/50 border-2 border-dashed border-slate-500 grid place-items-center text-slate-400",
-      "aria-hidden": "true",
-    }, el("span", { class: "w-5 h-5", html: ICONS.lock })),
-    el("p", { class: "text-[10px] uppercase tracking-wide text-slate-500" }, label));
-}
-
-function dash() {
-  return el("div", { class: "w-6 sm:w-10 h-0.5 mt-5 border-t-2 border-dashed border-slate-600 shrink-0", "aria-hidden": "true" });
-}
-
-/**
- * Previa de la linea de tiempo, ANTES de tocar "Comprobar respuesta". Muestra
- * cuantas formas faltan por descubrir (1 o 2) sin dar ninguna pista de cual es.
- * @returns {HTMLElement|null} null si el verbo no tiene pasado (no es un mazo de verbos).
- */
-export function buildVerbTeaser(item) {
-  if (!item.past) return null;
-  const children = [dash(), lockedNode("AYER")];
-  if (item.participle) children.push(dash(), lockedNode("HASTA HOY"));
-  return el("div", { class: "mt-4 flex items-start justify-center" }, ...children);
-}
 
 /** Chip de la flecha entre dos nodos: explica la TRANSFORMACION, no solo conecta. */
 function transformChip(text, tone) {

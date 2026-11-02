@@ -11,7 +11,7 @@ import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { buildPractice } from "../core/verb-practice.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
-import { buildVerbTeaser, buildVerbTimeline } from "./verb-timeline.js";
+import { buildVerbTimeline } from "./verb-timeline.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
@@ -162,23 +162,33 @@ export async function renderBonusDeck(container, params, user) {
       announce("Verbo aprendido.");
     };
 
-    // Antes de revelar: candados (cuantas formas faltan), sin dar la respuesta.
-    const teaser = buildVerbTeaser(item);
-
-    const back = el("div", { class: "mt-2 hidden" },
-      buildVerbTimeline(item, { lang: spLang }) || el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
-      examplesBlock(item.examples, spLang),
-      deck.practice ? generatorBlock(item) : null,
-      deck.practice ? practiceBlock(item, completeVerb) : null);
-
-    const showBtn = el("button", { class: "mt-6 " + BTN,
-      onclick: () => {
-        back.classList.remove("hidden");
-        teaser?.classList.add("hidden");
-        showBtn.classList.add("hidden");
-        if (!deck.practice) completeVerb(); // sin practicas: aprende al revelar
-      } },
-      "Comprobar respuesta");
+    // VERBOS (deck.practice): se ensena TODO de una vez -- linea de tiempo,
+    // ejemplos y las 3 practicas -- sin ningun boton que tape el contenido.
+    // Feedback directo del alumno: esconder el verbo detras de "Comprobar
+    // respuesta" sirve para EXAMINAR algo ya visto, no para APRENDERLO la
+    // primera vez. El "comprobar" de verdad vive en cada ejercicio de abajo
+    // (practiceBlock), que si exige recordar con su propio boton.
+    //
+    // OTROS mazos (idioms, sinonimos, expresiones...): siguen como flashcard
+    // clasica -- ves el frente, piensas la respuesta, y recien entonces
+    // revelas el reverso. Ahi si tiene sentido ocultarla: ya viste la palabra
+    // antes, esto es repaso con recuerdo activo, no primer contacto.
+    let body, showBtn = null;
+    if (deck.practice) {
+      body = el("div", { class: "mt-2" },
+        buildVerbTimeline(item, { lang: spLang }),
+        examplesBlock(item.examples, spLang),
+        generatorBlock(item),
+        practiceBlock(item, completeVerb));
+    } else {
+      const back = el("div", { class: "mt-4 hidden" },
+        el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
+        examplesBlock(item.examples, spLang));
+      showBtn = el("button", { class: "mt-6 " + BTN,
+        onclick: () => { back.classList.remove("hidden"); showBtn.classList.add("hidden"); completeVerb(); } },
+        "Comprobar respuesta");
+      body = el("div", {}, back, showBtn);
+    }
 
     // Navegacion entre verbos: solo Devolverse y Siguiente.
     const navCls = "font-semibold px-6 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 " +
@@ -191,15 +201,17 @@ export async function renderBonusDeck(container, params, user) {
       el("button", { type: "button", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded", onclick: goBack }, "< Volver"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       dotsHolder,
-      deck.recall ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
+      // El prompt "Di el pasado y el participio" era para el reto de memoria
+      // de antes; ya no aplica a los mazos de verbos (deck.practice), donde
+      // todo se ensena de una vez. Se queda solo para idioms/vocabulario.
+      deck.recall && !deck.practice ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-11 h-11", lang: spLang })),
       statusHolder,
-      teaser,
       el("p", { class: "mt-2 text-xs text-slate-500" },
-        deck.practice ? "Completa las practicas para aprender el verbo." : "Piensa la respuesta y luego comprueba."),
-      back, showBtn, doneMsg, nav);
+        deck.practice ? "Repasa el verbo y completa las practicas para aprenderlo." : "Piensa la respuesta y luego comprueba."),
+      body, doneMsg, nav);
 
     mount(container, el("div", { class: "max-w-2xl mx-auto" }, cardEl));
     focusMainHeading(container);
