@@ -6,7 +6,7 @@
  */
 import { isConfigured } from "./config/supabase.js";
 import { currentUser, onAuthChange, logout } from "./services/auth.js";
-import { getProfile } from "./services/profiles.js";
+import { getProfile, getStudentProfile } from "./services/profiles.js";
 import { renderRegister, renderLogin } from "./features/auth-ui.js";
 import { renderStudent } from "./features/student.js";
 import { renderCourse } from "./features/course-screen.js";
@@ -25,6 +25,7 @@ import { renderCalendar } from "./features/calendar.js";
 import { renderChat } from "./features/chat.js";
 import { renderSettings } from "./features/settings.js";
 import { renderWelcomeGuide } from "./features/welcome-guide.js";
+import { renderInduction } from "./features/induction.js";
 import { renderQuality } from "./features/quality.js";
 import { renderCompetency } from "./features/competency.js";
 import { renderProfile } from "./features/profile.js";
@@ -100,6 +101,14 @@ function setupRoutes() {
   on("/chat", () => requireAuth(() => renderChat(app)));
   on("/ajustes", () => requireAuth((u) => renderSettings(app, u)));
   on("/guia", () => requireAuth(() => renderWelcomeGuide(app, () => go("/student"))));
+  // Induccion de entrada: "que incluye Learning UP". Si ya tiene nivel asignado
+  // (volvio desde "Mas" solo a releerla) la manda a Inicio; si es nueva cuenta,
+  // al examen de ubicacion que es el siguiente paso real del registro.
+  on("/induccion", () => requireAuth(async (u) => {
+    const profile = await getStudentProfile(u.id).catch(() => null);
+    const next = profile && profile.cefr_level ? "/student" : "/examen";
+    renderInduction(app, () => go(next));
+  }));
   on("/calidad", () => requireAuth(() => renderQuality(app)));
   on("/competencia/:skill", (params) => requireAuth((u) => renderCompetency(app, params, u)));
   on("/perfil", () => requireAuth((u) => renderProfile(app, u)));

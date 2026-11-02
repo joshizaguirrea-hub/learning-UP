@@ -18,6 +18,7 @@
 
 import { VOCAB_DECKS } from "./vocab-decks.js";
 import { PT_BONUS_DECKS } from "./pt-bonus-decks.js";
+import { TOPIC_VERB_DECKS } from "./topic-verb-decks.js";
 
 const CORE_BONUS_DECKS = [
   {
@@ -232,10 +233,12 @@ const CORE_BONUS_DECKS = [
   },
 ];
 
-/** Todos los mazos bonus: nucleo (ingles) + vocabulario por nivel + portugues.
+/** Todos los mazos bonus: nucleo (ingles) + verbos por TEMA de unidad +
+ * vocabulario por nivel + portugues.
  * Cada mazo lleva `language` (default "en") para poder filtrar por idioma meta. */
 export const BONUS_DECKS = [
   ...CORE_BONUS_DECKS.map((d) => ({ language: "en", ...d })),
+  ...TOPIC_VERB_DECKS.map((d) => ({ language: "en", ...d })),
   ...VOCAB_DECKS.map((d) => ({ language: "en", ...d })),
   ...PT_BONUS_DECKS,
 ];

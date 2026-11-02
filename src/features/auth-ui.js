@@ -66,7 +66,7 @@ export function renderRegister(container) {
         }, "Revisa tu correo para confirmar la cuenta."));
         return;
       }
-      go(fd.get("role") === "student" ? "/examen" : "/teacher");
+            go(fd.get("role") === "student" ? "/induccion" : "/teacher");
     },
   },
     field("Nombre completo", el("input", { id: "full_name", name: "full_name", type: "text", required: "", class: INPUT })),

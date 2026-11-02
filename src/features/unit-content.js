@@ -154,6 +154,19 @@ export function unitContent(unit, progressMap, user) {
     el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Bonos"),
     el("div", { class: "flex flex-wrap gap-2" }, ...pills)) : null;
 
+  // Verbos CONJUGADOS atados al TEMA de esta unidad (data/topic-verb-decks.js).
+  // Reutilizan el mismo motor que los bonos genericos (core/verb-practice.js +
+  // core/verb-tips.js), pero son PROPIOS de este tema: Work & Career practica
+  // "apply/hire/manage", no los verbos irregulares genericos de siempre. Van
+  // en su propia fila, arriba de "Bonos", para que se note que son del tema.
+  const topicVerbDecks = lang === "en"
+    ? bonusDecksForLanguage(lang).filter((d) => d.topic === unit.id)
+    : [];
+  const topicVerbsPops = topicVerbDecks.length ? el("section", { class: "mt-6" },
+    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 mb-2" }, "Verbos de este tema"),
+    el("div", { class: "flex flex-wrap gap-2" },
+      ...topicVerbDecks.map((d) => bonusPill(d.id, d.title, "emerald")))) : null;
+
   return el("div", {},
     el("div", { class: "flex items-center gap-2 mb-3" },
       el("h2", { class: "font-bold text-lg" }, "Tu clase con " + name),
@@ -165,6 +178,7 @@ export function unitContent(unit, progressMap, user) {
     extras,
     boletinButton(unit, progressMap, user),
     notebookButton(unit, user),
+    topicVerbsPops,
     bonusPops);
 }
 
@@ -345,11 +359,12 @@ function miniPop(label, sub, icon, gradient, onclick) {
     el("span", { class: "text-[10px] text-white/80 leading-tight" }, sub));
 }
 
-/** Pastilla de bono (verbos = ambar, vocabulario = azul). */
+/** Pastilla de bono (verbos genericos = ambar, vocabulario = azul, verbos del tema = esmeralda). */
 function bonusPill(id, label, tone) {
   const tones = {
     amber: "bg-amber-500/15 text-amber-200 border-amber-500/30 hover:bg-amber-500/25 focus:outline-amber-400",
     sky: "bg-sky-500/15 text-sky-200 border-sky-500/30 hover:bg-sky-500/25 focus:outline-sky-400",
+    emerald: "bg-emerald-500/15 text-emerald-200 border-emerald-500/30 hover:bg-emerald-500/25 focus:outline-emerald-400",
   };
   return el("a", {
     href: `#/bonus/${id}`,

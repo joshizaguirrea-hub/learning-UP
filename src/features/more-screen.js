@@ -21,6 +21,8 @@ import { getTeacherName } from "../ui/robot-prefs.js";
 // Es una FUNCION, no una constante: el alumno puede renombrar a su profe en
 // Ajustes, y una lista estatica se quedaria con el nombre viejo hasta recargar.
 const items = () => [
+  { href: "#/induccion", icon: ICONS.info, title: "Qu\u00e9 incluye tu curso", desc: "Clases, IA, entrevistas y CV" },
+  { href: "#/guia", icon: ICONS.bulb, title: "C\u00f3mo funciona tu curso", desc: "Fases, competencias y como se aprueba" },
   { href: "#/perfil", icon: ICONS.user, title: "Mi perfil", desc: "Avatar, nivel y progreso" },
   { href: "#/plan", icon: ICONS.map, title: "Mi Plan", desc: "Tu ruta de aprendizaje" },
   { href: "#/profesores", icon: ICONS.teachers, title: "Profesores", desc: "Encuentra un profe" },
