@@ -188,7 +188,7 @@ export async function renderBonusDeck(container, params, user) {
     const navCls = "font-semibold px-6 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 " +
       "hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-indigo-400";
     const nav = el("div", { class: "mt-6 flex items-center justify-between gap-3" },
-      el("button", { class: navCls, disabled: index === 0, onclick: () => { index--; showCard(); } }, "Devolverse"),
+      el("button", { class: navCls, disabled: index === 0 ? "" : null, onclick: () => { index--; showCard(); } }, "Devolverse"),
       el("button", { class: navCls, onclick: () => { index++; showCard(); } }, index === last ? "Terminar" : "Siguiente"));
 
     const cardEl = el("div", { class: PANEL + " text-center" },

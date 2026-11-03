@@ -14,6 +14,15 @@ export const qsa = (sel, root = document) => [...root.querySelectorAll(sel)];
 /**
  * Crea un elemento con atributos e hijos.
  * @example el("button", { class: "btn", onclick: fn }, "Enviar")
+ *
+ * OJO con atributos BOOLEANOS de HTML (disabled, checked, required, readonly,
+ * selected...): en HTML basta que el atributo EXISTA para activarlo, su VALOR
+ * no importa -- <button disabled="false"> sigue deshabilitado. Como aqui
+ * `value !== null && value !== undefined` es lo unico que decide si se llama
+ * setAttribute, pasar `disabled: false` (un boolean crudo) deja el atributo
+ * puesto igual y el boton nunca responde. Para estos atributos usa SIEMPRE
+ * `cond ? "" : null` (o `undefined`), nunca el boolean tal cual. Bug real que
+ * ya paso: ver verb-challenge.js y bonus.js (boton "Devolverse").
  */
 export function el(tag, attrs = {}, ...children) {
   const node = document.createElement(tag);

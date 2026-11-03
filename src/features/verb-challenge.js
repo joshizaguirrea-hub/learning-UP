@@ -193,9 +193,15 @@ export function buildVerbChallenge(item, onComplete) {
       }));
       bank.replaceChildren(...tiles.map((t) => {
         const used = usedIds.has(t.id);
+        const blocked = used || isDone();
         return el("button", {
           type: "button",
-          disabled: used || isDone(),
+          // OJO: el("button", { disabled: false }) IGUAL deja el atributo puesto
+          // (setAttribute("disabled","false")), y en HTML basta que el atributo
+          // EXISTA para deshabilitar el boton -- su valor no importa. Por eso
+          // aqui se manda null/"" en vez de true/false (mismo patron que ya usa
+          // el resto de la app, ver unit.js y bymax-session.js).
+          disabled: blocked ? "" : null,
           "aria-label": "letra " + t.ch,
           class: "w-9 h-10 sm:w-10 sm:h-11 rounded-xl font-black text-lg uppercase transition focus:outline focus:outline-2 focus:outline-indigo-400 " +
             (used ? "opacity-0 pointer-events-none" : "bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white hover:brightness-110 shadow"),
