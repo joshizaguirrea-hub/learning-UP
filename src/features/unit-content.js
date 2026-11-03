@@ -123,13 +123,13 @@ export function unitContent(unit, progressMap, user, bonusDone = new Set()) {
   const ring = orbit(center,
     ORBIT.map((key) => skillPop(key, unit, progressMap, user, onSkillDone)));
 
-  // Fila de POPs pequenos: examen, REQUISITOS (verbos del tema/idioms/
-  // expresiones si la unidad los exige), cuento, videollamada, input gramatical
-  // y -si el idioma tiene guia- pronunciacion.
+  // Fila de POPs pequenos (tarjeta rectangular): cuento, videollamada, input
+  // gramatical y -si el idioma tiene guia- pronunciacion/repaso. El examen y
+  // los REQUISITOS (verbos del tema/idioms/expresiones) ya NO viven aqui: son
+  // burbujas circulares, ver requiredPopsRow() -- misma familia visual que las
+  // 6 competencias, no un tramite rectangular aparte.
   const requiredDeckIds = requiredBonusDeckIds(unit);
   const extraPops = [
-    examPop(unit, progressMap),
-    ...requiredDeckIds.map((id) => requiredBonusPop(id, bonusDone)).filter(Boolean),
     miniPop(uiLabel("story", navLang(unit)), uiLabel("storyDesc", navLang(unit)), ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop(uiLabel("call", navLang(unit)), uiLabel("callDesc", navLang(unit)), SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
       () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", targetLang: unit.language || "en", userId: user?.id })),
@@ -166,8 +166,8 @@ export function unitContent(unit, progressMap, user, bonusDone = new Set()) {
     el("div", { class: "flex flex-wrap gap-2" }, ...pills)) : null;
 
   // Verbos CONJUGADOS atados al TEMA de esta unidad (data/topic-verb-decks.js).
-  // Si la unidad ya los exige como REQUISITO (ver arriba, requiredBonusPop en
-  // extraPops), NO se repiten aqui como "opcionales": solo aparecen sueltos en
+  // Si la unidad ya los exige como REQUISITO (ver requiredPopsRow, arriba en
+  // el return), NO se repiten aqui como "opcionales": solo aparecen sueltos en
   // unidades que todavia no tienen ese requisito (ver core/unit-requirements.js).
   const topicVerbDecks = (lang === "en" && !requiredDeckIds.length)
     ? bonusDecksForLanguage(lang).filter((d) => d.topic === unit.id)
@@ -177,6 +177,11 @@ export function unitContent(unit, progressMap, user, bonusDone = new Set()) {
     el("div", { class: "flex flex-wrap gap-2" },
       ...topicVerbDecks.map((d) => bonusPill(d.id, d.title, "emerald")))) : null;
 
+  // Burbujas circulares "Para pasar esta unidad": el examen + (si la unidad
+  // los exige) los mazos requeridos. Flotan con su propio ritmo (.robot-float
+  // + delay escalonado) para sentirse vivas, no una lista de tramites.
+  const requiredRow = requiredPopsRow(unit, progressMap, bonusDone, requiredDeckIds);
+
   return el("div", {},
     el("div", { class: "flex items-center gap-2 mb-3" },
       el("h2", { class: "font-bold text-lg" }, "Tu clase con " + name),
@@ -185,6 +190,7 @@ export function unitContent(unit, progressMap, user, bonusDone = new Set()) {
       "Toca a " + name + " para que te diga que te falta, o elige una competencia y te la explica al momento."),
     ring,
     coach.caja,
+    requiredRow,
     extras,
     boletinButton(unit, progressMap, user),
     notebookButton(unit, user),
@@ -325,45 +331,82 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
     el("span", { class: "font-bold text-[10px] sm:text-xs leading-tight max-w-full break-words hyphens-auto" }, name));
 }
 
-/** POP del examen de unidad (paso final para desbloquear la siguiente). */
-function examPop(unit, progressMap) {
-  const test = (unit.lessons || []).find((l) => l.kind === "test");
-  if (!test) return el("div");
-  const done = progressMap[test.id]?.status === "done";
+// Etiqueta CORTA y icono de cada mazo requerido, para que quepan dentro de una
+// burbuja circular (como las 6 competencias: una palabra, no un titulo largo).
+// El titulo completo sigue disponible en el aria-label, nada se pierde.
+const REQUIRED_LABELS = { idioms: "Idioms", "past-time": "Expresiones" };
+const REQUIRED_ICONS = { idioms: ICONS.chat, "past-time": ICONS.calendar };
+
+/**
+ * Burbuja circular "flotante" de un requisito de la unidad (examen, verbos del
+ * tema, idioms, expresiones). Mismo lenguaje visual EXACTO que las 6 POPs de
+ * competencia que orbitan a Bymax (circulo + check superpuesto al dominarlo),
+ * en vez de la tarjeta rectangular de antes: se siente parte de la MISMA
+ * familia divertida, no un tramite aparte pegado abajo.
+ *
+ * La clase .robot-float (ya existe en app.css para la mascota) + un delay
+ * distinto por burbuja logra que floten cada una a su propio ritmo -- vivas,
+ * no sincronizadas como una maquina.
+ */
+function floatingPop({ href, label, ariaLabel, icon, done, delayMs = 0 }) {
+  const grad = done ? "from-emerald-500 to-teal-600" : "from-amber-500 to-orange-600";
+  const check = el("span", {
+    class: "absolute top-1 right-1 w-5 h-5 text-white bg-emerald-600/90 rounded-full p-0.5" + (done ? "" : " hidden"),
+    html: ICONS.check,
+  });
   return el("a", {
-    href: `#/leccion/${test.id}`,
-    class: "flex flex-col items-center justify-center gap-1 rounded-2xl p-3 min-h-[92px] text-white shadow-lg " +
-      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 text-center " +
-      (done ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-amber-500 to-orange-600"),
-    "aria-label": done ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
+    href,
+    class: "relative flex flex-col items-center justify-center gap-0.5 rounded-full " +
+      "w-[84px] h-[84px] sm:w-[104px] sm:h-[104px] px-1 text-center robot-float " +
+      `bg-gradient-to-br ${grad} shadow-lg text-white ` +
+      "hover:brightness-110 hover:scale-105 transition-transform " +
+      "focus:outline focus:outline-2 focus:outline-white/80",
+    style: `animation-delay: ${delayMs}ms`,
+    "aria-label": ariaLabel,
   },
-    el("span", { class: "w-7 h-7", html: done ? ICONS.check : ICONS.star }),
-    el("span", { class: "font-bold text-sm leading-tight" }, uiLabel("exam", navLang(unit))),
-    el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
-      done ? uiLabel("examPassed", navLang(unit)) : uiLabel("examBadge", navLang(unit))));
+    check,
+    el("span", { class: "w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-white/15 grid place-items-center", html: icon }),
+    el("span", { class: "font-bold text-[10px] sm:text-xs leading-tight max-w-full break-words hyphens-auto" }, label));
 }
 
 /**
- * POP de un mazo REQUERIDO (verbos del tema, idioms, expresiones de tiempo) --
- * mismo lenguaje visual que examPop: ambar + "PARA PASAR" mientras falta,
- * verde + check al dominarlo (medalla ganada, ver core/unit-requirements.js).
- * Null si el id no corresponde a ningun mazo real (dato corrupto, no truena).
+ * Fila "Para pasar esta unidad": el examen SIEMPRE, mas (si la unidad lo
+ * exige, ver core/unit-requirements.js) los mazos requeridos. Burbujas
+ * centradas, flotando con delay escalonado -- ver floatingPop().
  */
-function requiredBonusPop(deckId, bonusDone) {
-  const deck = bonusDeckById(deckId);
-  if (!deck) return null;
-  const done = bonusDone.has(BONUS_DONE_PREFIX + deckId);
-  return el("a", {
-    href: `#/bonus/${deckId}`,
-    class: "flex flex-col items-center justify-center gap-1 rounded-2xl p-3 min-h-[92px] text-white shadow-lg " +
-      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 text-center " +
-      (done ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-amber-500 to-orange-600"),
-    "aria-label": done ? deck.title + ", dominado" : deck.title + ", necesario para pasar",
-  },
-    el("span", { class: "w-7 h-7", html: done ? ICONS.check : ICONS.star }),
-    el("span", { class: "font-bold text-sm leading-tight" }, deck.title),
-    el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
-      done ? "DOMINADO" : "PARA PASAR"));
+function requiredPopsRow(unit, progressMap, bonusDone, requiredDeckIds) {
+  const items = [];
+  const test = (unit.lessons || []).find((l) => l.kind === "test");
+  if (test) {
+    const done = progressMap[test.id]?.status === "done";
+    items.push(floatingPop({
+      href: `#/leccion/${test.id}`,
+      label: uiLabel("exam", navLang(unit)),
+      ariaLabel: done ? "Examen de unidad aprobado, repasar" : "Examen de unidad, necesario para pasar",
+      icon: ICONS.star,
+      done,
+      delayMs: 0,
+    }));
+  }
+  requiredDeckIds.forEach((id, i) => {
+    const deck = bonusDeckById(id);
+    if (!deck) return;
+    const done = bonusDone.has(BONUS_DONE_PREFIX + id);
+    items.push(floatingPop({
+      href: `#/bonus/${id}`,
+      label: REQUIRED_LABELS[id] || (deck.topic ? "Verbos" : deck.title),
+      ariaLabel: done ? deck.title + ", dominado" : deck.title + ", necesario para pasar",
+      icon: REQUIRED_ICONS[id] || (deck.topic ? ICONS.clock : ICONS.star),
+      done,
+      delayMs: (i + 1) * 350,
+    }));
+  });
+  if (!items.length) return null;
+  return el("section", { class: "mt-6" },
+    el("div", { class: "flex items-center justify-center gap-1.5 mb-3" },
+      el("span", { class: "w-4 h-4 text-amber-400", html: ICONS.star }),
+      el("p", { class: "text-sm font-bold text-slate-200" }, "Para pasar esta unidad")),
+    el("div", { class: "flex flex-wrap justify-center gap-4 sm:gap-6" }, ...items));
 }
 
 /** POP de INPUT ESTRUCTURADO (Structured Input, VanPatten): procesar la forma
