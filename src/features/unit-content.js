@@ -11,7 +11,8 @@ import { SKILL_META, skillLabel } from "../data/skill-meta.js";
 import { uiLabel } from "../data/ui-labels.js";
 import { getImmersion } from "../ui/prefs.js";
 import { VOCAB_DECKS } from "../data/vocab-decks.js";
-import { bonusDecksForLanguage } from "../data/bonus-decks.js";
+import { bonusDecksForLanguage, bonusDeckById } from "../data/bonus-decks.js";
+import { requiredBonusDeckIds, BONUS_DONE_PREFIX } from "../core/unit-requirements.js";
 import { ICONS } from "../ui/icons.js";
 import { robotName, teacherPortraitSrc } from "../ui/robot.js";
 import { bymaxMascot } from "../ui/bymax-mascot.js";
@@ -38,6 +39,8 @@ import { isUnitComplete } from "../core/unit-report.js";
 // data/bonus-decks.js). Deben coincidir con lo que evalua el examen
 // (data/test-gen.js). Los demas idiomas NO usan esta lista: piden sus
 // propios mazos con bonusDecksForLanguage() -- ver mas abajo.
+// NOTA: "past-time" e "idioms" se quitan de aqui para las unidades que los
+// exigen como REQUISITO (ver requiredPops) -- no se listan dos veces.
 const BONUS_LINKS = [
   { id: "irregular-verbs", label: "Verbos irregulares" },
   { id: "regular-past", label: "Pasado regular (-ed)" },
@@ -66,8 +69,11 @@ function navLang(unit) {
  * @param {object} unit - unidad del curso
  * @param {Object} progressMap - id de leccion -> { status }
  * @param {object} [user] - usuario actual
+ * @param {Set<string>} [bonusDone] - ids "bonus:<deckId>" ya dominados (ver
+ *   core/unit-requirements.js). Solo importa para unidades que exigen mazos
+ *   Bonus como requisito; para las demas se ignora sin costo.
  */
-export function unitContent(unit, progressMap, user) {
+export function unitContent(unit, progressMap, user, bonusDone = new Set()) {
   const name = robotName();
 
   // Al terminar la ULTIMA competencia de la unidad, abrimos el boletin solo.
@@ -117,10 +123,13 @@ export function unitContent(unit, progressMap, user) {
   const ring = orbit(center,
     ORBIT.map((key) => skillPop(key, unit, progressMap, user, onSkillDone)));
 
-  // Fila de POPs pequenos: examen, cuento, videollamada (llamada EN VIVO con la
-  // IA, manos libres), input gramatical y -si el idioma tiene guia- pronunciacion.
+  // Fila de POPs pequenos: examen, REQUISITOS (verbos del tema/idioms/
+  // expresiones si la unidad los exige), cuento, videollamada, input gramatical
+  // y -si el idioma tiene guia- pronunciacion.
+  const requiredDeckIds = requiredBonusDeckIds(unit);
   const extraPops = [
     examPop(unit, progressMap),
+    ...requiredDeckIds.map((id) => requiredBonusPop(id, bonusDone)).filter(Boolean),
     miniPop(uiLabel("story", navLang(unit)), uiLabel("storyDesc", navLang(unit)), ICONS.book, "from-indigo-500 to-fuchsia-600", () => openStory(unit)),
     miniPop(uiLabel("call", navLang(unit)), uiLabel("callDesc", navLang(unit)), SKILL_META.speaking.icon, "from-sky-500 to-cyan-600",
       () => openVoiceCall({ title: unit.title, level: unit.level, label: "Videollamada", targetLang: unit.language || "en", userId: user?.id })),
@@ -139,12 +148,14 @@ export function unitContent(unit, progressMap, user) {
   // Bonos como POPs pequenos tipo pastilla. En INGLES: la lista curada
   // (gramatica + vocabulario del nivel). En otros idiomas: sus mazos propios
   // (ej. portugues -> falsos amigos + verbos irregulares).
+  // Los mazos que esta unidad ya exige como REQUISITO (requiredDeckIds) se
+  // quitan de aqui -- no se listan dos veces como "opcional" Y "obligatorio".
   const lang = unit.language || "en";
   let pills;
   if (lang === "en") {
     const vocabDecks = VOCAB_DECKS.filter((d) => d.level === unit.level);
     pills = [
-      ...BONUS_LINKS.map((b) => bonusPill(b.id, b.label, "amber")),
+      ...BONUS_LINKS.filter((b) => !requiredDeckIds.includes(b.id)).map((b) => bonusPill(b.id, b.label, "amber")),
       ...vocabDecks.map((d) => bonusPill(d.id, d.title, "sky")),
     ];
   } else {
@@ -155,11 +166,10 @@ export function unitContent(unit, progressMap, user) {
     el("div", { class: "flex flex-wrap gap-2" }, ...pills)) : null;
 
   // Verbos CONJUGADOS atados al TEMA de esta unidad (data/topic-verb-decks.js).
-  // Reutilizan el mismo motor que los bonos genericos (core/verb-practice.js +
-  // core/verb-tips.js), pero son PROPIOS de este tema: Work & Career practica
-  // "apply/hire/manage", no los verbos irregulares genericos de siempre. Van
-  // en su propia fila, arriba de "Bonos", para que se note que son del tema.
-  const topicVerbDecks = lang === "en"
+  // Si la unidad ya los exige como REQUISITO (ver arriba, requiredBonusPop en
+  // extraPops), NO se repiten aqui como "opcionales": solo aparecen sueltos en
+  // unidades que todavia no tienen ese requisito (ver core/unit-requirements.js).
+  const topicVerbDecks = (lang === "en" && !requiredDeckIds.length)
     ? bonusDecksForLanguage(lang).filter((d) => d.topic === unit.id)
     : [];
   const topicVerbsPops = topicVerbDecks.length ? el("section", { class: "mt-6" },
@@ -331,6 +341,29 @@ function examPop(unit, progressMap) {
     el("span", { class: "font-bold text-sm leading-tight" }, uiLabel("exam", navLang(unit))),
     el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
       done ? uiLabel("examPassed", navLang(unit)) : uiLabel("examBadge", navLang(unit))));
+}
+
+/**
+ * POP de un mazo REQUERIDO (verbos del tema, idioms, expresiones de tiempo) --
+ * mismo lenguaje visual que examPop: ambar + "PARA PASAR" mientras falta,
+ * verde + check al dominarlo (medalla ganada, ver core/unit-requirements.js).
+ * Null si el id no corresponde a ningun mazo real (dato corrupto, no truena).
+ */
+function requiredBonusPop(deckId, bonusDone) {
+  const deck = bonusDeckById(deckId);
+  if (!deck) return null;
+  const done = bonusDone.has(BONUS_DONE_PREFIX + deckId);
+  return el("a", {
+    href: `#/bonus/${deckId}`,
+    class: "flex flex-col items-center justify-center gap-1 rounded-2xl p-3 min-h-[92px] text-white shadow-lg " +
+      "hover:brightness-110 focus:outline focus:outline-2 focus:outline-white/70 text-center " +
+      (done ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-gradient-to-br from-amber-500 to-orange-600"),
+    "aria-label": done ? deck.title + ", dominado" : deck.title + ", necesario para pasar",
+  },
+    el("span", { class: "w-7 h-7", html: done ? ICONS.check : ICONS.star }),
+    el("span", { class: "font-bold text-sm leading-tight" }, deck.title),
+    el("span", { class: "text-[10px] font-black tracking-widest bg-black/25 px-2 py-0.5 rounded-full" },
+      done ? "DOMINADO" : "PARA PASAR"));
 }
 
 /** POP de INPUT ESTRUCTURADO (Structured Input, VanPatten): procesar la forma

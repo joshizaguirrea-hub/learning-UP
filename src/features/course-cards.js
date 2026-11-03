@@ -55,11 +55,16 @@ function topicEmoji(title = "") {
  * Seccion "Tu curso" con las unidades del nivel como mosaico cuadrado.
  * @param {Array} units - unidades del nivel
  * @param {Object} progressMap - id de leccion -> { status }
+ * @param {Set<string>} [bonusDone] - ids "bonus:<deckId>" ya dominados (ver
+ *   core/unit-requirements.js y services/course.js::getRequiredBonusCompletion)
  */
-export function courseCards(units, progressMap) {
-  // Sendero secuencial: cada unidad se desbloquea al completar la anterior.
-  const completed = new Set(
-    Object.entries(progressMap).filter(([, v]) => v?.status === "done").map(([id]) => id));
+export function courseCards(units, progressMap, bonusDone = new Set()) {
+  // Sendero secuencial: cada unidad se desbloquea al completar la anterior
+  // (lecciones + mazos Bonus requeridos, si la unidad los exige).
+  const completed = new Set([
+    ...Object.entries(progressMap).filter(([, v]) => v?.status === "done").map(([id]) => id),
+    ...bonusDone,
+  ]);
   const unlocked = unlockedUnitIds(units, completed);
 
   const tiles = units.length

@@ -145,10 +145,16 @@ export function renderWelcomeGuide(container, onClose) {
 
       bloque("Bonos y contenido extra",
         el("p", { class: "text-sm text-slate-400 mt-1" },
-          "Las pastillas de abajo de cada unidad son ", el("b", {}, "opcionales"),
+          "Las pastillas de ", el("b", {}, "Bonos"), " de abajo de cada unidad son ",
+          el("b", {}, "opcionales"),
           ". No hacen falta para avanzar: son mazos extra (verbos irregulares, " +
           "falsos amigos, modismos...) para cuando quieras profundizar. " +
-          "Varian segun el idioma.")),
+          "Varian segun el idioma."),
+        el("p", { class: "text-sm text-slate-400 mt-2" },
+          el("b", {}, "Excepcion en B1:"), " ahi los POPs marcados ", el("b", {}, "PARA PASAR"),
+          " (los verbos del tema, Idioms y Expresiones de tiempo) ", el("b", {}, "SI son obligatorios"),
+          " para desbloquear la siguiente unidad, igual que el examen. Se nota " +
+          "porque van junto al POP del examen, no entre las pastillas de Bonos.")),
 
       bloque("Tu Cuaderno de errores",
         el("p", { class: "text-sm text-slate-400 mt-1" },

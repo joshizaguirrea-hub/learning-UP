@@ -23,6 +23,9 @@ GUIA = ROOT / "src" / "features" / "welcome-guide.js"
 REPORT = ROOT / "src" / "core" / "unit-report.js"
 PLAYER = ROOT / "src" / "features" / "lesson-player.js"
 UNITS = ROOT / "src" / "data" / "units"
+REQUIREMENTS = ROOT / "src" / "core" / "unit-requirements.js"
+PROGRESSION = ROOT / "src" / "core" / "progression.js"
+TOPIC_VERBS = ROOT / "src" / "data" / "topic-verb-decks.js"
 
 
 def main() -> int:
@@ -96,6 +99,30 @@ def main() -> int:
     if "opcional" not in guia.lower():
         fallos.append("La guia no aclara que los bonos son OPCIONALES. Un alumno "
                       "puede creer que debe completarlos para avanzar.")
+
+    # 6) La EXCEPCION de B1 (verbos del tema + idioms + expresiones = requisito
+    # real, no bono) tiene que seguir siendo cierta en el codigo, no solo en el
+    # texto. Si alguien borra el enforcement en progression.js, o se queda sin
+    # mazos de verbos por tema, la guia estaria prometiendo un requisito que ya
+    # no existe.
+    if "excepcion en b1" in guia.lower() or "para pasar" in guia.lower():
+        req_src = REQUIREMENTS.read_text(encoding="utf-8") if REQUIREMENTS.exists() else ""
+        prog_src = PROGRESSION.read_text(encoding="utf-8") if PROGRESSION.exists() else ""
+        if not req_src:
+            fallos.append("La guia promete requisitos extra en B1 pero no existe "
+                          "core/unit-requirements.js.")
+        elif "requiredBonusDeckIds" not in req_src:
+            fallos.append("core/unit-requirements.js ya no define requiredBonusDeckIds(): "
+                          "la excepcion de B1 que promete la guia quedo huerfana.")
+        if "requiredBonusSatisfied" not in prog_src:
+            fallos.append("core/progression.js ya no exige requiredBonusSatisfied(): "
+                          "los mazos de B1 dejaron de bloquear el desbloqueo de la "
+                          "siguiente unidad, pero la guia sigue diciendo que si.")
+        # Que de verdad exista al menos un mazo de verbos por tema (si no, la
+        # "excepcion en B1" nunca se activa para nadie: promesa vacia).
+        if TOPIC_VERBS.exists() and "topic:" not in TOPIC_VERBS.read_text(encoding="utf-8"):
+            fallos.append("data/topic-verb-decks.js no define ningun mazo con `topic`: "
+                          "la excepcion de B1 nunca se activaria para nadie.")
 
     if fallos:
         print("\nFALLOS:")

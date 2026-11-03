@@ -7,7 +7,7 @@
  * con IA (todo via unit-content.js), mas el repaso SRS del dia.
  */
 import { unitById, unitsForLevel } from "../data/units/index.js";
-import { getCourseProgress } from "../services/course.js";
+import { getCourseProgress, getRequiredBonusCompletion } from "../services/course.js";
 import { countDue } from "../services/srs.js";
 import { isUnitUnlocked } from "../core/progression.js";
 import { el, mount } from "../ui/dom.js";
@@ -25,11 +25,18 @@ export async function renderUnit(container, params, user) {
     return;
   }
   const [progress, due] = await Promise.all([getCourseProgress(user.id), countDue(user.id)]);
+  const levelUnits = unitsForLevel(unit.level, unit.language);
 
   // Guardia del sendero: no dejar entrar a una unidad bloqueada (aunque peguen la URL).
-  const completed = new Set(
-    Object.entries(progress).filter(([, v]) => v?.status === "done").map(([id]) => id));
-  if (!isUnitUnlocked(unit.id, unitsForLevel(unit.level, unit.language), completed)) {
+  // El Set `completed` mezcla lecciones hechas + mazos Bonus requeridos ya
+  // dominados (ver core/unit-requirements.js) -- para unidades sin requisito
+  // extra, getRequiredBonusCompletion no hace ninguna llamada de red.
+  const bonusDone = await getRequiredBonusCompletion(user.id, levelUnits);
+  const completed = new Set([
+    ...Object.entries(progress).filter(([, v]) => v?.status === "done").map(([id]) => id),
+    ...bonusDone,
+  ]);
+  if (!isUnitUnlocked(unit.id, levelUnits, completed)) {
     mount(container, el("div", { class: "max-w-lg mx-auto " + CARD + " text-center" },
       el("div", { class: "w-14 h-14 mx-auto rounded-full bg-slate-800 grid place-items-center text-slate-400", html: ICONS.lock }),
       el("h1", { class: "text-xl font-bold mt-4" }, "Unidad bloqueada"),
@@ -61,7 +68,7 @@ export async function renderUnit(container, params, user) {
           "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
           el("div", { class: "bg-white h-2 rounded-full transition-all", style: `width:${pct}%` })))));
 
-  const content = el("section", { class: CARD }, unitContent(unit, progress, user));
+  const content = el("section", { class: CARD }, unitContent(unit, progress, user, bonusDone));
 
   const review = el("section", { class: CARD + " flex items-center justify-between flex-wrap gap-3" },
     el("div", {},

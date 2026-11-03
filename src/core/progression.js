@@ -2,13 +2,19 @@
  * core/progression.js — Desbloqueo secuencial de unidades (estilo Duolingo/libro).
  *
  * Logica PURA (sin DOM ni I/O). Una unidad esta "completa" cuando TODAS sus
- * lecciones estan hechas. El curso avanza como un sendero: la primera unidad
- * siempre esta abierta, y cada siguiente se desbloquea al COMPLETAR la anterior.
+ * lecciones estan hechas Y (si la unidad lo exige, ver core/unit-requirements.js)
+ * los mazos Bonus requeridos (verbos del tema, idioms, expresiones) ya estan
+ * dominados. El curso avanza como un sendero: la primera unidad siempre esta
+ * abierta, y cada siguiente se desbloquea al COMPLETAR la anterior.
  */
+import { requiredBonusSatisfied } from "./unit-requirements.js";
 
-/** Una unidad esta completa si tiene lecciones y todas estan hechas. */
+/** Una unidad esta completa si tiene lecciones, todas estan hechas, y sus
+ * mazos Bonus requeridos (si los tiene) ya estan dominados. */
 export function isUnitComplete(unit, completed) {
-  return unit.lessons.length > 0 && unit.lessons.every((l) => completed.has(l.id));
+  return unit.lessons.length > 0
+    && unit.lessons.every((l) => completed.has(l.id))
+    && requiredBonusSatisfied(unit, completed);
 }
 
 /**

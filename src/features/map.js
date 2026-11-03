@@ -11,8 +11,9 @@
  * Completar todas las unidades del nivel = pasar de nivel.
  */
 import { getStudentProfile } from "../services/profiles.js";
-import { getCourseProgress } from "../services/course.js";
+import { getCourseProgress, getRequiredBonusCompletion } from "../services/course.js";
 import { unitsForCourse } from "../data/units/index.js";
+import { requiredBonusSatisfied } from "../core/unit-requirements.js";
 import { currentLangCode } from "../ui/nav.js";
 import { SKILL_META, skillLabel } from "../data/skill-meta.js";
 import { getImmersion } from "../ui/prefs.js";
@@ -48,12 +49,18 @@ export async function renderMap(container, user) {
   }
 
   const progress = await getCourseProgress(user.id);
-  const done = new Set(
-    Object.entries(progress).filter(([, v]) => v.status === "done").map(([id]) => id));
   const units = unitsForCourse(profile.cefr_level, currentLangCode());
+  // Mazos Bonus requeridos ya dominados (ver core/unit-requirements.js): se
+  // fusionan con el progreso de lecciones -- misma verdad que unit.js y
+  // course-cards.js, para que las tres pantallas desbloqueen IGUAL.
+  const bonusDone = await getRequiredBonusCompletion(user.id, units);
+  const done = new Set([
+    ...Object.entries(progress).filter(([, v]) => v.status === "done").map(([id]) => id),
+    ...bonusDone,
+  ]);
 
   const totalUnits = units.length;
-  const doneUnits = units.filter((u) => u.lessons.every((l) => done.has(l.id))).length;
+  const doneUnits = units.filter((u) => u.lessons.every((l) => done.has(l.id)) && requiredBonusSatisfied(u, done)).length;
 
   const header = el("div", { class: "text-center mb-6" },
     el("h1", { class: "text-2xl font-bold" }, "Mi plan de trabajo"),
@@ -71,7 +78,7 @@ export async function renderMap(container, user) {
     const unitUnlocked = prevUnitComplete;
     const reqLessons = testLesson ? [...skillLessons, testLesson] : skillLessons;
     const doneCount = reqLessons.filter((l) => done.has(l.id)).length;
-    const unitComplete = doneCount === reqLessons.length && reqLessons.length > 0;
+    const unitComplete = doneCount === reqLessons.length && reqLessons.length > 0 && requiredBonusSatisfied(unit, done);
 
     sections.push(unitBanner(unit, unitUnlocked, doneCount, reqLessons.length));
 

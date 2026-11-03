@@ -6,7 +6,7 @@
  * el inicio; ahora pertenecen aqui, donde el estudiante estudia. Mas orden.
  */
 import { getStudentProfile } from "../services/profiles.js";
-import { getCourseProgress } from "../services/course.js";
+import { getCourseProgress, getRequiredBonusCompletion } from "../services/course.js";
 import { unitsForCourse } from "../data/units/index.js";
 import { currentLangCode } from "../ui/nav.js";
 import { ICONS } from "../ui/icons.js";
@@ -28,6 +28,10 @@ export async function renderCourse(container, user) {
 
   const progressMap = await getCourseProgress(user.id);
   const units = unitsForCourse(profile.cefr_level, currentLangCode());
+  // Mazos Bonus requeridos ya dominados (ver core/unit-requirements.js): se
+  // fusionan con progressMap para que el mosaico desbloquee igual que la
+  // pantalla de la unidad (unit.js) y "Mi Plan" (map.js) -- una sola verdad.
+  const bonusDone = await getRequiredBonusCompletion(user.id, units);
 
   mount(container, el("div", { class: "max-w-4xl mx-auto space-y-6" },
     backHome(),
@@ -35,7 +39,7 @@ export async function renderCourse(container, user) {
       icon: ICONS.book, grad: accentGrad("brand"),
       title: "Tu curso", subtitle: `${profile.cefr_level} - ${units.length} temas`,
     }),
-    courseCards(units, progressMap),
+    courseCards(units, progressMap, bonusDone),
     units.length ? bonusCard() : emptyCourse()));
   focusMainHeading(container);
 }
