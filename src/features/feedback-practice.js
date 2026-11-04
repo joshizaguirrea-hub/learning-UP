@@ -1,3 +1,4 @@
+
 /**
  * features/feedback-practice.js — Practica desde TUS errores reales del feedback.
  *
@@ -33,8 +34,12 @@ function cleanForSpeech(s) {
  * Abre la practica de errores en un overlay.
  * @param {Array<{wrong,right,why}>} errors
  * @param {string} [lang] codigo del idioma META (en|pt|it...) para voz y copia
+ * @param {function} [onDefeat] - opcional, se llama con el error cuando se
+ *   responde BIEN (feedback-dashboard.js no lo usa; notebook.js si, para
+ *   sumarlo a la Galeria de villanos). Desacoplado a proposito: esta pantalla
+ *   no necesita saber que es un "villano", solo reporta que se resolvio.
  */
-export function openErrorPractice(errors, lang = "en") {
+export function openErrorPractice(errors, lang = "en", onDefeat) {
   const items = (errors || []).filter((e) => e && e.wrong && e.right);
   const langEs = languageName(lang).toLowerCase();
   let idx = 0, correct = 0;
@@ -100,7 +105,7 @@ export function openErrorPractice(errors, lang = "en") {
     function check() {
       if (done) return;
       const ok = norm(input.value) === norm(it.right);
-      if (ok) { correct++; playCorrect(); } else playWrong();
+      if (ok) { correct++; playCorrect(); onDefeat?.(it); } else playWrong();
       settle(ok);
     }
     function reveal() { if (!done) { playWrong(); settle(false); } }

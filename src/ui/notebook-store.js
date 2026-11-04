@@ -6,7 +6,7 @@
  * de forma ACUMULATIVA (historico) para repasar y practicar. localStorage -> sin
  * tocar el esquema de la BD; si se pierde, se vuelve a llenar practicando.
  */
-import { mergeNotebook } from "../core/notebook.js";
+import { mergeNotebook, errorKey } from "../core/notebook.js";
 
 const KEY = "learningup:notebook:";
 const keyFor = (userId) => KEY + (userId || "anon");
@@ -64,4 +64,35 @@ export function clearNotebook(userId, unitId) {
     try { localStorage.setItem(keyFor(userId), JSON.stringify(all)); } catch { /* nada */ }
   }
   return all;
+}
+
+/**
+ * Marca un error como DOMINADO (vencido) -- pasa de "para practicar" a trofeo
+ * en la Galeria de villanos (features/villain-gallery.js). No lo quita de la
+ * lista de errores activos (sigue siendo historial real), solo lo suma a la
+ * coleccion de vencidos. Dedup por errorKey: vencer el mismo error dos veces
+ * no genera dos trofeos.
+ * @param {string} userId
+ * @param {string} unitId
+ * @param {{wrong,right,why?,skill?}} error
+ */
+export function markErrorDefeated(userId, unitId, error) {
+  if (!unitId || !error || !error.wrong || !error.right) return;
+  const all = loadNotebooks(userId);
+  const entry = all[unitId];
+  if (!entry) return; // sin cuaderno de esta unidad, nada que marcar
+  const key = errorKey(error);
+  const defeated = entry.defeated || [];
+  if (defeated.some((d) => d.key === key)) return; // ya estaba vencido
+  defeated.push({
+    key, wrong: error.wrong, right: error.right, why: error.why || "",
+    skill: error.skill || "grammar", defeatedAt: Date.now(),
+  });
+  entry.defeated = defeated;
+  try { localStorage.setItem(keyFor(userId), JSON.stringify(all)); } catch { /* best-effort */ }
+}
+
+/** Villanos vencidos de una unidad (o lista vacia). */
+export function loadDefeated(userId, unitId) {
+  return (loadNotebooks(userId)[unitId] || {}).defeated || [];
 }

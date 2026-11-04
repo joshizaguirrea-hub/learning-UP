@@ -57,8 +57,10 @@ export function buildNotebookPrompt(targetLang = "en") {
   return FEEDBACK_TOKEN + "\n" + rubric;
 }
 
-/** Clave de dedup de un error (frase mal + correccion, normalizadas). */
-function errorKey(e) {
+/** Clave de dedup de un error (frase mal + correccion, normalizadas). Exportada:
+ * core/villains.js y ui/notebook-store.js la reusan para identificar "el mismo
+ * error" de forma estable (un villano = una clave, siempre). */
+export function errorKey(e) {
   return ((e.wrong || "") + "->" + (e.right || "")).toLowerCase().replace(/\s+/g, " ").trim();
 }
 /** Clave de dedup de una palabra de vocabulario. */

@@ -20,10 +20,11 @@ import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
 import { speak } from "../ui/speech.js";
 import { micCode, languageName } from "../data/languages.js";
-import { loadNotebook, clearNotebook } from "../ui/notebook-store.js";
+import { loadNotebook, clearNotebook, markErrorDefeated, loadDefeated } from "../ui/notebook-store.js";
 import { errorSkill } from "../core/notebook.js";
 import { unitPronouns, unitVocabulary } from "../core/unit-language.js";
 import { openErrorPractice } from "./feedback-practice.js";
+import { openVillainGallery } from "./villain-gallery.js";
 
 /** Pestanas del cuaderno (una por competencia + "Todos"). */
 const TABS = [
@@ -68,14 +69,26 @@ function errorCard(e) {
     e.why ? el("p", { class: "mt-1 text-xs text-slate-400" }, "\uD83D\uDCA1 " + e.why) : null);
 }
 
-/** Boton grande para practicar un conjunto de errores. */
-function practiceButton(label, errors, lang) {
+/** Boton grande para practicar un conjunto de errores. Vencer uno (responder
+ * bien) lo suma a la Galeria de villanos de esta unidad. */
+function practiceButton(label, errors, lang, unit, user) {
   return el("button", {
     type: "button",
     class: "mt-3 w-full px-5 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-semibold " +
       "hover:brightness-110 focus:outline focus:outline-2 focus:outline-rose-300",
-    onclick: () => openErrorPractice(errors, lang),
+    onclick: () => openErrorPractice(errors, lang, (err) => markErrorDefeated(user?.id, unit?.id, err)),
   }, label);
+}
+
+/** Boton secundario a la Galeria de villanos (cuantos ya vencio en esta unidad). */
+function villainGalleryButton(unit, user) {
+  const n = loadDefeated(user?.id, unit?.id).length;
+  return el("button", {
+    type: "button",
+    class: "mt-2 w-full px-5 py-2.5 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-200 " +
+      "font-semibold text-sm hover:bg-emerald-500/20 focus:outline focus:outline-2 focus:outline-emerald-400",
+    onclick: () => openVillainGallery(unit, user),
+  }, "\uD83C\uDFC6 Galer\u00eda de villanos (" + n + ")");
 }
 
 /** Estado vacio de una pestana de competencia. */
@@ -161,7 +174,8 @@ export function openNotebook(unit, user) {
         const wrap = el("div", { class: "flex flex-col gap-2" });
         for (const e of errors) wrap.append(errorCard(e));
         body.append(wrap);
-        body.append(practiceButton("Practicar todos mis errores", errors, lang));
+        body.append(practiceButton("Practicar todos mis errores", errors, lang, unit, user));
+        body.append(villainGalleryButton(unit, user));
       } else {
         body.append(el("div", { class: "mt-3 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300" },
           "A\u00fan no hay errores guardados. Toma una CLASE o CONVERSACI\u00d3N con la profe: al terminar, " +
@@ -176,7 +190,8 @@ export function openNotebook(unit, user) {
       const wrap = el("div", { class: "flex flex-col gap-2" });
       for (const e of list) wrap.append(errorCard(e));
       body.append(wrap);
-      body.append(practiceButton("Practicar mis errores de " + tab.label, list, lang));
+      body.append(practiceButton("Practicar mis errores de " + tab.label, list, lang, unit, user));
+      body.append(villainGalleryButton(unit, user));
     } else {
       body.append(emptyState(tab.label));
     }
