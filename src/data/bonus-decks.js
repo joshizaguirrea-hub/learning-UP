@@ -204,30 +204,36 @@ const CORE_BONUS_DECKS = [
     gradient: "from-fuchsia-500 to-purple-700",
     medalTitle: "Maestro de modismos",
     medalDesc: "Dominaste los modismos mas usados del ingles",
+    // comic: true -> en vez del reverso plano, la pantalla (bonus.js +
+    // features/idiom-comic.js) muestra DOS vinetas: "si lo traduces literal"
+    // (el chiste, campo `literal`) vs "lo que significa de verdad" (`back`).
+    // El salto entre ambas es el "aha" que hace que un modismo se quede
+    // grabado, mucho mas que leer su traduccion sola.
+    comic: true,
     items: [
-      { id: "bi-breaktheice", front: "break the ice", back: "romper el hielo", examples: [
+      { id: "bi-breaktheice", front: "break the ice", back: "romper el hielo", literal: "Romper el hielo (palabra por palabra, igual que en espanol -- raro caso en que coinciden)", examples: [
         { en: "He told a joke to break the ice at the meeting.", es: "Conto un chiste para romper el hielo en la reunion." }] },
-      { id: "bi-pieceofcake", front: "a piece of cake", back: "pan comido / muy facil", examples: [
+      { id: "bi-pieceofcake", front: "a piece of cake", back: "pan comido / muy facil", literal: "Un pedazo de pastel (\u00bfel examen fue... un pastel?)", examples: [
         { en: "The exam was a piece of cake.", es: "El examen fue pan comido." }] },
-      { id: "bi-underweather", front: "under the weather", back: "sentirse mal / indispuesto", examples: [
+      { id: "bi-underweather", front: "under the weather", back: "sentirse mal / indispuesto", literal: "Debajo del clima (imaginate literalmente parado bajo la lluvia)", examples: [
         { en: "I'm feeling a bit under the weather today.", es: "Hoy me siento un poco indispuesto." }] },
-      { id: "bi-hitthesack", front: "hit the sack", back: "irse a dormir", examples: [
+      { id: "bi-hitthesack", front: "hit the sack", back: "irse a dormir", literal: "Golpear el costal (\u00bfle vas a pegar a una bolsa?)", examples: [
         { en: "I'm exhausted, I'm going to hit the sack.", es: "Estoy agotado, me voy a dormir." }] },
-      { id: "bi-costanarm", front: "cost an arm and a leg", back: "costar un ojo de la cara", examples: [
+      { id: "bi-costanarm", front: "cost an arm and a leg", back: "costar un ojo de la cara", literal: "Costar un brazo y una pierna (literal, asi de gruesa la imagen)", examples: [
         { en: "That car cost an arm and a leg.", es: "Ese carro costo un ojo de la cara." }] },
-      { id: "bi-onceinabluemoon", front: "once in a blue moon", back: "muy de vez en cuando", examples: [
+      { id: "bi-onceinabluemoon", front: "once in a blue moon", back: "muy de vez en cuando", literal: "Una vez en una luna azul (las lunas azules no existen, por eso es RARO)", examples: [
         { en: "We eat out once in a blue moon.", es: "Comemos fuera muy de vez en cuando." }] },
-      { id: "bi-hitthebooks", front: "hit the books", back: "ponerse a estudiar duro", examples: [
+      { id: "bi-hitthebooks", front: "hit the books", back: "ponerse a estudiar duro", literal: "Golpear los libros (nadie le pega a un libro, tranquilo)", examples: [
         { en: "Finals are close, time to hit the books.", es: "Se acercan los finales, hora de estudiar duro." }] },
-      { id: "bi-underthetable", front: "the ball is in your court", back: "te toca decidir / la pelota esta en tu cancha", examples: [
+      { id: "bi-underthetable", front: "the ball is in your court", back: "te toca decidir / la pelota esta en tu cancha", literal: "La pelota esta en tu cancha (como si fuera tenis, aunque esten en una oficina)", examples: [
         { en: "I made my offer; now the ball is in your court.", es: "Ya hice mi oferta; ahora te toca decidir a ti." }] },
-      { id: "bi-cutcorners", front: "cut corners", back: "hacer las cosas a medias / ahorrar mal", examples: [
+      { id: "bi-cutcorners", front: "cut corners", back: "hacer las cosas a medias / ahorrar mal", literal: "Cortar las esquinas (\u00bfde que, de un cuadrado?)", examples: [
         { en: "Don't cut corners on safety.", es: "No hagas las cosas a medias con la seguridad." }] },
-      { id: "bi-onthesamepage", front: "be on the same page", back: "estar de acuerdo / en sintonia", examples: [
+      { id: "bi-onthesamepage", front: "be on the same page", back: "estar de acuerdo / en sintonia", literal: "Estar en la misma pagina (como si leyeran el mismo libro a la vez)", examples: [
         { en: "Let's make sure we're on the same page.", es: "Aseguremonos de estar en sintonia." }] },
-      { id: "bi-bitethebullet", front: "bite the bullet", back: "hacer de tripas corazon / afrontarlo", examples: [
+      { id: "bi-bitethebullet", front: "bite the bullet", back: "hacer de tripas corazon / afrontarlo", literal: "Morder la bala (viene de morder una bala de verdad en cirugias sin anestesia)", examples: [
         { en: "I had to bite the bullet and apologize.", es: "Tuve que hacer de tripas corazon y disculparme." }] },
-      { id: "bi-getthehang", front: "get the hang of it", back: "agarrarle el truco", examples: [
+      { id: "bi-getthehang", front: "get the hang of it", back: "agarrarle el truco", literal: "Conseguir el colgado de eso (suena a que algo se quedo trabado)", examples: [
         { en: "Don't worry, you'll get the hang of it soon.", es: "No te preocupes, pronto le agarraras el truco." }] },
     ],
   },

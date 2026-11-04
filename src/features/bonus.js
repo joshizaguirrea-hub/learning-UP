@@ -12,6 +12,7 @@ import { recordActivity } from "../services/profiles.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { buildVerbTimeline } from "./verb-timeline.js";
 import { buildVerbChallenge } from "./verb-challenge.js";
+import { buildIdiomComic } from "./idiom-comic.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
@@ -175,8 +176,13 @@ export async function renderBonusDeck(container, params, user) {
         generatorBlock(item),
         buildVerbChallenge(item, completeVerb));
     } else {
+      // deck.comic (ej. idioms): en vez del reverso plano, dos vinetas --
+      // "si lo traduces literal" (el chiste) vs "lo que significa de verdad".
+      // Sin ese dato (otros mazos: sinonimos, antonimos...) cae al texto plano
+      // de siempre, cero cambio para ellos.
+      const comic = deck.comic ? buildIdiomComic(item) : null;
       const back = el("div", { class: "mt-4 hidden" },
-        el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
+        comic || el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
         examplesBlock(item.examples, spLang));
       showBtn = el("button", { class: "mt-6 " + BTN,
         onclick: () => { back.classList.remove("hidden"); showBtn.classList.add("hidden"); completeVerb(); } },
