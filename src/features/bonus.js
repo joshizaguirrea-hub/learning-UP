@@ -12,7 +12,7 @@ import { recordActivity } from "../services/profiles.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { buildVerbTimeline } from "./verb-timeline.js";
 import { buildVerbChallenge } from "./verb-challenge.js";
-import { buildIdiomComic } from "./idiom-comic.js";
+import { buildIdiomGuessGame } from "./idiom-comic.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
@@ -175,14 +175,17 @@ export async function renderBonusDeck(container, params, user) {
         examplesBlock(item.examples, spLang),
         generatorBlock(item),
         buildVerbChallenge(item, completeVerb));
+    } else if (deck.comic) {
+      // Modismos (deck.comic): tampoco hay "Comprobar respuesta" que tape
+      // nada -- es un juego de adivinanza desde el primer segundo (pista
+      // literal + 3 opciones), no una flashcard que ocultar. Ver
+      // features/idiom-comic.js para el porque del cambio.
+      body = el("div", { class: "mt-2" },
+        buildIdiomGuessGame(item, deck, completeVerb),
+        examplesBlock(item.examples, spLang));
     } else {
-      // deck.comic (ej. idioms): en vez del reverso plano, dos vinetas --
-      // "si lo traduces literal" (el chiste) vs "lo que significa de verdad".
-      // Sin ese dato (otros mazos: sinonimos, antonimos...) cae al texto plano
-      // de siempre, cero cambio para ellos.
-      const comic = deck.comic ? buildIdiomComic(item) : null;
       const back = el("div", { class: "mt-4 hidden" },
-        comic || el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
+        el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
         examplesBlock(item.examples, spLang));
       showBtn = el("button", { class: "mt-6 " + BTN,
         onclick: () => { back.classList.remove("hidden"); showBtn.classList.add("hidden"); completeVerb(); } },
@@ -204,13 +207,15 @@ export async function renderBonusDeck(container, params, user) {
       // El prompt "Di el pasado y el participio" era para el reto de memoria
       // de antes; ya no aplica a los mazos de verbos (deck.practice), donde
       // todo se ensena de una vez. Se queda solo para idioms/vocabulario.
-      deck.recall && !deck.practice ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
+      deck.recall && !deck.practice && !deck.comic ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-11 h-11", lang: spLang })),
       statusHolder,
       el("p", { class: "mt-2 text-xs text-slate-500" },
-        deck.practice ? "Repasa el verbo y completa las practicas para aprenderlo." : "Piensa la respuesta y luego comprueba."),
+        deck.practice ? "Repasa el verbo y completa las practicas para aprenderlo."
+          : deck.comic ? "Lee la pista y adivina el significado real."
+          : "Piensa la respuesta y luego comprueba."),
       body, doneMsg, nav);
 
     mount(container, el("div", { class: "max-w-2xl mx-auto" }, cardEl));
