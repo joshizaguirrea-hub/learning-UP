@@ -27,6 +27,7 @@ import { readingSection, glossarySection, keyPhrasesSection, noteSection, dialog
 import { unitTts } from "../data/languages.js";
 import { confettiBurst } from "../ui/confetti.js";
 import { celebrate } from "../ui/celebrate.js";
+import { showStampReveal } from "./passport-stamp.js";
 import { getCourseProgress } from "../services/course.js";
 import { line } from "../ui/robot-lines.js";
 import { openSpeaking } from "./speaking.js";
@@ -119,7 +120,7 @@ export async function renderLessonPlayer(container, params, user) {
     }
 
     mount(container, el("div", { class: CARD },
-      topBar(unit, pct, state),
+      topBar(unit, pct, state, lesson),
       el("div", { class: "flex-1 mt-6" }, body),
       el("div", { class: "mt-6" }, footer)));
     focusMainHeading(container);
@@ -202,7 +203,7 @@ export async function renderLessonPlayer(container, params, user) {
         // Refresca la barra superior (corazones/racha) sin re-render del ejercicio.
         const card = container.firstElementChild;
         if (card && card.firstElementChild) {
-          card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state), card.firstElementChild);
+          card.replaceChild(topBar(unit, Math.round((state.idx / steps.length) * 100), state, lesson), card.firstElementChild);
         }
         body.append(feedbackBanner(ok, act, unitGrammar, robotLang, unit.level));
         // Bymax reacciona DESPUES de montar el banner (ya existe su avatar vivo).
@@ -245,7 +246,7 @@ export async function renderLessonPlayer(container, params, user) {
 
     if (!passed) {
       mount(container, el("div", { class: CARD },
-        topBar(unit, 100, state),
+        topBar(unit, 100, state, lesson),
         el("div", { class: "flex-1 mt-6 text-center" },
           el("div", { class: "text-5xl" }, "\uD83D\uDCAA"),
           el("h1", { class: "text-2xl font-bold mt-3 text-slate-100" }, "Casi lo logras"),
@@ -282,7 +283,7 @@ export async function renderLessonPlayer(container, params, user) {
       list);
 
     mount(container, el("div", { class: CARD },
-      topBar(unit, 100, state),
+      topBar(unit, 100, state, lesson),
       body,
       el("div", { class: "mt-6 space-y-3" },
         lesson.kind === "test" ? el("button", {
@@ -322,11 +323,17 @@ export async function renderLessonPlayer(container, params, user) {
           .filter(([, v]) => v.status === "done").map(([id]) => id));
         grand = unitsForLevel(unit.level, unit.language).every((u) => u.lessons.every((l) => doneIds.has(l.id)));
       } catch (e) { console.error("[leccion] no pude verificar fin de nivel:", e); }
-      setTimeout(() => celebrate({
-        title: grand ? "\u00a1Nivel " + unit.level + " completado!" : "\u00a1Unidad completada!",
-        subtitle: grand ? "Dominaste todo el nivel " + unit.level : unit.title,
-        grand,
-      }), 600);
+      // Primero la celebracion EPICA, y recien cuando el alumno la cierra,
+      // cae el sello del pasaporte -- dos remates, no uno encimado sobre otro.
+      setTimeout(async () => {
+        await celebrate({
+          title: grand ? "\u00a1Nivel " + unit.level + " completado!" : "\u00a1Unidad completada!",
+          subtitle: grand ? "Dominaste todo el nivel " + unit.level : unit.title,
+          grand,
+        });
+        const idxInLevel = unitsForLevel(unit.level, unit.language).findIndex((u) => u.id === unit.id);
+        await showStampReveal(unit, Math.max(0, idxInLevel));
+      }, 600);
     }
   }
 }
@@ -385,24 +392,41 @@ function floatXp(host, amount = 10) {
   setTimeout(() => chip.remove(), 1200);
 }
 
-function topBar(unit, pct, state) {
+// "Modo batalla" para el examen final: mismo progreso/vidas/racha de siempre,
+// solo con otra piel (barra roja-ambar que "derrota" al jefe, titulo en
+// llamas). Cero logica nueva: pct/hearts/streak significan exactamente lo
+// mismo que en una leccion normal, aqui solo cambia el disfraz visual.
+function topBar(unit, pct, state, lesson) {
+  const boss = lesson?.kind === "test";
   const hearts = el("div", { class: "flex items-center gap-1 shrink-0", "aria-label": "Vidas: " + state.hearts + " de 3" },
     ...[0, 1, 2].map((i) => el("span", {
       class: "text-base leading-none transition " + (i < state.hearts ? "" : "opacity-25 grayscale"),
       "aria-hidden": "true",
     }, "\u2764\uFE0F")));
   const streakPill = state.streak >= 2
-    ? el("span", { class: "text-xs font-bold text-amber-300 flex items-center gap-1" }, "\uD83D\uDD25 ", "x" + state.streak)
+    ? el("span", { class: "text-xs font-bold flex items-center gap-1 " + (boss ? "text-amber-300" : "text-amber-300") },
+        boss ? "\u26A1" : "\uD83D\uDD25", "x" + state.streak)
     : null;
+  const barGrad = boss ? "from-rose-500 via-red-500 to-amber-400" : "from-emerald-400 via-teal-400 to-cyan-400";
   return el("div", {},
+    boss ? el("div", { class: "flex items-center justify-center gap-1.5 mb-2" },
+      el("span", { class: "text-sm", "aria-hidden": "true" }, "\u2694\uFE0F"),
+      el("p", {
+        class: "text-xs font-black uppercase tracking-widest bg-gradient-to-r from-rose-400 via-amber-300 to-rose-400 bg-clip-text text-transparent",
+      }, "Examen final \u00b7 " + unit.title),
+      el("span", { class: "text-sm", "aria-hidden": "true" }, "\u2694\uFE0F")) : null,
     el("div", { class: "flex items-center gap-3" },
       el("a", { href: "#/unidad/" + unit.id,
         class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white text-lg leading-none shrink-0",
         "aria-label": "Salir de la leccion" }, "\u2715"),
       el("div", { class: "flex-1 bg-white/10 rounded-full h-3.5 overflow-hidden", role: "progressbar",
         "aria-valuenow": String(pct), "aria-valuemin": "0", "aria-valuemax": "100" },
-        el("div", { class: "progress-glow bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 h-full rounded-full transition-all duration-500", style: "width:" + pct + "%" })),
-      el("span", { class: "text-xs font-bold text-emerald-300 tabular-nums w-9 text-right shrink-0" }, pct + "%")),
+        el("div", {
+          class: "h-full rounded-full transition-all duration-500 bg-gradient-to-r " + barGrad + " " +
+            (boss ? "boss-glow" : "progress-glow"),
+          style: "width:" + pct + "%",
+        })),
+      el("span", { class: "text-xs font-bold tabular-nums w-9 text-right shrink-0 " + (boss ? "text-rose-300" : "text-emerald-300") }, pct + "%")),
     el("div", { class: "flex items-center justify-between gap-2 mt-2 h-5" }, streakPill || el("span", {}), hearts));
 }
 

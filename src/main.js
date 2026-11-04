@@ -26,6 +26,7 @@ import { renderChat } from "./features/chat.js";
 import { renderSettings } from "./features/settings.js";
 import { renderWelcomeGuide } from "./features/welcome-guide.js";
 import { renderInduction } from "./features/induction.js";
+import { renderPassport } from "./features/passport.js";
 import { renderQuality } from "./features/quality.js";
 import { renderCompetency } from "./features/competency.js";
 import { renderProfile } from "./features/profile.js";
@@ -115,6 +116,7 @@ function setupRoutes() {
   on("/perfil/editar", () => requireAuth((u) => renderProfileEdit(app, u)));
   on("/bonus", () => requireAuth((u) => renderBonus(app, u)));
   on("/bonus/:id", (params) => requireAuth((u) => renderBonusDeck(app, params, u)));
+  on("/pasaporte", () => requireAuth((u) => renderPassport(app, u)));
   on("/coach", () => requireAuth((u) => renderSpeakingCoach(app, u)));
   onNotFound(renderHome);
 }

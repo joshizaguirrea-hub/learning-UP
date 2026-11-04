@@ -224,6 +224,20 @@ body.lesson-mode::after {
 /* Barra de progreso con glow alegre. */
 .progress-glow { box-shadow: 0 0 12px rgba(45, 212, 191, 0.75); }
 
+/* Barra de progreso del examen "modo batalla": glow rojo-ambar que PULSA,
+ * para que se sienta una barra de jefe final, no una barra de progreso mas. */
+@keyframes bossPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.3); } }
+.boss-glow { box-shadow: 0 0 14px rgba(248, 113, 113, 0.85); animation: bossPulse 1.4s ease-in-out infinite; }
+
+/* Sello de pasaporte cayendo y "golpeando" la pantalla al aprobar un examen. */
+@keyframes stampSlam {
+  0%   { transform: translateY(-140px) rotate(-25deg) scale(1.4); opacity: 0; }
+  60%  { transform: translateY(8px) rotate(6deg) scale(1.05); opacity: 1; }
+  80%  { transform: translateY(-4px) rotate(-2deg) scale(1); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+.stamp-slam { animation: stampSlam .6s cubic-bezier(.3,.6,.25,1) both; }
+
 /* Badge de combo (racha) que aparece, sube y se desvanece. */
 @keyframes comboPop {
   0%   { opacity: 0; transform: translate(-50%, 12px) scale(0.7); }
@@ -235,7 +249,7 @@ body.lesson-mode::after {
 
 /* Respeta a quien prefiere menos movimiento (accesibilidad WCAG 2.2). */
 @media (prefers-reduced-motion: reduce) {
-  .step-enter, .robot-float, .robot-pop, .combo-badge,
+  .step-enter, .robot-float, .robot-pop, .combo-badge, .boss-glow, .stamp-slam,
   .bymax-alive, .bymax-happy, .bymax-sad, .bymax-think,
   .bymax-alive.is-talking .bymax-mouth,
   .bymax-tail,

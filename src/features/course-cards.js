@@ -17,7 +17,9 @@ const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl";
 // mosaico se vea colorido y facil de distinguir de un vistazo. Ordenados con
 // intencion: azules/teal (confianza), violetas (premium), verde (progreso),
 // calidos (energia, pocos) y rosas/cyan para variedad.
-const TILES = [
+// Exportado: features/passport.js reusa la MISMA paleta para que un sello del
+// pasaporte y la tarjeta de su unidad en "Tu curso" luzcan el mismo color.
+export const TILES = [
   "from-indigo-500 via-blue-600 to-blue-800",
   "from-fuchsia-500 via-purple-600 to-purple-800",
   "from-emerald-400 via-teal-600 to-teal-800",
@@ -28,8 +30,10 @@ const TILES = [
   "from-lime-400 via-green-600 to-emerald-800",
 ];
 
-/** Emoji tematico segun palabras clave del titulo (personalidad + memoria visual). */
-function topicEmoji(title = "") {
+/** Emoji tematico segun palabras clave del titulo (personalidad + memoria visual).
+ * Exportado: features/passport.js lo reusa para que el sello de cada unidad
+ * muestre el MISMO emoji que su tarjeta en "Tu curso" -- una sola fuente. */
+export function topicEmoji(title = "") {
   const t = title.toLowerCase();
   const map = [
     [/(work|career|job|office|business)/, "\uD83D\uDCBC"],
