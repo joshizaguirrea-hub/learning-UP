@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1039 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1061 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1039 lineas &middot; 52.6 KB &middot; commit c550eb3 2026-10-29</p>
+        <p class="text-xs text-slate-500">1061 lineas &middot; 53.7 KB &middot; commit b4895d3 2026-10-29</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -1074,19 +1074,41 @@ async function handleChat(request, env, origin) {
     }),
   });
 
+  // REINTENTOS automaticos ante saturacion (503/429 de Google).
+  //
+  // ANTES: solo &quot;class&quot; y &quot;cv&quot; tenian red de seguridad (caian a OpenAI). Todo
+  // lo demas (conversacion, entrevista, roleplay, cuento, y el &quot;chat&quot; suelto
+  // que usa p.ej. el boton &quot;Mas ejemplos&quot; de la Clase de Vocabulario) iba
+  // SOLO a Gemini: la primera vez que Google decia &quot;estoy saturado&quot; el alumno
+  // veia el error, sin que nadie hubiera intentado una segunda vez. El &quot;high
+  // demand&quot; de Google casi siempre es cosa de segundos -&gt; reintentar aqui
+  // mismo (el alumno nunca se entera) resuelve la mayoria de los casos sin
+  // tocar el enrutamiento OpenAI/Gemini de cada modo.
+  const REINTENTOS_SATURACION = 2; // 3 intentos en total
+  const ESPERAS_MS = [400, 900];
   let res;
-  try {
-    res = await callGemini(true);
-    if (res.status === 400) res = await callGemini(false); // alias sin &quot;thinking&quot;
-  } catch (e) {
-    return json({ error: &quot;No se pudo contactar a Gemini.&quot; }, 502, origin);
+  let detail = &quot;&quot;;
+  for (let intento = 0; intento &lt;= REINTENTOS_SATURACION; intento++) {
+    try {
+      res = await callGemini(true);
+      if (res.status === 400) res = await callGemini(false); // alias sin &quot;thinking&quot;
+    } catch (e) {
+      return json({ error: &quot;No se pudo contactar a Gemini.&quot; }, 502, origin);
+    }
+    if (res.ok) break;
+    const saturado = res.status === 503 || res.status === 429;
+    if (!saturado || intento === REINTENTOS_SATURACION) {
+      detail = await res.text().catch(() =&gt; &quot;&quot;);
+      break;
+    }
+    await new Promise((r) =&gt; setTimeout(r, ESPERAS_MS[intento]));
   }
 
   if (!res.ok) {
-    const detail = await res.text().catch(() =&gt; &quot;&quot;);
     // 503/429 de Google = saturacion temporal, NO un fallo del usuario. Se
     // distingue para que la pantalla pueda decir &quot;reintenta&quot; en vez de soltar
-    // un volcado tecnico que no ayuda a nadie.
+    // un volcado tecnico que no ayuda a nadie. Si llegamos aqui, ya se agotaron
+    // los reintentos automaticos de arriba.
     const saturado = res.status === 503 || res.status === 429;
     return json({
       error: saturado
@@ -1163,7 +1185,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 29/10/2026 17:05 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 05/11/2026 16:32 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>

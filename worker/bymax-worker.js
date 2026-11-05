@@ -952,19 +952,41 @@ async function handleChat(request, env, origin) {
     }),
   });
 
+  // REINTENTOS automaticos ante saturacion (503/429 de Google).
+  //
+  // ANTES: solo "class" y "cv" tenian red de seguridad (caian a OpenAI). Todo
+  // lo demas (conversacion, entrevista, roleplay, cuento, y el "chat" suelto
+  // que usa p.ej. el boton "Mas ejemplos" de la Clase de Vocabulario) iba
+  // SOLO a Gemini: la primera vez que Google decia "estoy saturado" el alumno
+  // veia el error, sin que nadie hubiera intentado una segunda vez. El "high
+  // demand" de Google casi siempre es cosa de segundos -> reintentar aqui
+  // mismo (el alumno nunca se entera) resuelve la mayoria de los casos sin
+  // tocar el enrutamiento OpenAI/Gemini de cada modo.
+  const REINTENTOS_SATURACION = 2; // 3 intentos en total
+  const ESPERAS_MS = [400, 900];
   let res;
-  try {
-    res = await callGemini(true);
-    if (res.status === 400) res = await callGemini(false); // alias sin "thinking"
-  } catch (e) {
-    return json({ error: "No se pudo contactar a Gemini." }, 502, origin);
+  let detail = "";
+  for (let intento = 0; intento <= REINTENTOS_SATURACION; intento++) {
+    try {
+      res = await callGemini(true);
+      if (res.status === 400) res = await callGemini(false); // alias sin "thinking"
+    } catch (e) {
+      return json({ error: "No se pudo contactar a Gemini." }, 502, origin);
+    }
+    if (res.ok) break;
+    const saturado = res.status === 503 || res.status === 429;
+    if (!saturado || intento === REINTENTOS_SATURACION) {
+      detail = await res.text().catch(() => "");
+      break;
+    }
+    await new Promise((r) => setTimeout(r, ESPERAS_MS[intento]));
   }
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => "");
     // 503/429 de Google = saturacion temporal, NO un fallo del usuario. Se
     // distingue para que la pantalla pueda decir "reintenta" en vez de soltar
-    // un volcado tecnico que no ayuda a nadie.
+    // un volcado tecnico que no ayuda a nadie. Si llegamos aqui, ya se agotaron
+    // los reintentos automaticos de arriba.
     const saturado = res.status === 503 || res.status === 429;
     return json({
       error: saturado
