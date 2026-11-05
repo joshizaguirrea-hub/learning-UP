@@ -6,7 +6,7 @@
  * CALIFICA la pronunciacion (palabra por palabra) y le da feedback hablado en
  * espanol. Reutiliza scoreDetail() de speaking.js (DRY) y el motor de voz/mic.
  */
-import { el } from "../ui/dom.js";
+import { el, replaceKids } from "../ui/dom.js";
 import { normalize } from "../core/activities.js";
 import { speakMono, speakRobot } from "../ui/speech.js";
 import { unitTts, unitMic } from "../data/languages.js";
@@ -157,7 +157,7 @@ export function openReadingAloud(unit, opts = {}) {
       };
     }
 
-    stage.replaceChildren(
+    replaceKids(stage,
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + sentences.length),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText, heardBox),
       el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, ...(supported ? [micBtn] : [])),

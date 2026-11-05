@@ -13,7 +13,7 @@
  *  - Mic: mic.js. Puntaje ESTRELLA: recordSpeakingScore() (que la practica de
  *    pronunciacion NO registraba -> este modo SI alimenta el Speaking Score).
  */
-import { el } from "../ui/dom.js";
+import { el, replaceKids } from "../ui/dom.js";
 import { phrasesOf, coachView } from "./speaking.js";
 import { chunkPhrase, sessionScore } from "../core/shadowing.js";
 import { speakMono, speakSequence } from "../ui/speech.js";
@@ -177,7 +177,7 @@ export function openShadowing(unit, opts = {}) {
 
     const controls = [listenBtn, slowBtn, partsBtn, shadowBtn, selfOkBtn].filter(Boolean);
 
-    stage.replaceChildren(
+    replaceKids(stage,
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" },
         phraseText,

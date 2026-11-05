@@ -59,3 +59,18 @@ export function el(tag, attrs = {}, ...children) {
 export function mount(container, node) {
   container.replaceChildren(node);
 }
+
+/**
+ * Reemplaza los hijos de un contenedor con VARIOS nodos, filtrando null/
+ * undefined antes -- a diferencia del Element.replaceChildren() nativo, que si
+ * le pasas `null`/`undefined` directo (p.ej. `cond ? el(...) : null`) NO lo
+ * omite: lo convierte a texto literal "null"/"undefined" en la pantalla. Bug
+ * real que ya paso (el alumno veia la palabra "null" suelta en varias
+ * pantallas -- ver vocab-class.js, speaking.js, shadowing.js, reading-aloud.js).
+ * `el(...)` ya filtra null en SUS hijos; este helper hace lo mismo para
+ * llamadas directas a replaceChildren() con argumentos sueltos.
+ * @example replaceKids(stage, titulo, cuerpo, condicion ? aviso : null, pie)
+ */
+export function replaceKids(container, ...nodes) {
+  container.replaceChildren(...nodes.filter((n) => n != null));
+}

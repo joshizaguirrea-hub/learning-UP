@@ -9,7 +9,7 @@
  * Contenido: se arma de los EJEMPLOS del vocabulario de la unidad (frases reales
  * ya niveladas). DRY: no duplica datos, reutiliza lo que la unidad ya trae.
  */
-import { el } from "../ui/dom.js";
+import { el, replaceKids } from "../ui/dom.js";
 import { normalize } from "../core/activities.js";
 import { speak, speakMono, speakRobot } from "../ui/speech.js";
 import { unitTts, unitMic } from "../data/languages.js";
@@ -199,7 +199,7 @@ export function openSpeaking(unit, opts = {}) {
 
       if (supported) wireMic();
 
-      stage.replaceChildren(
+      replaceKids(stage,
         el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
         el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText,
           el("p", { class: "mt-2 text-sm text-slate-400" }, instr), heardBox),
@@ -212,7 +212,7 @@ export function openSpeaking(unit, opts = {}) {
 
     if (supported) wireMic();
 
-    stage.replaceChildren(
+    replaceKids(stage,
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Frase " + (idx + 1) + " de " + phrases.length),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4" }, phraseText, heardBox),
       el("div", { class: "mt-4 flex flex-wrap gap-2" }, listenBtn, ...(supported ? [micBtn] : [])),

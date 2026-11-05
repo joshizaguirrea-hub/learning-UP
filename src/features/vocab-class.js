@@ -13,7 +13,7 @@
  * por palabra (coachView de speaking.js), y la lista de palabras (vocabTeachList,
  * logica pura de core/vocab-lab.js).
  */
-import { el } from "../ui/dom.js";
+import { el, replaceKids } from "../ui/dom.js";
 import { speakMono, speakSequence } from "../ui/speech.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { speechSupported, createDictation } from "../ui/mic.js";
@@ -26,9 +26,75 @@ import { vocabTeachList } from "../core/vocab-lab.js";
 import { openVocabLab } from "./vocab-lab.js";
 import { unitTts, unitMic } from "../data/languages.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
+import { askBymax } from "../services/bymax-ai.js";
+import { bymaxAiEnabled } from "../config/bymax.js";
 
-// Nombre del idioma META en espanol (L1) para la copia de la intro.
+// Nombre en espanol del idioma META (L1) para la copia de la intro.
 const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", ja: "japones", es: "espanol" };
+// Como pedirle la ampliacion de una palabra al profe IA: en el idioma META,
+// 3 ejemplos ELABORADOS (no de juguete) + conjugacion SOLO si de verdad es un
+// verbo. Nunca se inventa la conjugacion a mano para cientos de palabras --
+// eso arriesgaria mostrar una forma irregular MAL (ej. "be" -> "beed"). La IA
+// ya sabe conjugar bien; aqui solo se le pide el formato.
+function deepenPrompt(term, translation, langName, isVerb) {
+  return (
+    `Actua como profesor de ${langName} para un hispanohablante. La palabra o frase de vocabulario es ` +
+    `"${term}" (significado: "${translation}"). Responde EXACTAMENTE en este formato, sin texto extra antes ` +
+    "ni despues, sin markdown ni asteriscos:\n\n" +
+    "EJEMPLOS:\n" +
+    `1. <frase natural y elaborada en ${langName} usando la palabra, en un contexto distinto a uno basico>\n` +
+    "   = <traduccion al espanol>\n" +
+    `2. <otra frase, en OTRO contexto/situacion>\n   = <traduccion>\n` +
+    `3. <otra frase, en OTRO contexto mas>\n   = <traduccion>\n` +
+    (isVerb
+      ? "\nCONJUGACION (esta palabra ES un verbo):\n" +
+        "- Presente: <forma> -> <ejemplo corto>\n" +
+        "- Pasado: <forma> -> <ejemplo corto>\n" +
+        "- Participio: <forma> -> <ejemplo corto>\n"
+      : "")
+  );
+}
+
+function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
+
+/**
+ * Boton "Mas ejemplos (+ conjugacion)" de una palabra: pide al profe IA 3
+ * ejemplos elaborados y, si la palabra ES un verbo ("to apply", "to hire"...),
+ * su conjugacion. Null si la IA no esta activa (nada que prometer sin Worker).
+ */
+function buildDeepenBlock(w, langLabel, level) {
+  if (!bymaxAiEnabled) return null;
+  const isVerb = /^to\s+/i.test(w.term);
+  const status = el("p", { class: "mt-2 text-xs text-slate-500 min-h-[1rem] text-center" }, "");
+  const out = el("div", { class: "mt-2" });
+
+  const deepenBtn = el("button", {
+    type: "button",
+    class: "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/40 " +
+      "bg-indigo-500/10 text-indigo-200 font-semibold text-sm hover:bg-indigo-500/20 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
+    onclick: async () => {
+      deepenBtn.disabled = true;
+      status.textContent = "Generando" + (isVerb ? " ejemplos y conjugaci\u00f3n..." : " m\u00e1s ejemplos...");
+      out.replaceChildren();
+      const { answer, error } = await askBymax({
+        mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
+        question: deepenPrompt(w.term, w.translation, langLabel, isVerb),
+      });
+      deepenBtn.disabled = false;
+      if (error || !answer) { status.textContent = error || "No pude generar mas ejemplos ahora."; return; }
+      status.textContent = "";
+      deepenBtn.classList.add("hidden");
+      out.replaceChildren(el("div", {
+        class: "rounded-2xl bg-slate-950/40 border border-white/10 p-4 text-sm text-slate-200 " +
+          "whitespace-pre-wrap leading-relaxed text-left",
+      }, stripMd(answer)));
+    },
+  }, el("span", { class: "w-4 h-4", html: ICONS.bulb }),
+    isVerb ? "M\u00e1s ejemplos + conjugaci\u00f3n" : "M\u00e1s ejemplos");
+
+  return el("div", { class: "mt-4 pt-3 border-t border-white/10" }, deepenBtn, status, out);
+}
 // Saludo HABLADO por Bymax en el idioma META (inmersion desde el segundo uno).
 const GREETING = {
   en: (n, c) => `Hi! I'm ${n}. Let's learn ${c} new words together. Listen and repeat after me!`,
@@ -86,7 +152,8 @@ export function openVocabClass(unit, opts = {}) {
   function renderIntro() {
     setProgress(0);
     const greeting = (GREETING[tts] || GREETING.en)(name, words.length);
-    stage.replaceChildren(el("div", { class: "text-center py-4" },
+    stage.replaceChildren(
+      el("div", { class: "text-center py-4" },
       el("div", { class: "w-28 mx-auto" }, teacherFace("lg")),
       el("h3", { class: "text-xl font-bold text-slate-100 mt-3" }, "\u00a1Hola! Soy " + name),
       el("p", { class: "mt-2 text-slate-300 max-w-sm mx-auto" },
@@ -158,7 +225,7 @@ export function openVocabClass(unit, opts = {}) {
             repeated = true;
           });
 
-    stage.replaceChildren(
+    replaceKids(stage,
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" },
         "Palabra " + (idx + 1) + " de " + words.length),
       el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4 text-center" },
@@ -174,6 +241,7 @@ export function openVocabClass(unit, opts = {}) {
           el("div", { class: "mt-2 flex justify-center" },
             btn("Escuchar ejemplo", ICONS.sound,
               "text-sm border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10", () => say(w.example, 0.9)))) : null),
+      buildDeepenBlock(w, langLabel, unit.level),
       el("p", { class: "mt-4 text-sm text-slate-400 text-center" },
         "Ahora rep\u00edtela como " + name + " \u00b7 imita el sonido."),
       el("div", { class: "mt-2 flex justify-center" }, repeatBtn),
