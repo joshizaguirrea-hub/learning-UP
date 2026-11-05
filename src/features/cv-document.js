@@ -27,30 +27,6 @@
 
 import { el } from "../ui/dom.js";
 
-/**
- * Traduce un error tecnico a algo accionable.
- *
- * La pantalla mostraba el JSON crudo del proveedor:
- *   {"error":{"code":503,"message":"This model is currently experiencing high
- *   demand","status":"UNAVAILABLE"}}
- * Eso no le dice a nadie que basta con reintentar en un minuto. Peor: parece
- * que la app se rompio, cuando el servicio del otro lado solo esta ocupado.
- */
-export function mensajeError(error) {
-  const txt = String(error || "");
-  if (/503|UNAVAILABLE|high demand|overload/i.test(txt)) {
-    return "El servicio de IA esta saturado ahora mismo. Espera un minuto y " +
-      "vuelve a pulsar el boton: tu texto sigue aqui.";
-  }
-  if (/429|rate|quota|limite/i.test(txt)) {
-    return "Demasiadas peticiones seguidas. Espera un momento y reintenta.";
-  }
-  if (/red|network|fetch|conexion/i.test(txt)) {
-    return "Sin conexion con el servicio. Revisa tu internet y reintenta.";
-  }
-  return "No pude generarlo ahora. Vuelve a intentarlo en un momento.";
-}
-
 // Encabezados que la IA usa (CV_PROMPT pide MAYUSCULAS). Se detectan por
 // contenido, no por posicion: el orden puede variar entre respuestas.
 const SECCIONES = [

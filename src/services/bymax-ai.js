@@ -36,8 +36,20 @@ export async function askBymax({ mode = "conversation", topic = "general", level
     if (res.status === 429 || (data && data.limite)) {
       return { error: data.error || "Has usado mucho la IA hoy. Vuelve manana.", limite: true };
     }
-    const why = [data && data.error, data && data.detail, !res.ok && res.status].filter(Boolean).join(" | ");
-    return { error: why || "No pude responder ahora." };
+    // BUG REAL que ya paso en pantalla: antes se armaba un `why` pegando
+    // data.error + data.detail (el JSON CRUDO del proveedor, ej. Gemini) +
+    // res.status, todo junto con " | ", y ESO se mostraba tal cual al alumno
+    // ("...| {\"error\":{\"code\":503,...}} | 502"). El Worker YA manda un
+    // `data.error` limpio y pensado para pantalla (ver bymax-worker.js); el
+    // detalle tecnico es SOLO para diagnosticar, nunca para el usuario final.
+    if (data && data.error) {
+      if (data.detail || data.status) {
+        console.warn("[bymax-ai] detalle tecnico (no se muestra al alumno):", data.status, data.detail);
+      }
+      return { error: data.error, retry: !!data.retry };
+    }
+    console.warn("[bymax-ai] respuesta sin data.error:", !res.ok && res.status, data);
+    return { error: "No pude responder ahora." };
   } catch (err) {
     console.error("[bymax-ai] fallo de red:", err);
     return { error: "Sin conexion con el profe IA." };

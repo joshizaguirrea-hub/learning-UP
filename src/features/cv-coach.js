@@ -18,7 +18,7 @@ import { backHome, screenHeader } from "../ui/hub-ui.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { extractTextFromFile } from "../ui/file-text.js";
-import { parseCv, printCv, downloadCvDoc, mensajeError } from "./cv-document.js";
+import { parseCv, printCv, downloadCvDoc } from "./cv-document.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
 
 // El CV es contexto de RECLUTAMIENTO -> habla el coach de entrevistas (Susan),
@@ -372,7 +372,7 @@ export async function renderCvCoach(container, user) {
 
       const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question: buildPro(v), role: "interview" });
       genBtn.disabled = false;
-      if (error || !answer) { status.textContent = mensajeError(error); return; }
+      if (error || !answer) { status.textContent = error || "No pude generarlo ahora. Vuelve a intentarlo en un momento."; return; }
       status.textContent = "Listo. Revisa, ajusta los placeholders y copialo.";
       out.replaceChildren(buildResultBlock(stripMd(answer)));
     }
@@ -441,7 +441,7 @@ export async function renderCvCoach(container, user) {
       const { answer, error } = await askBymax({ mode: "chat", topic: "cv", level, question, role: "interview" });
       genBtn.disabled = false;
 
-      if (error || !answer) { status.textContent = mensajeError(error); return; }
+      if (error || !answer) { status.textContent = error || "No pude generarlo ahora. Vuelve a intentarlo en un momento."; return; }
       status.textContent = "Listo. Revisa y ajusta a tu gusto.";
       out.replaceChildren(buildResultBlock(stripMd(answer)));
     }
