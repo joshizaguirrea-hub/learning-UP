@@ -699,7 +699,12 @@ async function handleTts(request, env, origin, controlarUsoFn) {
       try {
         const audio = await openaiTts(text, env, rate, ttsVoice);
         if (audio) return store({ audio, engine: "openai", voice: ttsVoice || OPENAI_VOICE });
-      } catch (e) { /* cae a los motores de respaldo abajo */ }
+      } catch (e) {
+        // Mismo motivo que en el chat: si no se loguea, un "sin saldo" en
+        // OpenAI pasa totalmente desapercibido y toda la voz se va a los
+        // motores de respaldo (Aura/Google) sin que nadie sepa por que.
+        console.warn("[bymax] OpenAI TTS fallo, cayendo a respaldo:", e && e.message ? e.message : e);
+      }
     }
 
     // VOZ MULTILINGUE (una sola voz para texto mixto es+en). Cadena de motores
@@ -932,7 +937,18 @@ async function handleChat(request, env, origin) {
     try {
       const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
       return json({ answer, brain: "openai" }, 200, origin);
-    } catch (e) { /* respaldo: Gemini abajo */ }
+    } catch (e) {
+      // ANTES este error se tiraba a la basura en silencio: si a OpenAI se le
+      // acaba el saldo (o la key se revoca), el Worker caia a Gemini SIN DEJAR
+      // RASTRO en ningun lado. Resultado: todo el trafico de class+cv se suma
+      // al de conversacion/interview/vocab (que ya SOLO usan Gemini) y se come
+      // el tope de 15 peticiones/min del free-tier entre todos -> saturacion
+      // seguida para TODOS los alumnos, sin pista de la causa real.
+      // Ahora queda en los Logs del Worker (Cloudflare -> tu Worker -> Logs,
+      // en vivo con "Begin log stream"): busca "insufficient_quota" (sin saldo)
+      // vs "invalid_api_key" (key mala/revocada) vs otro codigo.
+      console.warn("[bymax] OpenAI fallo, cayendo a Gemini:", e && e.message ? e.message : e);
+    }
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${env.GEMINI_API_KEY}`;
