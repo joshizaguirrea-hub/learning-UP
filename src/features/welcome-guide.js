@@ -151,10 +151,12 @@ export function renderWelcomeGuide(container, onClose) {
           "falsos amigos, modismos...) para cuando quieras profundizar. " +
           "Varian segun el idioma."),
         el("p", { class: "text-sm text-slate-400 mt-2" },
-          el("b", {}, "Excepcion en B1:"), " ahi los POPs marcados ", el("b", {}, "PARA PASAR"),
-          " (los verbos del tema, Idioms y Expresiones de tiempo) ", el("b", {}, "SI son obligatorios"),
-          " para desbloquear la siguiente unidad, igual que el examen. Se nota " +
-          "porque van junto al POP del examen, no entre las pastillas de Bonos.")),
+          el("b", {}, "Excepcion en B1:"), " el POP marcado ", el("b", {}, "PARA PASAR"),
+          " con los verbos DEL TEMA de la unidad (los que son suyos, no genericos) ",
+          el("b", {}, "SI es obligatorio"),
+          " para desbloquear la siguiente unidad, igual que el examen. Idioms y " +
+          "Expresiones de tiempo son mazos generales (iguales en todas las unidades " +
+          "de B1), asi que siguen siendo opcionales como cualquier otro Bono.")),
 
       bloque("Tu Cuaderno de errores",
         el("p", { class: "text-sm text-slate-400 mt-1" },

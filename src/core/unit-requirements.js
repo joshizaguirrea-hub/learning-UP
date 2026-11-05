@@ -8,36 +8,38 @@
  * eran 100% opcionales -- welcome-guide.js se lo promete al alumno, y
  * tools/check_onboarding.py lo vigila.
  *
- * Decision (a peticion directa, ver BITACORA): en las unidades de B1 que
- * tienen un mazo de verbos ATADO A SU TEMA (data/topic-verb-decks.js), ese
- * mazo + Idioms + Expresiones de tiempo pasan a ser REQUISITO real, al mismo
- * nivel que el examen. Las demas unidades (A1, A2, C1, C2 -- sin mazo de
- * verbos por tema) NO cambian: sus bonos siguen siendo 100% opcionales.
+ * Decision v1 (ver BITACORA): en B1, el mazo de verbos del tema + Idioms +
+ * Expresiones de tiempo pasaban a ser requisito. DURO ROLLBACK PARCIAL: al
+ * probarlo, Idioms y Expresiones de tiempo resultaron ser mazos GENERICOS --
+ * el MISMO mazo para las 12 unidades de B1, sin relacion con el tema de cada
+ * una (ej. "once in a blue moon" no tiene nada que ver con Work & Career).
+ * Exigirlos ahi rompia la promesa de "requisito = parte del tema" y encima
+ * inflaba el desbloqueo a ~22 tarjetas ajenas al tema solo para avanzar.
  *
- * Este modulo es la UNICA fuente de verdad de "que mazos exige esta unidad".
- * core/progression.js, features/map.js, features/course-cards.js y
+ * Decision v2 (esta): SOLO el mazo de verbos ATADO AL TEMA de la unidad
+ * (data/topic-verb-decks.js) es requisito -- es el UNICO que de verdad
+ * pertenece a esa unidad. Idioms y Expresiones de tiempo vuelven a ser
+ * 100% opcionales (Bonos), para TODAS las unidades, sin excepcion.
+ *
+ * Este modulo sigue siendo la UNICA fuente de verdad de "que mazos exige esta
+ * unidad". core/progression.js, features/map.js, features/course-cards.js y
  * features/unit-content.js lo consultan en vez de reinventar la regla cada
- * uno por su lado (eso fue justo el bug que freno antes: 3 copias del mismo
- * calculo de "unidad completa" ya conviven en el codigo).
+ * uno por su lado.
  */
 import { topicVerbDeckFor } from "../data/topic-verb-decks.js";
-
-// Mazos genericos (no atados a tema) que se exigen JUNTO con el de verbos,
-// cuando la unidad tiene uno. Viven una sola vez aqui: si manana cambia el id
-// de "idioms" o se agrega otro mazo generico obligatorio, se edita en un solo sitio.
-const GENERIC_REQUIRED_IDS = ["idioms", "past-time"];
 
 /**
  * Ids de mazos Bonus (data/bonus-decks.js) que esta unidad exige dominar para
  * considerarse "pasada". Vacio si la unidad no tiene mazo de verbos por tema
- * (su bono sigue siendo opcional, sin cambios).
+ * (su bono sigue siendo opcional, sin cambios). SOLO el mazo DEL TEMA cuenta;
+ * los genericos (idioms, expresiones de tiempo) nunca son requisito, en
+ * ninguna unidad -- no pertenecen a ningun tema en particular.
  * @param {object} unit
  * @returns {string[]}
  */
 export function requiredBonusDeckIds(unit) {
   const topicDeck = unit && topicVerbDeckFor(unit.id);
-  if (!topicDeck) return [];
-  return [topicDeck.id, ...GENERIC_REQUIRED_IDS];
+  return topicDeck ? [topicDeck.id] : [];
 }
 
 /** Prefijo de los ids sinteticos que representan "mazo Bonus dominado" dentro
