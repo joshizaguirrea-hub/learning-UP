@@ -62,6 +62,6 @@ export async function getRequiredBonusCompletion(userId, units) {
   const cardMap = await getCardsByIds(userId, allItemIds);
 
   const out = new Set();
-  bonusMedals(decks, cardMap).forEach((m) => { if (m.mastered) out.add(BONUS_DONE_PREFIX + m.deck.id); });
+  bonusMedals(decks, cardMap).forEach((m) => { if (m.passed) out.add(BONUS_DONE_PREFIX + m.deck.id); });
   return out;
 }

@@ -6,6 +6,7 @@
  * de datos ya cargados (unidades del catalogo + progreso del usuario).
  */
 import { SKILL_META } from "../data/skill-meta.js";
+import { PASS } from "../core/unit-report.js";
 
 const XP_PER_LESSON = 20;
 const XP_PER_VOCAB = 5;
@@ -14,18 +15,24 @@ const XP_PER_VOCAB = 5;
 export const MASTER_REPS = 2;
 
 /**
- * Estado de las medallas de los mazos Bonus (logica pura, sin I/O ni DOM).
- * Una medalla se gana al dominar el mazo: todos sus items con reps >= MASTER_REPS.
+ * Estado de las medallas de los mazos Bonus.
+ * Medalla (mastered): 100% (todos ítems >= MASTER_REPS).
+ * Aprobado (passed): >= 70% (el umbral real de la app).
  * @param {Array} decks - catalogo de mazos ({ id, items:[{id}], medalTitle, ... })
  * @param {Object} cardMap - mapa id -> { reps } del progreso SRS del usuario
- * @returns {Array} [{ deck, done, total, mastered, pct }] en el orden de `decks`
+ * @returns {Array} [{ deck, done, total, mastered, passed, pct }]
  */
 export function bonusMedals(decks, cardMap) {
   return decks.map((deck) => {
     const total = deck.items.length;
     const done = deck.items.filter((it) => (cardMap[it.id]?.reps || 0) >= MASTER_REPS).length;
-    const mastered = total > 0 && done === total;
-    return { deck, done, total, mastered, pct: total ? Math.round((done / total) * 100) : 0 };
+    const pct = total ? Math.round((done / total) * 100) : 0;
+    return { 
+      deck, done, total, 
+      mastered: total > 0 && done === total,
+      passed: total > 0 && pct >= PASS,
+      pct 
+    };
   });
 }
 
