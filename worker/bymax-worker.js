@@ -933,20 +933,25 @@ async function handleChat(request, env, origin) {
   // sin respaldo: un 503 de Google ("model is currently experiencing high
   // demand") dejaba al usuario sin CV y sin alternativa. Es justo el caso que
   // menos puede fallar: alguien preparando una candidatura real.
-  if ((isClass || isCv) && env.OPENAI_API_KEY) {
+  // CEREBRO: OpenAI PRIMERO para TODO el chat (si hay key), Gemini de respaldo.
+  //
+  // ANTES esto decia "if ((isClass || isCv) && env.OPENAI_API_KEY)": solo Clase
+  // y CV intentaban OpenAI; conversacion/entrevista/roleplay/cuento/vocabulario
+  // iban DIRECTO a Gemini, sin red de seguridad. Confirmado que OpenAI SI esta
+  // configurado, SI tiene saldo y SI responde (92 peticiones reales en 7 dias) -
+  // no hay motivo para dejar la mayoria del trafico dependiendo en solitario
+  // del tope gratis de Gemini (~15 peticiones/min para TODA la app). Si Gemini
+  // se satura con 2+ alumnos usando la IA a la vez, antes NINGUN modo excepto
+  // Clase/CV tenia donde caer. Ahora TODOS lo tienen.
+  if (env.OPENAI_API_KEY) {
     try {
       const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
       return json({ answer, brain: "openai" }, 200, origin);
     } catch (e) {
-      // ANTES este error se tiraba a la basura en silencio: si a OpenAI se le
-      // acaba el saldo (o la key se revoca), el Worker caia a Gemini SIN DEJAR
-      // RASTRO en ningun lado. Resultado: todo el trafico de class+cv se suma
-      // al de conversacion/interview/vocab (que ya SOLO usan Gemini) y se come
-      // el tope de 15 peticiones/min del free-tier entre todos -> saturacion
-      // seguida para TODOS los alumnos, sin pista de la causa real.
-      // Ahora queda en los Logs del Worker (Cloudflare -> tu Worker -> Logs,
-      // en vivo con "Begin log stream"): busca "insufficient_quota" (sin saldo)
-      // vs "invalid_api_key" (key mala/revocada) vs otro codigo.
+      // Si esto falla (sin saldo, key revocada, 429 de OpenAI...), cae a Gemini
+      // abajo -> el alumno nunca se queda sin respuesta. Logueado para poder
+      // diagnosticar sin adivinar (Cloudflare -> tu Worker -> Logs -> Begin log
+      // stream): busca "insufficient_quota" (sin saldo) vs "invalid_api_key".
       console.warn("[bymax] OpenAI fallo, cayendo a Gemini:", e && e.message ? e.message : e);
     }
   }

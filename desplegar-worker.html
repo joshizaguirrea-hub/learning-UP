@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1077 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1082 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1077 lineas &middot; 54.7 KB &middot; commit c8e962c 2026-11-05</p>
+        <p class="text-xs text-slate-500">1082 lineas &middot; 55.0 KB &middot; commit 379296e 2026-11-05</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -1055,20 +1055,25 @@ async function handleChat(request, env, origin) {
   // sin respaldo: un 503 de Google (&quot;model is currently experiencing high
   // demand&quot;) dejaba al usuario sin CV y sin alternativa. Es justo el caso que
   // menos puede fallar: alguien preparando una candidatura real.
-  if ((isClass || isCv) &amp;&amp; env.OPENAI_API_KEY) {
+  // CEREBRO: OpenAI PRIMERO para TODO el chat (si hay key), Gemini de respaldo.
+  //
+  // ANTES esto decia &quot;if ((isClass || isCv) &amp;&amp; env.OPENAI_API_KEY)&quot;: solo Clase
+  // y CV intentaban OpenAI; conversacion/entrevista/roleplay/cuento/vocabulario
+  // iban DIRECTO a Gemini, sin red de seguridad. Confirmado que OpenAI SI esta
+  // configurado, SI tiene saldo y SI responde (92 peticiones reales en 7 dias) -
+  // no hay motivo para dejar la mayoria del trafico dependiendo en solitario
+  // del tope gratis de Gemini (~15 peticiones/min para TODA la app). Si Gemini
+  // se satura con 2+ alumnos usando la IA a la vez, antes NINGUN modo excepto
+  // Clase/CV tenia donde caer. Ahora TODOS lo tienen.
+  if (env.OPENAI_API_KEY) {
     try {
       const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
       return json({ answer, brain: &quot;openai&quot; }, 200, origin);
     } catch (e) {
-      // ANTES este error se tiraba a la basura en silencio: si a OpenAI se le
-      // acaba el saldo (o la key se revoca), el Worker caia a Gemini SIN DEJAR
-      // RASTRO en ningun lado. Resultado: todo el trafico de class+cv se suma
-      // al de conversacion/interview/vocab (que ya SOLO usan Gemini) y se come
-      // el tope de 15 peticiones/min del free-tier entre todos -&gt; saturacion
-      // seguida para TODOS los alumnos, sin pista de la causa real.
-      // Ahora queda en los Logs del Worker (Cloudflare -&gt; tu Worker -&gt; Logs,
-      // en vivo con &quot;Begin log stream&quot;): busca &quot;insufficient_quota&quot; (sin saldo)
-      // vs &quot;invalid_api_key&quot; (key mala/revocada) vs otro codigo.
+      // Si esto falla (sin saldo, key revocada, 429 de OpenAI...), cae a Gemini
+      // abajo -&gt; el alumno nunca se queda sin respuesta. Logueado para poder
+      // diagnosticar sin adivinar (Cloudflare -&gt; tu Worker -&gt; Logs -&gt; Begin log
+      // stream): busca &quot;insufficient_quota&quot; (sin saldo) vs &quot;invalid_api_key&quot;.
       console.warn(&quot;[bymax] OpenAI fallo, cayendo a Gemini:&quot;, e &amp;&amp; e.message ? e.message : e);
     }
   }
@@ -1201,7 +1206,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 05/11/2026 16:36 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 05/11/2026 17:10 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
