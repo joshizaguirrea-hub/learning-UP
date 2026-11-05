@@ -158,8 +158,13 @@ html[data-contrast="high"] a { text-decoration: underline; }
   border: 0;
 }
 
-/* Foco visible reforzado (WCAG 2.2 - foco no oscurecido). */
-:focus-visible {
+/* Foco visible reforzado (WCAG 2.2 - foco no oscurecido). focusMainHeading()
+ * mueve el foco por CODIGO (no por teclado) al abrir cada pantalla/tarjeta; en
+ * algunos navegadores eso NO matchea :focus-visible y cae al outline feo por
+ * default del user-agent (rectangulo negro solido). Por eso h1/h2/[role=
+ * heading] llevan el MISMO estilo bonito tambien en :focus simple. */
+:focus-visible,
+h1:focus, h2:focus, h3:focus, [role="heading"]:focus {
   outline: 2px solid #4338ca;
   outline-offset: 2px;
 }

@@ -12,7 +12,7 @@ import { recordActivity } from "../services/profiles.js";
 import { generateExamples, GEN_LEVELS } from "../core/example-gen.js";
 import { buildVerbTimeline } from "./verb-timeline.js";
 import { buildVerbChallenge } from "./verb-challenge.js";
-import { buildIdiomGuessGame } from "./idiom-comic.js";
+import { buildGuessGame } from "./flashcard-game.js";
 import { normalize } from "../core/activities.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
 import { CEFR_ORDER } from "../data/cefr.js";
@@ -164,33 +164,22 @@ export async function renderBonusDeck(container, params, user) {
     // (buildVerbChallenge, en features/verb-challenge.js), que si exige
     // recordar -- un reto a la vez, con su propio feedback.
     //
-    // OTROS mazos (idioms, sinonimos, expresiones...): siguen como flashcard
-    // clasica -- ves el frente, piensas la respuesta, y recien entonces
-    // revelas el reverso. Ahi si tiene sentido ocultarla: ya viste la palabra
-    // antes, esto es repaso con recuerdo activo, no primer contacto.
-    let body, showBtn = null;
+    // OTROS mazos (idioms, sinonimos, expresiones...): YA NO es flashcard
+    // pasiva ("piensa y comprueba"). Feedback directo: "quiero presentarlas
+    // de manera distinta" -- pidio esto para Idioms Y Expresiones a la vez,
+    // asi que el juego de adivinanza (features/flashcard-game.js) es ahora el
+    // reemplazo UNIVERSAL para todo mazo sin practica, no solo idioms.
+    let body;
     if (deck.practice) {
       body = el("div", { class: "mt-2" },
         buildVerbTimeline(item, { lang: spLang }),
         examplesBlock(item.examples, spLang),
         generatorBlock(item),
         buildVerbChallenge(item, completeVerb));
-    } else if (deck.comic) {
-      // Modismos (deck.comic): tampoco hay "Comprobar respuesta" que tape
-      // nada -- es un juego de adivinanza desde el primer segundo (pista
-      // literal + 3 opciones), no una flashcard que ocultar. Ver
-      // features/idiom-comic.js para el porque del cambio.
-      body = el("div", { class: "mt-2" },
-        buildIdiomGuessGame(item, deck, completeVerb),
-        examplesBlock(item.examples, spLang));
     } else {
-      const back = el("div", { class: "mt-4 hidden" },
-        el("p", { class: "text-2xl font-semibold text-indigo-300" }, item.back),
+      body = el("div", { class: "mt-2" },
+        buildGuessGame(item, deck, completeVerb),
         examplesBlock(item.examples, spLang));
-      showBtn = el("button", { class: "mt-6 " + BTN,
-        onclick: () => { back.classList.remove("hidden"); showBtn.classList.add("hidden"); completeVerb(); } },
-        "Comprobar respuesta");
-      body = el("div", {}, back, showBtn);
     }
 
     // Navegacion entre verbos: solo Devolverse y Siguiente.
@@ -204,18 +193,17 @@ export async function renderBonusDeck(container, params, user) {
       el("button", { type: "button", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded", onclick: goBack }, "< Volver"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       dotsHolder,
-      // El prompt "Di el pasado y el participio" era para el reto de memoria
-      // de antes; ya no aplica a los mazos de verbos (deck.practice), donde
-      // todo se ensena de una vez. Se queda solo para idioms/vocabulario.
-      deck.recall && !deck.practice && !deck.comic ? el("p", { class: "mt-3 text-xs uppercase tracking-wide text-indigo-300" }, deck.recall) : null,
+      // El viejo prompt deck.recall ("Di el significado"/"Di un sinonimo") ya
+      // no se pinta: el juego de adivinanza (buildGuessGame) trae su propio
+      // prompt integrado ("\u00bfQue crees que significa?"), y los mazos de
+      // verbos (deck.practice) tienen el suyo dentro de buildVerbChallenge.
+      // El campo sigue en data/bonus-decks.js por si se usa en otro lado.
       el("div", { class: "mt-2 flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
         speakButton(item.front, { cls: "w-11 h-11", lang: spLang })),
       statusHolder,
       el("p", { class: "mt-2 text-xs text-slate-500" },
-        deck.practice ? "Repasa el verbo y completa las practicas para aprenderlo."
-          : deck.comic ? "Lee la pista y adivina el significado real."
-          : "Piensa la respuesta y luego comprueba."),
+        deck.practice ? "Repasa el verbo y completa las practicas para aprenderlo." : "Adivina el significado -- toca una opcion."),
       body, doneMsg, nav);
 
     mount(container, el("div", { class: "max-w-2xl mx-auto" }, cardEl));
