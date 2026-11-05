@@ -28,4 +28,45 @@ if [ "$EMAIL" != "$ALLOWED" ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# guarda de modulos — atrapa el bug de "export borrado pero import vivo" ANTES
+# de que llegue a main. Ese bug tumba la pagina ENTERA para todos los usuarios
+# a la vez (main.js importa estaticamente las ~80 pantallas; un solo import
+# roto hace que el navegador nunca termine de cargar el modulo de arranque).
+#
+# check_paths.py y check_exports.py son puro Python (sin tree_sitter): corren
+# siempre. check_js.py / check_imports.py necesitan tree_sitter instalado; si
+# no esta, se avisa pero NO se bloquea el commit (mejor avisar que trabar a
+# alguien sin esa dependencia).
+
+PY="$(command -v python || command -v python3)"
+if [ -z "$PY" ]; then
+  echo ""
+  echo "  AVISO: no encontre python, me salto la guarda de modulos JS."
+  echo ""
+  exit 0
+fi
+
+fail=0
+
+echo "Verificando imports/exports de src/..."
+
+"$PY" tools/check_paths.py || fail=1
+"$PY" tools/check_exports.py || fail=1
+
+if "$PY" -c "import tree_sitter, tree_sitter_javascript" >/dev/null 2>&1; then
+  "$PY" tools/check_js.py || fail=1
+  "$PY" tools/check_imports.py || fail=1
+else
+  echo ""
+  echo "  (tree_sitter no instalado -> me salto check_js.py y check_imports.py)"
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo ""
+  echo "  COMMIT BLOQUEADO - hay un import/export roto (tumbaria la app ENTERA)"
+  echo ""
+  exit 1
+fi
+
 exit 0
