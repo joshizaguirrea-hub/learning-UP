@@ -61,7 +61,7 @@ Con Node ya instalado, en la terminal dentro de `plataforma-idiomas`:
 node tests/pricing.test.mjs
 node tests/streak.test.mjs
 node tests/content-audit.test.mjs
-node tests/example-gen.test.mjs
+node tests/ai-deepen.test.mjs
 node tests/verb-practice.test.mjs
 node tests/verb-tips.test.mjs
 ```

@@ -130,20 +130,6 @@ export function setAutoplay(on) {
   localStorage.setItem(AUTOPLAY_KEY, on ? "on" : "off");
 }
 
-// --- Nivel preferido para generar ejemplos ---------------------------------
-
-const GENLEVEL_KEY = "linguapath.genlevel";
-
-/** Devuelve el nivel guardado para generar ejemplos. Default: intermedio. */
-export function getGenLevel() {
-  return localStorage.getItem(GENLEVEL_KEY) || "intermedio";
-}
-
-/** Guarda el nivel preferido para generar ejemplos. */
-export function setGenLevel(id) {
-  localStorage.setItem(GENLEVEL_KEY, id);
-}
-
 // --- Modo inmersion ---------------------------------------------------------
 // Por DEFECTO APAGADO, y es deliberado: la navegacion de la app va en la L1 del
 // alumno (espanol). Un principiante A1 que no sabe donde hacer clic abandona.

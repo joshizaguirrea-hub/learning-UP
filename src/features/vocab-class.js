@@ -28,6 +28,7 @@ import { unitTts, unitMic } from "../data/languages.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
+import { stripMd, parseDeepenAnswer } from "../core/ai-deepen.js";
 
 // Nombre en espanol del idioma META (L1) para la copia de la intro.
 const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", ja: "japones", es: "espanol" };
@@ -79,27 +80,6 @@ function scenarioFor(unit, clean) {
     ? "Tu turno: escribe una frase sobre \u201c" + topic + "\u201d usando \u201c" + clean + "\u201d."
     : "Tu turno: escribe tu propia frase usando \u201c" + clean + "\u201d.";
 }
-
-/**
- * Separa la respuesta de "profundiza" en sus 3 secciones (usa los encabezados
- * EXACTOS que pide deepenPrompt) para poder pintar cada una con su propio
- * color -- un solo bloque gris de texto plano es dificil de escanear. Si el
- * modelo no respeta el formato al pie de la letra, TODO cae en "examples"
- * (nunca se pierde contenido, solo se pierde el color-coding).
- */
-function parseDeepenAnswer(text) {
-  const t = String(text || "");
-  const gi = t.indexOf("NOTA GRAMATICAL:");
-  if (gi === -1) return { examples: t.replace(/^EJEMPLOS:\s*/i, "").trim(), grammar: "", conjugation: "" };
-  const examples = t.slice(0, gi).replace(/^EJEMPLOS:\s*/i, "").trim();
-  const ci = t.indexOf("CONJUGACION", gi);
-  if (ci === -1) return { examples, grammar: t.slice(gi + "NOTA GRAMATICAL:".length).trim(), conjugation: "" };
-  const grammar = t.slice(gi + "NOTA GRAMATICAL:".length, ci).trim();
-  const conjugation = t.slice(ci).replace(/^CONJUGACION[^:]*:\s*/i, "").trim();
-  return { examples, grammar, conjugation };
-}
-
-function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
 
 /**
  * Dispara la ampliacion de la palabra (ejemplos + gramatica + conjugacion)

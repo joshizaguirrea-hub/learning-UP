@@ -17,7 +17,7 @@ Deben salir todas en verde. Cada motor nuevo en `core/` agrega su archivo
 node tests/pricing.test.mjs
 node tests/streak.test.mjs
 node tests/content-audit.test.mjs
-node tests/example-gen.test.mjs     # generador de ejemplos por nivel
+node tests/ai-deepen.test.mjs       # parser de "profundizar" con IA (vocab + verbos)
 node tests/verb-practice.test.mjs   # practicas por verbo (facil/intermedio/dificil)
 node tests/verb-tips.test.mjs       # "pops" de ayuda (regla, usos, tips)
 ```
