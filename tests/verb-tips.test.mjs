@@ -3,7 +3,7 @@
  * Correr con:  node tests/verb-tips.test.mjs
  */
 import assert from "node:assert/strict";
-import { generateTips } from "../src/core/verb-tips.js";
+import { generateTips, regularPastRule } from "../src/core/verb-tips.js";
 
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
@@ -35,6 +35,35 @@ test("regular no tiene present perfect y marca -ed", () => {
 test("verbo con nota especial incluye un tip", () => {
   const tips = generateTips(withNote);
   assert.ok(tips.some((t) => t.tone === "note"));
+});
+
+test("regularPastRule: consonante + y -> i (apply/study), nunca 'applyed'", () => {
+  assert.match(regularPastRule("apply", "applied"), /cambia a "i"/);
+  assert.match(regularPastRule("study", "studied"), /cambia a "i"/);
+});
+
+test("regularPastRule: vocal + y NO cambia (play/stay)", () => {
+  assert.doesNotMatch(regularPastRule("play", "played"), /cambia a "i"/);
+  assert.doesNotMatch(regularPastRule("stay", "stayed"), /cambia a "i"/);
+});
+
+test("regularPastRule: 'e' muda solo agrega 'd' (like/hope)", () => {
+  assert.match(regularPastRule("like", "liked"), /"e" muda/);
+  assert.match(regularPastRule("hope", "hoped"), /"e" muda/);
+});
+
+test("regularPastRule: duplica consonante final (stop/plan)", () => {
+  assert.match(regularPastRule("stop", "stopped"), /Duplica/);
+  assert.match(regularPastRule("plan", "planned"), /Duplica/);
+});
+
+test("regularPastRule: caso general sin cambios (work/play)", () => {
+  assert.match(regularPastRule("work", "worked"), /sin ningun cambio/);
+});
+
+test("La regla de un verbo regular con y->i usa regularPastRule", () => {
+  const rule = generateTips({ front: "apply", back: "applied" }).find((t) => t.tone === "rule");
+  assert.match(rule.body, /cambia a "i"/);
 });
 
 test("cada tip trae icono y degradado (para los pops iOS)", () => {
