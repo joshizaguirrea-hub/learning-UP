@@ -80,6 +80,25 @@ function scenarioFor(unit, clean) {
     : "Tu turno: escribe tu propia frase usando \u201c" + clean + "\u201d.";
 }
 
+/**
+ * Separa la respuesta de "profundiza" en sus 3 secciones (usa los encabezados
+ * EXACTOS que pide deepenPrompt) para poder pintar cada una con su propio
+ * color -- un solo bloque gris de texto plano es dificil de escanear. Si el
+ * modelo no respeta el formato al pie de la letra, TODO cae en "examples"
+ * (nunca se pierde contenido, solo se pierde el color-coding).
+ */
+function parseDeepenAnswer(text) {
+  const t = String(text || "");
+  const gi = t.indexOf("NOTA GRAMATICAL:");
+  if (gi === -1) return { examples: t.replace(/^EJEMPLOS:\s*/i, "").trim(), grammar: "", conjugation: "" };
+  const examples = t.slice(0, gi).replace(/^EJEMPLOS:\s*/i, "").trim();
+  const ci = t.indexOf("CONJUGACION", gi);
+  if (ci === -1) return { examples, grammar: t.slice(gi + "NOTA GRAMATICAL:".length).trim(), conjugation: "" };
+  const grammar = t.slice(gi + "NOTA GRAMATICAL:".length, ci).trim();
+  const conjugation = t.slice(ci).replace(/^CONJUGACION[^:]*:\s*/i, "").trim();
+  return { examples, grammar, conjugation };
+}
+
 function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
 
 /**
@@ -90,13 +109,13 @@ function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, ""
 function buildDeepenBlock(w, langLabel, level) {
   if (!bymaxAiEnabled) return null;
   const isVerb = /^to\s+/i.test(w.term);
-  const status = el("p", { class: "mt-2 text-xs text-slate-500 min-h-[1rem] text-center" }, "");
-  const out = el("div", { class: "mt-2" });
+  const status = el("p", { class: "mt-2 text-sm text-slate-500 min-h-[1.25rem] text-center" }, "");
+  const out = el("div", { class: "mt-3 space-y-3" });
 
   const deepenBtn = el("button", {
     type: "button",
-    class: "w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-500/40 " +
-      "bg-indigo-500/10 text-indigo-200 font-semibold text-sm hover:bg-indigo-500/20 " +
+    class: "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-indigo-400/40 " +
+      "bg-indigo-500/15 text-indigo-200 font-bold text-base hover:bg-indigo-500/25 " +
       "focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
     onclick: async () => {
       deepenBtn.disabled = true;
@@ -110,15 +129,24 @@ function buildDeepenBlock(w, langLabel, level) {
       if (error || !answer) { status.textContent = error || "No pude generar mas ejemplos ahora."; return; }
       status.textContent = "";
       deepenBtn.classList.add("hidden");
-      out.replaceChildren(el("div", {
-        class: "rounded-2xl bg-slate-950/40 border border-white/10 p-4 text-sm text-slate-200 " +
-          "whitespace-pre-wrap leading-relaxed text-left",
-      }, stripMd(answer)));
+      const parsed = parseDeepenAnswer(answer);
+      const blocks = [];
+      if (parsed.examples) blocks.push(el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-4" },
+        el("p", { class: "text-xs font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
+        el("p", { class: "text-base text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.examples))));
+      if (parsed.grammar) blocks.push(el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-400/30 p-4" },
+        el("p", { class: "text-xs font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
+          el("span", { class: "w-3.5 h-3.5", html: ICONS.bulb }), "Nota gramatical"),
+        el("p", { class: "text-base text-amber-50 leading-relaxed text-left" }, stripMd(parsed.grammar))));
+      if (parsed.conjugation) blocks.push(el("div", { class: "rounded-2xl bg-violet-500/10 border border-violet-400/30 p-4" },
+        el("p", { class: "text-xs font-bold uppercase tracking-wide text-violet-300 mb-2" }, "Conjugaci\u00f3n"),
+        el("p", { class: "text-base text-violet-50 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.conjugation))));
+      out.replaceChildren(...blocks);
     },
-  }, el("span", { class: "w-4 h-4", html: ICONS.bulb }),
+  }, el("span", { class: "w-5 h-5", html: ICONS.bulb }),
     isVerb ? "Profundiza: ejemplos + gram\u00e1tica + conjugaci\u00f3n" : "Profundiza: ejemplos + gram\u00e1tica");
 
-  return el("div", { class: "mt-4 pt-3 border-t border-white/10" }, deepenBtn, status, out);
+  return el("div", { class: "mt-5" }, deepenBtn, status, out);
 }
 
 /**
@@ -134,17 +162,17 @@ function buildUseItBlock(w, unit, langLabel, level) {
   const input = el("textarea", {
     rows: "2", maxlength: "200",
     placeholder: "Escribe tu frase aqu\u00ed...",
-    class: "w-full rounded-xl bg-slate-950/40 border border-white/15 px-3 py-2.5 text-slate-100 text-sm " +
-      "focus:outline focus:outline-2 focus:outline-emerald-400 resize-none",
+    class: "w-full rounded-xl bg-slate-950/40 border border-fuchsia-400/30 px-3 py-2.5 text-slate-100 text-base " +
+      "focus:outline focus:outline-2 focus:outline-fuchsia-400 resize-none",
   });
-  const status = el("p", { class: "mt-2 text-xs text-slate-500 min-h-[1rem]" }, "");
+  const status = el("p", { class: "mt-2 text-sm text-slate-400 min-h-[1.25rem]" }, "");
   const out = el("div", { class: "mt-2" });
 
   const checkBtn = el("button", {
     type: "button",
-    class: "mt-2 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/40 " +
-      "bg-emerald-500/10 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/20 " +
-      "focus:outline focus:outline-2 focus:outline-emerald-400 disabled:opacity-50",
+    class: "mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-fuchsia-400/40 " +
+      "bg-fuchsia-500/20 text-fuchsia-100 font-bold text-base hover:bg-fuchsia-500/30 " +
+      "focus:outline focus:outline-2 focus:outline-fuchsia-400 disabled:opacity-50",
     onclick: async () => {
       const attempt = input.value.trim();
       if (!attempt) { status.textContent = "Escribe algo primero."; return; }
@@ -159,16 +187,17 @@ function buildUseItBlock(w, unit, langLabel, level) {
       if (error || !answer) { status.textContent = error || "No pude revisarla ahora."; return; }
       status.textContent = "";
       out.replaceChildren(el("div", {
-        class: "rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-sm text-emerald-100 " +
+        class: "rounded-2xl bg-emerald-500/15 border border-emerald-400/30 p-4 text-base text-emerald-50 " +
           "whitespace-pre-wrap leading-relaxed text-left",
       }, stripMd(answer)));
     },
-  }, el("span", { class: "w-4 h-4", html: ICONS.check }), "Revisar mi frase");
+  }, el("span", { class: "w-5 h-5", html: ICONS.check }), "Revisar mi frase");
 
-  return el("div", { class: "mt-4 pt-4 border-t border-white/10" },
-    el("p", { class: "text-sm font-semibold text-slate-200" }, "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
-    el("p", { class: "mt-1 text-xs text-slate-400" }, scenarioFor(unit, w.clean)),
-    el("div", { class: "mt-2" }, input),
+  return el("div", { class: "mt-5 rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/30 p-4" },
+    el("p", { class: "text-base font-bold text-fuchsia-200 flex items-center gap-2" },
+      el("span", { class: "w-4 h-4", html: ICONS.chat }), "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
+    el("p", { class: "mt-1 text-sm text-fuchsia-100/80" }, scenarioFor(unit, w.clean)),
+    el("div", { class: "mt-3" }, input),
     checkBtn, status, out);
 }
 // Saludo HABLADO por Bymax en el idioma META (inmersion desde el segundo uno).
@@ -252,13 +281,13 @@ export function openVocabClass(unit, opts = {}) {
     const w = words[idx];
     let repeated = false;
 
-    const heardBox = el("p", { class: "mt-3 text-sm text-slate-400 min-h-[1.5rem]" }, "");
+    const heardBox = el("p", { class: "mt-3 text-base text-emerald-200/90 min-h-[1.5rem]" }, "");
     const fb = el("div", { class: "mt-3" });
 
     const nextBtn = el("button", {
       type: "button",
-      class: "mt-5 w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-semibold " +
-        "px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-pink-400",
+      class: "mt-6 w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-lg " +
+        "px-5 py-4 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-pink-400",
       onclick: () => { stopVoice(); idx++; renderWord(); },
     }, idx === words.length - 1 ? "Terminar clase \u2192" : "Siguiente palabra \u2192");
 
@@ -302,28 +331,42 @@ export function openVocabClass(unit, opts = {}) {
           });
 
     replaceKids(stage,
-      el("p", { class: "text-xs uppercase tracking-wide text-slate-500" },
+      el("p", { class: "text-sm font-bold uppercase tracking-wide text-slate-500" },
         "Palabra " + (idx + 1) + " de " + words.length),
-      el("div", { class: "mt-2 rounded-2xl bg-white/5 border border-white/10 p-4 text-center" },
-        el("p", { class: "text-3xl font-black text-slate-100 tracking-tight" }, w.clean),
-        el("p", { class: "mt-1 text-lg text-pink-300 font-semibold" }, w.translation),
-        el("div", { class: "mt-3 flex flex-wrap gap-2 justify-center" },
+
+      // TARJETA HEROE: la palabra en grande, con gradiente -- lo primero que
+      // se ve, imposible de confundir con un cuadrito gris mas.
+      el("div", { class: "mt-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-500 via-rose-500 " +
+        "to-fuchsia-600 p-6 sm:p-8 text-center shadow-lg shadow-rose-950/40" },
+        el("div", { class: "absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl", "aria-hidden": "true" }),
+        el("div", { class: "absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl", "aria-hidden": "true" }),
+        el("p", { class: "relative text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" }, w.clean),
+        el("p", { class: "relative mt-2 text-xl sm:text-2xl text-white/95 font-semibold" }, w.translation),
+        el("div", { class: "relative mt-5 flex flex-wrap gap-2 justify-center" },
           btn("Escuchar", ICONS.sound,
-            "border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10", () => say(w.clean)),
+            "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm", () => say(w.clean)),
           btn("Lento", ICONS.clock,
-            "border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10", () => say(w.clean, 0.55))),
-        w.example ? el("div", { class: "mt-4 pt-3 border-t border-white/10" },
-          el("p", { class: "text-slate-200 italic" }, "\u201c" + w.example + "\u201d"),
-          el("div", { class: "mt-2 flex justify-center" },
-            btn("Escuchar ejemplo", ICONS.sound,
-              "text-sm border border-white/15 bg-white/5 text-slate-200 hover:bg-white/10", () => say(w.example, 0.9)))) : null),
+            "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm", () => say(w.clean, 0.55)))),
+
+      // EJEMPLO: tarjeta propia (celeste), separada del heroe.
+      w.example ? el("div", { class: "mt-4 rounded-2xl bg-sky-500/10 border border-sky-400/30 p-4" },
+        el("p", { class: "text-xs font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
+        el("p", { class: "text-lg text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
+        el("div", { class: "mt-2" },
+          btn("Escuchar ejemplo", ICONS.sound,
+            "text-sm border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
+
       buildDeepenBlock(w, langLabel, unit.level),
-      el("p", { class: "mt-4 text-sm text-slate-400 text-center" },
-        "Ahora rep\u00edtela como " + name + " \u00b7 imita el sonido."),
-      el("div", { class: "mt-2 flex justify-center" }, repeatBtn),
-      supported ? null : el("p", { class: "mt-2 text-xs text-amber-300 text-center" },
-        "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
-      heardBox, fb,
+
+      // REPETIR: tarjeta verde-esmeralda, separada y mas grande.
+      el("div", { class: "mt-5 rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-4 text-center" },
+        el("p", { class: "text-base text-emerald-100" },
+          "Ahora rep\u00edtela como " + name + " \u00b7 imita el sonido."),
+        el("div", { class: "mt-3 flex justify-center" }, repeatBtn),
+        supported ? null : el("p", { class: "mt-2 text-sm text-amber-300" },
+          "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
+        heardBox, fb),
+
       buildUseItBlock(w, unit, langLabel, unit.level),
       nextBtn);
 
@@ -361,7 +404,7 @@ export function openVocabClass(unit, opts = {}) {
     class: "robot-pop w-full h-[100dvh] bg-slate-900 flex flex-col min-h-0",
     role: "dialog", "aria-label": "Clase de vocabulario con " + name, "aria-modal": "true",
   },
-    el("div", { class: "w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-6 py-4 sm:py-6" },
+    el("div", { class: "w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-8 py-4 sm:py-6" },
       el("div", { class: "flex items-center gap-3 shrink-0" },
         el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
         el("div", { class: "flex-1" },
