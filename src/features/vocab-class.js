@@ -114,8 +114,8 @@ function buildDeepenBlock(w, langLabel, level) {
 
   const deepenBtn = el("button", {
     type: "button",
-    class: "w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-indigo-400/40 " +
-      "bg-indigo-500/15 text-indigo-200 font-bold text-base hover:bg-indigo-500/25 " +
+    class: "w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-indigo-400/40 " +
+      "bg-indigo-500/15 text-indigo-200 font-bold text-lg hover:bg-indigo-500/25 " +
       "focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
     onclick: async () => {
       deepenBtn.disabled = true;
@@ -131,16 +131,16 @@ function buildDeepenBlock(w, langLabel, level) {
       deepenBtn.classList.add("hidden");
       const parsed = parseDeepenAnswer(answer);
       const blocks = [];
-      if (parsed.examples) blocks.push(el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-4" },
-        el("p", { class: "text-xs font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
-        el("p", { class: "text-base text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.examples))));
-      if (parsed.grammar) blocks.push(el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-400/30 p-4" },
-        el("p", { class: "text-xs font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
-          el("span", { class: "w-3.5 h-3.5", html: ICONS.bulb }), "Nota gramatical"),
-        el("p", { class: "text-base text-amber-50 leading-relaxed text-left" }, stripMd(parsed.grammar))));
-      if (parsed.conjugation) blocks.push(el("div", { class: "rounded-2xl bg-violet-500/10 border border-violet-400/30 p-4" },
-        el("p", { class: "text-xs font-bold uppercase tracking-wide text-violet-300 mb-2" }, "Conjugaci\u00f3n"),
-        el("p", { class: "text-base text-violet-50 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.conjugation))));
+      if (parsed.examples) blocks.push(el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-5" },
+        el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
+        el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.examples))));
+      if (parsed.grammar) blocks.push(el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-400/30 p-5" },
+        el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
+          el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical"),
+        el("p", { class: "text-lg text-slate-100 leading-relaxed text-left" }, stripMd(parsed.grammar))));
+      if (parsed.conjugation) blocks.push(el("div", { class: "rounded-2xl bg-violet-500/10 border border-violet-400/30 p-5" },
+        el("p", { class: "text-sm font-bold uppercase tracking-wide text-violet-300 mb-2" }, "Conjugaci\u00f3n"),
+        el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.conjugation))));
       out.replaceChildren(...blocks);
     },
   }, el("span", { class: "w-5 h-5", html: ICONS.bulb }),
@@ -162,7 +162,7 @@ function buildUseItBlock(w, unit, langLabel, level) {
   const input = el("textarea", {
     rows: "2", maxlength: "200",
     placeholder: "Escribe tu frase aqu\u00ed...",
-    class: "w-full rounded-xl bg-slate-950/40 border border-fuchsia-400/30 px-3 py-2.5 text-slate-100 text-base " +
+    class: "w-full rounded-xl bg-slate-950/40 border border-fuchsia-400/30 px-4 py-3 text-slate-100 text-lg " +
       "focus:outline focus:outline-2 focus:outline-fuchsia-400 resize-none",
   });
   const status = el("p", { class: "mt-2 text-sm text-slate-400 min-h-[1.25rem]" }, "");
@@ -171,7 +171,7 @@ function buildUseItBlock(w, unit, langLabel, level) {
   const checkBtn = el("button", {
     type: "button",
     class: "mt-3 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-fuchsia-400/40 " +
-      "bg-fuchsia-500/20 text-fuchsia-100 font-bold text-base hover:bg-fuchsia-500/30 " +
+      "bg-fuchsia-500/20 text-fuchsia-200 font-bold text-lg hover:bg-fuchsia-500/30 " +
       "focus:outline focus:outline-2 focus:outline-fuchsia-400 disabled:opacity-50",
     onclick: async () => {
       const attempt = input.value.trim();
@@ -187,16 +187,16 @@ function buildUseItBlock(w, unit, langLabel, level) {
       if (error || !answer) { status.textContent = error || "No pude revisarla ahora."; return; }
       status.textContent = "";
       out.replaceChildren(el("div", {
-        class: "rounded-2xl bg-emerald-500/15 border border-emerald-400/30 p-4 text-base text-emerald-50 " +
+        class: "rounded-2xl bg-emerald-500/15 border border-emerald-400/30 p-4 text-lg text-slate-100 " +
           "whitespace-pre-wrap leading-relaxed text-left",
       }, stripMd(answer)));
     },
   }, el("span", { class: "w-5 h-5", html: ICONS.check }), "Revisar mi frase");
 
-  return el("div", { class: "rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/30 p-4" },
-    el("p", { class: "text-base font-bold text-fuchsia-200 flex items-center gap-2" },
-      el("span", { class: "w-4 h-4", html: ICONS.chat }), "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
-    el("p", { class: "mt-1 text-sm text-fuchsia-100/80" }, scenarioFor(unit, w.clean)),
+  return el("div", { class: "rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/30 p-5" },
+    el("p", { class: "text-lg font-bold text-fuchsia-200 flex items-center gap-2" },
+      el("span", { class: "w-5 h-5", html: ICONS.chat }), "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
+    el("p", { class: "mt-1 text-base text-slate-300" }, scenarioFor(unit, w.clean)),
     el("div", { class: "mt-3" }, input),
     checkBtn, status, out);
 }
@@ -281,7 +281,7 @@ export function openVocabClass(unit, opts = {}) {
     const w = words[idx];
     let repeated = false;
 
-    const heardBox = el("p", { class: "mt-3 text-base text-emerald-200/90 min-h-[1.5rem]" }, "");
+    const heardBox = el("p", { class: "mt-2 text-sm text-slate-300 min-h-[1.25rem] text-center" }, "");
     const fb = el("div", { class: "mt-3" });
 
     const nextBtn = el("button", {
@@ -345,28 +345,29 @@ export function openVocabClass(unit, opts = {}) {
             "to-fuchsia-600 p-6 sm:p-8 text-center shadow-lg shadow-rose-950/40" },
             el("div", { class: "absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl", "aria-hidden": "true" }),
             el("div", { class: "absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl", "aria-hidden": "true" }),
-            el("p", { class: "relative text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" }, w.clean),
-            el("p", { class: "relative mt-2 text-xl sm:text-2xl text-white/95 font-semibold" }, w.translation),
+            el("p", { class: "relative text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow" }, w.clean),
+            el("p", { class: "relative mt-3 text-2xl sm:text-3xl text-white/95 font-semibold" }, w.translation),
             el("div", { class: "relative mt-5 flex flex-wrap gap-2 justify-center" },
               btn("Escuchar", ICONS.sound,
-                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm", () => say(w.clean)),
+                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean)),
               btn("Lento", ICONS.clock,
-                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm", () => say(w.clean, 0.55)))),
+                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean, 0.55)))),
 
           // EJEMPLO: tarjeta propia (celeste).
-          w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-4" },
-            el("p", { class: "text-xs font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
-            el("p", { class: "text-lg text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
+          w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
+            el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
+            el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
             el("div", { class: "mt-2" },
               btn("Escuchar ejemplo", ICONS.sound,
-                "text-sm border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
+                "text-base border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
 
-          // REPETIR: tarjeta verde-esmeralda.
-          el("div", { class: "rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-4 text-center" },
-            el("p", { class: "text-base text-emerald-100" },
-              "Ahora rep\u00edtela como " + name + " \u00b7 imita el sonido."),
-            el("div", { class: "mt-3 flex justify-center" }, repeatBtn),
-            supported ? null : el("p", { class: "mt-2 text-sm text-amber-300" },
+          // REPETIR: compacta a proposito (es un paso rapido, no contenido
+          // para leer) -- una sola fila con el boton, sin parrafo largo encima.
+          el("div", { class: "rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-3" },
+            el("div", { class: "flex flex-wrap items-center justify-center gap-2" },
+              el("p", { class: "text-sm text-slate-300" }, "Repite como " + name + ":"),
+              repeatBtn),
+            supported ? null : el("p", { class: "mt-1.5 text-xs text-amber-300 text-center" },
               "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
             heardBox, fb)),
 
