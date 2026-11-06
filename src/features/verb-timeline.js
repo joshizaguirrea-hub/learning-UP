@@ -44,7 +44,7 @@ function transformChip(text, tone) {
   return el("div", { class: "flex flex-col items-center gap-1 px-0.5 pt-3 shrink-0" },
     el("span", { class: "text-slate-600 text-lg leading-none", "aria-hidden": "true" }, "\u2192"),
     el("span", {
-      class: "text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full border whitespace-nowrap " +
+      class: "text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full border whitespace-nowrap " +
         (tones[tone] || tones.ok),
     }, text));
 }
@@ -52,27 +52,27 @@ function transformChip(text, tone) {
 /** Un nodo revelado: icono + etiqueta temporal + palabra (con audio) + micro-explicacion. */
 function stageNode(label, word, tip, lang) {
   const grad = tip?.grad || "from-slate-500 to-slate-700";
-  return el("div", { class: "flex flex-col items-center gap-1.5 w-[8.25rem] sm:w-40 shrink-0" },
+  return el("div", { class: "flex flex-col items-center gap-1.5 w-[9rem] sm:w-44 shrink-0" },
     el("div", {
       class: `w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} grid place-items-center text-white shadow-lg`,
       "aria-hidden": "true",
     }, el("span", { class: "w-6 h-6", html: ICONS[tip?.icon] || ICONS.clock })),
-    el("p", { class: "text-[10px] font-black uppercase tracking-widest text-slate-500" }, label),
+    el("p", { class: "text-xs font-black uppercase tracking-widest text-slate-500" }, label),
     el("div", { class: "flex items-center gap-1" },
-      el("p", { class: "font-extrabold text-slate-100 text-base sm:text-lg" }, word),
+      el("p", { class: "font-extrabold text-slate-100 text-lg sm:text-xl" }, word),
       speakButton(word, { cls: "w-6 h-6", lang })),
-    tip ? el("p", { class: "text-[11px] text-slate-400 text-center leading-snug" }, tip.body) : null);
+    tip ? el("p", { class: "text-sm text-slate-400 text-center leading-snug" }, tip.body) : null);
 }
 
 function ruleBanner(tip) {
   return el("div", {
-    class: "rounded-xl bg-indigo-500/10 border border-indigo-500/30 px-4 py-2.5 text-sm text-indigo-100 text-center",
+    class: "rounded-xl bg-indigo-500/10 border border-indigo-500/30 px-4 py-3 text-base text-slate-100 text-center",
   }, tip.body);
 }
 
 function noteBanner(tip) {
   return el("div", {
-    class: "mt-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-2.5 text-sm text-amber-100 text-center",
+    class: "mt-4 rounded-xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-base text-slate-100 text-center",
   }, el("span", { class: "font-bold" }, "Tip: "), tip.body);
 }
 

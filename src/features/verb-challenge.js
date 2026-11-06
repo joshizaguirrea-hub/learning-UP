@@ -74,11 +74,11 @@ export function buildVerbChallenge(item, onComplete) {
   let streak = 0;
   let solvedCount = 0;
 
-  const stepLabel = el("p", { class: "text-center text-sm text-slate-300 font-semibold" }, "");
+  const stepLabel = el("p", { class: "text-center text-base text-slate-300 font-semibold" }, "");
   const dotsHolder = el("div", { class: "flex justify-center gap-1.5 mt-1.5" });
   const body = el("div", { class: "mt-4" });
   const wrap = el("div", { class: "mt-5 text-left relative" },
-    el("p", { class: "text-xs uppercase tracking-wide text-slate-500 text-center" }, "Practica el uso"),
+    el("p", { class: "text-sm uppercase tracking-wide text-slate-500 text-center" }, "Practica el uso"),
     stepLabel, dotsHolder, body);
 
   function paintDots() {
@@ -116,28 +116,28 @@ export function buildVerbChallenge(item, onComplete) {
       done = true;
       playCorrect();
       mount(fb, el("div", { role: "status" },
-        el("p", { class: "text-emerald-300 font-semibold" }, "\u00a1Correcto! " + (ex.explain || "")),
-        ex.why ? el("p", { class: "mt-1 text-slate-400 text-xs" }, "Por qu\u00e9: " + ex.why) : null));
+        el("p", { class: "text-emerald-300 font-semibold text-base" }, "\u00a1Correcto! " + (ex.explain || "")),
+        ex.why ? el("p", { class: "mt-1 text-slate-400 text-sm" }, "Por qu\u00e9: " + ex.why) : null));
       onSolvedOnce(firstTry);
     };
     const retry = () => {
       firstTry = false;
       playWrong();
-      mount(fb, el("p", { class: "text-amber-300", role: "status" }, "Casi. Intenta de nuevo."));
+      mount(fb, el("p", { class: "text-amber-300 text-base", role: "status" }, "Casi. Intenta de nuevo."));
     };
 
     const head = el("div", { class: "flex items-center gap-2" },
       el("span", {
-        class: "text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border shrink-0 " +
+        class: "text-xs uppercase font-bold px-2 py-0.5 rounded-full border shrink-0 " +
           (LEVEL_CLS[ex.level] || "bg-slate-700 text-slate-300 border-slate-600"),
       }, ex.level),
-      el("p", { class: "text-slate-100 text-sm font-medium flex-1" }, ex.prompt));
+      el("p", { class: "text-slate-100 text-base font-medium flex-1" }, ex.prompt));
 
     const interactive = ex.kind === "choice"
       ? choiceButtons(ex, ok, retry, () => done)
       : letterPuzzle(ex, ok, retry, () => done);
 
-    return el("div", { class: "rounded-2xl bg-slate-800/50 border border-slate-700 p-4" }, head, interactive, fb);
+    return el("div", { class: "rounded-2xl bg-slate-800/50 border border-slate-700 p-5" }, head, interactive, fb);
   }
 
   /** Opcion multiple como chips grandes y tactiles (no una lista de radio). */
