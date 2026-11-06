@@ -90,6 +90,23 @@ html[data-theme="light"] .text-pink-200,
 html[data-theme="light"] .text-pink-300,
 html[data-theme="light"] .text-pink-400 { color: #be185d; }
 
+/* Chrome "sutil" (bordes/fondos border-white/N, bg-white/N) estaba pensado
+ * para tarjetas OSCURAS: blanco al 5-15% de opacidad sobre un fondo oscuro se
+ * ve como un borde/relleno discreto. Sobre las tarjetas BLANCAS del modo claro
+ * (bg-slate-900 -> blanco puro aqui), ese mismo blanco-sobre-blanco es
+ * PRACTICAMENTE INVISIBLE (botones como "Escuchar"/"Lento" de la Clase de
+ * Vocabulario quedaban sin borde ni fondo perceptible). Se oscurece para que
+ * siga siendo discreto pero SE VEA, en TODAS las pantallas que usan este
+ * patron (no solo vocabulario: mismo componente en Anti-errores, Dictado,
+ * Checkpoint, Lectura cercana, Feedback, etc.). */
+html[data-theme="light"] [class~="border-white/10"],
+html[data-theme="light"] [class~="border-white/12"],
+html[data-theme="light"] [class~="border-white/15"] { border-color: rgba(15, 23, 42, 0.16); }
+html[data-theme="light"] [class~="bg-white/5"] { background-color: rgba(15, 23, 42, 0.04); }
+html[data-theme="light"] [class~="bg-white/10"] { background-color: rgba(15, 23, 42, 0.07); }
+html[data-theme="light"] [class~="hover:bg-white/10"]:hover { background-color: rgba(15, 23, 42, 0.09); }
+html[data-theme="light"] [class~="hover:bg-white/20"]:hover { background-color: rgba(15, 23, 42, 0.14); }
+
 /* Resaltados de aprendizaje: mas oscuros en claro para leerse sobre blanco. */
 html[data-theme="light"] .hl-verb { color: #047857; }
 html[data-theme="light"] .hl-focus { color: #6d28d9; text-decoration-color: #7c3aed; }
