@@ -102,51 +102,56 @@ function parseDeepenAnswer(text) {
 function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
 
 /**
- * Boton "Mas ejemplos (+ conjugacion)" de una palabra: pide al profe IA 3
- * ejemplos elaborados y, si la palabra ES un verbo ("to apply", "to hire"...),
- * su conjugacion. Null si la IA no esta activa (nada que prometer sin Worker).
+ * Dispara la ampliacion de la palabra (ejemplos + gramatica + conjugacion)
+ * SOLA, sin esperar click: el pedido fue que el contenido ya este desplegado
+ * como un libro, no escondido detras de un boton. Devuelve DOS cajas
+ * (ejemplos / gramatica) que arrancan con un "Generando..." y se llenan
+ * JUNTAS cuando responde la UNICA llamada a la IA que hace falta -- viven en
+ * columnas distintas del layout de 3 columnas, pero comparten el mismo pedido
+ * (no se duplica el costo de IA por separarlas visualmente).
  */
-function buildDeepenBlock(w, langLabel, level) {
-  if (!bymaxAiEnabled) return null;
+function buildDeepenBoxes(w, langLabel, level) {
+  if (!bymaxAiEnabled) return { examplesBox: null, grammarBox: null };
   const isVerb = /^to\s+/i.test(w.term);
-  const status = el("p", { class: "mt-2 text-sm text-slate-500 min-h-[1.25rem] text-center" }, "");
-  const out = el("div", { class: "mt-3 space-y-3" });
 
-  const deepenBtn = el("button", {
-    type: "button",
-    class: "w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border border-indigo-400/40 " +
-      "bg-indigo-500/15 text-indigo-200 font-bold text-lg hover:bg-indigo-500/25 " +
-      "focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
-    onclick: async () => {
-      deepenBtn.disabled = true;
-      status.textContent = "Generando ejemplos y gram\u00e1tica" + (isVerb ? " + conjugaci\u00f3n..." : "...");
-      out.replaceChildren();
-      const { answer, error } = await askBymax({
-        mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
-        question: deepenPrompt(w.term, w.translation, langLabel, isVerb),
-      });
-      deepenBtn.disabled = false;
-      if (error || !answer) { status.textContent = error || "No pude generar mas ejemplos ahora."; return; }
-      status.textContent = "";
-      deepenBtn.classList.add("hidden");
-      const parsed = parseDeepenAnswer(answer);
-      const blocks = [];
-      if (parsed.examples) blocks.push(el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-5" },
+  const examplesBox = el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-5" },
+    el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
+    el("p", { class: "text-base text-slate-400 italic" }, "Generando ejemplos..."));
+
+  const grammarBox = el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-400/30 p-5" },
+    el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
+      el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical"),
+    el("p", { class: "text-base text-slate-400 italic" }, "Generando..."));
+
+  (async () => {
+    const { answer, error } = await askBymax({
+      mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
+      question: deepenPrompt(w.term, w.translation, langLabel, isVerb),
+    });
+    if (error || !answer) {
+      replaceKids(examplesBox,
         el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
-        el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.examples))));
-      if (parsed.grammar) blocks.push(el("div", { class: "rounded-2xl bg-amber-500/10 border border-amber-400/30 p-5" },
-        el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
-          el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical"),
-        el("p", { class: "text-lg text-slate-100 leading-relaxed text-left" }, stripMd(parsed.grammar))));
-      if (parsed.conjugation) blocks.push(el("div", { class: "rounded-2xl bg-violet-500/10 border border-violet-400/30 p-5" },
-        el("p", { class: "text-sm font-bold uppercase tracking-wide text-violet-300 mb-2" }, "Conjugaci\u00f3n"),
-        el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.conjugation))));
-      out.replaceChildren(...blocks);
-    },
-  }, el("span", { class: "w-5 h-5", html: ICONS.bulb }),
-    isVerb ? "Profundiza: ejemplos + gram\u00e1tica + conjugaci\u00f3n" : "Profundiza: ejemplos + gram\u00e1tica");
+        el("p", { class: "text-base text-slate-400" }, error || "No pude generar el contenido ahora."));
+      grammarBox.remove(); // una sola caja de error basta, no duplicarlo
+      return;
+    }
+    const parsed = parseDeepenAnswer(answer);
+    replaceKids(examplesBox,
+      el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
+      el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" },
+        stripMd(parsed.examples) || "Sin ejemplos esta vez."));
 
-  return el("div", {}, deepenBtn, status, out);
+    const grammarKids = [el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
+      el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical")];
+    grammarKids.push(el("p", { class: "text-lg text-slate-100 leading-relaxed text-left" },
+      stripMd(parsed.grammar) || "Sin nota esta vez."));
+    if (parsed.conjugation) grammarKids.push(
+      el("p", { class: "text-sm font-bold uppercase tracking-wide text-violet-300 mt-4 mb-2" }, "Conjugaci\u00f3n"),
+      el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" }, stripMd(parsed.conjugation)));
+    replaceKids(grammarBox, ...grammarKids);
+  })();
+
+  return { examplesBox, grammarBox };
 }
 
 /**
@@ -330,39 +335,40 @@ export function openVocabClass(unit, opts = {}) {
             repeated = true;
           });
 
+    const { examplesBox, grammarBox } = buildDeepenBoxes(w, langLabel, unit.level);
+
     replaceKids(stage,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-slate-500" },
         "Palabra " + (idx + 1) + " de " + words.length),
 
-      // LIBRO ABIERTO: dos "paginas" lado a lado en pantallas grandes (en
-      // movil se apilan igual que antes). IZQUIERDA = presentacion (palabra,
-      // ejemplo, repetir) y queda FIJA (sticky) mientras se hace scroll por la
-      // DERECHA = estudio (profundizar, producir), que suele ser mas larga.
-      el("div", { class: "mt-2 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8 items-start" },
-        el("div", { class: "flex flex-col gap-4 lg:sticky lg:top-0" },
-          // TARJETA HEROE: la palabra en grande, con gradiente.
-          el("div", { class: "relative overflow-hidden rounded-3xl bg-gradient-to-br from-pink-500 via-rose-500 " +
-            "to-fuchsia-600 p-6 sm:p-8 text-center shadow-lg shadow-rose-950/40" },
-            el("div", { class: "absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl", "aria-hidden": "true" }),
-            el("div", { class: "absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl", "aria-hidden": "true" }),
-            el("p", { class: "relative text-5xl sm:text-6xl font-black text-white tracking-tight drop-shadow" }, w.clean),
-            el("p", { class: "relative mt-3 text-2xl sm:text-3xl text-white/95 font-semibold" }, w.translation),
-            el("div", { class: "relative mt-5 flex flex-wrap gap-2 justify-center" },
-              btn("Escuchar", ICONS.sound,
-                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean)),
-              btn("Lento", ICONS.clock,
-                "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean, 0.55)))),
+      // TITULO: franja horizontal a todo lo ancho, como la portada de un
+      // capitulo de libro -- NO una tarjeta cuadrada que compite por espacio
+      // con el contenido de abajo.
+      el("div", { class: "mt-2 relative overflow-hidden rounded-3xl bg-gradient-to-r from-pink-500 via-rose-500 " +
+        "to-fuchsia-600 px-6 sm:px-10 py-5 sm:py-6 shadow-lg shadow-rose-950/40 flex flex-wrap " +
+        "items-center justify-center sm:justify-between gap-4 text-center sm:text-left" },
+        el("div", { class: "absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl", "aria-hidden": "true" }),
+        el("div", { class: "absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl", "aria-hidden": "true" }),
+        el("div", { class: "relative" },
+          el("p", { class: "text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" }, w.clean),
+          el("p", { class: "mt-1 text-xl sm:text-2xl text-white/95 font-semibold" }, w.translation)),
+        el("div", { class: "relative flex flex-wrap gap-2 justify-center" },
+          btn("Escuchar", ICONS.sound,
+            "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean)),
+          btn("Lento", ICONS.clock,
+            "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean, 0.55)))),
 
-          // EJEMPLO: tarjeta propia (celeste).
+      // CONTENIDO: TODO desplegado de una, en 3 columnas (libro de verdad, no
+      // un boton que hay que pulsar). En movil se apilan en este mismo orden.
+      el("div", { class: "mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 items-start" },
+        // COLUMNA 1: presentacion (ejemplo + repetir).
+        el("div", { class: "flex flex-col gap-3" },
           w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
             el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
             el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
             el("div", { class: "mt-2" },
               btn("Escuchar ejemplo", ICONS.sound,
                 "text-base border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
-
-          // REPETIR: compacta a proposito (es un paso rapido, no contenido
-          // para leer) -- una sola fila con el boton, sin parrafo largo encima.
           el("div", { class: "rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-3" },
             el("div", { class: "flex flex-wrap items-center justify-center gap-2" },
               el("p", { class: "text-sm text-slate-300" }, "Repite como " + name + ":"),
@@ -371,8 +377,13 @@ export function openVocabClass(unit, opts = {}) {
               "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
             heardBox, fb)),
 
-        el("div", { class: "flex flex-col gap-4" },
-          buildDeepenBlock(w, langLabel, unit.level),
+        // COLUMNA 2: ejemplos en contexto (se genera solo, sin boton).
+        examplesBox ? el("div", {}, examplesBox) : null,
+
+        // COLUMNA 3: gramatica + conjugacion (mismo pedido que examplesBox) y
+        // produccion libre ("como la usarias tu").
+        el("div", { class: "flex flex-col gap-3" },
+          grammarBox,
           buildUseItBlock(w, unit, langLabel, unit.level))),
 
       nextBtn);
@@ -411,7 +422,7 @@ export function openVocabClass(unit, opts = {}) {
     class: "robot-pop w-full h-[100dvh] bg-slate-900 flex flex-col min-h-0",
     role: "dialog", "aria-label": "Clase de vocabulario con " + name, "aria-modal": "true",
   },
-    el("div", { class: "w-full max-w-6xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-8 py-4 sm:py-6" },
+    el("div", { class: "w-full max-w-7xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-8 py-4 sm:py-6" },
       el("div", { class: "flex items-center gap-3 shrink-0" },
         el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
         el("div", { class: "flex-1" },
