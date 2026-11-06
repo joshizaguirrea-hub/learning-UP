@@ -45,7 +45,11 @@ function deepenPrompt(term, translation, langName, isVerb) {
     `1. <frase natural y elaborada en ${langName} usando la palabra, en un contexto distinto a uno basico>\n` +
     "   = <traduccion al espanol>\n" +
     `2. <otra frase, en OTRO contexto/situacion>\n   = <traduccion>\n` +
-    `3. <otra frase, en OTRO contexto mas>\n   = <traduccion>\n` +
+    `3. <otra frase, en OTRO contexto mas>\n   = <traduccion>\n\n` +
+    "NOTA GRAMATICAL:\n" +
+    "<1-2 frases en espanol con algo UTIL y ESPECIFICO para usar bien esta palabra: su categoria " +
+    "gramatical, una preposicion que la acompana, si es contable/incontable, un error comun de " +
+    "hispanohablantes con ella, o su registro formal/informal. Nada generico.>\n" +
     (isVerb
       ? "\nCONJUGACION (esta palabra ES un verbo):\n" +
         "- Presente: <forma> -> <ejemplo corto>\n" +
@@ -53,6 +57,27 @@ function deepenPrompt(term, translation, langName, isVerb) {
         "- Participio: <forma> -> <ejemplo corto>\n"
       : "")
   );
+}
+
+/** Prompt para corregir el intento de frase PROPIA del alumno (produccion libre). */
+function useItFeedbackPrompt(term, translation, langName, attempt) {
+  return (
+    `Eres profesor de ${langName} para un hispanohablante. El alumno debe usar la palabra/frase ` +
+    `"${term}" (significado: "${translation}") en una frase propia. El alumno escribio:\n"${attempt}"\n\n` +
+    "Evalua en ESPANOL, MAXIMO 3 lineas, sin markdown ni asteriscos:\n" +
+    "- Si la uso bien: felicitalo en una frase breve y, solo si suena mejorable, sugiere UNA variante " +
+    "mas natural.\n" +
+    "- Si hay un error (gramatica, uso de la palabra, preposicion...): da la version corregida completa " +
+    "y UNA frase breve explicando el porque, con carino, sin reganar.\n"
+  );
+}
+
+/** Escenario gratis (sin IA) para que el alumno produzca su propia frase. */
+function scenarioFor(unit, clean) {
+  const topic = (unit.title || "").trim();
+  return topic
+    ? "Tu turno: escribe una frase sobre \u201c" + topic + "\u201d usando \u201c" + clean + "\u201d."
+    : "Tu turno: escribe tu propia frase usando \u201c" + clean + "\u201d.";
 }
 
 function stripMd(t) { return String(t).replace(/\*\*/g, "").replace(/[*_`]/g, "").replace(/^#+\s*/gm, ""); }
@@ -75,7 +100,7 @@ function buildDeepenBlock(w, langLabel, level) {
       "focus:outline focus:outline-2 focus:outline-indigo-400 disabled:opacity-50",
     onclick: async () => {
       deepenBtn.disabled = true;
-      status.textContent = "Generando" + (isVerb ? " ejemplos y conjugaci\u00f3n..." : " m\u00e1s ejemplos...");
+      status.textContent = "Generando ejemplos y gram\u00e1tica" + (isVerb ? " + conjugaci\u00f3n..." : "...");
       out.replaceChildren();
       const { answer, error } = await askBymax({
         mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
@@ -91,9 +116,60 @@ function buildDeepenBlock(w, langLabel, level) {
       }, stripMd(answer)));
     },
   }, el("span", { class: "w-4 h-4", html: ICONS.bulb }),
-    isVerb ? "M\u00e1s ejemplos + conjugaci\u00f3n" : "M\u00e1s ejemplos");
+    isVerb ? "Profundiza: ejemplos + gram\u00e1tica + conjugaci\u00f3n" : "Profundiza: ejemplos + gram\u00e1tica");
 
   return el("div", { class: "mt-4 pt-3 border-t border-white/10" }, deepenBtn, status, out);
+}
+
+/**
+ * Bloque "Tu turno": el alumno PRODUCE su PROPIA frase con la palabra (no solo
+ * lee ejemplos ni imita) y el profe IA la corrige. Hasta este punto de la clase
+ * todo es INPUT (escuchar/leer) o IMITACION (repetir); este es el primer
+ * momento de produccion libre con feedback real -- la parte que mas fija el
+ * vocabulario a largo plazo (pushed output). Siempre visible y gratis de
+ * intentar: la IA solo se usa cuando el alumno pide que revisen SU frase.
+ */
+function buildUseItBlock(w, unit, langLabel, level) {
+  if (!bymaxAiEnabled) return null;
+  const input = el("textarea", {
+    rows: "2", maxlength: "200",
+    placeholder: "Escribe tu frase aqu\u00ed...",
+    class: "w-full rounded-xl bg-slate-950/40 border border-white/15 px-3 py-2.5 text-slate-100 text-sm " +
+      "focus:outline focus:outline-2 focus:outline-emerald-400 resize-none",
+  });
+  const status = el("p", { class: "mt-2 text-xs text-slate-500 min-h-[1rem]" }, "");
+  const out = el("div", { class: "mt-2" });
+
+  const checkBtn = el("button", {
+    type: "button",
+    class: "mt-2 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/40 " +
+      "bg-emerald-500/10 text-emerald-200 font-semibold text-sm hover:bg-emerald-500/20 " +
+      "focus:outline focus:outline-2 focus:outline-emerald-400 disabled:opacity-50",
+    onclick: async () => {
+      const attempt = input.value.trim();
+      if (!attempt) { status.textContent = "Escribe algo primero."; return; }
+      checkBtn.disabled = true;
+      status.textContent = "Revisando tu frase...";
+      out.replaceChildren();
+      const { answer, error } = await askBymax({
+        mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
+        question: useItFeedbackPrompt(w.clean, w.translation, langLabel, attempt),
+      });
+      checkBtn.disabled = false;
+      if (error || !answer) { status.textContent = error || "No pude revisarla ahora."; return; }
+      status.textContent = "";
+      out.replaceChildren(el("div", {
+        class: "rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-4 text-sm text-emerald-100 " +
+          "whitespace-pre-wrap leading-relaxed text-left",
+      }, stripMd(answer)));
+    },
+  }, el("span", { class: "w-4 h-4", html: ICONS.check }), "Revisar mi frase");
+
+  return el("div", { class: "mt-4 pt-4 border-t border-white/10" },
+    el("p", { class: "text-sm font-semibold text-slate-200" }, "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
+    el("p", { class: "mt-1 text-xs text-slate-400" }, scenarioFor(unit, w.clean)),
+    el("div", { class: "mt-2" }, input),
+    checkBtn, status, out);
 }
 // Saludo HABLADO por Bymax en el idioma META (inmersion desde el segundo uno).
 const GREETING = {
@@ -247,7 +323,9 @@ export function openVocabClass(unit, opts = {}) {
       el("div", { class: "mt-2 flex justify-center" }, repeatBtn),
       supported ? null : el("p", { class: "mt-2 text-xs text-amber-300 text-center" },
         "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
-      heardBox, fb, nextBtn);
+      heardBox, fb,
+      buildUseItBlock(w, unit, langLabel, unit.level),
+      nextBtn);
 
     // Al mostrar la palabra, la dice sola (input inmediato).
     setTimeout(() => say(w.clean), 300);
@@ -273,22 +351,26 @@ export function openVocabClass(unit, opts = {}) {
       }, "Repasar la clase otra vez")));
   }
 
+  // PANTALLA COMPLETA (casi): esto ya no es un "pop" flotante pequeno -- es la
+  // pantalla principal mientras dura la clase, igual que el modo leccion. El
+  // contenido se centra en una columna legible (max-w-2xl) pero el fondo y el
+  // encabezado ocupan TODO el viewport, sin bordes redondeados ni backdrop de
+  // "ventana sobre la app". Header+progreso quedan fijos arriba; solo la
+  // palabra hace scroll (stage ya trae su propio overflow-y-auto).
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full bg-slate-900 border border-slate-700 rounded-2xl p-4 sm:p-6 shadow-2xl flex flex-col max-h-[92dvh] min-h-0",
+    class: "robot-pop w-full h-[100dvh] bg-slate-900 flex flex-col min-h-0",
     role: "dialog", "aria-label": "Clase de vocabulario con " + name, "aria-modal": "true",
   },
-    el("div", { class: "flex items-center gap-3" },
-      el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
-      el("div", { class: "flex-1" },
-        el("p", { class: "font-bold text-pink-300" }, "Clase de vocabulario \u00b7 " + (unit.title || "")),
-        el("p", { class: "text-xs text-slate-400" }, "Escucha y repite \u00b7 nivel " + (unit.level || ""))),
-      el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
-    progress, stage);
+    el("div", { class: "w-full max-w-2xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-6 py-4 sm:py-6" },
+      el("div", { class: "flex items-center gap-3 shrink-0" },
+        el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
+        el("div", { class: "flex-1" },
+          el("p", { class: "font-bold text-pink-300" }, "Clase de vocabulario \u00b7 " + (unit.title || "")),
+          el("p", { class: "text-xs text-slate-400" }, "Escucha y repite \u00b7 nivel " + (unit.level || ""))),
+        el("button", { class: "grid place-items-center w-9 h-9 rounded-full bg-white/5 text-slate-300 hover:bg-white/10 text-lg", "aria-label": "Cerrar", onclick: close }, "\u2715")),
+      progress, stage));
 
-  const overlay = el("div", {
-    class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
-    onclick: (e) => { if (e.target === overlay) close(); },
-  }, card);
+  const overlay = el("div", { class: "fixed inset-0 z-50 bg-slate-900" }, card);
 
   document.body.append(overlay);
 
