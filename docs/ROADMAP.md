@@ -26,12 +26,15 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
       entorno; sin ella el propio rate limiting corta a las 60 frases.
       No se puede lanzar desde la maquina de Walmart (el proxy bloquea el
       Worker).
-- [ ] **Banco de ubicacion en fr / pt / it.** Hoy solo hay preguntas de INGLES,
-      asi que esos tres idiomas SE SALTAN el examen y arrancan en A2 (ver
-      v0.314.0). Para que la prueba sirva hacen falta >= 6 preguntas por idioma
-      (ideal: 5 niveles x las competencias). Las nuevas se etiquetan con
-      `lang: "fr"` en `data/placement-questions.js`; las que no llevan `lang`
-      se consideran inglesas. Verificar con `tools\check_placement_lang.py`.
+- [x] **Banco de ubicacion en fr / pt / it** (v0.348.0). HECHO: 15 preguntas
+      por idioma (A1/A2/B1 x grammar/vocabulary/reading/speaking/writing),
+      escritas en el idioma meta (no traducidas del ingles), etiquetadas con
+      `lang: "fr"/"it"/"pt"` en `data/placement-questions.js`. Verificado con
+      `tools/check_placement_lang.py`: ya no aparecen en "sin examen propio".
+      Los 3 idiomas ahora SI hacen el examen adaptativo real en vez de
+      saltarselo y creerle a la autoevaluacion. Techo B1 a proposito (el
+      contenido de esos 3 idiomas no pasa de A1 todavia -- `levelAvailableFor`
+      ya se encarga de no prometer un nivel que no existe).
 - [x] **Extender el cierre `sessionEnd` al resto de ejercicios** (v0.308.0). Las
       6 competencias ya felicitan + preguntan "\u00bfseguir?" + dejan elegir nivel.
       El pegamento vive UNA vez en `ui/practice-end.js`. Faltan los labs
