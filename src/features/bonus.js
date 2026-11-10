@@ -23,6 +23,7 @@ import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount, replaceKids } from "../ui/dom.js";
+import { buildContentTabs } from "../ui/content-tabs.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -306,13 +307,13 @@ export async function renderBonusDeck(container, params, user) {
     };
 
     // VERBOS (deck.practice): mismo tratamiento "libro" que la Clase de
-    // Vocabulario -- titulo grande arriba, contenido en columnas YA
-    // desplegado (sin boton que tape nada), y produccion libre con la IA.
-    // Feedback directo del alumno: esconder el verbo detras de "Comprobar
-    // respuesta" sirve para EXAMINAR algo ya visto, no para APRENDERLO la
-    // primera vez. El "comprobar" de verdad vive en el reto de abajo
-    // (buildVerbChallenge, en features/verb-challenge.js), que si exige
-    // recordar -- un reto a la vez, con su propio feedback.
+    // Vocabulario -- titulo grande arriba, contenido en PESTAÑAS ya
+    // desplegado por seccion (sin boton que tape nada), y produccion libre
+    // con la IA. Feedback directo del alumno: esconder el verbo detras de
+    // "Comprobar respuesta" sirve para EXAMINAR algo ya visto, no para
+    // APRENDERLO la primera vez. El "comprobar" de verdad vive en el reto de
+    // abajo (buildVerbChallenge, en features/verb-challenge.js), que si
+    // exige recordar -- un reto a la vez, con su propio feedback.
     //
     // OTROS mazos (idioms, sinonimos, expresiones...): sin cambios -- juego
     // de adivinanza universal (features/flashcard-game.js).
@@ -328,18 +329,26 @@ export async function renderBonusDeck(container, params, user) {
         el("div", { class: "relative" }, speakButton(item.front, { cls: "w-12 h-12 bg-white/20 text-white hover:bg-white/30", lang: spLang })));
 
       const { examplesBox, grammarBox } = buildVerbDeepenBoxes(item, langLabel, deck.level);
+      const useItBlock = buildVerbUseItBlock(item, langLabel, deck.level);
+      const grammarTabContent = (grammarBox || useItBlock)
+        ? el("div", { class: "flex flex-col gap-3" }, grammarBox, useItBlock)
+        : null;
 
-      body = el("div", { class: "mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 items-start" },
-        // COLUMNA 1: presentacion (linea de tiempo + ejemplos de la data).
-        el("div", { class: "flex flex-col gap-3" },
-          buildVerbTimeline(item, { lang: spLang }),
-          examplesBlock(item.examples, spLang)),
-        // COLUMNA 2: ejemplos en contexto (IA, se genera sola).
-        examplesBox ? el("div", {}, examplesBox) : null,
-        // COLUMNA 3: nota gramatical (IA) + produccion libre.
-        el("div", { class: "flex flex-col gap-3" },
-          grammarBox,
-          buildVerbUseItBlock(item, langLabel, deck.level)));
+      // CONTENIDO por PESTAÑAS (mismo componente que Vocabulario, ver
+      // ui/content-tabs.js): antes eran 3 columnas siempre desplegadas que en
+      // celular se apilaban y obligaban a scrollear muchisimo. Con pestañas
+      // se ve UNA seccion a la vez, IGUAL en PC y en celular, sin depender
+      // del ancho ni la orientacion de la pantalla.
+      body = buildContentTabs([
+        {
+          label: "L\u00ednea de tiempo",
+          content: el("div", { class: "flex flex-col gap-3" },
+            buildVerbTimeline(item, { lang: spLang }),
+            examplesBlock(item.examples, spLang)),
+        },
+        { label: "Ejemplos IA", content: examplesBox },
+        { label: "Gram\u00e1tica", content: grammarTabContent },
+      ]);
     } else {
       wordDisplay = el("div", { class: "flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
@@ -368,7 +377,10 @@ export async function renderBonusDeck(container, params, user) {
       deck.practice ? el("div", { class: "mt-5" }, buildVerbChallenge(item, completeVerb)) : null,
       nav);
 
-    mount(container, el("div", { class: (deck.practice ? "max-w-7xl" : "max-w-2xl") + " mx-auto" }, cardEl));
+    // Ancho: con el cuerpo en PESTAÑAS (content-tabs.js) ya no hace falta el
+    // max-w-7xl de la rejilla de 3 columnas -- una columna angosta se lee
+    // igual de bien en PC y celular (mismo ancho en cualquier dispositivo).
+    mount(container, el("div", { class: (deck.practice ? "max-w-3xl" : "max-w-2xl") + " mx-auto" }, cardEl));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
     if (getAutoplay()) speak(item.front);

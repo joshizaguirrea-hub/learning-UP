@@ -26,6 +26,7 @@ import { vocabTeachList } from "../core/vocab-lab.js";
 import { openVocabLab } from "./vocab-lab.js";
 import { unitTts, unitMic } from "../data/languages.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
+import { buildContentTabs } from "../ui/content-tabs.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { stripMd, parseDeepenAnswer } from "../core/ai-deepen.js";
@@ -316,6 +317,10 @@ export function openVocabClass(unit, opts = {}) {
           });
 
     const { examplesBox, grammarBox } = buildDeepenBoxes(w, langLabel, unit.level);
+    const useItBlock = buildUseItBlock(w, unit, langLabel, unit.level);
+    const grammarTabContent = (grammarBox || useItBlock)
+      ? el("div", { class: "flex flex-col gap-3" }, grammarBox, useItBlock)
+      : null;
 
     replaceKids(stage,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-slate-500" },
@@ -338,33 +343,33 @@ export function openVocabClass(unit, opts = {}) {
           btn("Lento", ICONS.clock,
             "bg-white/20 text-white hover:bg-white/30 backdrop-blur-sm text-lg", () => say(w.clean, 0.55)))),
 
-      // CONTENIDO: TODO desplegado de una, en 3 columnas (libro de verdad, no
-      // un boton que hay que pulsar). En movil se apilan en este mismo orden.
-      el("div", { class: "mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5 items-start" },
-        // COLUMNA 1: presentacion (ejemplo + repetir).
-        el("div", { class: "flex flex-col gap-3" },
-          w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
-            el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
-            el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
-            el("div", { class: "mt-2" },
-              btn("Escuchar ejemplo", ICONS.sound,
-                "text-base border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
-          el("div", { class: "rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-3" },
-            el("div", { class: "flex flex-wrap items-center justify-center gap-2" },
-              el("p", { class: "text-sm text-slate-300" }, "Repite como " + name + ":"),
-              repeatBtn),
-            supported ? null : el("p", { class: "mt-1.5 text-xs text-amber-300 text-center" },
-              "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
-            heardBox, fb)),
-
-        // COLUMNA 2: ejemplos en contexto (se genera solo, sin boton).
-        examplesBox ? el("div", {}, examplesBox) : null,
-
-        // COLUMNA 3: gramatica + conjugacion (mismo pedido que examplesBox) y
-        // produccion libre ("como la usarias tu").
-        el("div", { class: "flex flex-col gap-3" },
-          grammarBox,
-          buildUseItBlock(w, unit, langLabel, unit.level))),
+      // CONTENIDO por PESTAÑAS: antes eran 3 columnas SIEMPRE desplegadas,
+      // que en celular se apilaban una debajo de otra y obligaban a scrollear
+      // muchisimo para llegar al boton de "Siguiente". Pedido explicito del
+      // alumno: que se vea IGUAL en PC y celular, sin depender del ancho de
+      // pantalla. Con pestañas solo se ve una seccion a la vez (Atras/
+      // Continuar o tocando la pestaña), en CUALQUIER dispositivo.
+      buildContentTabs([
+        {
+          label: "Aprende",
+          content: el("div", { class: "flex flex-col gap-3" },
+            w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
+              el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
+              el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
+              el("div", { class: "mt-2" },
+                btn("Escuchar ejemplo", ICONS.sound,
+                  "text-base border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,
+            el("div", { class: "rounded-2xl bg-emerald-500/10 border border-emerald-400/30 p-3" },
+              el("div", { class: "flex flex-wrap items-center justify-center gap-2" },
+                el("p", { class: "text-sm text-slate-300" }, "Repite como " + name + ":"),
+                repeatBtn),
+              supported ? null : el("p", { class: "mt-1.5 text-xs text-amber-300 text-center" },
+                "Tu navegador no tiene micr\u00f3fono. Usa Chrome (PC/Android) para que califique tu pronunciaci\u00f3n."),
+              heardBox, fb)),
+        },
+        { label: "Ejemplos IA", content: examplesBox },
+        { label: "Gram\u00e1tica", content: grammarTabContent },
+      ]),
 
       nextBtn);
 
@@ -394,15 +399,19 @@ export function openVocabClass(unit, opts = {}) {
 
   // PANTALLA COMPLETA (casi): esto ya no es un "pop" flotante pequeno -- es la
   // pantalla principal mientras dura la clase, igual que el modo leccion. El
-  // contenido se centra en una columna legible (max-w-2xl) pero el fondo y el
+  // contenido se centra en una columna legible (max-w-3xl) pero el fondo y el
   // encabezado ocupan TODO el viewport, sin bordes redondeados ni backdrop de
   // "ventana sobre la app". Header+progreso quedan fijos arriba; solo la
   // palabra hace scroll (stage ya trae su propio overflow-y-auto).
+  // OJO ancho: con el contenido ahora en PESTAÑAS (una sola seccion visible a
+  // la vez) ya no hace falta el max-w-7xl que se usaba para la rejilla de 3
+  // columnas -- una columna angosta se lee igual de bien en PC y en celular,
+  // que es justo el punto: MISMO ancho de lectura en cualquier dispositivo.
   const card = el("div", {
     class: "robot-pop w-full h-[100dvh] bg-slate-900 flex flex-col min-h-0",
     role: "dialog", "aria-label": "Clase de vocabulario con " + name, "aria-modal": "true",
   },
-    el("div", { class: "w-full max-w-7xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-8 py-4 sm:py-6" },
+    el("div", { class: "w-full max-w-3xl mx-auto flex-1 min-h-0 flex flex-col px-4 sm:px-8 py-4 sm:py-6" },
       el("div", { class: "flex items-center gap-3 shrink-0" },
         el("div", { class: "w-12 shrink-0" }, teacherFace("sm")),
         el("div", { class: "flex-1" },
