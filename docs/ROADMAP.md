@@ -63,9 +63,20 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
       etre / familia + posesivos / rutina + pronominales / comida + partitivos /
       casa + il y a / compras + demostrativos / ocio + faire-aller / pasado +
       passe compose. Idioma PUBLICADO (`enabled: true`).
-- [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1.
+- [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1. OJO:
+      ademas falta agregar "ja" al mapa `SPEECH` de `data/languages.js`
+      (`unitTts`/`unitMic`) -- hoy caeria a voz inglesa aunque hubiera unidades.
 - [ ] **Portugues A2** (hoy pt solo tiene A1).
-- [ ] **Italiano A2** (hoy it solo tiene A1).
+- [x] **Italiano A2** (v0.349.0). 8 unidades nuevas (it9-it16): il weekend
+      scorso (passato prossimo con ESSERE + concordanza del participio), in
+      viaggio (participi irregolari: fatto/preso/visto/letto/stato), in citta
+      (imperativo informale + preposizioni di luogo), la salute (dovere + mi
+      fa male), fare progetti (futuro semplice), paragoni (comparativo/
+      superlativo), il lavoro ('da' + presente para duracion), tempo libero e
+      sport (avverbi di frequenza). 192 actividades nuevas, 96 vocab nuevo,
+      sin colisiones de id (ver tools/check_topic_verbs.py + chequeo manual).
+      `tools/check_level_offer.py` confirma: it ya NO se ajusta a A1 cuando se
+      pide A2 -- tiene contenido real detras.
 
 ### P3 — QA / calidad
 - [ ] **Instalar Node en la maquina de trabajo.** `npm test` (los 29 tests de
