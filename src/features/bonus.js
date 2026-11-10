@@ -330,24 +330,35 @@ export async function renderBonusDeck(container, params, user) {
 
       const { examplesBox, grammarBox } = buildVerbDeepenBoxes(item, langLabel, deck.level);
       const useItBlock = buildVerbUseItBlock(item, langLabel, deck.level);
-      const grammarTabContent = (grammarBox || useItBlock)
-        ? el("div", { class: "flex flex-col gap-3" }, grammarBox, useItBlock)
+
+      // BOOK_COLS: layout de "libro abierto" -- pagina izquierda / pagina
+      // derecha. En celular (sin lados que aprovechar) se apila 1 columna
+      // igual que antes; desde tablet/PC se reparte en 2 para usar TODO el
+      // ancho en vez de dejarlo vacio a los costados.
+      const bookCols = (left, right) => (left || right)
+        ? el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-5 items-start text-left" }, left, right)
         : null;
 
-      // CONTENIDO por PESTAÑAS (mismo componente que Vocabulario, ver
-      // ui/content-tabs.js): antes eran 3 columnas siempre desplegadas que en
-      // celular se apilaban y obligaban a scrollear muchisimo. Con pestañas
-      // se ve UNA seccion a la vez, IGUAL en PC y en celular, sin depender
-      // del ancho ni la orientacion de la pantalla.
+      // CONTENIDO por PESTAÑAS (ui/content-tabs.js): cada pestaña es una
+      // "pagina" del libro repartida en 2 columnas cuando hay espacio. La
+      // PRACTICA (el reto) ahora TAMBIEN es una pestaña mas -- antes vivia
+      // pegada debajo de TODO, sumando scroll extra aunque las pestañas de
+      // arriba ya fueran compactas.
       body = buildContentTabs([
         {
           label: "L\u00ednea de tiempo",
-          content: el("div", { class: "flex flex-col gap-3" },
+          content: bookCols(
             buildVerbTimeline(item, { lang: spLang }),
             examplesBlock(item.examples, spLang)),
         },
         { label: "Ejemplos IA", content: examplesBox },
-        { label: "Gram\u00e1tica", content: grammarTabContent },
+        { label: "Gram\u00e1tica", content: bookCols(grammarBox, useItBlock) },
+        {
+          label: "Pr\u00e1ctica",
+          content: el("div", {},
+            buildVerbChallenge(item, completeVerb),
+            doneMsg),
+        },
       ]);
     } else {
       wordDisplay = el("div", { class: "flex items-center justify-center gap-3" },
@@ -373,14 +384,14 @@ export async function renderBonusDeck(container, params, user) {
       statusHolder,
       el("p", { class: "mt-2 text-xs text-slate-500" },
         deck.practice ? "Repasa el verbo y completa el reto para aprenderlo." : "Adivina el significado -- toca una opcion."),
-      body, doneMsg,
-      deck.practice ? el("div", { class: "mt-5" }, buildVerbChallenge(item, completeVerb)) : null,
+      body,
+      deck.practice ? null : doneMsg,
       nav);
 
-    // Ancho: con el cuerpo en PESTAÑAS (content-tabs.js) ya no hace falta el
-    // max-w-7xl de la rejilla de 3 columnas -- una columna angosta se lee
-    // igual de bien en PC y celular (mismo ancho en cualquier dispositivo).
-    mount(container, el("div", { class: (deck.practice ? "max-w-3xl" : "max-w-2xl") + " mx-auto" }, cardEl));
+    // Ancho: ahora que cada pestaña usa 2 columnas tipo libro abierto en
+    // pantallas anchas, max-w-4xl aprovecha ese espacio sin estirar las
+    // columnas de texto demasiado (siguen leyendose comodas).
+    mount(container, el("div", { class: (deck.practice ? "max-w-4xl" : "max-w-2xl") + " mx-auto" }, cardEl));
     focusMainHeading(container);
     announce(`Tarjeta ${index + 1} de ${deck.items.length}`);
     if (getAutoplay()) speak(item.front);
