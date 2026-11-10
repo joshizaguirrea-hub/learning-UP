@@ -28,6 +28,14 @@ import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
 const PANEL = "bg-slate-900 border border-slate-800 rounded-2xl p-5";
+// PANEL mas angosto SOLO para la tarjeta de practica (verbos/vocab): esta
+// pantalla vive DENTRO del <main> de index.html, que YA trae su propio
+// px-4 sm:px-6. Sumado al p-5 (20px) del PANEL normal, en un celular angosto
+// se pierden ~36px de cada lado SOLO en padding (antes de llegar al
+// contenido real) -- eso es el margen "que no cambio" que notaste: mis 2
+// ultimos arreglos (columnas de libro) solo entran en juego desde 768px de
+// ancho (tablet/PC), así que nunca iban a tocar el celular. Esto si.
+const PANEL_TIGHT = "bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5";
 const BTN = "bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white font-semibold px-6 py-2.5 rounded-lg " +
   "hover:from-indigo-400 hover:to-fuchsia-400 focus:outline focus:outline-2 focus:outline-indigo-400";
 
@@ -400,7 +408,7 @@ export async function renderBonusDeck(container, params, user) {
       el("button", { class: navCls, disabled: index === 0 ? "" : null, onclick: () => { index--; showCard(); } }, "Devolverse"),
       el("button", { class: navCls, onclick: () => { index++; showCard(); } }, index === last ? "Terminar" : "Siguiente"));
 
-    const cardEl = el("div", { class: PANEL + " text-center" },
+    const cardEl = el("div", { class: PANEL_TIGHT + " text-center" },
       el("button", { type: "button", class: "block text-sm text-indigo-400 hover:text-indigo-300 text-left focus:outline focus:outline-2 focus:outline-indigo-400 rounded", onclick: goBack }, "< Volver"),
       el("p", { class: "text-sm text-slate-400 mt-2" }, `${deck.title} - ${index + 1} de ${deck.items.length}`),
       dotsHolder,
