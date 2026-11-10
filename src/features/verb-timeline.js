@@ -41,8 +41,11 @@ function transformChip(text, tone) {
     ok: "bg-amber-500/15 text-amber-200 border-amber-500/30",
     perfect: "bg-fuchsia-500/15 text-fuchsia-200 border-fuchsia-500/30",
   };
-  return el("div", { class: "flex flex-col items-center gap-1 px-0.5 pt-3 shrink-0" },
-    el("span", { class: "text-slate-600 text-lg leading-none", "aria-hidden": "true" }, "\u2192"),
+  // En celular la linea se APILA (flex-col), asi que la flecha debe apuntar
+  // hacia ABAJO (rotate-90) para seguir el flujo visual; desde md+ vuelve a
+  // ser una fila horizontal y la flecha recupera su direccion original.
+  return el("div", { class: "flex flex-col items-center gap-1 px-0.5 pt-0 md:pt-3 shrink-0" },
+    el("span", { class: "text-slate-600 text-lg leading-none rotate-90 md:rotate-0", "aria-hidden": "true" }, "\u2192"),
     el("span", {
       class: "text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full border whitespace-nowrap " +
         (tones[tone] || tones.ok),
@@ -52,7 +55,7 @@ function transformChip(text, tone) {
 /** Un nodo revelado: icono + etiqueta temporal + palabra (con audio) + micro-explicacion. */
 function stageNode(label, word, tip, lang) {
   const grad = tip?.grad || "from-slate-500 to-slate-700";
-  return el("div", { class: "flex flex-col items-center gap-1.5 w-[9rem] sm:w-44 shrink-0" },
+  return el("div", { class: "flex flex-col items-center gap-1.5 w-full max-w-[11rem] md:w-44 shrink-0" },
     el("div", {
       class: `w-12 h-12 rounded-2xl bg-gradient-to-br ${grad} grid place-items-center text-white shadow-lg`,
       "aria-hidden": "true",
@@ -108,7 +111,17 @@ export function buildVerbTimeline(item, { lang = "en-US" } = {}) {
     if (i > 0) rowChildren.push(connectors[i - 1]);
     rowChildren.push(node);
   });
-  const row = el("div", { class: "mt-5 flex items-start justify-center gap-0.5 sm:gap-1.5 overflow-x-auto pb-1" }, ...rowChildren);
+  // MOVIL (por defecto): se APILA en columna -- cero scroll horizontal, cada
+  // forma ocupa su propio "escalon" de lectura vertical (igual de comodo que
+  // la columna unica que ya usan Vocabulario/Verbos en el resto del rediseno).
+  // DESDE md+ (tablet/PC con espacio de sobra): vuelve a ser una fila, que es
+  // donde de verdad se aprovecha ver HOY/AYER/HASTA HOY de un solo vistazo.
+  // overflow-x-auto se deja SOLO desde md como red de seguridad ante palabras
+  // muy largas; en movil ya no hace falta porque no hay fila que desbordar.
+  const row = el("div", {
+    class: "mt-5 flex flex-col md:flex-row items-center md:items-start justify-center " +
+      "gap-1 md:gap-1.5 md:overflow-x-auto md:pb-1",
+  }, ...rowChildren);
 
   return el("div", { class: "mt-2" },
     rule ? ruleBanner(rule) : null,
