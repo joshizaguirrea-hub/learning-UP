@@ -334,24 +334,40 @@ export async function renderBonusDeck(container, params, user) {
       // BOOK_COLS: layout de "libro abierto" -- pagina izquierda / pagina
       // derecha. En celular (sin lados que aprovechar) se apila 1 columna
       // igual que antes; desde tablet/PC se reparte en 2 para usar TODO el
-      // ancho en vez de dejarlo vacio a los costados.
-      const bookCols = (left, right) => (left || right)
-        ? el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-5 items-start text-left" }, left, right)
-        : null;
+      // ancho en vez de dejarlo vacio a los costados. Si solo hay UN lado
+      // (p.ej. la IA esta apagada y no hay examplesBox/grammarBox), NO se usa
+      // grid-cols-2 -- se devuelve ese unico contenido a ancho completo, para
+      // no dejar "media pagina en blanco".
+      const bookCols = (left, right) => {
+        if (left && right) return el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-5 items-start text-left" }, left, right);
+        return left || right || null;
+      };
 
       // CONTENIDO por PESTAÑAS (ui/content-tabs.js): cada pestaña es una
-      // "pagina" del libro repartida en 2 columnas cuando hay espacio. La
-      // PRACTICA (el reto) ahora TAMBIEN es una pestaña mas -- antes vivia
-      // pegada debajo de TODO, sumando scroll extra aunque las pestañas de
-      // arriba ya fueran compactas.
+      // "pagina" del libro repartida en 2 columnas cuando hay espacio.
+      // "Ejemplos" junta los ejemplos REALES de la unidad (izquierda, ya
+      // disponibles al instante) con los ampliados de la IA (derecha) --
+      // antes vivian separados (uno pegado a la linea de tiempo, el otro
+      // solo en su propia pestaña) y esa ultima se sentia flaca/vacia
+      // estando sola en una pantalla ancha. La PRACTICA (el reto) tambien es
+      // una pestaña -- antes vivia pegada debajo de TODO, sumando scroll
+      // extra aunque las pestañas de arriba ya fueran compactas.
+      //
+      // NAVEGACION: antes esta tarjeta tenia DOS pares de botones ir-atras/
+      // ir-adelante apilados (el de las pestañas + el "Devolverse/Siguiente"
+      // de abajo) -- Johsua lo marco bien como un duplicado confuso. Ahora
+      // SOLO existe el nav de las pestañas: onBack/onDone le delegan el
+      // salto de TARJETA (verbo anterior/siguiente) cuando ya no hay mas
+      // secciones que recorrer.
       body = buildContentTabs([
         {
           label: "L\u00ednea de tiempo",
-          content: bookCols(
-            buildVerbTimeline(item, { lang: spLang }),
-            examplesBlock(item.examples, spLang)),
+          content: buildVerbTimeline(item, { lang: spLang }),
         },
-        { label: "Ejemplos IA", content: examplesBox },
+        {
+          label: "Ejemplos",
+          content: bookCols(examplesBlock(item.examples, spLang), examplesBox),
+        },
         { label: "Gram\u00e1tica", content: bookCols(grammarBox, useItBlock) },
         {
           label: "Pr\u00e1ctica",
@@ -359,7 +375,12 @@ export async function renderBonusDeck(container, params, user) {
             buildVerbChallenge(item, completeVerb),
             doneMsg),
         },
-      ]);
+      ], {
+        onBack: index > 0 ? () => { index--; showCard(); } : undefined,
+        onDone: () => { index++; showCard(); },
+        doneLabel: index === last ? "Terminar" : "Siguiente \u2192",
+        backLabel: "Devolverse",
+      });
     } else {
       wordDisplay = el("div", { class: "flex items-center justify-center gap-3" },
         el("h1", { class: "text-6xl font-extrabold text-slate-100" }, item.front),
@@ -369,10 +390,13 @@ export async function renderBonusDeck(container, params, user) {
         examplesBlock(item.examples, spLang));
     }
 
-    // Navegacion entre verbos: solo Devolverse y Siguiente.
+    // Navegacion entre verbos: solo para el juego de adivinanza (otros
+    // mazos), que NO tiene pestañas. Los mazos con pestañas (deck.practice)
+    // ya traen su propio Atrás/Continuar via onBack/onDone -- ver arriba --
+    // y NO deben tener un segundo nav debajo (ver nota de "duplicado").
     const navCls = "font-semibold px-6 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-100 " +
       "hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline focus:outline-2 focus:outline-indigo-400";
-    const nav = el("div", { class: "mt-6 flex items-center justify-between gap-3" },
+    const nav = deck.practice ? null : el("div", { class: "mt-6 flex items-center justify-between gap-3" },
       el("button", { class: navCls, disabled: index === 0 ? "" : null, onclick: () => { index--; showCard(); } }, "Devolverse"),
       el("button", { class: navCls, onclick: () => { index++; showCard(); } }, index === last ? "Terminar" : "Siguiente"));
 

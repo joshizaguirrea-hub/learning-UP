@@ -270,12 +270,11 @@ export function openVocabClass(unit, opts = {}) {
     const heardBox = el("p", { class: "mt-2 text-sm text-slate-300 min-h-[1.25rem] text-center" }, "");
     const fb = el("div", { class: "mt-3" });
 
-    const nextBtn = el("button", {
-      type: "button",
-      class: "mt-6 w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-lg " +
-        "px-5 py-4 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-pink-400",
-      onclick: () => { stopVoice(); idx++; renderWord(); },
-    }, idx === words.length - 1 ? "Terminar clase \u2192" : "Siguiente palabra \u2192");
+    // OJO navegacion: el paso a la SIGUIENTE palabra ya NO es un boton
+    // aparte -- antes quedaba un "Siguiente palabra" pegado justo debajo del
+    // "Continuar" de las pestañas (dos pares de flechas casi identicas, el
+    // "duplicado" que señaló Johsua). Ahora ese salto vive en el propio
+    // Continuar de las pestañas via opts.onDone (ver buildContentTabs abajo).
 
     // --- Repetir con microfono (una toma) --------------------------------
     function repeatMic() {
@@ -319,6 +318,14 @@ export function openVocabClass(unit, opts = {}) {
     const { examplesBox, grammarBox } = buildDeepenBoxes(w, langLabel, unit.level);
     const useItBlock = buildUseItBlock(w, unit, langLabel, unit.level);
 
+    // BOOK_COLS: pagina izquierda / pagina derecha (ver misma idea en
+    // bonus.js). Si solo hay UN lado (p.ej. la IA esta apagada), se devuelve
+    // ese contenido a ancho completo -- no "media pagina en blanco".
+    const bookCols = (left, right) => {
+      if (left && right) return el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left" }, left, right);
+      return left || right || null;
+    };
+
     replaceKids(stage,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-slate-500" },
         "Palabra " + (idx + 1) + " de " + words.length),
@@ -349,7 +356,7 @@ export function openVocabClass(unit, opts = {}) {
       buildContentTabs([
         {
           label: "Aprende",
-          content: el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left" },
+          content: bookCols(
             w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
               el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
               el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
@@ -365,15 +372,16 @@ export function openVocabClass(unit, opts = {}) {
               heardBox, fb)),
         },
         { label: "Ejemplos IA", content: examplesBox },
-        {
-          label: "Gram\u00e1tica",
-          content: (grammarBox || useItBlock)
-            ? el("div", { class: "grid grid-cols-1 md:grid-cols-2 gap-4 items-start text-left" }, grammarBox, useItBlock)
-            : null,
-        },
-      ]),
-
-      nextBtn);
+        { label: "Gram\u00e1tica", content: bookCols(grammarBox, useItBlock) },
+      ], {
+        // Sin onBack: acá nunca hubo boton de "palabra anterior" (la clase es
+        // siempre hacia adelante), así que "Atrás" se queda deshabilitado en
+        // la primera pestaña como de costumbre. onDone reemplaza al viejo
+        // boton "Siguiente palabra" suelto (era el duplicado que marcó
+        // Johsua: dos pares de Atrás/Continuar apilados).
+        onDone: () => { stopVoice(); idx++; renderWord(); },
+        doneLabel: idx === words.length - 1 ? "Terminar clase \u2192" : "Siguiente palabra \u2192",
+      }));
 
     // Al mostrar la palabra, la dice sola (input inmediato).
     setTimeout(() => say(w.clean), 300);
