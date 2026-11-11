@@ -14,7 +14,7 @@ import { buildVerbChallenge } from "./verb-challenge.js";
 import { makeResumeKey } from "../core/resume.js";
 import { buildGuessGame } from "./flashcard-game.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
-import { stripMd, parseDeepenAnswer, stripMdKeepHighlight, parseExampleItems } from "../core/ai-deepen.js";
+import { stripMd, parseDeepenAnswer, parseExampleItems, highlightFirstMatch, expandVerbForms } from "../core/ai-deepen.js";
 import { CEFR_ORDER } from "../data/cefr.js";
 import { currentLangCode } from "../ui/nav.js";
 import { micCode, languageName } from "../data/languages.js";
@@ -139,18 +139,23 @@ function verbDeepenPrompt(item, langName) {
   const formsNote = past
     ? `(pasado: "${past}"${participle ? `, participio: "${participle}"` : ""})`
     : "(verbo regular)";
+  const estructura = "   ESTRUCTURA: Sujeto = <palabra(s), en espanol di cual es> | Verbo = <la forma tal cual " +
+    "aparece en la frase> (<tiempo verbal en espanol>) | Objeto = <complemento, o \"-\" si no aplica>\n" +
+    "   REGLA: <1 frase breve en espanol con la regla gramatical que ilustra esta frase; si de verdad no " +
+    "hay nada que explicar, escribe REGLA: ->\n";
   const secondLine = past
-    ? `2. <frase en PASADO usando "${past}">\n   = <traduccion>\n`
-    : "2. <otra frase en presente, OTRO contexto>\n   = <traduccion>\n";
+    ? `2. <frase COMPLETA en PASADO usando "${past}">\n   = <traduccion>\n` + estructura
+    : "2. <otra frase COMPLETA en presente, OTRO contexto>\n   = <traduccion>\n" + estructura;
   const thirdLine = participle
-    ? `3. <frase en PRESENT PERFECT usando "have/has ${participle}">\n   = <traduccion>\n\n`
-    : "3. <otra frase mas, OTRO contexto>\n   = <traduccion>\n\n";
+    ? `3. <frase COMPLETA en PRESENT PERFECT usando "have/has ${participle}">\n   = <traduccion>\n` + estructura + "\n"
+    : "3. <otra frase COMPLETA mas, OTRO contexto>\n   = <traduccion>\n" + estructura + "\n";
   return (
     `Actua como profesor de ${langName} para un hispanohablante. El verbo es "${front}" ${formsNote}. ` +
     "Responde EXACTAMENTE en este formato, sin texto extra antes ni despues:\n\n" +
     "EJEMPLOS:\n" +
-    `1. <frase natural en PRESENTE usando "${front}", contexto cotidiano -- envuelve SOLO la forma del ` +
-    `verbo con un asterisco a cada lado para resaltarla, ej: *${front}*>\n   = <traduccion al espanol>\n` +
+    `1. <frase COMPLETA en ${langName}, natural, en PRESENTE, usando "${front}", contexto cotidiano -- TODA ` +
+    `la frase debe estar en ${langName}, NI UNA SOLA PALABRA en espanol (prohibido mezclar idiomas en la ` +
+    "misma oracion, eso es spanglish)>\n   = <traduccion COMPLETA al espanol, una sola linea>\n" + estructura +
     secondLine + thirdLine +
     "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO de este verbo: si es transitivo o " +
@@ -209,7 +214,15 @@ function buildVerbDeepenBoxes(item, langLabel, level, lang) {
       return;
     }
     const parsed = parseDeepenAnswer(answer);
-    const items = parseExampleItems(stripMdKeepHighlight(parsed.examples));
+    // Resaltado en codigo (no se le pide a la IA que ponga asteriscos --
+    // pedirselo mezclaba idiomas en la misma frase, ver nota en el prompt).
+    const forms = [item.past, item.participle, ...expandVerbForms(item.front)].filter(Boolean);
+    const items = parseExampleItems(parsed.examples).map((it) => ({
+      phrase: highlightFirstMatch(stripMd(it.phrase), forms),
+      translation: stripMd(it.translation),
+      structure: stripMd(it.structure),
+      rule: stripMd(it.rule),
+    }));
     replaceKids(examplesBox,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
       items.length

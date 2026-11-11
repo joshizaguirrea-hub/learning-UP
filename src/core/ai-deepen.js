@@ -35,25 +35,18 @@ export function parseDeepenAnswer(text) {
 }
 
 /**
- * Como stripMd, pero PRESERVA el marcado *palabra* de ui/richtext.js (asi los
- * ejemplos pueden resaltar el verbo/palabra en contexto, pedido directo del
- * alumno: "que se dividan en cuadritos con colores senalando el verbo").
- * Quita negritas markdown reales (**texto** -> texto, sin perder contenido) y
- * backticks/guiones bajos sueltos, pero deja los asteriscos SIMPLES intactos
- * para que richText() los pinte.
- */
-export function stripMdKeepHighlight(t) {
-  return String(t).replace(/\*\*([^*]+)\*\*/g, "$1").replace(/[_`]/g, "").replace(/^#+\s*/gm, "");
-}
-
-/**
- * Parsea el bloque de EJEMPLOS numerados ("1. frase\n   = traduccion\n2. ...")
- * en una lista de {phrase, translation} para pintar cada uno como su propia
- * tarjeta (ver ui/example-card.js) en vez de un bloque de texto plano.
- * Tolerante: si una linea no calza el formato exacto, igual se devuelve con
- * translation vacia -- nunca se pierde contenido por un formato imperfecto.
- * @param {string} examplesText - normalmente stripMdKeepHighlight(parsed.examples)
- * @returns {Array<{phrase: string, translation: string}>}
+ * Parsea el bloque de EJEMPLOS numerados en una lista de items, uno por
+ * tarjeta (ver ui/example-card.js). Formato esperado por ejemplo:
+ *   1. <frase>
+ *      = <traduccion>
+ *      ESTRUCTURA: Sujeto = ... | Verbo = ... (tiempo) | Objeto = ...
+ *      REGLA: <explicacion o "-" si no aplica>
+ * ESTRUCTURA/REGLA son OPCIONALES -- si el modelo no las manda, el item
+ * igual se arma solo con phrase/translation (nunca se pierde contenido por
+ * un formato imperfecto; mejor un ejemplo incompleto que ninguno).
+ * @param {string} examplesText - texto crudo de la seccion EJEMPLOS (SIN
+ *   limpiar markdown -- esta funcion solo separa estructura, no sanitiza).
+ * @returns {Array<{phrase: string, translation: string, structure: string, rule: string}>}
  */
 export function parseExampleItems(examplesText) {
   const text = String(examplesText || "").trim();
@@ -62,13 +55,90 @@ export function parseExampleItems(examplesText) {
   // Cada ejemplo empieza con "N. " al inicio de linea; partimos ahi.
   const blocks = text.split(/\n(?=\d+\.\s)/);
   for (const block of blocks) {
-    const m = block.match(/^\d+\.\s*([\s\S]*?)\n\s*=\s*([\s\S]*)$/);
+    const m = block.match(/^\d+\.\s*([\s\S]*?)\n\s*=\s*([^\n]*)([\s\S]*)$/);
     if (m) {
-      items.push({ phrase: m[1].trim(), translation: m[2].trim() });
+      const rest = m[3] || "";
+      const structureM = rest.match(/ESTRUCTURA:\s*([^\n]*)/i);
+      const ruleM = rest.match(/REGLA:\s*([^\n]*)/i);
+      const rule = (ruleM?.[1] || "").trim();
+      items.push({
+        phrase: m[1].trim(),
+        translation: m[2].trim(),
+        structure: (structureM?.[1] || "").trim(),
+        rule: rule === "-" ? "" : rule,
+      });
     } else {
       const clean = block.replace(/^\d+\.\s*/, "").trim();
-      if (clean) items.push({ phrase: clean, translation: "" });
+      if (clean) items.push({ phrase: clean, translation: "", structure: "", rule: "" });
     }
   }
   return items;
+}
+
+/** Escapa caracteres especiales de regex en un texto literal. */
+function escapeRegExp(s) {
+  return String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Genera las formas mas probables de un verbo en ingles (3a persona del
+ * presente y gerundio) a partir de su forma base, para que el resaltado de
+ * ejemplos (highlightFirstMatch) tambien reconozca "applies"/"applying"
+ * aunque solo tengamos guardada la base "apply". Mismo patron de deteccion
+ * (consonante + "y") que ya usa regularPastRule() en core/verb-tips.js para
+ * el pasado -- aqui se aplica a las otras formas que tienen el mismo cambio
+ * ortografico. No es un conjugador completo (no dobla consonante en verbos
+ * cortos tipo stop->stopping): si no detecta nada fiable, el resaltado
+ * simplemente no aparece en vez de aparecer MAL puesto.
+ * @param {string} base - forma base del verbo (ej. "apply")
+ * @returns {string[]} formas candidatas (incluye la base)
+ */
+export function expandVerbForms(base) {
+  const b = String(base || "").trim();
+  if (!b) return [];
+  const forms = new Set([b]);
+  if (/[^aeiou]y$/i.test(b)) {
+    forms.add(b.slice(0, -1) + "ies"); // apply -> applies
+  } else if (/(s|sh|ch|x|z|o)$/i.test(b)) {
+    forms.add(b + "es"); // watch -> watches, go -> goes
+  } else {
+    forms.add(b + "s"); // walk -> walks
+  }
+  if (/[^aeiou]e$/i.test(b) && !/ee$/i.test(b)) {
+    forms.add(b.slice(0, -1) + "ing"); // like -> liking
+  } else {
+    forms.add(b + "ing"); // walk -> walking, apply -> applying (la "y" NO cambia antes de -ing)
+  }
+  return [...forms];
+}
+
+/**
+ * Envuelve la PRIMERA aparicion de alguna de las formas dadas dentro de
+ * `phrase` con el marcado *palabra* (ver ui/richtext.js), para resaltar el
+ * verbo/palabra objetivo SIN depender de que la IA inserte el marcado ella
+ * misma -- eso fallaba en la practica: al pedirle a la IA "envuelve el verbo
+ * con asteriscos" dentro de un prompt en espanol, a veces mezclaba idiomas
+ * en la misma frase (spanglish) en vez de solo resaltar. Haciendolo aqui, en
+ * codigo, el prompt puede pedir la frase 100% en el idioma meta sin ninguna
+ * instruccion de formato adicional que lo confunda, y el resaltado queda
+ * garantizado (o ausente si de verdad no aparece ninguna forma conocida,
+ * nunca mal puesto).
+ * @param {string} phrase - frase ya limpia (sin markdown)
+ * @param {string[]} forms - formas a buscar, de mas especifica a menos
+ *   (ej. ["applied", "applying", "apply"]); se usa la PRIMERA que aparezca.
+ * @returns {string} la frase, con la forma encontrada envuelta en *…* (o
+ *   igual a `phrase` si ninguna forma aparece).
+ */
+export function highlightFirstMatch(phrase, forms) {
+  const text = String(phrase || "");
+  const candidates = (forms || []).filter(Boolean).sort((a, b) => b.length - a.length);
+  for (const form of candidates) {
+    // \w* al final capta formas flexionadas que comparten la raiz dada
+    // (apply -> applies/applying); las formas YA conjugadas (applied) se
+    // encuentran completas porque ya son la ortografia exacta esperada.
+    const re = new RegExp(`\\b(${escapeRegExp(form)}\\w*)\\b`, "i");
+    const m = text.match(re);
+    if (m) return text.slice(0, m.index) + "*" + m[0] + "*" + text.slice(m.index + m[0].length);
+  }
+  return text;
 }

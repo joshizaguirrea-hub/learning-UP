@@ -29,7 +29,7 @@ import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } 
 import { buildContentTabs } from "../ui/content-tabs.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
-import { stripMd, parseDeepenAnswer, stripMdKeepHighlight, parseExampleItems } from "../core/ai-deepen.js";
+import { stripMd, parseDeepenAnswer, parseExampleItems, highlightFirstMatch, expandVerbForms } from "../core/ai-deepen.js";
 import { exampleCard } from "../ui/example-card.js";
 
 // Nombre en espanol del idioma META (L1) para la copia de la intro.
@@ -45,12 +45,16 @@ function deepenPrompt(term, translation, langName, isVerb) {
     `"${term}" (significado: "${translation}"). Responde EXACTAMENTE en este formato, sin texto extra antes ` +
     "ni despues:\n\n" +
     "EJEMPLOS:\n" +
-    `1. <frase natural y elaborada en ${langName} usando la palabra, en un contexto distinto a uno basico -- ` +
-    `envuelve SOLO la palabra "${term}" (o su forma conjugada/flexionada tal cual aparece en la frase) con un ` +
-    `asterisco a cada lado para resaltarla, ej: *${term}*>\n` +
-    "   = <traduccion al espanol>\n" +
-    `2. <otra frase, en OTRO contexto/situacion, con el mismo resaltado de un asterisco>\n   = <traduccion>\n` +
-    `3. <otra frase, en OTRO contexto mas, con el mismo resaltado>\n   = <traduccion>\n\n` +
+    `1. <frase COMPLETA en ${langName}, natural y elaborada, usando la palabra, en un contexto distinto a uno ` +
+    `basico -- TODA la frase debe estar en ${langName}, NI UNA SOLA PALABRA en espanol (prohibido mezclar ` +
+    "idiomas en la misma oracion, eso es spanglish)>\n" +
+    "   = <traduccion COMPLETA de esa frase al espanol, en una sola linea>\n" +
+    "   ESTRUCTURA: Sujeto = <palabra(s) del sujeto, en espanol di cual es> | Verbo = <la palabra/forma verbal " +
+    `tal cual aparece en la frase> (<tiempo verbal en espanol>) | Objeto = <complemento, o "-" si no aplica>\n` +
+    "   REGLA: <1 frase breve en espanol explicando una regla gramatical que ilustre esta frase (orden de " +
+    "palabras, preposicion, tiempo verbal...); si de verdad no hay nada que explicar, escribe REGLA: ->\n" +
+    `2. <otra frase COMPLETA en ${langName}, OTRO contexto/situacion>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n` +
+    `3. <otra frase COMPLETA en ${langName}, OTRO contexto mas>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n\n` +
     "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO para usar bien esta palabra: su categoria " +
     "gramatical, una preposicion que la acompana, si es contable/incontable, un error comun de " +
@@ -120,7 +124,19 @@ function buildDeepenBoxes(w, langLabel, level, lang) {
       return;
     }
     const parsed = parseDeepenAnswer(answer);
-    const items = parseExampleItems(stripMdKeepHighlight(parsed.examples));
+    // Resaltado de la palabra objetivo: se hace EN CODIGO (no se le pide a la
+    // IA que ponga los asteriscos) -- pedirselo dentro de un prompt en
+    // espanol causaba que a veces mezclara idiomas en la misma frase
+    // (spanglish). Si es verbo, se prueban tambien sus formas flexionadas
+    // (ej. "apply" -> "applies"/"applying"); si no, solo la palabra tal cual.
+    const base = w.clean || w.term;
+    const forms = isVerb ? expandVerbForms(base.replace(/^to\s+/i, "")) : [base];
+    const items = parseExampleItems(parsed.examples).map((it) => ({
+      phrase: highlightFirstMatch(stripMd(it.phrase), forms),
+      translation: stripMd(it.translation),
+      structure: stripMd(it.structure),
+      rule: stripMd(it.rule),
+    }));
     replaceKids(examplesBox,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
       items.length

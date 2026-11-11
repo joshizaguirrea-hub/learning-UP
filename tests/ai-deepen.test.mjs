@@ -3,7 +3,9 @@
  * Correr con:  node tests/ai-deepen.test.mjs
  */
 import assert from "node:assert/strict";
-import { stripMd, parseDeepenAnswer, stripMdKeepHighlight, parseExampleItems } from "../src/core/ai-deepen.js";
+import {
+  stripMd, parseDeepenAnswer, parseExampleItems, highlightFirstMatch, expandVerbForms,
+} from "../src/core/ai-deepen.js";
 
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
@@ -40,24 +42,32 @@ test("texto vacio o nulo no revienta", () => {
   assert.deepEqual(parseDeepenAnswer(undefined), { examples: "", grammar: "", conjugation: "" });
 });
 
-test("stripMdKeepHighlight quita negritas/backticks/encabezados pero DEJA el *resaltado* simple", () => {
-  // El "#" de encabezado solo se quita al INICIO de linea (igual que stripMd);
-  // por eso la prueba usa un salto de linea real para ese caso.
-  assert.equal(
-    stripMdKeepHighlight("# Titulo\n**Nota:** usa *applied* con `preposicion`."),
-    "Titulo\nNota: usa *applied* con preposicion."
-  );
-});
-
 test("parseExampleItems separa cada ejemplo numerado en {phrase, translation}", () => {
-  const text = "1. I *applied* for a new job.\n   = Quiero postularme para un nuevo trabajo.\n" +
-    "2. She *applied* to three universities.\n   = Ella se postulo a tres universidades.";
+  const text = "1. I applied for a new job.\n   = Quiero postularme para un nuevo trabajo.\n" +
+    "2. She applied to three universities.\n   = Ella se postulo a tres universidades.";
   const out = parseExampleItems(text);
   assert.equal(out.length, 2);
-  assert.equal(out[0].phrase, "I *applied* for a new job.");
+  assert.equal(out[0].phrase, "I applied for a new job.");
   assert.equal(out[0].translation, "Quiero postularme para un nuevo trabajo.");
-  assert.equal(out[1].phrase, "She *applied* to three universities.");
+  assert.equal(out[1].phrase, "She applied to three universities.");
   assert.equal(out[1].translation, "Ella se postulo a tres universidades.");
+});
+
+test("parseExampleItems lee ESTRUCTURA y REGLA cuando vienen", () => {
+  const text = "1. I applied for a new job.\n   = Quiero postularme para un nuevo trabajo.\n" +
+    "   ESTRUCTURA: Sujeto = I | Verbo = applied (pasado simple) | Objeto = for a new job\n" +
+    "   REGLA: El pasado simple de verbos regulares termina en -ed.";
+  const out = parseExampleItems(text);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].structure, "Sujeto = I | Verbo = applied (pasado simple) | Objeto = for a new job");
+  assert.equal(out[0].rule, "El pasado simple de verbos regulares termina en -ed.");
+});
+
+test("parseExampleItems trata REGLA: - como 'sin regla' (no se muestra nada inventado)", () => {
+  const text = "1. I applied for a new job.\n   = Quiero postularme.\n" +
+    "   ESTRUCTURA: Sujeto = I | Verbo = applied | Objeto = -\n   REGLA: -";
+  const out = parseExampleItems(text);
+  assert.equal(out[0].rule, "");
 });
 
 test("parseExampleItems tolera una linea mal formada (sin '=') sin perder contenido", () => {
@@ -70,6 +80,37 @@ test("parseExampleItems tolera una linea mal formada (sin '=') sin perder conten
 test("parseExampleItems con texto vacio devuelve lista vacia", () => {
   assert.deepEqual(parseExampleItems(""), []);
   assert.deepEqual(parseExampleItems(undefined), []);
+});
+
+test("highlightFirstMatch envuelve la PRIMERA forma que aparece, con limite de palabra", () => {
+  assert.equal(
+    highlightFirstMatch("She applied to three universities.", ["applied", "apply"]),
+    "She *applied* to three universities."
+  );
+});
+
+test("highlightFirstMatch no encuentra nada -> devuelve la frase igual (nunca mal puesto)", () => {
+  assert.equal(highlightFirstMatch("He went home.", ["apply", "applied"]), "He went home.");
+});
+
+test("expandVerbForms: consonante + 'y' -> 'ies' en 3a persona (apply -> applies)", () => {
+  const forms = expandVerbForms("apply");
+  assert.ok(forms.includes("applies"));
+  assert.ok(forms.includes("applying"));
+});
+
+test("expandVerbForms + highlightFirstMatch resuelven el caso real 'apply' -> 'applies'", () => {
+  const forms = expandVerbForms("apply");
+  assert.equal(
+    highlightFirstMatch("She always applies for new jobs.", forms),
+    "She always *applies* for new jobs."
+  );
+});
+
+test("expandVerbForms: verbo terminado en 'e' muda -> 'liking', no 'likeing'", () => {
+  const forms = expandVerbForms("like");
+  assert.ok(forms.includes("liking"));
+  assert.ok(forms.includes("likes"));
 });
 
 console.log(`\n${passed} pruebas en verde.`);

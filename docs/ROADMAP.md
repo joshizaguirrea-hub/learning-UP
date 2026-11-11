@@ -24,19 +24,36 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
       el cansancio visual en lectura -- pedido directo: "la letra me cansa
       la vista".
 - [x] **"Ejemplos en contexto" (IA) en tarjetas individuales con el verbo
-      resaltado** (v0.352.0). Antes era UN bloque de texto plano numerado
-      ("1. ... = ...\n2. ..."); ahora cada ejemplo es su propia tarjeta con
-      audio + frase + traduccion, igual que ya tenian los ejemplos curados
-      ("Ejemplos de uso") -- nuevo `ui/example-card.js` compartido por ambos.
-      La palabra/verbo objetivo se resalta en VERDE reusando el marcado
-      `*palabra*` que YA existe en `ui/richtext.js` (mismo color que resalta
-      verbos en toda la app, no se inventa un esquema nuevo). Nuevo
-      `core/ai-deepen.js: parseExampleItems/stripMdKeepHighlight` + 5 tests
-      nuevos en `tests/ai-deepen.test.mjs`. Alcance consciente: NO se hizo
-      tagging de sujeto/objeto por separado (pedido original) -- eso
-      requeriria que la IA devuelva estructura mas fragil de parsear; se opto
-      por resaltar SOLO la palabra objetivo (lo pedagogicamente mas util) y
-      dejar la nota gramatical aparte como ya estaba.
+      resaltado** (v0.352.0, CORREGIDO en v0.353.0). Antes era UN bloque de
+      texto plano numerado ("1. ... = ...\n2. ..."); ahora cada ejemplo es su
+      propia tarjeta con audio + frase + traduccion, igual que ya tenian los
+      ejemplos curados ("Ejemplos de uso") -- `ui/example-card.js` compartido
+      por ambos.
+      REGRESION encontrada y arreglada en v0.353.0: pedirle a la IA que ELLA
+      MISMA envuelva el verbo con asteriscos (v0.352.0) causaba que a veces
+      escribiera la frase MEZCLANDO idiomas ("Ella siempre *applies* para
+      trabajos nuevos" -- spanglish), porque el prompt entero esta en espanol
+      y la instruccion de formato confundia al modelo. Fix real: el resaltado
+      ahora se hace EN CODIGO, no se le pide nada a la IA sobre formato --
+      nuevo `core/ai-deepen.js: highlightFirstMatch()` busca la palabra
+      objetivo (o sus formas flexionadas, ej. "apply"->"applies"/"applying"
+      via `expandVerbForms()`, mismo patron de deteccion consonante+"y" que
+      ya usaba `regularPastRule()` en `core/verb-tips.js`) y la envuelve ella
+      misma con *asteriscos* ANTES de pintar. El prompt ahora solo exige
+      "TODA la frase en el idioma meta, prohibido el spanglish" -- sin pedir
+      ningun marcado, cero riesgo de confundir al modelo con dos pedidos a
+      la vez.
+      ADEMAS (pedido explicito, segunda vuelta): cada ejemplo ahora trae una
+      ESTRUCTURA gramatical (chips de colores: Sujeto/Verbo/Objeto) y una
+      REGLA opcional, pedidas a la IA en texto plano estructurado ("Sujeto =
+      ... | Verbo = ... (tiempo) | Objeto = ...") y parseadas de forma
+      tolerante (si el modelo no las manda, el ejemplo igual se muestra sin
+      esas partes -- nunca se inventa contenido). `core/ai-deepen.js` quedo
+      con `parseExampleItems` (ahora tambien extrae structure/rule),
+      `highlightFirstMatch`, `expandVerbForms`; se elimino `stripMdKeepHighlight`
+      (quedo sin uso con el nuevo diseno -- YAGNI). 14 tests en
+      `tests/ai-deepen.test.mjs`, verificados a mano letra por letra (sin
+      Node en esta maquina).
 - [ ] **Desplegar el Worker con el limite de uso** (v0.316.0) y CONFIRMAR en
       Cloudflare que el binding `AUDIO_KV` existe (Workers & Pages -> tu
       Worker -> Settings -> Bindings). Sin ese binding el limite no se activa
