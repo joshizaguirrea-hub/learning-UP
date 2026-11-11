@@ -10,6 +10,33 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 ## Abierto — priorizado
 
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
+- [x] **Reto de verbos: ya no se reinicia + "ya dominado" en verde** (v0.352.0).
+      Bug real reportado: `buildVerbChallenge` guardaba `idx`/`solvedCount`
+      SOLO en memoria -- cambiar de app o de pantalla a medio reto lo
+      reiniciaba desde "Reto 1", aunque ya hubiera acertado 1 o 2. Fix:
+      autosave via `core/resume.js` (igual patron que vocab-class.js) +
+      si el verbo YA esta dominado (`card.reps >= MASTER_REPS`) se muestra de
+      una "\u00a1Ya dominas este verbo!" en vez de obligar a rehacer el reto
+      completo cada vez que se reabre.
+- [x] **Fuente mas amigable (menos fatiga visual)** (v0.352.0). Nunito ->
+      Lexend en todo el body (Fredoka se mantiene para titulos). Lexend esta
+      disenada por investigacion de legibilidad especificamente para reducir
+      el cansancio visual en lectura -- pedido directo: "la letra me cansa
+      la vista".
+- [x] **"Ejemplos en contexto" (IA) en tarjetas individuales con el verbo
+      resaltado** (v0.352.0). Antes era UN bloque de texto plano numerado
+      ("1. ... = ...\n2. ..."); ahora cada ejemplo es su propia tarjeta con
+      audio + frase + traduccion, igual que ya tenian los ejemplos curados
+      ("Ejemplos de uso") -- nuevo `ui/example-card.js` compartido por ambos.
+      La palabra/verbo objetivo se resalta en VERDE reusando el marcado
+      `*palabra*` que YA existe en `ui/richtext.js` (mismo color que resalta
+      verbos en toda la app, no se inventa un esquema nuevo). Nuevo
+      `core/ai-deepen.js: parseExampleItems/stripMdKeepHighlight` + 5 tests
+      nuevos en `tests/ai-deepen.test.mjs`. Alcance consciente: NO se hizo
+      tagging de sujeto/objeto por separado (pedido original) -- eso
+      requeriria que la IA devuelva estructura mas fragil de parsear; se opto
+      por resaltar SOLO la palabra objetivo (lo pedagogicamente mas util) y
+      dejar la nota gramatical aparte como ya estaba.
 - [ ] **Desplegar el Worker con el limite de uso** (v0.316.0) y CONFIRMAR en
       Cloudflare que el binding `AUDIO_KV` existe (Workers & Pages -> tu
       Worker -> Settings -> Bindings). Sin ese binding el limite no se activa

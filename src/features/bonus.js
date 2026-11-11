@@ -11,9 +11,10 @@ import { ensureCards, saveCard, getCardsByIds } from "../services/srs.js";
 import { recordActivity } from "../services/profiles.js";
 import { buildVerbTimeline } from "./verb-timeline.js";
 import { buildVerbChallenge } from "./verb-challenge.js";
+import { makeResumeKey } from "../core/resume.js";
 import { buildGuessGame } from "./flashcard-game.js";
 import { MASTER_REPS, bonusMedals } from "../core/gamification.js";
-import { stripMd, parseDeepenAnswer } from "../core/ai-deepen.js";
+import { stripMd, parseDeepenAnswer, stripMdKeepHighlight, parseExampleItems } from "../core/ai-deepen.js";
 import { CEFR_ORDER } from "../data/cefr.js";
 import { currentLangCode } from "../ui/nav.js";
 import { micCode, languageName } from "../data/languages.js";
@@ -24,6 +25,7 @@ import { bymaxAiEnabled } from "../config/bymax.js";
 import { ICONS } from "../ui/icons.js";
 import { el, mount, replaceKids } from "../ui/dom.js";
 import { buildContentTabs } from "../ui/content-tabs.js";
+import { exampleCard } from "../ui/example-card.js";
 import { announce, focusMainHeading } from "../ui/a11y.js";
 import { go } from "../ui/router.js";
 
@@ -145,11 +147,12 @@ function verbDeepenPrompt(item, langName) {
     : "3. <otra frase mas, OTRO contexto>\n   = <traduccion>\n\n";
   return (
     `Actua como profesor de ${langName} para un hispanohablante. El verbo es "${front}" ${formsNote}. ` +
-    "Responde EXACTAMENTE en este formato, sin texto extra antes ni despues, sin markdown ni asteriscos:\n\n" +
+    "Responde EXACTAMENTE en este formato, sin texto extra antes ni despues:\n\n" +
     "EJEMPLOS:\n" +
-    `1. <frase natural en PRESENTE usando "${front}", contexto cotidiano>\n   = <traduccion al espanol>\n` +
+    `1. <frase natural en PRESENTE usando "${front}", contexto cotidiano -- envuelve SOLO la forma del ` +
+    `verbo con un asterisco a cada lado para resaltarla, ej: *${front}*>\n   = <traduccion al espanol>\n` +
     secondLine + thirdLine +
-    "NOTA GRAMATICAL:\n" +
+    "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO de este verbo: si es transitivo o " +
     "intransitivo, una preposicion comun que lo acompana (phrasal verb), un error tipico de " +
     "hispanohablantes con el, o un verbo parecido con el que se confunde. Nada generico.>\n"
@@ -181,7 +184,7 @@ function verbScenarioFor(item) {
  * ya debe estar desplegado, no escondido detras de un boton. Devuelve DOS
  * cajas que se llenan JUNTAS cuando responde la UNICA llamada a la IA.
  */
-function buildVerbDeepenBoxes(item, langLabel, level) {
+function buildVerbDeepenBoxes(item, langLabel, level, lang) {
   if (!bymaxAiEnabled) return { examplesBox: null, grammarBox: null };
 
   const examplesBox = el("div", { class: "rounded-2xl bg-indigo-500/10 border border-indigo-400/30 p-5 text-left" },
@@ -206,10 +209,12 @@ function buildVerbDeepenBoxes(item, langLabel, level) {
       return;
     }
     const parsed = parseDeepenAnswer(answer);
+    const items = parseExampleItems(stripMdKeepHighlight(parsed.examples));
     replaceKids(examplesBox,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
-      el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" },
-        stripMd(parsed.examples) || "Sin ejemplos esta vez."));
+      items.length
+        ? el("div", { class: "space-y-2" }, ...items.map((it) => exampleCard(it, lang)))
+        : el("p", { class: "text-base text-slate-400" }, "Sin ejemplos esta vez."));
     replaceKids(grammarBox,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
         el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical"),
@@ -336,7 +341,7 @@ export async function renderBonusDeck(container, params, user) {
         el("p", { class: "relative text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" }, item.front),
         el("div", { class: "relative" }, speakButton(item.front, { cls: "w-12 h-12 bg-white/20 text-white hover:bg-white/30", lang: spLang })));
 
-      const { examplesBox, grammarBox } = buildVerbDeepenBoxes(item, langLabel, deck.level);
+      const { examplesBox, grammarBox } = buildVerbDeepenBoxes(item, langLabel, deck.level, spLang);
       const useItBlock = buildVerbUseItBlock(item, langLabel, deck.level);
 
       // BOOK_COLS: layout de "libro abierto" -- pagina izquierda / pagina
@@ -380,7 +385,10 @@ export async function renderBonusDeck(container, params, user) {
         {
           label: "Pr\u00e1ctica",
           content: el("div", {},
-            buildVerbChallenge(item, completeVerb),
+            buildVerbChallenge(item, completeVerb, {
+              alreadyMastered: (cardMap[item.id]?.reps || 0) >= MASTER_REPS,
+              resumeKey: makeResumeKey(user.id, item.id, "verbchallenge"),
+            }),
             doneMsg),
         },
       ], {
@@ -429,17 +437,15 @@ export async function renderBonusDeck(container, params, user) {
     if (getAutoplay()) speak(item.front);
   }
 
-  // Bloque de ejemplos de uso (idioma meta con audio + traduccion).
+  // Bloque de ejemplos de uso (idioma meta con audio + traduccion). Reusa
+  // exampleCard (ui/example-card.js) -- mismo componente que ahora pintan los
+  // ejemplos generados por IA, para que ambos bloques se vean identicos.
   function examplesBlock(examples, lang = "en-US") {
     if (!examples || !examples.length) return null;
     return el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5 text-left" },
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-2" }, "Ejemplos de uso"),
       el("div", { class: "space-y-2" },
-        ...examples.map((ex) => el("div", { class: "rounded-lg bg-slate-900/50 border border-slate-700/60 p-3" },
-          el("div", { class: "flex items-center gap-2" },
-            speakButton(ex.en, { lang }),
-            el("p", { class: "text-lg text-slate-100" }, ex.en)),
-          el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, ex.es)))));
+        ...examples.map((ex) => exampleCard({ phrase: ex.en, translation: ex.es }, lang))));
   }
 
   // Chip de estado del item segun sus repasos (Nuevo / En progreso / Dominado).

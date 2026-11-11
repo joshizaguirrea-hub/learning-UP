@@ -29,7 +29,8 @@ import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } 
 import { buildContentTabs } from "../ui/content-tabs.js";
 import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
-import { stripMd, parseDeepenAnswer } from "../core/ai-deepen.js";
+import { stripMd, parseDeepenAnswer, stripMdKeepHighlight, parseExampleItems } from "../core/ai-deepen.js";
+import { exampleCard } from "../ui/example-card.js";
 
 // Nombre en espanol del idioma META (L1) para la copia de la intro.
 const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", ja: "japones", es: "espanol" };
@@ -42,18 +43,20 @@ function deepenPrompt(term, translation, langName, isVerb) {
   return (
     `Actua como profesor de ${langName} para un hispanohablante. La palabra o frase de vocabulario es ` +
     `"${term}" (significado: "${translation}"). Responde EXACTAMENTE en este formato, sin texto extra antes ` +
-    "ni despues, sin markdown ni asteriscos:\n\n" +
+    "ni despues:\n\n" +
     "EJEMPLOS:\n" +
-    `1. <frase natural y elaborada en ${langName} usando la palabra, en un contexto distinto a uno basico>\n` +
+    `1. <frase natural y elaborada en ${langName} usando la palabra, en un contexto distinto a uno basico -- ` +
+    `envuelve SOLO la palabra "${term}" (o su forma conjugada/flexionada tal cual aparece en la frase) con un ` +
+    `asterisco a cada lado para resaltarla, ej: *${term}*>\n` +
     "   = <traduccion al espanol>\n" +
-    `2. <otra frase, en OTRO contexto/situacion>\n   = <traduccion>\n` +
-    `3. <otra frase, en OTRO contexto mas>\n   = <traduccion>\n\n` +
-    "NOTA GRAMATICAL:\n" +
+    `2. <otra frase, en OTRO contexto/situacion, con el mismo resaltado de un asterisco>\n   = <traduccion>\n` +
+    `3. <otra frase, en OTRO contexto mas, con el mismo resaltado>\n   = <traduccion>\n\n` +
+    "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO para usar bien esta palabra: su categoria " +
     "gramatical, una preposicion que la acompana, si es contable/incontable, un error comun de " +
     "hispanohablantes con ella, o su registro formal/informal. Nada generico.>\n" +
     (isVerb
-      ? "\nCONJUGACION (esta palabra ES un verbo):\n" +
+      ? "\nCONJUGACION (esta palabra ES un verbo, sin asteriscos aqui):\n" +
         "- Presente: <forma> -> <ejemplo corto>\n" +
         "- Pasado: <forma> -> <ejemplo corto>\n" +
         "- Participio: <forma> -> <ejemplo corto>\n"
@@ -91,7 +94,7 @@ function scenarioFor(unit, clean) {
  * columnas distintas del layout de 3 columnas, pero comparten el mismo pedido
  * (no se duplica el costo de IA por separarlas visualmente).
  */
-function buildDeepenBoxes(w, langLabel, level) {
+function buildDeepenBoxes(w, langLabel, level, lang) {
   if (!bymaxAiEnabled) return { examplesBox: null, grammarBox: null };
   const isVerb = /^to\s+/i.test(w.term);
 
@@ -117,10 +120,12 @@ function buildDeepenBoxes(w, langLabel, level) {
       return;
     }
     const parsed = parseDeepenAnswer(answer);
+    const items = parseExampleItems(stripMdKeepHighlight(parsed.examples));
     replaceKids(examplesBox,
       el("p", { class: "text-sm font-bold uppercase tracking-wide text-indigo-300 mb-2" }, "Ejemplos en contexto"),
-      el("p", { class: "text-lg text-slate-100 whitespace-pre-wrap leading-relaxed text-left" },
-        stripMd(parsed.examples) || "Sin ejemplos esta vez."));
+      items.length
+        ? el("div", { class: "space-y-2" }, ...items.map((it) => exampleCard(it, lang)))
+        : el("p", { class: "text-base text-slate-400" }, "Sin ejemplos esta vez."));
 
     const grammarKids = [el("p", { class: "text-sm font-bold uppercase tracking-wide text-amber-300 mb-2 flex items-center gap-1.5" },
       el("span", { class: "w-4 h-4", html: ICONS.bulb }), "Nota gramatical")];
@@ -315,7 +320,7 @@ export function openVocabClass(unit, opts = {}) {
             repeated = true;
           });
 
-    const { examplesBox, grammarBox } = buildDeepenBoxes(w, langLabel, unit.level);
+    const { examplesBox, grammarBox } = buildDeepenBoxes(w, langLabel, unit.level, tts);
     const useItBlock = buildUseItBlock(w, unit, langLabel, unit.level);
 
     // BOOK_COLS: pagina izquierda / pagina derecha (ver misma idea en

@@ -33,3 +33,42 @@ export function parseDeepenAnswer(text) {
   const conjugation = t.slice(ci).replace(/^CONJUGACION[^:]*:\s*/i, "").trim();
   return { examples, grammar, conjugation };
 }
+
+/**
+ * Como stripMd, pero PRESERVA el marcado *palabra* de ui/richtext.js (asi los
+ * ejemplos pueden resaltar el verbo/palabra en contexto, pedido directo del
+ * alumno: "que se dividan en cuadritos con colores senalando el verbo").
+ * Quita negritas markdown reales (**texto** -> texto, sin perder contenido) y
+ * backticks/guiones bajos sueltos, pero deja los asteriscos SIMPLES intactos
+ * para que richText() los pinte.
+ */
+export function stripMdKeepHighlight(t) {
+  return String(t).replace(/\*\*([^*]+)\*\*/g, "$1").replace(/[_`]/g, "").replace(/^#+\s*/gm, "");
+}
+
+/**
+ * Parsea el bloque de EJEMPLOS numerados ("1. frase\n   = traduccion\n2. ...")
+ * en una lista de {phrase, translation} para pintar cada uno como su propia
+ * tarjeta (ver ui/example-card.js) en vez de un bloque de texto plano.
+ * Tolerante: si una linea no calza el formato exacto, igual se devuelve con
+ * translation vacia -- nunca se pierde contenido por un formato imperfecto.
+ * @param {string} examplesText - normalmente stripMdKeepHighlight(parsed.examples)
+ * @returns {Array<{phrase: string, translation: string}>}
+ */
+export function parseExampleItems(examplesText) {
+  const text = String(examplesText || "").trim();
+  if (!text) return [];
+  const items = [];
+  // Cada ejemplo empieza con "N. " al inicio de linea; partimos ahi.
+  const blocks = text.split(/\n(?=\d+\.\s)/);
+  for (const block of blocks) {
+    const m = block.match(/^\d+\.\s*([\s\S]*?)\n\s*=\s*([\s\S]*)$/);
+    if (m) {
+      items.push({ phrase: m[1].trim(), translation: m[2].trim() });
+    } else {
+      const clean = block.replace(/^\d+\.\s*/, "").trim();
+      if (clean) items.push({ phrase: clean, translation: "" });
+    }
+  }
+  return items;
+}

@@ -123,16 +123,20 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Lexend (reemplaza a Nunito): fuente disenada por investigacion de
+   * legibilidad para reducir la fatiga visual en lectura -- pedido directo
+   * del alumno ("la letra me cansa la vista"). Formas simples y abiertas,
+   * buen espaciado; sigue siendo amigable/redondeada, no fria ni tecnica. */
+  font-family: "Lexend", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 /* Titulos con una fuente redondeada y divertida (Fredoka). FALTABA
  * font-black: las palabras "heroe" de la Clase de Vocabulario (y cualquier
- * otro texto en font-black) se quedaban en Nunito normal, sin la gracia de
- * Fredoka -- justo las que mas se benefician de una letra divertida. */
+ * otro texto en font-black) se quedaban sin la gracia de Fredoka -- justo
+ * las que mas se benefician de una letra divertida. */
 h1, h2, h3, .font-display,
 .font-extrabold, .font-bold, .font-black {
-  font-family: "Fredoka", "Nunito", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Fredoka", "Lexend", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: 0.2px;
 }
 
