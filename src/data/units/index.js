@@ -79,6 +79,15 @@ import { PT5_CASA } from "./pt5-casa.js";
 import { PT6_COMPRAS } from "./pt6-compras.js";
 import { PT7_TEMPOLIVRE } from "./pt7-tempolivre.js";
 import { PT8_ONTEM } from "./pt8-ontem.js";
+// --- Portugues (pt-BR) A2 ---
+import { PT9_FIMDESEMANA } from "./pt9-fimdesemana.js";
+import { PT10_VIAGEM } from "./pt10-viagem.js";
+import { PT11_CIDADE } from "./pt11-cidade.js";
+import { PT12_SAUDE } from "./pt12-saude.js";
+import { PT13_PLANOS } from "./pt13-planos.js";
+import { PT14_COMPARACOES } from "./pt14-comparacoes.js";
+import { PT15_TRABALHO } from "./pt15-trabalho.js";
+import { PT16_ESPORTE } from "./pt16-esporte.js";
 // --- Italiano (it) A1 ---
 import { IT1_CIAO } from "./it1-ciao.js";
 import { IT2_FAMIGLIA } from "./it2-famiglia.js";
@@ -124,6 +133,8 @@ export const UNITS = [
   FR1_BONJOUR, FR2_FAMILLE, FR3_ROUTINE, FR4_NOURRITURE, FR5_MAISON, FR6_SHOPPING, FR7_TEMPSLIBRE, FR8_HIER,
   // --- Portugues (pt-BR) A1 ---
   PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
+  // --- Portugues (pt-BR) A2 ---
+  PT9_FIMDESEMANA, PT10_VIAGEM, PT11_CIDADE, PT12_SAUDE, PT13_PLANOS, PT14_COMPARACOES, PT15_TRABALHO, PT16_ESPORTE,
   // --- Italiano (it) A1 ---
   IT1_CIAO, IT2_FAMIGLIA, IT3_ROUTINE, IT4_CIBO, IT5_CASA, IT6_SPESA, IT7_TEMPOLIBERO, IT8_IERI,
   // --- Italiano (it) A2 ---

@@ -66,7 +66,17 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 - [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1. OJO:
       ademas falta agregar "ja" al mapa `SPEECH` de `data/languages.js`
       (`unitTts`/`unitMic`) -- hoy caeria a voz inglesa aunque hubiera unidades.
-- [ ] **Portugues A2** (hoy pt solo tiene A1).
+- [x] **Portugues A2** (v0.350.0). 8 unidades nuevas (pt9-pt16): o fim de
+      semana passado (preterito perfeito -er/-ir + irregulares ir/fazer/
+      estar), viagem (mas irregulares: vim/pude/quis/disse/tive), na cidade
+      (imperativo com você + preposições), a saude (dever + estar com dor
+      de), fazer planos (futuro proximo: ir + infinitivo, no futuro simples
+      -- e o que se usa de verdade no pt-BR falado), comparações
+      (comparativo/superlativo), o trabalho ('há' + presente para duração),
+      tempo livre e esporte (adverbios de frequencia). 192 actividades
+      nuevas, 96 vocab nuevo, sin colisiones de id.
+      `tools/check_level_offer.py` confirma: pt ya NO se ajusta a A1 cuando
+      se pide A2.
 - [x] **Italiano A2** (v0.349.0). 8 unidades nuevas (it9-it16): il weekend
       scorso (passato prossimo con ESSERE + concordanza del participio), in
       viaggio (participi irregolari: fatto/preso/visto/letto/stato), in citta
