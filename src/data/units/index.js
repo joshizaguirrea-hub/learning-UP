@@ -69,6 +69,15 @@ import { FR5_MAISON } from "./fr5-maison.js";
 import { FR6_SHOPPING } from "./fr6-shopping.js";
 import { FR7_TEMPSLIBRE } from "./fr7-tempslibre.js";
 import { FR8_HIER } from "./fr8-hier.js";
+// --- Frances (fr-FR) A2 ---
+import { FR9_IMPARFAIT } from "./fr9-imparfait.js";
+import { FR10_VOYAGE } from "./fr10-voyage.js";
+import { FR11_VILLE } from "./fr11-ville.js";
+import { FR12_SANTE } from "./fr12-sante.js";
+import { FR13_PROJETS } from "./fr13-projets.js";
+import { FR14_COMPARAISONS } from "./fr14-comparaisons.js";
+import { FR15_TRAVAIL } from "./fr15-travail.js";
+import { FR16_SPORT } from "./fr16-sport.js";
 
 // --- Portugues (pt-BR) A1 ---
 import { PT1_OLA } from "./pt1-ola.js";
@@ -131,6 +140,8 @@ export const UNITS = [
   CRITICAL_ANALYSIS_C2, PROFESSIONAL_COMM_C2, HUMOR_SUBTEXT_C2, DEBATE_MASTERY_C2, CAPSTONE_C2,
   // --- Frances (fr-FR) A1 ---
   FR1_BONJOUR, FR2_FAMILLE, FR3_ROUTINE, FR4_NOURRITURE, FR5_MAISON, FR6_SHOPPING, FR7_TEMPSLIBRE, FR8_HIER,
+  // --- Frances (fr-FR) A2 ---
+  FR9_IMPARFAIT, FR10_VOYAGE, FR11_VILLE, FR12_SANTE, FR13_PROJETS, FR14_COMPARAISONS, FR15_TRAVAIL, FR16_SPORT,
   // --- Portugues (pt-BR) A1 ---
   PT1_OLA, PT2_FAMILIA, PT3_ROTINA, PT4_COMIDA, PT5_CASA, PT6_COMPRAS, PT7_TEMPOLIVRE, PT8_ONTEM,
   // --- Portugues (pt-BR) A2 ---

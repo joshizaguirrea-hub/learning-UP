@@ -63,6 +63,19 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
       etre / familia + posesivos / rutina + pronominales / comida + partitivos /
       casa + il y a / compras + demostrativos / ocio + faire-aller / pasado +
       passe compose. Idioma PUBLICADO (`enabled: true`).
+- [x] **Frances A2** (v0.351.0). 8 unidades nuevas (fr9-fr16). OJO: el A1 de
+      frances YA cubria passe compose con avoir Y etre (mas avanzado que it/pt
+      A1 en ese punto), asi que el salto de A2 no repite eso -- va directo a:
+      l'imparfait (describir el pasado/habitos, vs. passe compose), en voyage
+      (futur proche: aller + infinitif), en ville (imperatif + preposiciones),
+      la sante (devoir + avoir mal a), faire des projets (futur simple --
+      contraste deliberado con el futur proche de fr10, para que el alumno
+      entienda CUANDO usar cada uno), comparaisons (comparatif/superlatif),
+      le travail ('depuis' + presente para duracion), le temps libre et le
+      sport (adverbios de frecuencia + ne...jamais). 192 actividades nuevas,
+      96 vocab nuevo, sin colisiones de id. `tools/check_level_offer.py`
+      confirma: fr ya NO se ajusta a A1 cuando se pide A2 -- los 3 idiomas no
+      ingleses (fr/it/pt) quedan simetricos en A1+A2.
 - [ ] **Japones A1** (ja). Voz `ja-JP` cableada; falta contenido A1. OJO:
       ademas falta agregar "ja" al mapa `SPEECH` de `data/languages.js`
       (`unitTts`/`unitMic`) -- hoy caeria a voz inglesa aunque hubiera unidades.
