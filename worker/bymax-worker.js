@@ -386,7 +386,7 @@ function diaUtc() {
  * @param {boolean} [soloLectura] - true = CONSULTA el gasto sin sumar nada.
  *   Lo usa /status para pintar la barra en Ajustes: mirar cuanto llevas no
  *   puede gastarte cupo, seria absurdo.
- * @returns {{bloquear: boolean, usadas: number, tope: number}}
+ * @returns {Promise<{bloquear: boolean, usadas: number, tope: number, admin?: boolean}>}
  */
 async function controlarUso(request, env, soloLectura) {
   const tope = Number(env.LIMITE_DIARIO) > 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;

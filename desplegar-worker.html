@@ -508,7 +508,7 @@ function diaUtc() {
  * @param {boolean} [soloLectura] - true = CONSULTA el gasto sin sumar nada.
  *   Lo usa /status para pintar la barra en Ajustes: mirar cuanto llevas no
  *   puede gastarte cupo, seria absurdo.
- * @returns {{bloquear: boolean, usadas: number, tope: number}}
+ * @returns {Promise&lt;{bloquear: boolean, usadas: number, tope: number, admin?: boolean}&gt;}
  */
 async function controlarUso(request, env, soloLectura) {
   const tope = Number(env.LIMITE_DIARIO) &gt; 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
@@ -1232,7 +1232,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 11/11/2026 16:39 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 11/11/2026 17:04 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
