@@ -16,20 +16,29 @@ export function stripMd(t) {
 
 /**
  * Separa la respuesta en sus secciones (EJEMPLOS / NOTA GRAMATICAL /
- * CONJUGACION), usando los encabezados EXACTOS que piden los prompts de
- * "profundizar". Si el modelo no respeta el formato al pie de la letra, TODO
- * cae en "examples" (nunca se pierde contenido, solo el color-coding).
+ * CONJUGACION), usando los encabezados que piden los prompts de "profundizar".
+ * El de NOTA GRAMATICAL se busca con REGEX (no texto exacto): el prompt le
+ * manda a la IA "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):" -- ese
+ * parentesis es una instruccion PARA la IA, pero a veces el modelo lo copia
+ * tal cual en su respuesta, y un indexOf("NOTA GRAMATICAL:") literal fallaba
+ * en ese caso (bug real: la pantalla mostraba "Sin nota esta vez." pese a que
+ * la IA si habia escrito una nota -- todo el texto caia a "examples" porque
+ * no se encontraba el separador). Si el modelo de plano no respeta el
+ * formato, TODO cae en "examples" (nunca se pierde contenido, solo el
+ * color-coding).
  * @param {string} text - respuesta cruda de la IA
  * @returns {{examples: string, grammar: string, conjugation: string}}
  */
 export function parseDeepenAnswer(text) {
   const t = String(text || "");
-  const gi = t.indexOf("NOTA GRAMATICAL:");
-  if (gi === -1) return { examples: t.replace(/^EJEMPLOS:\s*/i, "").trim(), grammar: "", conjugation: "" };
+  const gMatch = t.match(/NOTA GRAMATICAL[^:\n]*:/i);
+  if (!gMatch) return { examples: t.replace(/^EJEMPLOS:\s*/i, "").trim(), grammar: "", conjugation: "" };
+  const gi = gMatch.index;
+  const gEnd = gi + gMatch[0].length;
   const examples = t.slice(0, gi).replace(/^EJEMPLOS:\s*/i, "").trim();
-  const ci = t.indexOf("CONJUGACION", gi);
-  if (ci === -1) return { examples, grammar: t.slice(gi + "NOTA GRAMATICAL:".length).trim(), conjugation: "" };
-  const grammar = t.slice(gi + "NOTA GRAMATICAL:".length, ci).trim();
+  const ci = t.indexOf("CONJUGACION", gEnd);
+  if (ci === -1) return { examples, grammar: t.slice(gEnd).trim(), conjugation: "" };
+  const grammar = t.slice(gEnd, ci).trim();
   const conjugation = t.slice(ci).replace(/^CONJUGACION[^:]*:\s*/i, "").trim();
   return { examples, grammar, conjugation };
 }

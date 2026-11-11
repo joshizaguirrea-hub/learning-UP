@@ -37,6 +37,18 @@ test("con NOTA GRAMATICAL pero sin CONJUGACION", () => {
   assert.equal(out.conjugation, "");
 });
 
+test("parseDeepenAnswer tolera que la IA copie el parentesis del header (bug real)", () => {
+  // La IA a veces repite literal "NOTA GRAMATICAL (sin asteriscos ni markdown
+  // aqui):" en vez de solo "NOTA GRAMATICAL:" -- un indexOf exacto fallaba
+  // aqui y mandaba TODO (incluida la nota) a "examples", dejando "grammar"
+  // vacio (la pantalla mostraba "Sin nota esta vez." con la IA ya contestando bien).
+  const text = "EJEMPLOS:\n1. foo\n\n" +
+    "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\nes un verbo transitivo";
+  const out = parseDeepenAnswer(text);
+  assert.equal(out.examples, "1. foo");
+  assert.equal(out.grammar, "es un verbo transitivo");
+});
+
 test("texto vacio o nulo no revienta", () => {
   assert.deepEqual(parseDeepenAnswer(""), { examples: "", grammar: "", conjugation: "" });
   assert.deepEqual(parseDeepenAnswer(undefined), { examples: "", grammar: "", conjugation: "" });
