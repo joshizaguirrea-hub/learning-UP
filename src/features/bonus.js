@@ -203,7 +203,8 @@ function buildVerbDeepenBoxes(item, langLabel, level, lang) {
 
   (async () => {
     const { answer, error } = await askBymax({
-      mode: "chat", topic: "verbos", level: level || "B1", role: "course",
+      mode: "chat", topic: "verbos", level: level || "B1", role: "course", targetLang: lang,
+      examplesInTargetLang: true,
       question: verbDeepenPrompt(item, langLabel),
     });
     if (error || !answer) {

@@ -860,6 +860,32 @@ async function handleChat(request, env, origin) {
       `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
   }
 
+  // EXCEPCION PUNTUAL a la "Regla de oro" del SYSTEM_PROMPT por defecto
+  // ("responde SIEMPRE en espanol, el ingles va entre comillas"): esa regla
+  // esta pensada para cuando Bymax le EXPLICA algo al alumno, pero rompe por
+  // completo las pantallas de "Ejemplos en contexto" (vocab-class.js /
+  // bonus.js), que SI necesitan frases de ejemplo COMPLETAS en el idioma
+  // meta. Bug real reportado: sin esto, el modelo producia frases mezcladas
+  // tipo "Yo apply para un trabajo nuevo" -- ni espanol ni ingles, un
+  // hibrido, porque la regla de oro ("NO NEGOCIABLE") le ganaba a la
+  // instruccion especifica del prompt del cliente.
+  //
+  // OJO: se usa un flag EXPLICITO (`body.examplesInTargetLang`), NO el
+  // `topic` -- vocab-class.js y bonus.js mandan el MISMO topic ("vocabulario"
+  // / "verbos") tanto para pedir los ejemplos como para pedir feedback de la
+  // frase propia del alumno ("Revisar mi frase"), y ESE segundo caso SI debe
+  // seguir respondiendo casi todo en espanol. Adivinar por topic habria roto
+  // ese otro flujo.
+  if (body.examplesInTargetLang === true) {
+    systemText += `\n\n[EXCEPCION DE IDIOMA PARA ESTA TAREA -- ANULA LA REGLA DE ORO DE ARRIBA]\n` +
+      `Esta tarea pide generar EJEMPLOS DE USO para una palabra o verbo en ${targetName} ` +
+      `(el idioma que el alumno esta aprendiendo). SOLO para las frases de ejemplo que te pida ` +
+      `el usuario: escribelas ENTERAMENTE en ${targetName}, de principio a fin, SIN ninguna palabra ` +
+      `en espanol y SIN comillas -- eso NO es Spanglish, es el ejemplo completo que se pidio. ` +
+      `Todo lo DEMAS que pida el formato (traducciones, estructura gramatical, notas, reglas) va ` +
+      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
+  }
+
   // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
   //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
   //    correccion o ayuda en espanol va en lineas "TIP:" que el alumno LEE (no se

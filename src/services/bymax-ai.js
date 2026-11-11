@@ -15,16 +15,21 @@ import { getTeacherName } from "../ui/robot-prefs.js";
  * Pregunta al profe IA.
  * @param {object} p - { mode, topic, level, question, history, role }
  *   `role`: "course" (Megan) | "speaking" (Mathias) | "interview" (Lucien).
+ *   `examplesInTargetLang`: true SOLO cuando se pide generar frases de
+ *   EJEMPLO completas en el idioma meta (vocab-class.js/bonus.js: "Ejemplos
+ *   en contexto") -- anula la regla general del Worker de "responde siempre
+ *   en espanol" SOLO para esa tarea puntual. Default false (comportamiento
+ *   de siempre) para no afectar ningun otro uso de askBymax.
  * @returns {Promise<{answer?:string, error?:string}>}
  */
-export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en", role = "course", teacher } = {}) {
+export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en", role = "course", teacher, examplesInTargetLang = false } = {}) {
   if (!bymaxAiEnabled) return { error: "El profe con IA no esta disponible (Worker inactivo)." };
   try {
     const res = await fetch(BYMAX_WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        mode, topic, level, question, history, targetLang,
+        mode, topic, level, question, history, targetLang, examplesInTargetLang,
         teacher: teacher || getTeacherName(role),
       }),
     });

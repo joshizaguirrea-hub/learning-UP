@@ -9,6 +9,21 @@ Version actual: **v0.316.0**  ·  Ultima actualizacion del roadmap: 2026-10-26
 
 ## Abierto — priorizado
 
+###  ACCION MANUAL PENDIENTE (tu, Johsua) — redesplegar el Worker
+- [ ] **Redesplegar `worker/bymax-worker.js` en Cloudflare** (v0.354.0). Se
+      corrigio un bug de raiz en el Worker (no en el sitio estatico): su
+      "regla de oro" global decia "responde SIEMPRE en espanol, el ingles va
+      entre comillas", y esa regla le ganaba a cualquier instruccion del
+      cliente -- por eso "Ejemplos en contexto" seguia mezclando idiomas
+      ("Yo apply para un trabajo nuevo") aunque el codigo del sitio ya
+      estuviera arreglado. El sitio estatico se autodespliega con cada push
+      (GitHub Pages), pero el WORKER NO -- vive aparte en tu cuenta de
+      Cloudflare y hay que pegarlo a mano. Pasos (ver `worker/README.md`,
+      Paso 2): Cloudflare dashboard -> tu Worker -> "Edit code" -> borrar todo
+      -> pegar el contenido de `worker/bymax-worker.js` -> "Deploy". Sin este
+      paso, el fix de v0.353.0 (highlightFirstMatch, estructura/regla) sigue
+      sin notarse porque la IA sigue recibiendo las instrucciones viejas.
+
 ### P1 — Pulir lo que ya existe (rapido, alto impacto)
 - [x] **Reto de verbos: ya no se reinicia + "ya dominado" en verde** (v0.352.0).
       Bug real reportado: `buildVerbChallenge` guardaba `idx`/`solvedCount`
