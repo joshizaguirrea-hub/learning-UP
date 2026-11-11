@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1082 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1108 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1082 lineas &middot; 55.0 KB &middot; commit 7b88f04 2026-11-05</p>
+        <p class="text-xs text-slate-500">1108 lineas &middot; 56.8 KB &middot; commit 58d6df0 2026-11-11</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -982,6 +982,32 @@ async function handleChat(request, env, origin) {
       `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
   }
 
+  // EXCEPCION PUNTUAL a la &quot;Regla de oro&quot; del SYSTEM_PROMPT por defecto
+  // (&quot;responde SIEMPRE en espanol, el ingles va entre comillas&quot;): esa regla
+  // esta pensada para cuando Bymax le EXPLICA algo al alumno, pero rompe por
+  // completo las pantallas de &quot;Ejemplos en contexto&quot; (vocab-class.js /
+  // bonus.js), que SI necesitan frases de ejemplo COMPLETAS en el idioma
+  // meta. Bug real reportado: sin esto, el modelo producia frases mezcladas
+  // tipo &quot;Yo apply para un trabajo nuevo&quot; -- ni espanol ni ingles, un
+  // hibrido, porque la regla de oro (&quot;NO NEGOCIABLE&quot;) le ganaba a la
+  // instruccion especifica del prompt del cliente.
+  //
+  // OJO: se usa un flag EXPLICITO (`body.examplesInTargetLang`), NO el
+  // `topic` -- vocab-class.js y bonus.js mandan el MISMO topic (&quot;vocabulario&quot;
+  // / &quot;verbos&quot;) tanto para pedir los ejemplos como para pedir feedback de la
+  // frase propia del alumno (&quot;Revisar mi frase&quot;), y ESE segundo caso SI debe
+  // seguir respondiendo casi todo en espanol. Adivinar por topic habria roto
+  // ese otro flujo.
+  if (body.examplesInTargetLang === true) {
+    systemText += `\n\n[EXCEPCION DE IDIOMA PARA ESTA TAREA -- ANULA LA REGLA DE ORO DE ARRIBA]\n` +
+      `Esta tarea pide generar EJEMPLOS DE USO para una palabra o verbo en ${targetName} ` +
+      `(el idioma que el alumno esta aprendiendo). SOLO para las frases de ejemplo que te pida ` +
+      `el usuario: escribelas ENTERAMENTE en ${targetName}, de principio a fin, SIN ninguna palabra ` +
+      `en espanol y SIN comillas -- eso NO es Spanglish, es el ejemplo completo que se pidio. ` +
+      `Todo lo DEMAS que pida el formato (traducciones, estructura gramatical, notas, reglas) va ` +
+      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
+  }
+
   // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
   //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
   //    correccion o ayuda en espanol va en lineas &quot;TIP:&quot; que el alumno LEE (no se
@@ -1206,7 +1232,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 05/11/2026 17:16 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 11/11/2026 16:39 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
