@@ -131,7 +131,16 @@ function deckCard(d) {
 // YA desplegado sin pedir click, y una frase propia con feedback real.
 // ---------------------------------------------------------------------------
 
-/** Prompt de "profundizar" para un verbo: ejemplos en varios tiempos + nota. */
+/**
+ * Prompt de "profundizar" para un verbo: ejemplos en 2 tiempos + nota.
+ *
+ * SOLO 2 ejemplos (antes eran 3, el 3o en present perfect): cada ejemplo con
+ * ESTRUCTURA+REGLA gasta bastante presupuesto de salida, compartido con NOTA
+ * GRAMATICAL + CONJUGACION. Bug real: con 3 ejemplos la IA se quedaba sin
+ * tokens justo antes de la nota gramatical ("Sin nota esta vez." en pantalla
+ * aunque la IA si tenia algo que decir). El participio que mostraba ese 3er
+ * ejemplo ya queda cubierto, mas compacto, en la seccion de CONJUGACION.
+ */
 function verbDeepenPrompt(item, langName) {
   const front = item.front;
   const past = item.past;
@@ -146,9 +155,6 @@ function verbDeepenPrompt(item, langName) {
   const secondLine = past
     ? `2. <frase COMPLETA en PASADO usando "${past}">\n   = <traduccion>\n` + estructura
     : "2. <otra frase COMPLETA en presente, OTRO contexto>\n   = <traduccion>\n" + estructura;
-  const thirdLine = participle
-    ? `3. <frase COMPLETA en PRESENT PERFECT usando "have/has ${participle}">\n   = <traduccion>\n` + estructura + "\n"
-    : "3. <otra frase COMPLETA mas, OTRO contexto>\n   = <traduccion>\n" + estructura + "\n";
   return (
     `Actua como profesor de ${langName} para un hispanohablante. El verbo es "${front}" ${formsNote}. ` +
     "Responde EXACTAMENTE en este formato, sin texto extra antes ni despues:\n\n" +
@@ -156,7 +162,7 @@ function verbDeepenPrompt(item, langName) {
     `1. <frase COMPLETA en ${langName}, natural, en PRESENTE, usando "${front}", contexto cotidiano -- TODA ` +
     `la frase debe estar en ${langName}, NI UNA SOLA PALABRA en espanol (prohibido mezclar idiomas en la ` +
     "misma oracion, eso es spanglish)>\n   = <traduccion COMPLETA al espanol, una sola linea>\n" + estructura +
-    secondLine + thirdLine +
+    secondLine + "\n" +
     "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO de este verbo: si es transitivo o " +
     "intransitivo, una preposicion comun que lo acompana (phrasal verb), un error tipico de " +

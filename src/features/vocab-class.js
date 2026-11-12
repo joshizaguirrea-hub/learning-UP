@@ -39,6 +39,13 @@ const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", 
 // verbo. Nunca se inventa la conjugacion a mano para cientos de palabras --
 // eso arriesgaria mostrar una forma irregular MAL (ej. "be" -> "beed"). La IA
 // ya sabe conjugar bien; aqui solo se le pide el formato.
+//
+// SOLO 2 ejemplos (antes eran 3): cada ejemplo con ESTRUCTURA+REGLA gasta
+// bastante presupuesto de salida, y la IA comparte ese MISMO presupuesto con
+// NOTA GRAMATICAL (+ CONJUGACION si es verbo). Bug real reportado: con 3
+// ejemplos la IA se quedaba sin tokens justo antes de escribir la nota
+// gramatical -- la pantalla mostraba "Sin nota esta vez." aunque la IA SI
+// tenia algo util que decir, solo que nunca llegaba a escribirlo.
 function deepenPrompt(term, translation, langName, isVerb) {
   return (
     `Actua como profesor de ${langName} para un hispanohablante. La palabra o frase de vocabulario es ` +
@@ -53,8 +60,7 @@ function deepenPrompt(term, translation, langName, isVerb) {
     `tal cual aparece en la frase> (<tiempo verbal en espanol>) | Objeto = <complemento, o "-" si no aplica>\n` +
     "   REGLA: <1 frase breve en espanol explicando una regla gramatical que ilustre esta frase (orden de " +
     "palabras, preposicion, tiempo verbal...); si de verdad no hay nada que explicar, escribe REGLA: ->\n" +
-    `2. <otra frase COMPLETA en ${langName}, OTRO contexto/situacion>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n` +
-    `3. <otra frase COMPLETA en ${langName}, OTRO contexto mas>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n\n` +
+    `2. <otra frase COMPLETA en ${langName}, OTRO contexto/situacion>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n\n` +
     "NOTA GRAMATICAL (sin asteriscos ni markdown aqui):\n" +
     "<1-2 frases en espanol con algo UTIL y ESPECIFICO para usar bien esta palabra: su categoria " +
     "gramatical, una preposicion que la acompana, si es contable/incontable, un error comun de " +
