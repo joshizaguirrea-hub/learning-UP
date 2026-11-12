@@ -838,6 +838,15 @@ async function handleChat(request, env, origin) {
   const targetName = TARGET_NAMES[targetLang] || "English";
   // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea "chat".
   const isCv = topic === "cv";
+  // "PROFUNDIZAR" (vocab-class.js / bonus.js, mismo flag que ya usamos para la
+  // excepcion de idioma): pide 3 ejemplos COMPLETOS con estructura+regla cada
+  // uno, mas nota gramatical, mas conjugacion -- es, de lejos, el pedido mas
+  // largo de toda la app. Bug real reportado: con el tope generico de 800
+  // tokens la respuesta se cortaba a mitad del 2o/3er ejemplo y NUNCA llegaba
+  // a escribir "NOTA GRAMATICAL:" -- el parser no estaba roto, la IA de plano
+  // no alcanzaba a terminar. Le damos mas presupuesto SOLO a este caso (no al
+  // chat suelto en general) para no subir el costo/latencia de todo lo demas.
+  const isDeepen = body.examplesInTargetLang === true;
   let systemText = isStory ? STORY_PROMPT
     : isInterview ? INTERVIEW_PROMPT
     : isRoleplay ? ROLEPLAY_PROMPT
@@ -971,7 +980,7 @@ async function handleChat(request, env, origin) {
   // Clase/CV tenia donde caer. Ahora TODOS lo tienen.
   if (env.OPENAI_API_KEY) {
     try {
-      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
+      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : isDeepen ? 1600 : 800);
       return json({ answer, brain: "openai" }, 200, origin);
     } catch (e) {
       // Si esto falla (sin saldo, key revocada, 429 de OpenAI...), cae a Gemini
@@ -987,8 +996,9 @@ async function handleChat(request, env, origin) {
   // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
   // 400 INVALID_ARGUMENT. Por eso, si hay 400, reintentamos SIN thinkingConfig.
   // Presupuesto de salida: un CV completo necesita MUCHO mas que una respuesta de
-  // chat. CV -> 4096 tokens; resto -> 800 (ahorra costo/latencia).
-  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : 800 };
+  // chat. CV -> 4096 tokens; "profundizar" (ver isDeepen) -> 1600; resto -> 800
+  // (ahorra costo/latencia en el chat suelto, que si cabe comodo en 800).
+  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : isDeepen ? 1600 : 800 };
   const callGemini = (withThinking) => fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

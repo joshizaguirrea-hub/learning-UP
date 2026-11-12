@@ -64,7 +64,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1108 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1118 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -110,7 +110,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1108 lineas &middot; 56.8 KB &middot; commit 58d6df0 2026-11-11</p>
+        <p class="text-xs text-slate-500">1118 lineas &middot; 57.6 KB &middot; commit 1b62dbb 2026-11-11</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -960,6 +960,15 @@ async function handleChat(request, env, origin) {
   const targetName = TARGET_NAMES[targetLang] || &quot;English&quot;;
   // CV: prompt dedicado (reclutador, sin saludos) aunque el mode sea &quot;chat&quot;.
   const isCv = topic === &quot;cv&quot;;
+  // &quot;PROFUNDIZAR&quot; (vocab-class.js / bonus.js, mismo flag que ya usamos para la
+  // excepcion de idioma): pide 3 ejemplos COMPLETOS con estructura+regla cada
+  // uno, mas nota gramatical, mas conjugacion -- es, de lejos, el pedido mas
+  // largo de toda la app. Bug real reportado: con el tope generico de 800
+  // tokens la respuesta se cortaba a mitad del 2o/3er ejemplo y NUNCA llegaba
+  // a escribir &quot;NOTA GRAMATICAL:&quot; -- el parser no estaba roto, la IA de plano
+  // no alcanzaba a terminar. Le damos mas presupuesto SOLO a este caso (no al
+  // chat suelto en general) para no subir el costo/latencia de todo lo demas.
+  const isDeepen = body.examplesInTargetLang === true;
   let systemText = isStory ? STORY_PROMPT
     : isInterview ? INTERVIEW_PROMPT
     : isRoleplay ? ROLEPLAY_PROMPT
@@ -1093,7 +1102,7 @@ async function handleChat(request, env, origin) {
   // Clase/CV tenia donde caer. Ahora TODOS lo tienen.
   if (env.OPENAI_API_KEY) {
     try {
-      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : 800);
+      const answer = await openaiChat(systemText, alt, env, isCv ? 4096 : isDeepen ? 1600 : 800);
       return json({ answer, brain: &quot;openai&quot; }, 200, origin);
     } catch (e) {
       // Si esto falla (sin saldo, key revocada, 429 de OpenAI...), cae a Gemini
@@ -1109,8 +1118,9 @@ async function handleChat(request, env, origin) {
   // es un alias que Google ROTA, si el modelo actual no lo soporta, Gemini responde
   // 400 INVALID_ARGUMENT. Por eso, si hay 400, reintentamos SIN thinkingConfig.
   // Presupuesto de salida: un CV completo necesita MUCHO mas que una respuesta de
-  // chat. CV -&gt; 4096 tokens; resto -&gt; 800 (ahorra costo/latencia).
-  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : 800 };
+  // chat. CV -&gt; 4096 tokens; &quot;profundizar&quot; (ver isDeepen) -&gt; 1600; resto -&gt; 800
+  // (ahorra costo/latencia en el chat suelto, que si cabe comodo en 800).
+  const baseGen = { temperature: 0.7, maxOutputTokens: isCv ? 4096 : isDeepen ? 1600 : 800 };
   const callGemini = (withThinking) =&gt; fetch(url, {
     method: &quot;POST&quot;,
     headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
@@ -1232,7 +1242,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 11/11/2026 17:04 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 12/11/2026 09:13 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
