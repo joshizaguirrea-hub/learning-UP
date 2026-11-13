@@ -50,13 +50,27 @@ export async function countDue(userId) {
   return count || 0;
 }
 
-/** Guarda una tarjeta tras el repaso (valores ya calculados por core/srs.js). */
+/**
+ * Guarda una tarjeta tras el repaso (valores ya calculados por core/srs.js).
+ *
+ * UPSERT, no UPDATE (fix de un bug real reportado: un alumno termino TODOS
+ * los verbos de un mazo, la UI mostro "dominado" en los 10, pero al dia
+ * siguiente la unidad seguia bloqueada). Causa: un UPDATE sobre una fila que
+ * AUN no existe en `srs_cards` no da error en Supabase -- simplemente no
+ * hace nada (0 filas afectadas, sin excepcion). Si por lo que sea `ensureCards`
+ * no alcanzo a crear la fila antes (red lenta, carrera entre pestanas, RLS),
+ * el progreso se "guardaba" en la UI (estado local optimista) pero NUNCA
+ * llegaba a la base de datos -- se perdia en silencio. Con UPSERT, exista o
+ * no la fila de antes, el guardado SIEMPRE queda.
+ */
 export async function saveCard(userId, vocabId, card) {
   const { error } = await supabase
     .from("srs_cards")
-    .update({ ease: card.ease, interval: card.interval, reps: card.reps, due: card.due })
-    .eq("user_id", userId)
-    .eq("vocab_id", vocabId);
+    .upsert(
+      { user_id: userId, vocab_id: vocabId, ease: card.ease, interval: card.interval, reps: card.reps, due: card.due },
+      { onConflict: "user_id,vocab_id" }
+    );
+  if (error) console.warn("[srs] saveCard fallo (progreso NO se guardo):", error.message);
   return error ? { ok: false, error: error.message } : { ok: true };
 }
 

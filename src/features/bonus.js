@@ -327,11 +327,24 @@ export async function renderBonusDeck(container, params, user) {
     const doneMsg = el("div", { class: "mt-3", role: "status" });
 
     // Marca el verbo como aprendido (al completar practicas, o al revelar si no hay).
+    //
+    // Verificamos el resultado de saveCard (antes se ignoraba con un `await`
+    // suelto): si el guardado real en Supabase falla, YA NO mentimos con un
+    // "Verbo aprendido" -- eso es justo lo que causaba el bug real reportado
+    // (la UI decia que todo estaba guardado, pero al dia siguiente la unidad
+    // seguia bloqueada porque nunca llego a la base de datos). Mejor avisar
+    // de una vez que reintente, que descubrirlo 24h despues sin pistas.
     const completeVerb = async () => {
       if ((cardMap[item.id]?.reps || 0) >= MASTER_REPS) return; // ya aprendido
       const updated = { ease: 2.5, interval: 1, reps: MASTER_REPS, due: null };
+      const result = await saveCard(user.id, item.id, updated);
+      if (!result.ok) {
+        mount(doneMsg, el("p", { class: "text-red-300 font-semibold", role: "alert" },
+          "No se pudo guardar tu progreso (revisa tu conexion). Vuelve a intentarlo en un momento."));
+        announce("No se pudo guardar el progreso.");
+        return;
+      }
       cardMap[item.id] = { ...card, ...updated };
-      await saveCard(user.id, item.id, updated);
       if (!recorded) { recorded = true; await recordActivity(user.id); }
       mount(statusHolder, statusChip(MASTER_REPS));
       mount(dotsHolder, itemDots(deck, cardMap, index));
