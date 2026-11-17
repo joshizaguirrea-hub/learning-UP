@@ -359,20 +359,22 @@ function json(data, status, origin) {
 // DEGRADACION: si no hay binding KV o KV falla, NO se bloquea a nadie. El
 // limite es una red de seguridad, no un portero: que se caiga el contador no
 // puede dejar sin clase a un alumno que pago.
-const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por IP y dia
+const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por bucket (usuario o IP) y dia
 const LOTE = 5;             // se escribe en KV 1 de cada LOTE peticiones
 
-// Pendientes EN MEMORIA del isolate: "ip" -> peticiones aun no escritas a KV.
-// Aqui esta el ahorro real: entre escritura y escritura no se toca KV (80%
-// menos escrituras -> el plan gratis pasa de ~33 a ~166 alumnos).
+// Pendientes EN MEMORIA del isolate: "bucket" (usuario logueado o IP, ver
+// controlarUso) -> peticiones aun no escritas a KV. Aqui esta el ahorro real:
+// entre escritura y escritura no se toca KV (80% menos escrituras -> el plan
+// gratis pasa de ~33 a ~166 alumnos).
 //
 // LIMITACION CONOCIDA: Cloudflare recicla los isolates cuando quiere. Si uno
-// muere, sus pendientes se pierden y esa IP recupera hasta LOTE-1 peticiones.
-// Simulado: con reciclados normales (cada 10-20 peticiones) el tope aguanta
-// exacto; solo si Cloudflare reciclara cada 2-3 peticiones el limite se
-// escaparia. Es un techo "blando" a proposito: frena el abuso sostenido (que
-// es lo que cuesta dinero) sin arriesgarse a bloquear a un alumno legitimo.
-// Si algun dia hace falta un tope duro, la pieza correcta es Durable Objects.
+// muere, sus pendientes se pierden y ese bucket recupera hasta LOTE-1
+// peticiones. Simulado: con reciclados normales (cada 10-20 peticiones) el
+// tope aguanta exacto; solo si Cloudflare reciclara cada 2-3 peticiones el
+// limite se escaparia. Es un techo "blando" a proposito: frena el abuso
+// sostenido (que es lo que cuesta dinero) sin arriesgarse a bloquear a un
+// alumno legitimo. Si algun dia hace falta un tope duro, la pieza correcta
+// es Durable Objects.
 let pendientes = new Map();
 let diaPendientes = "";
 
@@ -382,13 +384,25 @@ function diaUtc() {
 }
 
 /**
- * Suma uno al contador de la IP y dice si se paso del limite.
+ * Suma uno al contador y dice si se paso del limite.
+ *
+ * CLAVE: por USUARIO logueado si viene `userId` (bucket "u:<id>"), o por IP si
+ * no (bucket "ip:<ip>", comportamiento de siempre para visitantes anonimos).
+ *
+ * POR QUE EL CAMBIO (bug real, salon de clase): el tope es "por IP", pero una
+ * red escolar/oficina entera sale a internet con UNA sola IP publica (NAT). Un
+ * salon de 30 alumnos detras de la misma IP se repartia los MISMOS 60 cupos
+ * del dia -- el primero en gastarlos silenciaba a los otros 29. Con `userId`
+ * (Supabase, ya disponible en el cliente) cada ALUMNO tiene su propio cupo,
+ * sin importar cuantos compartan red. Anonimos siguen cayendo a IP: es peor
+ * que nada (red de seguridad), no una regresion.
  * @param {boolean} [soloLectura] - true = CONSULTA el gasto sin sumar nada.
  *   Lo usa /status para pintar la barra en Ajustes: mirar cuanto llevas no
  *   puede gastarte cupo, seria absurdo.
+ * @param {string} [userId] - id del alumno logueado (Supabase), si lo manda el cliente.
  * @returns {Promise<{bloquear: boolean, usadas: number, tope: number, admin?: boolean}>}
  */
-async function controlarUso(request, env, soloLectura) {
+async function controlarUso(request, env, soloLectura, userId) {
   const tope = Number(env.LIMITE_DIARIO) > 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
   const kv = env.AUDIO_KV;
   if (!kv) return { bloquear: false, usadas: 0, tope }; // sin KV no se limita
@@ -405,7 +419,8 @@ async function controlarUso(request, env, soloLectura) {
 
   const hoy = diaUtc();
   const ip = request.headers.get("CF-Connecting-IP") || "anon";
-  const clave = "uso:" + hoy + ":" + ip;
+  const bucket = userId ? "u:" + String(userId).slice(0, 64) : "ip:" + ip;
+  const clave = "uso:" + hoy + ":" + bucket;
 
   if (diaPendientes !== hoy) { pendientes = new Map(); diaPendientes = hoy; } // dia nuevo
 
@@ -413,22 +428,22 @@ async function controlarUso(request, env, soloLectura) {
     const confirmadas = Number(await kv.get(clave)) || 0;
 
     if (soloLectura) {
-      const yaUsadas = confirmadas + (pendientes.get(ip) || 0);
+      const yaUsadas = confirmadas + (pendientes.get(bucket) || 0);
       return { bloquear: yaUsadas >= tope, usadas: yaUsadas, tope };
     }
 
-    const enVuelo = (pendientes.get(ip) || 0) + 1;
+    const enVuelo = (pendientes.get(bucket) || 0) + 1;
     const usadas = confirmadas + enVuelo;
 
     if (usadas > tope) return { bloquear: true, usadas: usadas - 1, tope };
 
     if (enVuelo >= LOTE) {
-      // Consolida el lote en KV y vacia las pendientes de esta IP.
+      // Consolida el lote en KV y vacia las pendientes de este bucket.
       // TTL de 48 h: cubre el dia con holgura y la clave se borra sola.
       await kv.put(clave, String(confirmadas + enVuelo), { expirationTtl: 172800 });
-      pendientes.delete(ip);
+      pendientes.delete(bucket);
     } else {
-      pendientes.set(ip, enVuelo); // sin tocar KV: ESTE es el ahorro
+      pendientes.set(bucket, enVuelo); // sin tocar KV: ESTE es el ahorro
     }
     return { bloquear: false, usadas, tope };
   } catch (e) {
@@ -440,9 +455,14 @@ async function controlarUso(request, env, soloLectura) {
  * GET|POST /status -> { usados, limite, restantes }. Solo CONSULTA: no suma.
  * Sirve para que el alumno vea en Ajustes cuanto le queda, en vez de toparse
  * de golpe con un "ya no puedes". Transparencia > sorpresa.
+ *
+ * `userId` llega como query param (?userId=...) porque es un GET sencillo sin
+ * body -- si el cliente esta logueado, consulta SU bucket (ver controlarUso);
+ * si no, cae al bucket por IP, igual que antes.
  */
 async function handleStatus(request, env, origin) {
-  const uso = await controlarUso(request, env, true);
+  const userId = new URL(request.url).searchParams.get("userId") || undefined;
+  const uso = await controlarUso(request, env, true, userId);
   return json({
     usados: uso.usadas,
     limite: uso.tope,
@@ -672,7 +692,7 @@ async function handleTts(request, env, origin, controlarUsoFn) {
   //    peticion SI va a costar dinero. Lo de arriba (cache hit) sale gratis y
   //    no debe penalizar al alumno que repasa.
   if (controlarUsoFn) {
-    const uso = await controlarUsoFn();
+    const uso = await controlarUsoFn(body.userId);
     if (uso.bloquear) {
       return json({
         error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",
@@ -1094,16 +1114,20 @@ export default {
     // headers CORS. Si no, el navegador ve un 500 sin CORS y lo reporta como
     // "error de red" (falso "sin internet"). Asi siempre llega la causa real.
     try {
-      // Tope de uso ANTES de gastar en IA. OJO: solo se cuenta el CHAT aqui.
-      // El /tts se cuenta DENTRO de handleTts y solo cuando hay que generar
-      // audio de verdad: si sale del cache KV no cuesta nada, y penalizar un
-      // repaso (que es justo lo que queremos que el alumno haga) seria
-      // absurdo. Pasa el control como callback para no duplicar logica.
+      // El /tts se cuenta DENTRO de handleTts (solo cuando hay que generar
+      // audio de verdad: cache hit no cuesta nada) y YA lee `body.userId` ahi
+      // mismo -- se lo pasa el a controlarUso, no hace falta tocar el body aqui.
       if (url.pathname === "/tts") {
-        return await handleTts(request, env, origin, () => controlarUso(request, env));
+        return await handleTts(request, env, origin, (uid) => controlarUso(request, env, false, uid));
       }
 
-      const uso = await controlarUso(request, env);
+      // Tope de uso ANTES de gastar en IA (solo el CHAT llega aqui). `userId`
+      // (si el alumno esta logueado) decide el BUCKET del limite -- por
+      // alumno, no por IP (ver controlarUso). Se lee con request.clone() para
+      // no "gastar" el body: handleChat hace su PROPIO request.json() mas
+      // abajo, y un Request solo se puede leer una vez sin clonar.
+      const bodyPeek = await request.clone().json().catch(() => ({}));
+      const uso = await controlarUso(request, env, false, bodyPeek.userId);
       if (uso.bloquear) {
         return json({
           error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",

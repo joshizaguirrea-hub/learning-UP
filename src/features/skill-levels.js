@@ -17,6 +17,7 @@ import { getImmersion } from "../ui/prefs.js";
 import { currentLangCode } from "../ui/nav.js";
 import { languageName } from "../data/languages.js";
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
+import { currentUser } from "../services/auth.js";
 import {
   allSkillLevels, makeSkillKey, setSkillLevel,
   levelLabel, levelInfo, MIN_LEVEL, MAX_LEVEL,
@@ -73,7 +74,15 @@ function usoDiarioBloque() {
     el("div", { class: "w-full bg-slate-800 rounded-full h-2 mt-2 overflow-hidden" }, barra),
     nota);
 
-  fetch(BYMAX_WORKER_URL.replace(/\/+$/, "") + "/status")
+  // userId (si hay sesion) hace que la barra lea EL CUPO DEL ALUMNO, no el de
+  // su red/IP (ver worker/bymax-worker.js:controlarUso) -- importante en
+  // redes compartidas (salon de clase, oficina) donde antes todos competian
+  // por el mismo cupo. Se resuelve async (currentUser no bloquea red: lee la
+  // sesion local de Supabase) y solo entonces se dispara el /status.
+  currentUser().catch(() => null).then((user) => {
+    const qs = user?.id ? "?userId=" + encodeURIComponent(user.id) : "";
+    return fetch(BYMAX_WORKER_URL.replace(/\/+$/, "") + "/status" + qs);
+  })
     .then((r) => r.json())
     .then((d) => {
       if (typeof d.limite !== "number") throw new Error("sin datos");

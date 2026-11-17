@@ -163,7 +163,14 @@ export function openVoiceCall(opts = {}) {
       // Mathias (rol speaking) con voz de HOMBRE via OpenAI. Fallback a la voz
       // bilingue del navegador si la nube falla.
       const afterSpeak = () => { if (!ended && !paused) listen(); };
-      cloudSpeak(answer, targetLang || "en", { gender: "M", ttsVoice: teacherVoice("speaking") })
+      // `userId` (si hay sesion real, no el placeholder "anon") hace que el
+      // cupo diario de IA del Worker se cuente POR ALUMNO, no por IP: una
+      // llamada en vivo hace 1 peticion de audio por turno, y sin esto toda
+      // una red compartida (ej. el salon de clase) se repartia el MISMO cupo
+      // -- ver worker/bymax-worker.js.
+      cloudSpeak(answer, targetLang || "en", {
+        gender: "M", ttsVoice: teacherVoice("speaking"), userId: opts.userId || undefined,
+      })
         .then(afterSpeak)
         .catch(() => speakBilingual(answer, afterSpeak));
     }

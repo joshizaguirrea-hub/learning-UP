@@ -124,8 +124,15 @@ async function fetchAudio(rawText, lang, opts) {
         voice: o.voice,      // voz Aura (compat con Worker viejo)
         voiceHd: o.voiceHd,  // voz Google Chirp3-HD ingles (Worker nuevo)
         ttsVoice,            // voz OpenAI por profe (default: Megan=nova)
-        gender: o.gender,    // "F" | "M" (para elegir voz por defecto)
+        gender: o.gender,    // F o M (para elegir voz por defecto)
         rate: o.rate,        // velocidad (titulos mas lentos = mas carino)
+        // userId (si quien llama lo manda) decide el BUCKET del limite diario
+        // en el Worker: por ALUMNO, no por IP (ver bymax-worker.js). ui/ no
+        // importa services/ (convencion de capas de este repo), asi que NO se
+        // resuelve aqui solo: quien llama (ej. voice-call.js, que SI conoce
+        // al usuario) debe pasarlo en opts.userId. Sin el, cae a IP, igual
+        // que siempre -- es un extra, no un requisito.
+        userId: o.userId,
       }),
     });
     if (!res.ok) throw new Error("tts http " + res.status);

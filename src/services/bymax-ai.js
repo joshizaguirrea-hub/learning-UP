@@ -10,6 +10,7 @@
  */
 import { BYMAX_WORKER_URL, bymaxAiEnabled } from "../config/bymax.js";
 import { getTeacherName } from "../ui/robot-prefs.js";
+import { currentUser } from "./auth.js";
 
 /**
  * Pregunta al profe IA.
@@ -25,12 +26,21 @@ import { getTeacherName } from "../ui/robot-prefs.js";
 export async function askBymax({ mode = "conversation", topic = "general", level = "B1", question, history = [], targetLang = "en", role = "course", teacher, examplesInTargetLang = false } = {}) {
   if (!bymaxAiEnabled) return { error: "El profe con IA no esta disponible (Worker inactivo)." };
   try {
+    // userId (si hay sesion) decide el BUCKET del limite diario en el Worker:
+    // por ALUMNO, no por IP (ver worker/bymax-worker.js:controlarUso). Antes
+    // todo el salon de clase (misma red/IP) compartia un solo cupo de 60/dia
+    // -- el primero en gastarlo dejaba mudos a los demas. Se resuelve aqui, en
+    // el UNICO cliente del Worker, para no tocar cada pantalla que llama a
+    // askBymax (voice-call, interview, story, cv-coach...). Anonimo = undefined
+    // -> el Worker cae solo al bucket por IP, igual que siempre.
+    const user = await currentUser().catch(() => null);
     const res = await fetch(BYMAX_WORKER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         mode, topic, level, question, history, targetLang, examplesInTargetLang,
         teacher: teacher || getTeacherName(role),
+        userId: user?.id,
       }),
     });
     const data = await res.json().catch(() => ({}));
