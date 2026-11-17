@@ -118,6 +118,7 @@ import { IT16_SPORT } from "./it16-sport.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
 import { withClozeChoices } from "../cloze-gen.js";
+import { withVerbInterleave } from "../verb-interleave.js";
 
 // Orden del catalogo: por nivel (A1 -> A2 -> B1 -> B2) y dentro del nivel, por tema.
 export const UNITS = [
@@ -150,7 +151,9 @@ export const UNITS = [
   IT1_CIAO, IT2_FAMIGLIA, IT3_ROUTINE, IT4_CIBO, IT5_CASA, IT6_SPESA, IT7_TEMPOLIBERO, IT8_IERI,
   // --- Italiano (it) A2 ---
   IT9_WEEKEND, IT10_VIAGGI, IT11_CITTA, IT12_SALUTE, IT13_PROGETTI, IT14_CONFRONTI, IT15_LAVORO, IT16_SPORT,
-].map(withClozeChoices).map(withListening).map(withTest); // A->C: cloze con trampas + listening + test final (auto)
+].map(withClozeChoices).map(withListening).map(withTest).map(withVerbInterleave);
+// A->C: cloze con trampas + listening + test final (auto). D: verbos del tema
+// distribuidos en gramatica/vocabulario (ver data/verb-interleave.js).
 
 /** Unidades disponibles para un nivel MCER dado y un idioma META (default 'en'). */
 export function unitsForLevel(level, lang = "en") {

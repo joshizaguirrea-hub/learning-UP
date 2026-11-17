@@ -16,37 +16,42 @@
  * Exigirlos ahi rompia la promesa de "requisito = parte del tema" y encima
  * inflaba el desbloqueo a ~22 tarjetas ajenas al tema solo para avanzar.
  *
- * Decision v2 (esta): SOLO el mazo de verbos ATADO AL TEMA de la unidad
- * (data/topic-verb-decks.js) es requisito -- es el UNICO que de verdad
- * pertenece a esa unidad. Idioms y Expresiones de tiempo vuelven a ser
- * 100% opcionales (Bonos), para TODAS las unidades, sin excepcion.
+ * Decision v2: SOLO el mazo de verbos ATADO AL TEMA de la unidad
+ * (data/topic-verb-decks.js) era requisito -- el UNICO que de verdad
+ * pertenecia a esa unidad.
  *
- * Este modulo sigue siendo la UNICA fuente de verdad de "que mazos exige esta
- * unidad". core/progression.js, features/map.js, features/course-cards.js y
- * features/unit-content.js lo consultan en vez de reinventar la regla cada
- * uno por su lado.
+ * Decision v3 (esta, feedback directo del alumno): incluso ESE mazo, solo,
+ * cansaba -- era una tarea extra y separada DESPUES de ya haber estudiado
+ * toda la unidad. Los verbos del tema ahora se DISTRIBUYEN directamente en la
+ * leccion de GRAMATICA (ejemplos + 1-2 ejercicios de calentamiento) y en el
+ * VOCABULARIO de la unidad -> SRS normal (ver data/verb-interleave.js, que se
+ * aplica a cada unidad en data/units/index.js). Por eso NINGUN mazo Bonus
+ * bloquea ya el avance: todos (verbos, idioms, expresiones) son 100%
+ * opcionales, para TODAS las unidades, sin excepcion. Esta funcion se
+ * mantiene (en vez de borrarla y tocar cada llamador) para no romper
+ * core/progression.js, features/map.js, features/course-cards.js y
+ * features/unit-content.js, que la consultan como "fuente de verdad" de que
+ * mazos exige una unidad -- ahora esa respuesta es, a proposito, siempre
+ * ninguno.
  */
-import { topicVerbDeckFor } from "../data/topic-verb-decks.js";
 
 /**
- * Ids de mazos Bonus (data/bonus-decks.js) que esta unidad exige dominar para
- * considerarse "pasada". Vacio si la unidad no tiene mazo de verbos por tema
- * (su bono sigue siendo opcional, sin cambios). SOLO el mazo DEL TEMA cuenta;
- * los genericos (idioms, expresiones de tiempo) nunca son requisito, en
- * ninguna unidad -- no pertenecen a ningun tema en particular.
- * @param {object} unit
+ * Ids de mazos Bonus que esta unidad exige dominar para considerarse
+ * "pasada". Siempre vacio (ver Decision v3 arriba): ningun mazo Bonus
+ * bloquea el avance. Se mantiene la firma para no tocar a sus llamadores.
+ * @param {object} _unit
  * @returns {string[]}
  */
-export function requiredBonusDeckIds(unit) {
-  const topicDeck = unit && topicVerbDeckFor(unit.id);
-  return topicDeck ? [topicDeck.id] : [];
+export function requiredBonusDeckIds(_unit) {
+  return [];
 }
 
 /** Prefijo de los ids sinteticos que representan "mazo Bonus dominado" dentro
  * del mismo Set `completed` que ya usan isUnitComplete()/unlockedUnitIds(). */
 export const BONUS_DONE_PREFIX = "bonus:";
 
-/** True si TODOS los mazos requeridos de la unidad ya estan dominados. */
+/** True si TODOS los mazos requeridos de la unidad ya estan dominados.
+ * Con requiredBonusDeckIds() siempre vacio, esto siempre es true. */
 export function requiredBonusSatisfied(unit, completed) {
   return requiredBonusDeckIds(unit).every((id) => completed.has(BONUS_DONE_PREFIX + id));
 }
