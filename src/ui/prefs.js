@@ -11,6 +11,7 @@ const AUTOPLAY_KEY = "linguapath.autoplay";
 const THEME_KEY = "linguapath.theme";
 const IMMERSION_KEY = "linguapath.immersion";
 const GRAMMAR_SIDEBAR_W_KEY = "linguapath.grammarSidebarW";
+const GRAMMAR_SIDEBAR_H_KEY = "linguapath.grammarSidebarH";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -172,3 +173,30 @@ export function setGrammarSidebarWidth(px) {
 }
 
 export const GRAMMAR_SIDEBAR_LIMITS = { min: SIDEBAR_W_MIN, max: SIDEBAR_W_MAX, default: SIDEBAR_W_DEFAULT };
+
+// --- Alto del panel lateral EN MODO APILADO (celular vertical) -------------
+// Mismo espiritu que el ancho de arriba, pero para cuando el chat y la guia
+// quedan uno ENCIMA del otro (celular en vertical, u horizontal angosto) en
+// vez de lado a lado -- ver styles/app.css (.grammar-split). En VH (porcentaje
+// del alto de pantalla), no en px: un celular vertical y uno horizontal tienen
+// altos de pantalla muy distintos, el porcentaje se adapta mejor que un numero
+// fijo.
+const SIDEBAR_H_MIN = 20;
+const SIDEBAR_H_MAX = 65;
+const SIDEBAR_H_DEFAULT = 38;
+
+/** Alto guardado del panel apilado (vh), siempre dentro de los limites validos. */
+export function getGrammarSidebarHeight() {
+  const n = Number(localStorage.getItem(GRAMMAR_SIDEBAR_H_KEY));
+  if (!Number.isFinite(n)) return SIDEBAR_H_DEFAULT;
+  return Math.min(SIDEBAR_H_MAX, Math.max(SIDEBAR_H_MIN, n));
+}
+
+/** Guarda el alto del panel apilado (vh), recortado a los limites validos. */
+export function setGrammarSidebarHeight(vh) {
+  const clamped = Math.min(SIDEBAR_H_MAX, Math.max(SIDEBAR_H_MIN, Math.round(vh)));
+  localStorage.setItem(GRAMMAR_SIDEBAR_H_KEY, String(clamped));
+  return clamped;
+}
+
+export const GRAMMAR_SIDEBAR_H_LIMITS = { min: SIDEBAR_H_MIN, max: SIDEBAR_H_MAX, default: SIDEBAR_H_DEFAULT };

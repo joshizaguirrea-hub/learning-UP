@@ -27,7 +27,8 @@ import { addToNotebook } from "../ui/notebook-store.js";
 import { sessionEnd } from "../ui/session-end.js";
 import { difficultyPrompt, clampLevel, levelLabel, DEFAULT_LEVEL, makeSkillKey, getSkillLevel, setSkillLevel } from "../core/difficulty.js";
 import { sessionTheme } from "../ui/session-theme.js";
-import { getGrammarSidebarWidth, setGrammarSidebarWidth, GRAMMAR_SIDEBAR_LIMITS } from "../ui/prefs.js";
+import { getGrammarSidebarWidth, setGrammarSidebarWidth, GRAMMAR_SIDEBAR_LIMITS, getGrammarSidebarHeight, setGrammarSidebarHeight, GRAMMAR_SIDEBAR_H_LIMITS } from "../ui/prefs.js";
+import { attachResizableSplit } from "../ui/resizable-split.js";
 
 /** Tope de `topic` que acepta el Worker (lo corta a 700). */
 const TOPIC_MAX = 700;
@@ -165,7 +166,11 @@ export function openBymaxSession(cfg) {
   const placeholder = cfg?.placeholder ||
     (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : name + " no esta disponible aun");
 
-  const close = () => { generateNotebook(); dictation?.abort(); stopAudio(); teacher?.dispose(); overlay.remove(); };
+  const close = () => {
+    generateNotebook(); dictation?.abort(); stopAudio(); teacher?.dispose();
+    split?.destroy(); // limpia los listeners de resize/orientacion del panel ajustable (si los hubo)
+    overlay.remove();
+  };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
   function stopAudio() {
     cancelCloud();
@@ -559,75 +564,35 @@ export function openBymaxSession(cfg) {
   // Modal clasico (centrado, con backdrop) o pantalla completa con panel
   // lateral de referencia -- ver nota de `hasSidebar` arriba.
   //
-  // ANCHO AJUSTABLE del panel (pedido de Joshua: "que el usuario pueda
-  // controlar los margenes"). El divisor solo existe/se arrastra en pantallas
-  // grandes (lg:): en movil el panel va apilado a lo ancho completo, no tiene
-  // sentido "ancho" ahi. Se guarda en localStorage (ui/prefs.js) -> cada quien
-  // recuerda su preferencia (chat grande o guia grande) entre sesiones.
+  // MARGENES AJUSTABLES en CUALQUIER dispositivo (pedido de Joshua: "el
+  // celular debe poder ajustar margenes y el modo horizontal/vertical, no
+  // solo la PC"). El quiebre lado-a-lado/apilado vive en CSS puro
+  // (.grammar-split, ver styles/app.css) y depende de la ORIENTACION, no solo
+  // del ancho: lado a lado en escritorio Y en cualquier celular en horizontal;
+  // apilado en celular vertical. La logica de arrastre (generica, sin nada de
+  // Bymax/chat) vive en ui/resizable-split.js -- aqui solo se conecta.
   let sidebarAside = null;
-  let resizeHandle = null;
+  let split = null;
   if (hasSidebar) {
-    let sidebarW = getGrammarSidebarWidth();
-    const applyW = (w) => {
-      sidebarW = Math.min(GRAMMAR_SIDEBAR_LIMITS.max, Math.max(GRAMMAR_SIDEBAR_LIMITS.min, w));
-      overlay.style.setProperty("--grammar-sidebar-w", sidebarW + "px");
-    };
-
-    resizeHandle = el("div", {
-      class: "hidden lg:flex w-2 shrink-0 cursor-col-resize items-center justify-center " +
-        "bg-slate-800 hover:bg-indigo-500/50 active:bg-indigo-500/70 transition-colors " +
-        "focus:outline focus:outline-2 focus:outline-indigo-400",
-      role: "separator", "aria-orientation": "vertical",
-      "aria-label": "Arrastra (o usa las flechas) para cambiar el ancho de la guia de clase",
-      tabindex: "0",
-    }, el("span", { class: "w-0.5 h-8 rounded-full bg-slate-600", "aria-hidden": "true" }));
-
-    const onMove = (e) => applyW(window.innerWidth - e.clientX);
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      setGrammarSidebarWidth(sidebarW); // persiste SOLO al soltar (no en cada pixel)
-    };
-    resizeHandle.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
+    split = attachResizableSplit({
+      getOverlay: () => overlay,
+      width: { get: getGrammarSidebarWidth, set: setGrammarSidebarWidth, limits: GRAMMAR_SIDEBAR_LIMITS },
+      height: { get: getGrammarSidebarHeight, set: setGrammarSidebarHeight, limits: GRAMMAR_SIDEBAR_H_LIMITS },
     });
-    // Teclado (accesibilidad): flechas izquierda/derecha con el divisor enfocado.
-    // Izquierda = guia MAS ancha (mueve el divisor hacia la izquierda), como
-    // pidio Joshua textualmente.
-    resizeHandle.addEventListener("keydown", (e) => {
-      const step = e.shiftKey ? 48 : 16;
-      if (e.key === "ArrowLeft") { applyW(sidebarW + step); setGrammarSidebarWidth(sidebarW); }
-      else if (e.key === "ArrowRight") { applyW(sidebarW - step); setGrammarSidebarWidth(sidebarW); }
-      else return;
-      e.preventDefault();
-    });
-    // Doble clic: vuelve al ancho por defecto (reset rapido si se descontrola).
-    resizeHandle.addEventListener("dblclick", () => {
-      applyW(GRAMMAR_SIDEBAR_LIMITS.default);
-      setGrammarSidebarWidth(sidebarW);
-    });
-
     sidebarAside = el("aside", {
-      class: "shrink-0 h-[38vh] lg:h-auto lg:w-[var(--grammar-sidebar-w)] border-t lg:border-t-0 " +
-        "border-slate-800 overflow-y-auto p-4 bg-slate-950/40",
+      class: "grammar-split-aside",
       "aria-label": "Guia de referencia de la clase",
     }, cfg.sidebar);
   }
 
   const overlay = hasSidebar
-    ? el("div", { class: "fixed inset-0 z-50 bg-slate-950 flex flex-col lg:flex-row overflow-hidden" },
-        card, resizeHandle, sidebarAside)
+    ? el("div", { class: "fixed inset-0 z-50 bg-slate-950 grammar-split overflow-hidden" },
+        card, split.hHandle, split.vHandle, sidebarAside)
     : el("div", {
         class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
         onclick: (e) => { if (e.target === overlay) close(); },
       }, card);
-  if (hasSidebar) overlay.style.setProperty("--grammar-sidebar-w", getGrammarSidebarWidth() + "px");
+  if (hasSidebar) split.applyInitial(); // primer pintado, ya con los limites de ESTA pantalla
 
   document.body.append(overlay);
   if (bymaxAiEnabled) input.focus();

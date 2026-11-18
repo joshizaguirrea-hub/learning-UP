@@ -542,3 +542,61 @@ body {
   .xp-float { animation: none !important; }
   .match-done { opacity: 0; }
 }
+
+/* -------------------------------------------------------------------------
+   Clase de Gramatica a pantalla completa (features/bymax-session.js +
+   features/grammar-sidebar.js): chat + panel lateral ("Tu guia de clase").
+   Pedido real: "debe estar disenado para ambos dispositivos [PC y celular],
+   que el celular pueda ajustar margenes y el modo horizontal/vertical".
+
+   EL QUIEBRE entre "lado a lado" (row) y "apilado" (column) NO es solo ANCHO
+   de pantalla (como el resto de la app, con sm:/lg: de Tailwind): tambien
+   depende de la ORIENTACION. Un celular en horizontal tiene poco alto pero
+   bastante ancho -- apilar ahi desperdicia el ancho y deja el panel
+   chiquitisimo; uno en vertical tiene al reves. Por eso .grammar-split pasa
+   a ROW tanto en pantallas grandes (escritorio/tablet) COMO en CUALQUIER
+   celular en horizontal, sin importar su ancho exacto en px.
+
+   Los anchos/altos salen de variables CSS (--grammar-sidebar-w/-h) que
+   bymax-session.js ajusta al arrastrar cada divisor -- uno para cuando esta
+   lado a lado (ancho) y otro para cuando esta apilado (alto). Asi el alumno
+   "ajusta los margenes" en CUALQUIER dispositivo, no solo en PC.
+   ------------------------------------------------------------------------- */
+.grammar-split { display: flex; flex-direction: column; }
+
+.grammar-split-aside {
+  flex-shrink: 0;
+  height: var(--grammar-sidebar-h, 38vh);
+  overflow-y: auto;
+  padding: 1rem;
+  background: rgb(2 6 23 / 0.4);       /* slate-950/40 */
+  border-top: 1px solid rgb(30 41 59); /* slate-800 */
+}
+
+/* Divisor para arrastrar el ALTO (modo apilado -- celular vertical, default). */
+.grammar-split-handle-v {
+  display: flex; flex-shrink: 0; height: 0.5rem; cursor: row-resize;
+  align-items: center; justify-content: center;
+  background: rgb(30 41 59); touch-action: none; transition: background .15s;
+}
+.grammar-split-handle-v:hover, .grammar-split-handle-v:active { background: rgb(99 102 241 / .5); }
+
+/* Divisor para arrastrar el ANCHO (modo lado a lado -- escritorio/horizontal). */
+.grammar-split-handle-h {
+  display: none; flex-shrink: 0; width: 0.5rem; cursor: col-resize;
+  align-items: center; justify-content: center;
+  background: rgb(30 41 59); touch-action: none; transition: background .15s;
+}
+.grammar-split-handle-h:hover, .grammar-split-handle-h:active { background: rgb(99 102 241 / .5); }
+
+@media (orientation: landscape), (min-width: 1024px) {
+  .grammar-split { flex-direction: row; }
+  .grammar-split-handle-v { display: none; }
+  .grammar-split-handle-h { display: flex; }
+  .grammar-split-aside {
+    height: auto;
+    width: var(--grammar-sidebar-w, 380px);
+    border-top: 0;
+    border-left: 1px solid rgb(30 41 59);
+  }
+}
