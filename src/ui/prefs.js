@@ -10,6 +10,7 @@ const CONTRAST_KEY = "linguapath.contrast";
 const AUTOPLAY_KEY = "linguapath.autoplay";
 const THEME_KEY = "linguapath.theme";
 const IMMERSION_KEY = "linguapath.immersion";
+const GRAMMAR_SIDEBAR_W_KEY = "linguapath.grammarSidebarW";
 
 /** Paleta de acentos para el avatar/perfil. */
 export const ACCENTS = [
@@ -146,3 +147,28 @@ export function getImmersion() {
 export function setImmersion(on) {
   localStorage.setItem(IMMERSION_KEY, on ? "on" : "off");
 }
+
+// --- Ancho del panel lateral de la clase de Gramatica -----------------------
+// El alumno puede arrastrar el divisor entre el chat y "Tu guia de clase"
+// (ver features/bymax-session.js) para darle mas o menos espacio a cada lado.
+// Se recuerda entre sesiones -- cada quien lee distinto (algunos prefieren el
+// chat grande, otros la guia grande).
+const SIDEBAR_W_MIN = 280;
+const SIDEBAR_W_MAX = 640;
+const SIDEBAR_W_DEFAULT = 380;
+
+/** Ancho guardado del panel (px), siempre dentro de los limites validos. */
+export function getGrammarSidebarWidth() {
+  const n = Number(localStorage.getItem(GRAMMAR_SIDEBAR_W_KEY));
+  if (!Number.isFinite(n)) return SIDEBAR_W_DEFAULT;
+  return Math.min(SIDEBAR_W_MAX, Math.max(SIDEBAR_W_MIN, n));
+}
+
+/** Guarda el ancho del panel (px), recortado a los limites validos. */
+export function setGrammarSidebarWidth(px) {
+  const clamped = Math.min(SIDEBAR_W_MAX, Math.max(SIDEBAR_W_MIN, Math.round(px)));
+  localStorage.setItem(GRAMMAR_SIDEBAR_W_KEY, String(clamped));
+  return clamped;
+}
+
+export const GRAMMAR_SIDEBAR_LIMITS = { min: SIDEBAR_W_MIN, max: SIDEBAR_W_MAX, default: SIDEBAR_W_DEFAULT };
