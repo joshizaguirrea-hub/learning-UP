@@ -134,3 +134,39 @@ export function attachResizableSplit({ getOverlay, width, height }) {
     },
   };
 }
+
+/**
+ * Mantiene `overlay` ajustado al alto REAL visible (VisualViewport), para que
+ * el teclado del celular no lo tape. Los navegadores NO encogen el layout
+ * viewport cuando el teclado abre -- un elemento `fixed` se queda clavado a
+ * la altura COMPLETA y el teclado se monta ENCIMA, tapando lo de abajo (ej.
+ * el input de un chat). El VisualViewport SI reporta el alto REAL visible
+ * (se achica de verdad con el teclado abierto); esta funcion lo usa para
+ * 1) re-medir `overlay` a ese alto real, y 2) alternar una clase cuando el
+ * teclado PROBABLEMENTE este abierto, para que el CSS pueda reaccionar (ver
+ * .grammar-split-kb-open en styles/app.css).
+ * @param {HTMLElement} overlay - elemento `fixed` (top-0, SIN bottom-0) a
+ *   mantener del alto correcto.
+ * @param {object} [opts]
+ * @param {string} [opts.kbOpenClass] - clase a alternar cuando hay teclado.
+ * @param {number} [opts.threshold] - bajo que fraccion del alto normal se
+ *   considera "hay teclado" (default 0.75 -- un teclado real se come
+ *   35-45%; la barra de direcciones al hacer scroll cambia mucho menos).
+ * @returns {() => void} funcion de limpieza (sin VisualViewport, no hace nada).
+ */
+export function trackVisualViewport(overlay, { kbOpenClass = "kb-open", threshold = 0.75 } = {}) {
+  if (!window.visualViewport) return () => {};
+  const vv = window.visualViewport;
+  const sync = () => {
+    overlay.style.height = vv.height + "px";
+    overlay.style.top = vv.offsetTop + "px";
+    overlay.classList.toggle(kbOpenClass, vv.height < window.innerHeight * threshold);
+  };
+  sync();
+  vv.addEventListener("resize", sync);
+  vv.addEventListener("scroll", sync);
+  return () => {
+    vv.removeEventListener("resize", sync);
+    vv.removeEventListener("scroll", sync);
+  };
+}

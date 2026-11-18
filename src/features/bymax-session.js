@@ -28,7 +28,7 @@ import { sessionEnd } from "../ui/session-end.js";
 import { difficultyPrompt, clampLevel, levelLabel, DEFAULT_LEVEL, makeSkillKey, getSkillLevel, setSkillLevel } from "../core/difficulty.js";
 import { sessionTheme } from "../ui/session-theme.js";
 import { getGrammarSidebarWidth, setGrammarSidebarWidth, GRAMMAR_SIDEBAR_LIMITS, getGrammarSidebarHeight, setGrammarSidebarHeight, GRAMMAR_SIDEBAR_H_LIMITS } from "../ui/prefs.js";
-import { attachResizableSplit } from "../ui/resizable-split.js";
+import { attachResizableSplit, trackVisualViewport } from "../ui/resizable-split.js";
 
 /** Tope de `topic` que acepta el Worker (lo corta a 700). */
 const TOPIC_MAX = 700;
@@ -165,10 +165,12 @@ export function openBymaxSession(cfg) {
   const subtitle = cfg?.subtitle || ("Practica en " + langLabel + " \u00b7 nivel " + level);
   const placeholder = cfg?.placeholder ||
     (bymaxAiEnabled ? "Escribe tu respuesta (o pide ayuda)..." : name + " no esta disponible aun");
+  let vvCleanup = null; // limpieza del VisualViewport (teclado movil) -- se arma mas abajo, ya con `overlay`
 
   const close = () => {
     generateNotebook(); dictation?.abort(); stopAudio(); teacher?.dispose();
     split?.destroy(); // limpia los listeners de resize/orientacion del panel ajustable (si los hubo)
+    vvCleanup?.();     // limpia los listeners del VisualViewport (teclado), si los hubo
     overlay.remove();
   };
   // Corta cualquier voz en curso (nube + navegador) al cerrar.
@@ -586,13 +588,18 @@ export function openBymaxSession(cfg) {
   }
 
   const overlay = hasSidebar
-    ? el("div", { class: "fixed inset-0 z-50 bg-slate-950 grammar-split overflow-hidden" },
+    ? el("div", { class: "fixed inset-x-0 top-0 h-[100dvh] z-50 bg-slate-950 grammar-split overflow-hidden" },
         card, split.hHandle, split.vHandle, sidebarAside)
     : el("div", {
         class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
         onclick: (e) => { if (e.target === overlay) close(); },
       }, card);
   if (hasSidebar) split.applyInitial(); // primer pintado, ya con los limites de ESTA pantalla
+
+  // TECLADO MOVIL (pedido de Joshua: "el teclado tapa casi toda la pantalla,
+  // que se ajusten los margenes solos"). Logica generica (sin nada de Bymax/
+  // chat) en ui/resizable-split.js -- aqui solo se conecta.
+  if (hasSidebar) vvCleanup = trackVisualViewport(overlay, { kbOpenClass: "grammar-split-kb-open" });
 
   document.body.append(overlay);
   if (bymaxAiEnabled) input.focus();

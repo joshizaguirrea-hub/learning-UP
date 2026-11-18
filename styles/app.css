@@ -600,3 +600,18 @@ body {
     border-left: 1px solid rgb(30 41 59);
   }
 }
+
+/* TECLADO MOVIL (ver bymax-session.js, VisualViewport): mientras el teclado
+   esta abierto, "Tu guia de clase" se COLAPSA sola para dejarle todo el alto
+   visible al chat -- que es justo donde el alumno esta escribiendo. Solo
+   importa en modo APILADO (celular vertical): ahi el chat y la guia se
+   reparten el alto, y el teclado deja muy poco. En modo lado a lado
+   (landscape/escritorio) la guia reparte ANCHO, no alto, asi que el teclado
+   no le quita espacio al chat -- por eso se anula el colapso ahi abajo. */
+.grammar-split-kb-open .grammar-split-aside {
+  height: 0 !important;
+  padding: 0; overflow: hidden; border: 0;
+}
+@media (orientation: landscape), (min-width: 1024px) {
+  .grammar-split-kb-open .grammar-split-aside { height: auto !important; }
+}
