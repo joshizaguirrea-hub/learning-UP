@@ -114,10 +114,12 @@ TEMPLATE = """<!doctype html>
   <section class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 mb-8">
     <h2 class="font-bold text-amber-200">Que arregla este despliegue</h2>
     <p class="mt-1.5 text-sm text-amber-100/90 leading-relaxed">
-      Los prompts decian <code class="bg-black/30 px-1 rounded">Eres "Bymax"</code>, asi que la IA
-      se presentaba con el nombre interno del motor aunque la pantalla dijera otra cosa.
-      Ahora usan <code class="bg-black/30 px-1 rounded">{{TEACHER}}</code> y el nombre llega desde la app:
-      <b>Megan</b> (cursos), <b>Mathias</b> (speaking), <b>Lucien</b> (entrevistas).
+      <b>1) El limite diario de IA ahora es POR ALUMNO, no por IP.</b> Antes, un salon de
+      clase entero (misma red/IP) se repartia un solo cupo de 60 peticiones -- el primero
+      en gastarlo dejaba mudos a los demas. Ahora cada alumno logueado tiene su propio cupo.<br>
+      <b>2) "Modo economico" invisible.</b> Al agotar su cupo de pago, el alumno ya NO ve un
+      corte con "vuelve manana": sigue conversando con una IA suplente gratis (Workers AI),
+      sin que se note el cambio. El aviso de limite solo aparece si hasta esa IA gratis falla.
     </p>
   </section>
 
@@ -150,8 +152,9 @@ TEMPLATE = """<!doctype html>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Compruebalo</h3>
       <p class="text-sm text-slate-400 mt-0.5">
-        Abre la app &rarr; <b>Llamada con Mathias</b> y preguntale
-        <i>&ldquo;what's your name?&rdquo;</i>. Debe responder Mathias, no Bymax.
+        Abre la app &rarr; <b>Ajustes</b> y mira la barra "Uso de IA de hoy": si estas
+        logueado, debe reflejar TU cupo (no el de tu red). El modo economico es invisible
+        a proposito: no hay una pantalla para "verlo" aparte de seguir recibiendo respuesta.
       </p>
     </li>
   </ol>

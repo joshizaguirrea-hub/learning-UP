@@ -37,10 +37,12 @@
   <section class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 mb-8">
     <h2 class="font-bold text-amber-200">Que arregla este despliegue</h2>
     <p class="mt-1.5 text-sm text-amber-100/90 leading-relaxed">
-      Los prompts decian <code class="bg-black/30 px-1 rounded">Eres "Bymax"</code>, asi que la IA
-      se presentaba con el nombre interno del motor aunque la pantalla dijera otra cosa.
-      Ahora usan <code class="bg-black/30 px-1 rounded">{TEACHER}</code> y el nombre llega desde la app:
-      <b>Megan</b> (cursos), <b>Mathias</b> (speaking), <b>Lucien</b> (entrevistas).
+      <b>1) El limite diario de IA ahora es POR ALUMNO, no por IP.</b> Antes, un salon de
+      clase entero (misma red/IP) se repartia un solo cupo de 60 peticiones -- el primero
+      en gastarlo dejaba mudos a los demas. Ahora cada alumno logueado tiene su propio cupo.<br>
+      <b>2) "Modo economico" invisible.</b> Al agotar su cupo de pago, el alumno ya NO ve un
+      corte con "vuelve manana": sigue conversando con una IA suplente gratis (Workers AI),
+      sin que se note el cambio. El aviso de limite solo aparece si hasta esa IA gratis falla.
     </p>
   </section>
 
@@ -64,7 +66,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1118 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1225 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -73,8 +75,9 @@
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Compruebalo</h3>
       <p class="text-sm text-slate-400 mt-0.5">
-        Abre la app &rarr; <b>Llamada con Mathias</b> y preguntale
-        <i>&ldquo;what's your name?&rdquo;</i>. Debe responder Mathias, no Bymax.
+        Abre la app &rarr; <b>Ajustes</b> y mira la barra "Uso de IA de hoy": si estas
+        logueado, debe reflejar TU cupo (no el de tu red). El modo economico es invisible
+        a proposito: no hay una pantalla para "verlo" aparte de seguir recibiendo respuesta.
       </p>
     </li>
   </ol>
@@ -110,7 +113,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1118 lineas &middot; 57.6 KB &middot; commit 1b62dbb 2026-11-11</p>
+        <p class="text-xs text-slate-500">1225 lineas &middot; 64.1 KB &middot; commit 44d9bd2 2026-11-18</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -481,20 +484,22 @@ function json(data, status, origin) {
 // DEGRADACION: si no hay binding KV o KV falla, NO se bloquea a nadie. El
 // limite es una red de seguridad, no un portero: que se caiga el contador no
 // puede dejar sin clase a un alumno que pago.
-const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por IP y dia
+const LIMITE_DIARIO = 60;   // peticiones de IA (de pago) por bucket (usuario o IP) y dia
 const LOTE = 5;             // se escribe en KV 1 de cada LOTE peticiones
 
-// Pendientes EN MEMORIA del isolate: &quot;ip&quot; -&gt; peticiones aun no escritas a KV.
-// Aqui esta el ahorro real: entre escritura y escritura no se toca KV (80%
-// menos escrituras -&gt; el plan gratis pasa de ~33 a ~166 alumnos).
+// Pendientes EN MEMORIA del isolate: &quot;bucket&quot; (usuario logueado o IP, ver
+// controlarUso) -&gt; peticiones aun no escritas a KV. Aqui esta el ahorro real:
+// entre escritura y escritura no se toca KV (80% menos escrituras -&gt; el plan
+// gratis pasa de ~33 a ~166 alumnos).
 //
 // LIMITACION CONOCIDA: Cloudflare recicla los isolates cuando quiere. Si uno
-// muere, sus pendientes se pierden y esa IP recupera hasta LOTE-1 peticiones.
-// Simulado: con reciclados normales (cada 10-20 peticiones) el tope aguanta
-// exacto; solo si Cloudflare reciclara cada 2-3 peticiones el limite se
-// escaparia. Es un techo &quot;blando&quot; a proposito: frena el abuso sostenido (que
-// es lo que cuesta dinero) sin arriesgarse a bloquear a un alumno legitimo.
-// Si algun dia hace falta un tope duro, la pieza correcta es Durable Objects.
+// muere, sus pendientes se pierden y ese bucket recupera hasta LOTE-1
+// peticiones. Simulado: con reciclados normales (cada 10-20 peticiones) el
+// tope aguanta exacto; solo si Cloudflare reciclara cada 2-3 peticiones el
+// limite se escaparia. Es un techo &quot;blando&quot; a proposito: frena el abuso
+// sostenido (que es lo que cuesta dinero) sin arriesgarse a bloquear a un
+// alumno legitimo. Si algun dia hace falta un tope duro, la pieza correcta
+// es Durable Objects.
 let pendientes = new Map();
 let diaPendientes = &quot;&quot;;
 
@@ -504,13 +509,25 @@ function diaUtc() {
 }
 
 /**
- * Suma uno al contador de la IP y dice si se paso del limite.
+ * Suma uno al contador y dice si se paso del limite.
+ *
+ * CLAVE: por USUARIO logueado si viene `userId` (bucket &quot;u:&lt;id&gt;&quot;), o por IP si
+ * no (bucket &quot;ip:&lt;ip&gt;&quot;, comportamiento de siempre para visitantes anonimos).
+ *
+ * POR QUE EL CAMBIO (bug real, salon de clase): el tope es &quot;por IP&quot;, pero una
+ * red escolar/oficina entera sale a internet con UNA sola IP publica (NAT). Un
+ * salon de 30 alumnos detras de la misma IP se repartia los MISMOS 60 cupos
+ * del dia -- el primero en gastarlos silenciaba a los otros 29. Con `userId`
+ * (Supabase, ya disponible en el cliente) cada ALUMNO tiene su propio cupo,
+ * sin importar cuantos compartan red. Anonimos siguen cayendo a IP: es peor
+ * que nada (red de seguridad), no una regresion.
  * @param {boolean} [soloLectura] - true = CONSULTA el gasto sin sumar nada.
  *   Lo usa /status para pintar la barra en Ajustes: mirar cuanto llevas no
  *   puede gastarte cupo, seria absurdo.
+ * @param {string} [userId] - id del alumno logueado (Supabase), si lo manda el cliente.
  * @returns {Promise&lt;{bloquear: boolean, usadas: number, tope: number, admin?: boolean}&gt;}
  */
-async function controlarUso(request, env, soloLectura) {
+async function controlarUso(request, env, soloLectura, userId) {
   const tope = Number(env.LIMITE_DIARIO) &gt; 0 ? Number(env.LIMITE_DIARIO) : LIMITE_DIARIO;
   const kv = env.AUDIO_KV;
   if (!kv) return { bloquear: false, usadas: 0, tope }; // sin KV no se limita
@@ -527,7 +544,8 @@ async function controlarUso(request, env, soloLectura) {
 
   const hoy = diaUtc();
   const ip = request.headers.get(&quot;CF-Connecting-IP&quot;) || &quot;anon&quot;;
-  const clave = &quot;uso:&quot; + hoy + &quot;:&quot; + ip;
+  const bucket = userId ? &quot;u:&quot; + String(userId).slice(0, 64) : &quot;ip:&quot; + ip;
+  const clave = &quot;uso:&quot; + hoy + &quot;:&quot; + bucket;
 
   if (diaPendientes !== hoy) { pendientes = new Map(); diaPendientes = hoy; } // dia nuevo
 
@@ -535,22 +553,22 @@ async function controlarUso(request, env, soloLectura) {
     const confirmadas = Number(await kv.get(clave)) || 0;
 
     if (soloLectura) {
-      const yaUsadas = confirmadas + (pendientes.get(ip) || 0);
+      const yaUsadas = confirmadas + (pendientes.get(bucket) || 0);
       return { bloquear: yaUsadas &gt;= tope, usadas: yaUsadas, tope };
     }
 
-    const enVuelo = (pendientes.get(ip) || 0) + 1;
+    const enVuelo = (pendientes.get(bucket) || 0) + 1;
     const usadas = confirmadas + enVuelo;
 
     if (usadas &gt; tope) return { bloquear: true, usadas: usadas - 1, tope };
 
     if (enVuelo &gt;= LOTE) {
-      // Consolida el lote en KV y vacia las pendientes de esta IP.
+      // Consolida el lote en KV y vacia las pendientes de este bucket.
       // TTL de 48 h: cubre el dia con holgura y la clave se borra sola.
       await kv.put(clave, String(confirmadas + enVuelo), { expirationTtl: 172800 });
-      pendientes.delete(ip);
+      pendientes.delete(bucket);
     } else {
-      pendientes.set(ip, enVuelo); // sin tocar KV: ESTE es el ahorro
+      pendientes.set(bucket, enVuelo); // sin tocar KV: ESTE es el ahorro
     }
     return { bloquear: false, usadas, tope };
   } catch (e) {
@@ -562,9 +580,14 @@ async function controlarUso(request, env, soloLectura) {
  * GET|POST /status -&gt; { usados, limite, restantes }. Solo CONSULTA: no suma.
  * Sirve para que el alumno vea en Ajustes cuanto le queda, en vez de toparse
  * de golpe con un &quot;ya no puedes&quot;. Transparencia &gt; sorpresa.
+ *
+ * `userId` llega como query param (?userId=...) porque es un GET sencillo sin
+ * body -- si el cliente esta logueado, consulta SU bucket (ver controlarUso);
+ * si no, cae al bucket por IP, igual que antes.
  */
 async function handleStatus(request, env, origin) {
-  const uso = await controlarUso(request, env, true);
+  const userId = new URL(request.url).searchParams.get(&quot;userId&quot;) || undefined;
+  const uso = await controlarUso(request, env, true, userId);
   return json({
     usados: uso.usadas,
     limite: uso.tope,
@@ -793,14 +816,17 @@ async function handleTts(request, env, origin, controlarUsoFn) {
   //    AQUI es donde se cuenta para el limite: no hubo cache, asi que esta
   //    peticion SI va a costar dinero. Lo de arriba (cache hit) sale gratis y
   //    no debe penalizar al alumno que repasa.
+  //
+  // MODO ECONOMICO (no corte en seco): si el alumno YA gasto su cupo de IA de
+  // PAGO hoy, en vez de devolver 429 de una vez, se seguira generando audio
+  // pero SOLO con los motores GRATIS (Aura/Workers AI para ingles, Google
+  // Translate TTS para el resto) -- ver mas abajo, cada rama salta los
+  // motores pagos (OpenAI/Azure/Google Cloud) cuando `economico` es true. Si
+  // ni siquiera el motor gratis responde, ahi si se corta (ver catch final).
+  let economico = false;
   if (controlarUsoFn) {
-    const uso = await controlarUsoFn();
-    if (uso.bloquear) {
-      return json({
-        error: &quot;Has usado mucho la IA hoy. Vuelve manana y seguimos.&quot;,
-        limite: true,
-      }, 429, origin);
-    }
+    const uso = await controlarUsoFn(body.userId);
+    economico = !!uso.bloquear;
   }
 
   const store = async (payload) =&gt; {
@@ -815,9 +841,10 @@ async function handleTts(request, env, origin, controlarUsoFn) {
   try {
     // MOTOR PRINCIPAL: OpenAI TTS (gpt-4o-mini-tts). Es la voz que queremos en
     // TODA la app: ingles, espanol y texto mixto, con UNA sola voz natural. Si
-    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE; los demas motores
-    // (Azure/Google/Aura) quedan solo de respaldo si OpenAI falla o no esta.
-    if (env.OPENAI_API_KEY) {
+    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE que NO sea modo
+    // economico; los demas motores (Azure/Google/Aura) quedan solo de
+    // respaldo si OpenAI falla, no esta, o el alumno ya gasto su cupo pago.
+    if (!economico &amp;&amp; env.OPENAI_API_KEY) {
       try {
         const audio = await openaiTts(text, env, rate, ttsVoice);
         if (audio) return store({ audio, engine: &quot;openai&quot;, voice: ttsVoice || OPENAI_VOICE });
@@ -834,7 +861,16 @@ async function handleTts(request, env, origin, controlarUsoFn) {
     //   1) Azure (AZURE_TTS_KEY+REGION)  2) OpenAI (OPENAI_API_KEY)
     //   3) Google Chirp3-HD (GOOGLE_TTS_KEY, misma persona, SIN key nueva).
     // Si ninguno esta, 501 -&gt; el cliente cae a mono (una voz por idioma).
+    // NINGUNO de estos 3 es gratis -&gt; en modo economico se salta todo el
+    // bloque: el cliente YA cae solo a la voz nativa del navegador
+    // (speechSynthesis) cuando este endpoint falla, ver ui/cloud-tts.js.
     if (lang === &quot;multi&quot;) {
+      if (economico) {
+        return json({
+          error: &quot;Voz multilingue no disponible en modo economico (cupo de hoy agotado).&quot;,
+          limite: true,
+        }, 429, origin);
+      }
       if (env.AZURE_TTS_KEY &amp;&amp; env.AZURE_TTS_REGION) {
         const audio = await azureTts(text, env, rate);
         if (audio) return store({ audio, engine: &quot;azure-multi&quot;, voice: AZURE_VOICE });
@@ -850,20 +886,26 @@ async function handleTts(request, env, origin, controlarUsoFn) {
       return json({ error: &quot;Voz multilingue no configurada (Azure/OpenAI/Google).&quot; }, 501, origin);
     }
     if (isEn) {
-      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
-      //    defecto TODO el ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
-      if (hdEn) {
+      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. PAGA
+      //    -&gt; se salta en modo economico. Por defecto (sin economico) TODO el
+      //    ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
+      if (!economico &amp;&amp; hdEn) {
         try {
           const gc = await gctts(text, env.GOOGLE_TTS_KEY, &quot;en-US&quot;, [hdEn], rate);
           if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud-en&quot;, voice: gc.voice });
         } catch (e) { /* cae a Aura abajo */ }
       }
-      // 2) Respaldo: Deepgram Aura (Workers AI).
+      // 2) Respaldo (y MOTOR UNICO en modo economico): Deepgram Aura. Corre
+      //    sobre Workers AI, que trae FREE TIER incluido (10,000 neurons/dia
+      //    por cuenta) -- es la IA SUPLENTE real para cuando se agoto el cupo
+      //    de pago. Si este tambien falla (ej. el free tier de Workers AI ya
+      //    se agoto ESE dia, algo mucho menos probable), ahi si no hay mas
+      //    remedio que el mensaje de &quot;vuelve manana&quot; (ver catch final).
       if (!env.AI) return json({ error: &quot;Falta el binding &#x27;AI&#x27; (Workers AI).&quot; }, 500, origin);
       const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: &quot;mp3&quot; });
       const audio = await toBase64Audio(out);
       if (!audio) return json({ error: &quot;TTS sin audio.&quot; }, 502, origin);
-      return store({ audio, engine: &quot;aura&quot;, voice });
+      return store({ audio, engine: economico ? &quot;aura-economico&quot; : &quot;aura&quot;, voice });
     }
     // OTROS IDIOMAS META (it/pt/fr/ja) -&gt; Google Cloud TTS con la voz de ESE
     // idioma. Antes caian por error a la rama de espanol (voz es-US leyendo
@@ -871,6 +913,11 @@ async function handleTts(request, env, origin, controlarUsoFn) {
     // (OpenAI es multilingue y ya cubre estos idiomas cuando esta configurado).
     const other = GTTS_LANGS[lang.slice(0, 2).toLowerCase()];
     if (other) {
+      // Modo economico: salta DIRECTO a Google Translate TTS (gratis, sin key,
+      // robotico pero funcional) -- nunca intenta el Google Cloud TTS pago.
+      if (economico) {
+        return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: &quot;google-translate-economico&quot; }, 200, origin);
+      }
       try {
         const gc = await gctts(text, env.GOOGLE_TTS_KEY, other.lang, other.voices, rate);
         if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud-&quot; + lang.slice(0, 2), voice: gc.voice });
@@ -880,7 +927,13 @@ async function handleTts(request, env, origin, controlarUsoFn) {
         return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: &quot;google-translate&quot;, gcttsError: String(e).slice(0, 180) }, 200, origin);
       }
     }
-    // ESPANOL -&gt; Google Cloud TTS (voz latina natural). Si falla, Google Translate.
+    // ESPANOL -&gt; Google Cloud TTS (voz latina natural) si no es economico.
+    // En economico: Google Translate TTS directo (gratis, robotico).
+    if (economico) {
+      const audio = await googleTts(text);
+      if (!audio) return json({ error: &quot;TTS sin audio.&quot; }, 502, origin);
+      return json({ audio, engine: &quot;google-economico&quot; }, 200, origin);
+    }
     try {
       const gc = await googleCloudTts(text, env, rate);
       if (gc &amp;&amp; gc.audio) return store({ audio: gc.audio, engine: &quot;google-cloud&quot;, voice: gc.voice });
@@ -919,8 +972,40 @@ async function openaiChat(systemText, alt, env, maxTokens) {
   return answer.trim();
 }
 
-async function handleChat(request, env, origin) {
-  if (!env.GEMINI_API_KEY) {
+// MODELO GRATIS de respaldo (Workers AI, binding &quot;AI&quot;): liviano, pero sirve
+// para el &quot;modo economico&quot; (ver mas abajo) sin gastar nada del presupuesto de
+// OpenAI/Gemini. Free tier: 10,000 neurons/dia POR CUENTA (compartido con
+// Aura TTS, que usa el mismo binding) -- una pregunta corta gasta ~3-6
+// neurons, asi que alcanza para miles de respuestas gratis al dia.
+const FREE_CHAT_MODEL = &quot;@cf/ibm-granite/granite-4.0-h-micro&quot;;
+
+/**
+ * &quot;Modo economico&quot;: IA SUPLENTE 100% gratis para cuando un alumno YA gasto su
+ * cupo de IA de PAGO hoy (ver controlarUso/LIMITE_DIARIO). En vez de cortar
+ * en seco con &quot;vuelve manana&quot;, el alumno sigue conversando con un modelo mas
+ * chico y simple -- nunca se queda sin profe a mitad de practica. Mismo
+ * formato {messages} que openaiChat (reusa el armado del hilo tal cual).
+ * @throws si no hay binding AI o Workers AI no responde (ahi si se corta).
+ */
+async function workersAiChat(systemText, alt, env, maxTokens) {
+  if (!env.AI) throw new Error(&quot;sin binding AI (Workers AI)&quot;);
+  const messages = [{ role: &quot;system&quot;, content: systemText }];
+  for (const c of alt) {
+    const text = (c.parts || []).map((p) =&gt; p.text).join(&quot;&quot;);
+    messages.push({ role: c.role === &quot;model&quot; ? &quot;assistant&quot; : &quot;user&quot;, content: text });
+  }
+  const out = await env.AI.run(FREE_CHAT_MODEL, { messages, max_tokens: maxTokens || 400 });
+  const answer = out &amp;&amp; out.response;
+  if (!answer || !answer.trim()) throw new Error(&quot;workers-ai sin respuesta&quot;);
+  return answer.trim();
+}
+
+async function handleChat(request, env, origin, economico) {
+  // El modo economico (IA suplente gratis, Workers AI) NO necesita Gemini --
+  // por eso este guardado se salta cuando `economico` es true. Si llega a
+  // faltar tambien el binding AI, el branch de modo economico (mas abajo) ya
+  // lo maneja con su propio try/catch, no hace falta duplicarlo aqui.
+  if (!economico &amp;&amp; !env.GEMINI_API_KEY) {
     return json({ error: &quot;Falta configurar GEMINI_API_KEY en el Worker.&quot; }, 500, origin);
   }
   let body;
@@ -1082,6 +1167,28 @@ async function handleChat(request, env, origin) {
     else alt.push(c);
   }
 
+  // MODO ECONOMICO: el alumno YA gasto su cupo de IA de pago hoy (ver
+  // controlarUso/LIMITE_DIARIO en el dispatcher). En vez de cortar en seco,
+  // sigue con la IA SUPLENTE gratis (Workers AI) -- mas simple, pero nunca un
+  // punto muerto. A PROPOSITO no cae a OpenAI/Gemini bajo ningun motivo: eso
+  // rompería por completo el sentido del limite (proteger el presupuesto de
+  // pago). Si hasta el modo economico falla (ej. Workers AI sin binding o su
+  // propio free tier agotado ESE dia -- raro), ahi si no queda mas que pedirle
+  // al alumno que vuelva manana.
+  if (economico) {
+    try {
+      const maxTok = isCv ? 1024 : isDeepen ? 800 : 400;
+      const answer = await workersAiChat(systemText, alt, env, maxTok);
+      return json({ answer, brain: &quot;economico&quot; }, 200, origin);
+    } catch (e) {
+      console.warn(&quot;[bymax] modo economico (Workers AI) fallo:&quot;, e &amp;&amp; e.message ? e.message : e);
+      return json({
+        error: &quot;Has usado mucho la IA hoy y el modo economico tampoco esta disponible ahora. Vuelve manana.&quot;,
+        limite: true,
+      }, 429, origin);
+    }
+  }
+
   // CEREBRO por actividad: las CLASES y el CV usan OpenAI (GPT-4o-mini); las
   // llamadas con Bymax (conversacion/listening) y las entrevistas usan Gemini.
   // Si OpenAI falla, caemos a Gemini (el alumno nunca se queda sin respuesta).
@@ -1216,23 +1323,26 @@ export default {
     // headers CORS. Si no, el navegador ve un 500 sin CORS y lo reporta como
     // &quot;error de red&quot; (falso &quot;sin internet&quot;). Asi siempre llega la causa real.
     try {
-      // Tope de uso ANTES de gastar en IA. OJO: solo se cuenta el CHAT aqui.
-      // El /tts se cuenta DENTRO de handleTts y solo cuando hay que generar
-      // audio de verdad: si sale del cache KV no cuesta nada, y penalizar un
-      // repaso (que es justo lo que queremos que el alumno haga) seria
-      // absurdo. Pasa el control como callback para no duplicar logica.
+      // El /tts se cuenta DENTRO de handleTts (solo cuando hay que generar
+      // audio de verdad: cache hit no cuesta nada) y YA lee `body.userId` ahi
+      // mismo -- se lo pasa el a controlarUso, no hace falta tocar el body aqui.
       if (url.pathname === &quot;/tts&quot;) {
-        return await handleTts(request, env, origin, () =&gt; controlarUso(request, env));
+        return await handleTts(request, env, origin, (uid) =&gt; controlarUso(request, env, false, uid));
       }
 
-      const uso = await controlarUso(request, env);
-      if (uso.bloquear) {
-        return json({
-          error: &quot;Has usado mucho la IA hoy. Vuelve manana y seguimos.&quot;,
-          limite: true,
-        }, 429, origin);
-      }
-      return await handleChat(request, env, origin);
+      // Tope de uso ANTES de gastar en IA de PAGO (solo el CHAT llega aqui).
+      // `userId` (si el alumno esta logueado) decide el BUCKET del limite --
+      // por alumno, no por IP (ver controlarUso). Se lee con request.clone()
+      // para no &quot;gastar&quot; el body: handleChat hace su PROPIO request.json() mas
+      // abajo, y un Request solo se puede leer una vez sin clonar.
+      //
+      // Si se paso del tope, NO se corta en seco: handleChat recibe
+      // `economico=true` y sigue con la IA SUPLENTE gratis (Workers AI) en vez
+      // de OpenAI/Gemini -- ver handleChat/workersAiChat. El &quot;vuelve manana&quot;
+      // solo aparece si hasta ESE modo gratis falla.
+      const bodyPeek = await request.clone().json().catch(() =&gt; ({}));
+      const uso = await controlarUso(request, env, false, bodyPeek.userId);
+      return await handleChat(request, env, origin, uso.bloquear);
     } catch (e) {
       return json({ error: &quot;Error interno del Worker.&quot;, detail: String(e &amp;&amp; e.message ? e.message : e).slice(0, 300) }, 500, origin);
     }
@@ -1242,7 +1352,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 12/11/2026 09:13 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 18/11/2026 09:01 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>
