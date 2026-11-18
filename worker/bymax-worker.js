@@ -691,14 +691,17 @@ async function handleTts(request, env, origin, controlarUsoFn) {
   //    AQUI es donde se cuenta para el limite: no hubo cache, asi que esta
   //    peticion SI va a costar dinero. Lo de arriba (cache hit) sale gratis y
   //    no debe penalizar al alumno que repasa.
+  //
+  // MODO ECONOMICO (no corte en seco): si el alumno YA gasto su cupo de IA de
+  // PAGO hoy, en vez de devolver 429 de una vez, se seguira generando audio
+  // pero SOLO con los motores GRATIS (Aura/Workers AI para ingles, Google
+  // Translate TTS para el resto) -- ver mas abajo, cada rama salta los
+  // motores pagos (OpenAI/Azure/Google Cloud) cuando `economico` es true. Si
+  // ni siquiera el motor gratis responde, ahi si se corta (ver catch final).
+  let economico = false;
   if (controlarUsoFn) {
     const uso = await controlarUsoFn(body.userId);
-    if (uso.bloquear) {
-      return json({
-        error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",
-        limite: true,
-      }, 429, origin);
-    }
+    economico = !!uso.bloquear;
   }
 
   const store = async (payload) => {
@@ -713,9 +716,10 @@ async function handleTts(request, env, origin, controlarUsoFn) {
   try {
     // MOTOR PRINCIPAL: OpenAI TTS (gpt-4o-mini-tts). Es la voz que queremos en
     // TODA la app: ingles, espanol y texto mixto, con UNA sola voz natural. Si
-    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE; los demas motores
-    // (Azure/Google/Aura) quedan solo de respaldo si OpenAI falla o no esta.
-    if (env.OPENAI_API_KEY) {
+    // esta configurado (OPENAI_API_KEY), se usa SIEMPRE que NO sea modo
+    // economico; los demas motores (Azure/Google/Aura) quedan solo de
+    // respaldo si OpenAI falla, no esta, o el alumno ya gasto su cupo pago.
+    if (!economico && env.OPENAI_API_KEY) {
       try {
         const audio = await openaiTts(text, env, rate, ttsVoice);
         if (audio) return store({ audio, engine: "openai", voice: ttsVoice || OPENAI_VOICE });
@@ -732,7 +736,16 @@ async function handleTts(request, env, origin, controlarUsoFn) {
     //   1) Azure (AZURE_TTS_KEY+REGION)  2) OpenAI (OPENAI_API_KEY)
     //   3) Google Chirp3-HD (GOOGLE_TTS_KEY, misma persona, SIN key nueva).
     // Si ninguno esta, 501 -> el cliente cae a mono (una voz por idioma).
+    // NINGUNO de estos 3 es gratis -> en modo economico se salta todo el
+    // bloque: el cliente YA cae solo a la voz nativa del navegador
+    // (speechSynthesis) cuando este endpoint falla, ver ui/cloud-tts.js.
     if (lang === "multi") {
+      if (economico) {
+        return json({
+          error: "Voz multilingue no disponible en modo economico (cupo de hoy agotado).",
+          limite: true,
+        }, 429, origin);
+      }
       if (env.AZURE_TTS_KEY && env.AZURE_TTS_REGION) {
         const audio = await azureTts(text, env, rate);
         if (audio) return store({ audio, engine: "azure-multi", voice: AZURE_VOICE });
@@ -748,20 +761,26 @@ async function handleTts(request, env, origin, controlarUsoFn) {
       return json({ error: "Voz multilingue no configurada (Azure/OpenAI/Google)." }, 501, origin);
     }
     if (isEn) {
-      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. Por
-      //    defecto TODO el ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
-      if (hdEn) {
+      // 1) Google Chirp3-HD ingles: voz humana, con genero y velocidad. PAGA
+      //    -> se salta en modo economico. Por defecto (sin economico) TODO el
+      //    ingles usa Chirp3-HD (hdEn); Aura queda de respaldo.
+      if (!economico && hdEn) {
         try {
           const gc = await gctts(text, env.GOOGLE_TTS_KEY, "en-US", [hdEn], rate);
           if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud-en", voice: gc.voice });
         } catch (e) { /* cae a Aura abajo */ }
       }
-      // 2) Respaldo: Deepgram Aura (Workers AI).
+      // 2) Respaldo (y MOTOR UNICO en modo economico): Deepgram Aura. Corre
+      //    sobre Workers AI, que trae FREE TIER incluido (10,000 neurons/dia
+      //    por cuenta) -- es la IA SUPLENTE real para cuando se agoto el cupo
+      //    de pago. Si este tambien falla (ej. el free tier de Workers AI ya
+      //    se agoto ESE dia, algo mucho menos probable), ahi si no hay mas
+      //    remedio que el mensaje de "vuelve manana" (ver catch final).
       if (!env.AI) return json({ error: "Falta el binding 'AI' (Workers AI)." }, 500, origin);
       const out = await env.AI.run(TTS_MODEL_EN, { text, speaker: voice, encoding: "mp3" });
       const audio = await toBase64Audio(out);
       if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
-      return store({ audio, engine: "aura", voice });
+      return store({ audio, engine: economico ? "aura-economico" : "aura", voice });
     }
     // OTROS IDIOMAS META (it/pt/fr/ja) -> Google Cloud TTS con la voz de ESE
     // idioma. Antes caian por error a la rama de espanol (voz es-US leyendo
@@ -769,6 +788,11 @@ async function handleTts(request, env, origin, controlarUsoFn) {
     // (OpenAI es multilingue y ya cubre estos idiomas cuando esta configurado).
     const other = GTTS_LANGS[lang.slice(0, 2).toLowerCase()];
     if (other) {
+      // Modo economico: salta DIRECTO a Google Translate TTS (gratis, sin key,
+      // robotico pero funcional) -- nunca intenta el Google Cloud TTS pago.
+      if (economico) {
+        return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: "google-translate-economico" }, 200, origin);
+      }
       try {
         const gc = await gctts(text, env.GOOGLE_TTS_KEY, other.lang, other.voices, rate);
         if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud-" + lang.slice(0, 2), voice: gc.voice });
@@ -778,7 +802,13 @@ async function handleTts(request, env, origin, controlarUsoFn) {
         return json({ audio: await googleTts(text, other.lang.slice(0, 2)), engine: "google-translate", gcttsError: String(e).slice(0, 180) }, 200, origin);
       }
     }
-    // ESPANOL -> Google Cloud TTS (voz latina natural). Si falla, Google Translate.
+    // ESPANOL -> Google Cloud TTS (voz latina natural) si no es economico.
+    // En economico: Google Translate TTS directo (gratis, robotico).
+    if (economico) {
+      const audio = await googleTts(text);
+      if (!audio) return json({ error: "TTS sin audio." }, 502, origin);
+      return json({ audio, engine: "google-economico" }, 200, origin);
+    }
     try {
       const gc = await googleCloudTts(text, env, rate);
       if (gc && gc.audio) return store({ audio: gc.audio, engine: "google-cloud", voice: gc.voice });
@@ -817,8 +847,40 @@ async function openaiChat(systemText, alt, env, maxTokens) {
   return answer.trim();
 }
 
-async function handleChat(request, env, origin) {
-  if (!env.GEMINI_API_KEY) {
+// MODELO GRATIS de respaldo (Workers AI, binding "AI"): liviano, pero sirve
+// para el "modo economico" (ver mas abajo) sin gastar nada del presupuesto de
+// OpenAI/Gemini. Free tier: 10,000 neurons/dia POR CUENTA (compartido con
+// Aura TTS, que usa el mismo binding) -- una pregunta corta gasta ~3-6
+// neurons, asi que alcanza para miles de respuestas gratis al dia.
+const FREE_CHAT_MODEL = "@cf/ibm-granite/granite-4.0-h-micro";
+
+/**
+ * "Modo economico": IA SUPLENTE 100% gratis para cuando un alumno YA gasto su
+ * cupo de IA de PAGO hoy (ver controlarUso/LIMITE_DIARIO). En vez de cortar
+ * en seco con "vuelve manana", el alumno sigue conversando con un modelo mas
+ * chico y simple -- nunca se queda sin profe a mitad de practica. Mismo
+ * formato {messages} que openaiChat (reusa el armado del hilo tal cual).
+ * @throws si no hay binding AI o Workers AI no responde (ahi si se corta).
+ */
+async function workersAiChat(systemText, alt, env, maxTokens) {
+  if (!env.AI) throw new Error("sin binding AI (Workers AI)");
+  const messages = [{ role: "system", content: systemText }];
+  for (const c of alt) {
+    const text = (c.parts || []).map((p) => p.text).join("");
+    messages.push({ role: c.role === "model" ? "assistant" : "user", content: text });
+  }
+  const out = await env.AI.run(FREE_CHAT_MODEL, { messages, max_tokens: maxTokens || 400 });
+  const answer = out && out.response;
+  if (!answer || !answer.trim()) throw new Error("workers-ai sin respuesta");
+  return answer.trim();
+}
+
+async function handleChat(request, env, origin, economico) {
+  // El modo economico (IA suplente gratis, Workers AI) NO necesita Gemini --
+  // por eso este guardado se salta cuando `economico` es true. Si llega a
+  // faltar tambien el binding AI, el branch de modo economico (mas abajo) ya
+  // lo maneja con su propio try/catch, no hace falta duplicarlo aqui.
+  if (!economico && !env.GEMINI_API_KEY) {
     return json({ error: "Falta configurar GEMINI_API_KEY en el Worker." }, 500, origin);
   }
   let body;
@@ -980,6 +1042,28 @@ async function handleChat(request, env, origin) {
     else alt.push(c);
   }
 
+  // MODO ECONOMICO: el alumno YA gasto su cupo de IA de pago hoy (ver
+  // controlarUso/LIMITE_DIARIO en el dispatcher). En vez de cortar en seco,
+  // sigue con la IA SUPLENTE gratis (Workers AI) -- mas simple, pero nunca un
+  // punto muerto. A PROPOSITO no cae a OpenAI/Gemini bajo ningun motivo: eso
+  // rompería por completo el sentido del limite (proteger el presupuesto de
+  // pago). Si hasta el modo economico falla (ej. Workers AI sin binding o su
+  // propio free tier agotado ESE dia -- raro), ahi si no queda mas que pedirle
+  // al alumno que vuelva manana.
+  if (economico) {
+    try {
+      const maxTok = isCv ? 1024 : isDeepen ? 800 : 400;
+      const answer = await workersAiChat(systemText, alt, env, maxTok);
+      return json({ answer, brain: "economico" }, 200, origin);
+    } catch (e) {
+      console.warn("[bymax] modo economico (Workers AI) fallo:", e && e.message ? e.message : e);
+      return json({
+        error: "Has usado mucho la IA hoy y el modo economico tampoco esta disponible ahora. Vuelve manana.",
+        limite: true,
+      }, 429, origin);
+    }
+  }
+
   // CEREBRO por actividad: las CLASES y el CV usan OpenAI (GPT-4o-mini); las
   // llamadas con Bymax (conversacion/listening) y las entrevistas usan Gemini.
   // Si OpenAI falla, caemos a Gemini (el alumno nunca se queda sin respuesta).
@@ -1121,20 +1205,19 @@ export default {
         return await handleTts(request, env, origin, (uid) => controlarUso(request, env, false, uid));
       }
 
-      // Tope de uso ANTES de gastar en IA (solo el CHAT llega aqui). `userId`
-      // (si el alumno esta logueado) decide el BUCKET del limite -- por
-      // alumno, no por IP (ver controlarUso). Se lee con request.clone() para
-      // no "gastar" el body: handleChat hace su PROPIO request.json() mas
+      // Tope de uso ANTES de gastar en IA de PAGO (solo el CHAT llega aqui).
+      // `userId` (si el alumno esta logueado) decide el BUCKET del limite --
+      // por alumno, no por IP (ver controlarUso). Se lee con request.clone()
+      // para no "gastar" el body: handleChat hace su PROPIO request.json() mas
       // abajo, y un Request solo se puede leer una vez sin clonar.
+      //
+      // Si se paso del tope, NO se corta en seco: handleChat recibe
+      // `economico=true` y sigue con la IA SUPLENTE gratis (Workers AI) en vez
+      // de OpenAI/Gemini -- ver handleChat/workersAiChat. El "vuelve manana"
+      // solo aparece si hasta ESE modo gratis falla.
       const bodyPeek = await request.clone().json().catch(() => ({}));
       const uso = await controlarUso(request, env, false, bodyPeek.userId);
-      if (uso.bloquear) {
-        return json({
-          error: "Has usado mucho la IA hoy. Vuelve manana y seguimos.",
-          limite: true,
-        }, 429, origin);
-      }
-      return await handleChat(request, env, origin);
+      return await handleChat(request, env, origin, uso.bloquear);
     } catch (e) {
       return json({ error: "Error interno del Worker.", detail: String(e && e.message ? e.message : e).slice(0, 300) }, 500, origin);
     }

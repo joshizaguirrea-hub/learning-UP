@@ -8,6 +8,12 @@
  * compartan la misma IP; y que sin `userId` (anonimo) el comportamiento viejo
  * (por IP) sigue intacto -- cero regresion.
  *
+ * Tambien prueba el "modo economico" (IA SUPLENTE gratis, Workers AI): al
+ * agotar el cupo de pago, el alumno NO debe recibir un corte en seco (429) si
+ * hay un binding `AI` disponible -- debe seguir recibiendo respuestas (200),
+ * solo que de un modelo mas simple. El 429 solo debe aparecer si TAMBIEN el
+ * modo economico falla (sin binding AI, como en los tests viejos de arriba).
+ *
  * El worker es un modulo ESM normal (export default { fetch }), asi que se
  * puede importar e invocar directo en Node con un `env` falso.
  * Correr con:  node tests/worker-usage-limit.test.mjs
@@ -27,6 +33,11 @@ function fakeKv() {
     async put(key, value) { store.set(key, value); },
     _store: store,
   };
+}
+
+/** Binding Workers AI falso: responde siempre lo mismo, sin red real. */
+function fakeAi(respuesta = "Respuesta del modo economico (prueba).") {
+  return { run: async () => ({ response: respuesta }) };
 }
 
 function fakeEnv(overrides = {}) {
@@ -90,6 +101,32 @@ await testAsync("/status con userId lee el bucket del alumno, no el de la IP", a
   );
   const dataOtro = await resOtro.json();
   assert.equal(dataOtro.usados, 0, "un alumno nuevo no deberia heredar el gasto de otro en la misma ip");
+});
+
+await testAsync("MODO ECONOMICO: al agotar el cupo de pago, sigue respondiendo (200) con la IA suplente gratis, no 429", async () => {
+  const env = fakeEnv({ AI: fakeAi("Claro, sigamos practicando (modo economico).") });
+
+  // Agota el cupo normal del alumno (tope=4).
+  let last;
+  for (let i = 0; i < 5; i++) {
+    last = await worker.fetch(chatRequest({ ip: "10.0.0.20", userId: "alumno-sin-cupo" }), env);
+  }
+  // Con el binding AI presente, NO deberia cortar en seco: sigue en 200.
+  assert.equal(last.status, 200, "deberia seguir respondiendo con la IA suplente, no bloquear");
+  const data = await last.json();
+  assert.equal(data.brain, "economico", "deberia marcar que la respuesta vino del modo economico");
+  assert.ok(data.answer && data.answer.length > 0, "deberia traer una respuesta usable");
+});
+
+await testAsync("MODO ECONOMICO: si NI la IA suplente responde, ahi si se corta con 429 (ultimo recurso)", async () => {
+  const env = fakeEnv({ AI: { run: async () => { throw new Error("Workers AI caido"); } } });
+  let last;
+  for (let i = 0; i < 5; i++) {
+    last = await worker.fetch(chatRequest({ ip: "10.0.0.21", userId: "alumno-mala-suerte" }), env);
+  }
+  assert.equal(last.status, 429, "sin ninguna IA disponible, el ultimo recurso sigue siendo el aviso de limite");
+  const data = await last.json();
+  assert.equal(data.limite, true);
 });
 
 console.log(`\n${passed} pruebas en verde.`);
