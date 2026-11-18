@@ -119,6 +119,10 @@ export function openSkillClass(unit, key, opts = {}) {
     // el lexico que ya se presento sin tener que pedirlo por chat.
     vocab: unit?.vocab || [],
     skill: key, // competencia -> pestana del cuaderno de errores
+    // Tema visual (ver ui/session-theme.js): SOLO Gramatica pide el look nuevo
+    // (banner con degradado + tarjetas). Las demas competencias y Conversacion/
+    // Entrevista (que no pasan por aqui) quedan con el look de siempre.
+    theme: key === "grammar" ? "grammar" : undefined,
     onFinish,
     // Al terminar la clase: felicitar + ofrecer mas practica eligiendo
     // dificultad 1..10. El escalon inicial se deduce del nivel MCER.
