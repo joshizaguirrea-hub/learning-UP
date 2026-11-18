@@ -526,6 +526,19 @@ export function openBymaxSession(cfg) {
   // cambio (modal clasico), para Conversacion/Entrevistas/las demas competencias.
   const hasSidebar = !!cfg?.sidebar;
 
+  // Boton "Volver" (pedido de Joshua): en pantalla completa ya no hay un
+  // backdrop oscuro insinuando "hay algo detras" como en el modal chico, asi
+  // que se agrega el mismo patron "< Volver" que ya usan las pantallas de
+  // verbos (ver features/bonus.js). Mismo destino que la X: cerrar la sesion
+  // (vuelve a la unidad de donde salio). Solo en pantalla completa -- el
+  // modal clasico ya tiene su X de siempre, no hace falta duplicar ahi.
+  const backBtn = hasSidebar ? el("button", {
+    type: "button",
+    class: "block text-sm text-indigo-300 hover:text-indigo-200 font-semibold mb-2 " +
+      "focus:outline focus:outline-2 focus:outline-indigo-400 rounded",
+    onclick: close,
+  }, "\u2190 Volver") : null;
+
   const card = el("div", {
     class: (hasSidebar
       ? "robot-pop flex-1 min-h-0 min-w-0 " + theme.card + " rounded-none lg:rounded-2xl lg:m-3 p-4 sm:p-6 flex flex-col"
@@ -533,6 +546,7 @@ export function openBymaxSession(cfg) {
       (theme.card.includes("shadow") ? "" : " shadow-2xl"), // DEFAULT no trae sombra propia -> la de siempre
     role: "dialog", "aria-label": cfg?.ariaLabel || ("Sesion con " + name), "aria-modal": "true",
   },
+    backBtn,
     headerRow,
 
     el("div", { class: "mt-3 border-t border-slate-800 pt-2 flex-1 min-h-0 overflow-y-auto" }, log),
