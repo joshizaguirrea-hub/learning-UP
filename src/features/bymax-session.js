@@ -61,6 +61,11 @@ function bubble(text, who, theme) {
  * @param {string} [cfg.ariaLabel] - etiqueta del dialogo
  * @param {object[]} [cfg.vocab] - glosario de la unidad. Si viene, aparece el POP
  *   "Palabras" con el lexico ya presentado (termino + traduccion + audio).
+ * @param {string} [cfg.theme] - "grammar" para el look con banner de degradado
+ *   (ver ui/session-theme.js). Sin esto, el look de siempre (DEFAULT).
+ * @param {HTMLElement} [cfg.sidebar] - si viene, la sesion se abre a PANTALLA
+ *   COMPLETA con este panel a la derecha (chat a la izquierda) en vez del
+ *   modal centrado de siempre. Pensado para features/grammar-sidebar.js.
  */
 export function openBymaxSession(cfg) {
   const { mode = "conversation", topic = "general", level = "B1" } = cfg || {};
@@ -513,8 +518,17 @@ export function openBymaxSession(cfg) {
       el("p", { class: theme.headerSubtitle }, subtitle)),
     closeBtn);
 
+  // PANTALLA COMPLETA + PANEL LATERAL (ej. features/skill-class.js para
+  // Gramatica, ver features/grammar-sidebar.js): quien abre la sesion manda
+  // cfg.sidebar (un nodo DOM ya armado) y aqui se acomoda a la derecha del
+  // chat, en vez del modal centrado de siempre. Sin cfg.sidebar -> CERO
+  // cambio (modal clasico), para Conversacion/Entrevistas/las demas competencias.
+  const hasSidebar = !!cfg?.sidebar;
+
   const card = el("div", {
-    class: "robot-pop max-w-lg w-full " + theme.card + " rounded-2xl p-4 sm:p-6 flex flex-col max-h-[92dvh] min-h-0" +
+    class: (hasSidebar
+      ? "robot-pop flex-1 min-h-0 min-w-0 " + theme.card + " rounded-none lg:rounded-2xl lg:m-3 p-4 sm:p-6 flex flex-col"
+      : "robot-pop max-w-lg w-full " + theme.card + " rounded-2xl p-4 sm:p-6 flex flex-col max-h-[92dvh] min-h-0") +
       (theme.card.includes("shadow") ? "" : " shadow-2xl"), // DEFAULT no trae sombra propia -> la de siempre
     role: "dialog", "aria-label": cfg?.ariaLabel || ("Sesion con " + name), "aria-modal": "true",
   },
@@ -527,10 +541,20 @@ export function openBymaxSession(cfg) {
       el("div", { class: "flex gap-2" }, vocabBtn || el("span"), helpBtn)),
     el("div", { class: "mt-2 flex gap-2" }, ...(speechSupported() ? [micBtn] : []), input, sendBtn));
 
-  const overlay = el("div", {
-    class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
-    onclick: (e) => { if (e.target === overlay) close(); },
-  }, card);
+  // Modal clasico (centrado, con backdrop) o pantalla completa con panel
+  // lateral de referencia -- ver nota de `hasSidebar` arriba.
+  const overlay = hasSidebar
+    ? el("div", { class: "fixed inset-0 z-50 bg-slate-950 flex flex-col lg:flex-row overflow-hidden" },
+        card,
+        el("aside", {
+          class: "shrink-0 h-[38vh] lg:h-auto lg:w-[380px] border-t lg:border-t-0 lg:border-l " +
+            "border-slate-800 overflow-y-auto p-4 bg-slate-950/40",
+          "aria-label": "Guia de referencia de la clase",
+        }, cfg.sidebar))
+    : el("div", {
+        class: "fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4",
+        onclick: (e) => { if (e.target === overlay) close(); },
+      }, card);
 
   document.body.append(overlay);
   if (bymaxAiEnabled) input.focus();

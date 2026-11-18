@@ -8,6 +8,7 @@
  * de sesion (bymax-session.js, mode "class") -> DRY: solo construye el "topic".
  */
 import { openBymaxSession } from "./bymax-session.js";
+import { buildGrammarSidebar } from "./grammar-sidebar.js";
 import { SKILL_META } from "../data/skill-meta.js";
 import { robotName } from "../ui/robot.js";
 import { languageName } from "../data/languages.js";
@@ -119,10 +120,14 @@ export function openSkillClass(unit, key, opts = {}) {
     // el lexico que ya se presento sin tener que pedirlo por chat.
     vocab: unit?.vocab || [],
     skill: key, // competencia -> pestana del cuaderno de errores
-    // Tema visual (ver ui/session-theme.js): SOLO Gramatica pide el look nuevo
-    // (banner con degradado + tarjetas). Las demas competencias y Conversacion/
-    // Entrevista (que no pasan por aqui) quedan con el look de siempre.
+    // Tema visual + pantalla completa (ver ui/session-theme.js y
+    // features/grammar-sidebar.js): SOLO Gramatica. El panel lateral muestra
+    // el enfoque de la clase, sus ejemplos/errores y los verbos del tema --
+    // a la vista mientras Megan da la clase, en vez de tener que recordarlos.
+    // Las demas competencias y Conversacion/Entrevista (que no pasan por
+    // aqui) quedan con el look de siempre.
     theme: key === "grammar" ? "grammar" : undefined,
+    sidebar: key === "grammar" ? buildGrammarSidebar(unit, lesson) : undefined,
     onFinish,
     // Al terminar la clase: felicitar + ofrecer mas practica eligiendo
     // dificultad 1..10. El escalon inicial se deduce del nivel MCER.
