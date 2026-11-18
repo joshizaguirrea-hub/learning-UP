@@ -131,18 +131,25 @@ export function mountDictionary() {
 
   makeDraggable(panel, panelHeader);
 
+  // El boton flotante (FAB) tambien es ARRASTRABLE (pedido real: "queda
+  // flotando en todas partes... no se si lo puedo mover para que no genere
+  // trafico visual"). Antes solo el PANEL abierto se podia mover; el FAB
+  // cerrado quedaba fijo en bottom-24/right-4 siempre, chocando con lo que
+  // hubiera ahi (ej. el panel lateral de la clase de Gramatica). Posicion
+  // independiente de la del panel -- cada uno se recuerda por separado.
   const fab = el("button", {
     type: "button",
-    "aria-label": "Abrir diccionario",
+    "aria-label": "Abrir diccionario (arrastra para moverlo)",
     "aria-expanded": "false",
-    title: "Diccionario",
+    title: "Diccionario (arrastra para moverlo)",
     class: "fixed z-[70] bottom-24 right-4 w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-600 " +
       "text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform " +
-      "focus:outline focus:outline-2 focus:outline-white overflow-hidden",
-    onclick: () => togglePanel(!open),
+      "focus:outline focus:outline-2 focus:outline-white overflow-hidden touch-none cursor-grab active:cursor-grabbing",
   },
     el("span", { class: "absolute inset-x-0 top-0 h-1/2 bg-white/25" }),
     el("span", { class: "relative w-7 h-7", html: ICONS.book }));
+
+  makeFabDraggable(fab, () => togglePanel(!open));
 
   function togglePanel(next, keepTarget) {
     open = next;
@@ -186,6 +193,26 @@ const GRIP =
   '<circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>';
 
 const POS_KEY = "learningup:dict-pos";
+const FAB_POS_KEY = "learningup:dict-fab-pos"; // posicion del BOTON, aparte del panel
+
+/** Limita (x,y) para que `node` quede dentro de la pantalla (con 4px de aire). */
+function clampToScreen(node, x, y, fallbackW, fallbackH) {
+  const w = node.offsetWidth || fallbackW, h = node.offsetHeight || fallbackH;
+  return {
+    x: Math.max(4, Math.min(window.innerWidth - w - 4, x)),
+    y: Math.max(4, Math.min(window.innerHeight - h - 4, y)),
+  };
+}
+
+/** Lee una posicion guardada ({x,y} o null si no hay/esta corrupta). */
+function loadPos(key) {
+  try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; }
+}
+
+/** Guarda una posicion. Nunca revienta si localStorage no esta disponible. */
+function savePos(key, x, y) {
+  try { localStorage.setItem(key, JSON.stringify({ x, y })); } catch { /* nada */ }
+}
 
 /**
  * Hace un panel FIJO arrastrable por su "asa" (handle). Cambia el anclaje de
@@ -194,18 +221,14 @@ const POS_KEY = "learningup:dict-pos";
  */
 function makeDraggable(panel, handle) {
   const applyPos = (x, y) => {
-    const w = panel.offsetWidth || 320, h = panel.offsetHeight || 200;
-    const nx = Math.max(4, Math.min(window.innerWidth - w - 4, x));
-    const ny = Math.max(4, Math.min(window.innerHeight - h - 4, y));
-    panel.style.left = nx + "px"; panel.style.top = ny + "px";
+    const p = clampToScreen(panel, x, y, 320, 200);
+    panel.style.left = p.x + "px"; panel.style.top = p.y + "px";
     panel.style.right = "auto"; panel.style.bottom = "auto";
   };
 
   // Restaura la ultima posicion guardada (si cabe en la pantalla actual).
-  try {
-    const saved = JSON.parse(localStorage.getItem(POS_KEY) || "null");
-    if (saved && typeof saved.x === "number") requestAnimationFrame(() => applyPos(saved.x, saved.y));
-  } catch { /* nada */ }
+  const saved = loadPos(POS_KEY);
+  if (saved && typeof saved.x === "number") requestAnimationFrame(() => applyPos(saved.x, saved.y));
 
   let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
   handle.addEventListener("pointerdown", (e) => {
@@ -224,9 +247,57 @@ function makeDraggable(panel, handle) {
   const end = () => {
     if (!dragging) return;
     dragging = false;
-    try { localStorage.setItem(POS_KEY, JSON.stringify({ x: parseFloat(panel.style.left), y: parseFloat(panel.style.top) })); } catch { /* nada */ }
+    savePos(POS_KEY, parseFloat(panel.style.left), parseFloat(panel.style.top));
   };
   handle.addEventListener("pointerup", end);
   handle.addEventListener("pointercancel", end);
+}
+
+/**
+ * Hace el BOTON flotante (FAB) arrastrable -- a diferencia del panel (que tiene
+ * un "asa" separada de sus botones), aqui el mismo elemento es el que arrastras
+ * Y el que abres con un tap. Se distingue por DISTANCIA recorrida: si el dedo/
+ * mouse se movio mas de `UMBRAL` px, fue un arrastre (se mueve el boton y NO se
+ * abre el diccionario); si no, fue un tap normal (se abre, como siempre).
+ * Posicion recordada aparte de la del panel (ver FAB_POS_KEY).
+ * @param {HTMLElement} fab
+ * @param {() => void} onTap - que hacer cuando es un tap real (no arrastre)
+ */
+function makeFabDraggable(fab, onTap) {
+  const UMBRAL = 6; // px: menos que esto sigue contando como "tap", no arrastre
+  const applyPos = (x, y) => {
+    const p = clampToScreen(fab, x, y, 56, 56);
+    fab.style.left = p.x + "px"; fab.style.top = p.y + "px";
+    fab.style.right = "auto"; fab.style.bottom = "auto";
+  };
+
+  const saved = loadPos(FAB_POS_KEY);
+  if (saved && typeof saved.x === "number") requestAnimationFrame(() => applyPos(saved.x, saved.y));
+
+  let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false, moved = false;
+  fab.addEventListener("pointerdown", (e) => {
+    dragging = true; moved = false;
+    const r = fab.getBoundingClientRect();
+    ox = r.left; oy = r.top; sx = e.clientX; sy = e.clientY;
+    try { fab.setPointerCapture(e.pointerId); } catch { /* nada */ }
+  });
+  fab.addEventListener("pointermove", (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!moved && Math.hypot(dx, dy) < UMBRAL) return; // todavia no se mueve "de verdad"
+    moved = true;
+    applyPos(ox + dx, oy + dy);
+  });
+  fab.addEventListener("pointerup", () => {
+    dragging = false;
+    if (moved) savePos(FAB_POS_KEY, parseFloat(fab.style.left), parseFloat(fab.style.top));
+  });
+  fab.addEventListener("pointercancel", () => { dragging = false; });
+  // El "click" solo abre si NO hubo arrastre real -- si no, moverlo tantito
+  // siempre lo abriria de rebote, que es justo lo molesto que se queria evitar.
+  fab.addEventListener("click", (e) => {
+    if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; return; }
+    onTap();
+  });
 }
 
