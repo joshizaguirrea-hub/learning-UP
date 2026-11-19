@@ -118,6 +118,11 @@ import { IT16_SPORT } from "./it16-sport.js";
 import { JA1_KONNICHIWA } from "./ja1-konnichiwa.js";
 import { JA2_KAZOKU } from "./ja2-kazoku.js";
 import { JA3_MAINICHI } from "./ja3-mainichi.js";
+import { JA4_TABEMONO } from "./ja4-tabemono.js";
+import { JA5_IE } from "./ja5-ie.js";
+import { JA6_KAIMONO } from "./ja6-kaimono.js";
+import { JA7_JIYUUJIKAN } from "./ja7-jiyuujikan.js";
+import { JA8_KINOU } from "./ja8-kinou.js";
 import { withListening } from "../listening-gen.js";
 import { withTest } from "../test-gen.js";
 import { withClozeChoices } from "../cloze-gen.js";
@@ -154,8 +159,8 @@ export const UNITS = [
   IT1_CIAO, IT2_FAMIGLIA, IT3_ROUTINE, IT4_CIBO, IT5_CASA, IT6_SPESA, IT7_TEMPOLIBERO, IT8_IERI,
   // --- Italiano (it) A2 ---
   IT9_WEEKEND, IT10_VIAGGI, IT11_CITTA, IT12_SALUTE, IT13_PROGETTI, IT14_CONFRONTI, IT15_LAVORO, IT16_SPORT,
-  // --- Japones (ja) A1 -- vertical slice + en construccion (ver docs/PEDAGOGIA.md secc.7) ---
-  JA1_KONNICHIWA, JA2_KAZOKU, JA3_MAINICHI,
+  // --- Japones (ja) A1 -- 8/8 completo (ver docs/PEDAGOGIA.md secc.7) ---
+  JA1_KONNICHIWA, JA2_KAZOKU, JA3_MAINICHI, JA4_TABEMONO, JA5_IE, JA6_KAIMONO, JA7_JIYUUJIKAN, JA8_KINOU,
 ].map(withClozeChoices).map(withListening).map(withTest).map(withVerbInterleave);
 // A->C: cloze con trampas + listening + test final (auto). D: verbos del tema
 // distribuidos en gramatica/vocabulario (ver data/verb-interleave.js).
