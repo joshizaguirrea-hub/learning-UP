@@ -12,7 +12,7 @@ export const LANGUAGES = [
   { code: "es", name: "Espanol", flag: "ES", enabled: false },
   { code: "pt", name: "Portugues", flag: "BR", enabled: true },
   { code: "fr", name: "Frances", flag: "FR", enabled: true },
-  { code: "ja", name: "Japones", flag: "JP", enabled: false, draft: true },
+  { code: "ja", name: "Japones", flag: "JP", enabled: true },
   { code: "it", name: "Italiano", flag: "IT", enabled: true },
 ];
 
