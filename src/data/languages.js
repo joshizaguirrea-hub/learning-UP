@@ -12,7 +12,7 @@ export const LANGUAGES = [
   { code: "es", name: "Espanol", flag: "ES", enabled: false },
   { code: "pt", name: "Portugues", flag: "BR", enabled: true },
   { code: "fr", name: "Frances", flag: "FR", enabled: true },
-  { code: "ja", name: "Japones", flag: "JP", enabled: false },
+  { code: "ja", name: "Japones", flag: "JP", enabled: false, draft: true },
   { code: "it", name: "Italiano", flag: "IT", enabled: true },
 ];
 
@@ -25,6 +25,7 @@ const SPEECH = {
   pt: { tts: "pt", mic: "pt-BR" },
   fr: { tts: "fr", mic: "fr-FR" },
   it: { tts: "it", mic: "it-IT" },
+  ja: { tts: "ja", mic: "ja-JP" },
 };
 
 /** Codigo de voz (TTS) del idioma dado (default "en"). */
