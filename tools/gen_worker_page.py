@@ -114,12 +114,13 @@ TEMPLATE = """<!doctype html>
   <section class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 mb-8">
     <h2 class="font-bold text-amber-200">Que arregla este despliegue</h2>
     <p class="mt-1.5 text-sm text-amber-100/90 leading-relaxed">
-      <b>1) El limite diario de IA ahora es POR ALUMNO, no por IP.</b> Antes, un salon de
-      clase entero (misma red/IP) se repartia un solo cupo de 60 peticiones -- el primero
-      en gastarlo dejaba mudos a los demas. Ahora cada alumno logueado tiene su propio cupo.<br>
-      <b>2) "Modo economico" invisible.</b> Al agotar su cupo de pago, el alumno ya NO ve un
-      corte con "vuelve manana": sigue conversando con una IA suplente gratis (Workers AI),
-      sin que se note el cambio. El aviso de limite solo aparece si hasta esa IA gratis falla.
+      <b>1) Vocabulario nuevo visible en vivo.</b> Cuando Megan ensena una palabra que el
+      alumno no sabia, ahora la marca con una linea "VOCAB:" -- el cliente la detecta y la
+      agrega sola a "Tu guia de clase" (panel lateral de Gramatica), sin perderla en el chat.<br>
+      <b>2) Japones: romaji SIEMPRE, no solo en la palabra suelta.</b> Pedido real: "es una
+      lengua muy extrana para el latino, pon como se pronuncia en CADA ejemplo donde haya
+      escritura". Ahora toda oracion de ejemplo en japones trae su romaji al lado, no solo
+      el vocabulario nuevo.
     </p>
   </section>
 

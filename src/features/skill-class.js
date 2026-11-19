@@ -110,6 +110,11 @@ export function openSkillClass(unit, key, opts = {}) {
     if (typeof opts.onComplete === "function") opts.onComplete();
   } : (typeof opts.onComplete === "function" ? opts.onComplete : null);
 
+  // Panel lateral + vocabulario EN VIVO (ver features/grammar-sidebar.js):
+  // SOLO Gramatica. `sidebarBuild.addVocab` es lo que llama bymax-session.js
+  // cada vez que Megan ensena una palabra nueva (protocolo "VOCAB:").
+  const sidebarBuild = key === "grammar" ? buildGrammarSidebar(unit, lesson) : null;
+
   openBymaxSession({
     mode: "class",
     topic,
@@ -122,12 +127,14 @@ export function openSkillClass(unit, key, opts = {}) {
     skill: key, // competencia -> pestana del cuaderno de errores
     // Tema visual + pantalla completa (ver ui/session-theme.js y
     // features/grammar-sidebar.js): SOLO Gramatica. El panel lateral muestra
-    // el enfoque de la clase, sus ejemplos/errores y los verbos del tema --
-    // a la vista mientras Megan da la clase, en vez de tener que recordarlos.
-    // Las demas competencias y Conversacion/Entrevista (que no pasan por
-    // aqui) quedan con el look de siempre.
+    // el enfoque de la clase, sus ejemplos/errores, los verbos del tema, y
+    // el vocabulario NUEVO que Megan ensene en vivo -- a la vista mientras da
+    // la clase, en vez de tener que recordarlo o buscarlo en el chat. Las
+    // demas competencias y Conversacion/Entrevista (que no pasan por aqui)
+    // quedan con el look de siempre.
     theme: key === "grammar" ? "grammar" : undefined,
-    sidebar: key === "grammar" ? buildGrammarSidebar(unit, lesson) : undefined,
+    sidebar: sidebarBuild?.node,
+    onVocabTaught: sidebarBuild?.addVocab,
     onFinish,
     // Al terminar la clase: felicitar + ofrecer mas practica eligiendo
     // dificultad 1..10. El escalon inicial se deduce del nivel MCER.

@@ -949,6 +949,21 @@ async function handleChat(request, env, origin, economico) {
       `\nNIVEL del alumno (MCER): ${level || "B1"}` +
       `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
       `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
+    // JAPONES: pedido real de un alumno -- "es una lengua muy extrana para el
+    // latino, pon SIEMPRE como se pronuncia en cada ejemplo donde haya
+    // escritura". El kana/kanji no se lee como el alfabeto latino, asi que
+    // CUALQUIER texto japones (palabra suelta U oracion completa) necesita su
+    // romaji al lado, no solo el vocabulario nuevo.
+    if (targetLang === "ja") {
+      systemText += `\n\n[JAPONES PARA HISPANOHABLANTES -- REGLA OBLIGATORIA]\n` +
+        `El alumno apenas esta aprendiendo a leer hiragana/katakana. SIEMPRE que ` +
+        `escribas CUALQUIER texto en japones -- una palabra suelta O una oracion ` +
+        `de ejemplo completa -- agrega INMEDIATAMENTE despues, entre parentesis, ` +
+        `su lectura en romaji (letras latinas). Nunca dejes japones sin su romaji.\n` +
+        `Formato exacto:\n` +
+        `  Palabra: \u53cb\u9054 (tomodachi)\n` +
+        `  Oracion: \u5f7c\u306f\u53cb\u9054\u3067\u3059 (Kare wa tomodachi desu)`;
+    }
   }
 
   // EXCEPCION PUNTUAL a la "Regla de oro" del SYSTEM_PROMPT por defecto
@@ -977,27 +992,43 @@ async function handleChat(request, env, origin, economico) {
       `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
   }
 
-  // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
+  // PROTOCOLO SAY/TIP/VOCAB para Clase y Conversacion (voz de UNA sola voz,
+  // estilo Lerna):
   //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
   //    correccion o ayuda en espanol va en lineas "TIP:" que el alumno LEE (no se
   //    hablan) -> el audio nunca mezcla idiomas = fluidez total.
   //  - immersive=false (voz multilingue Azure activa): puede hablar en espanol e
   //    ingles con naturalidad; una sola voz bilingue lee todo.
+  //  - VOCAB: (pedido real de un alumno, clase de Gramatica): cuando el alumno
+  //    dice "no entiendo esto" o "no se como se dice X porque no tengo el
+  //    vocabulario", la profe suele ensenar palabras nuevas sobre la marcha --
+  //    pero esas palabras se perdian en el chat, sin quedar a la vista. Con
+  //    esta linea, el cliente (features/bymax-session.js) las detecta y las
+  //    agrega SOLAS al panel "Tu guia de clase" (solo en la clase de
+  //    Gramatica; en otras pantallas simplemente no se usa ese panel).
   if (isClass || isConversation) {
     const immersive = body.immersive !== false; // default: inmersion (sin Azure)
+    const vocabRule =
+      `\n- Si le ensenas una palabra o expresion de vocabulario NUEVA que el alumno\n` +
+      `  no sabia, agrega TAMBIEN una linea aparte que empiece EXACTAMENTE con\n` +
+      `  "VOCAB:" con el formato "VOCAB: <palabra en ${targetName}> = <traduccion en espanol>"\n` +
+      `  (maximo 3 lineas VOCAB por turno). Esa linea NO se habla, es un apunte visual.`;
     systemText += immersive
       ? `\n\n[MODO INMERSION - VOZ]\n` +
         `- HABLA (lo que se lee en voz alta) SIEMPRE en ${targetName}, a nivel del alumno.\n` +
         `- Toda explicacion, traduccion, correccion o ayuda en ESPANOL va en lineas\n` +
         `  aparte que empiezan EXACTAMENTE con "TIP:" (el alumno las LEE, no se hablan).\n` +
-        `- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
+        vocabRule +
+        `\n- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
         `  <frase de practica en ${targetName}>\n` +
         `  TIP: <ayuda breve en espanol>\n` +
-        `- NUNCA metas espanol fuera de una linea "TIP:". El cuerpo hablado es 100% ${targetName}.`
+        `  VOCAB: <palabra nueva en ${targetName}> = <traduccion>\n` +
+        `- NUNCA metas espanol fuera de una linea "TIP:"/"VOCAB:". El cuerpo hablado es 100% ${targetName}.`
       : `\n\n[MODO VOZ MULTILINGUE]\n` +
         `- Puedes explicar en espanol y hacer practicar en ${targetName} con naturalidad.\n` +
         `- Si corriges, puedes usar una linea aparte que empiece con "TIP:".\n` +
-        `- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
+        vocabRule +
+        `\n- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
   }
 
   // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`

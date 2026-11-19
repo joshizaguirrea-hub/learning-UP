@@ -37,12 +37,13 @@
   <section class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 sm:p-5 mb-8">
     <h2 class="font-bold text-amber-200">Que arregla este despliegue</h2>
     <p class="mt-1.5 text-sm text-amber-100/90 leading-relaxed">
-      <b>1) El limite diario de IA ahora es POR ALUMNO, no por IP.</b> Antes, un salon de
-      clase entero (misma red/IP) se repartia un solo cupo de 60 peticiones -- el primero
-      en gastarlo dejaba mudos a los demas. Ahora cada alumno logueado tiene su propio cupo.<br>
-      <b>2) "Modo economico" invisible.</b> Al agotar su cupo de pago, el alumno ya NO ve un
-      corte con "vuelve manana": sigue conversando con una IA suplente gratis (Workers AI),
-      sin que se note el cambio. El aviso de limite solo aparece si hasta esa IA gratis falla.
+      <b>1) Vocabulario nuevo visible en vivo.</b> Cuando Megan ensena una palabra que el
+      alumno no sabia, ahora la marca con una linea "VOCAB:" -- el cliente la detecta y la
+      agrega sola a "Tu guia de clase" (panel lateral de Gramatica), sin perderla en el chat.<br>
+      <b>2) Japones: romaji SIEMPRE, no solo en la palabra suelta.</b> Pedido real: "es una
+      lengua muy extrana para el latino, pon como se pronuncia en CADA ejemplo donde haya
+      escritura". Ahora toda oracion de ejemplo en japones trae su romaji al lado, no solo
+      el vocabulario nuevo.
     </p>
   </section>
 
@@ -66,7 +67,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1225 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1256 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -113,7 +114,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1225 lineas &middot; 64.1 KB &middot; commit 44d9bd2 2026-11-18</p>
+        <p class="text-xs text-slate-500">1256 lineas &middot; 66.1 KB &middot; commit 44d9bd2 2026-11-18</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -1074,6 +1075,21 @@ async function handleChat(request, env, origin, economico) {
       `\nNIVEL del alumno (MCER): ${level || &quot;B1&quot;}` +
       `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
       `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
+    // JAPONES: pedido real de un alumno -- &quot;es una lengua muy extrana para el
+    // latino, pon SIEMPRE como se pronuncia en cada ejemplo donde haya
+    // escritura&quot;. El kana/kanji no se lee como el alfabeto latino, asi que
+    // CUALQUIER texto japones (palabra suelta U oracion completa) necesita su
+    // romaji al lado, no solo el vocabulario nuevo.
+    if (targetLang === &quot;ja&quot;) {
+      systemText += `\n\n[JAPONES PARA HISPANOHABLANTES -- REGLA OBLIGATORIA]\n` +
+        `El alumno apenas esta aprendiendo a leer hiragana/katakana. SIEMPRE que ` +
+        `escribas CUALQUIER texto en japones -- una palabra suelta O una oracion ` +
+        `de ejemplo completa -- agrega INMEDIATAMENTE despues, entre parentesis, ` +
+        `su lectura en romaji (letras latinas). Nunca dejes japones sin su romaji.\n` +
+        `Formato exacto:\n` +
+        `  Palabra: \u53cb\u9054 (tomodachi)\n` +
+        `  Oracion: \u5f7c\u306f\u53cb\u9054\u3067\u3059 (Kare wa tomodachi desu)`;
+    }
   }
 
   // EXCEPCION PUNTUAL a la &quot;Regla de oro&quot; del SYSTEM_PROMPT por defecto
@@ -1102,27 +1118,43 @@ async function handleChat(request, env, origin, economico) {
       `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
   }
 
-  // PROTOCOLO SAY/TIP para Clase y Conversacion (voz de UNA sola voz, estilo Lerna):
+  // PROTOCOLO SAY/TIP/VOCAB para Clase y Conversacion (voz de UNA sola voz,
+  // estilo Lerna):
   //  - immersive=true  (voz normal): HABLA solo en INGLES; toda explicacion,
   //    correccion o ayuda en espanol va en lineas &quot;TIP:&quot; que el alumno LEE (no se
   //    hablan) -&gt; el audio nunca mezcla idiomas = fluidez total.
   //  - immersive=false (voz multilingue Azure activa): puede hablar en espanol e
   //    ingles con naturalidad; una sola voz bilingue lee todo.
+  //  - VOCAB: (pedido real de un alumno, clase de Gramatica): cuando el alumno
+  //    dice &quot;no entiendo esto&quot; o &quot;no se como se dice X porque no tengo el
+  //    vocabulario&quot;, la profe suele ensenar palabras nuevas sobre la marcha --
+  //    pero esas palabras se perdian en el chat, sin quedar a la vista. Con
+  //    esta linea, el cliente (features/bymax-session.js) las detecta y las
+  //    agrega SOLAS al panel &quot;Tu guia de clase&quot; (solo en la clase de
+  //    Gramatica; en otras pantallas simplemente no se usa ese panel).
   if (isClass || isConversation) {
     const immersive = body.immersive !== false; // default: inmersion (sin Azure)
+    const vocabRule =
+      `\n- Si le ensenas una palabra o expresion de vocabulario NUEVA que el alumno\n` +
+      `  no sabia, agrega TAMBIEN una linea aparte que empiece EXACTAMENTE con\n` +
+      `  &quot;VOCAB:&quot; con el formato &quot;VOCAB: &lt;palabra en ${targetName}&gt; = &lt;traduccion en espanol&gt;&quot;\n` +
+      `  (maximo 3 lineas VOCAB por turno). Esa linea NO se habla, es un apunte visual.`;
     systemText += immersive
       ? `\n\n[MODO INMERSION - VOZ]\n` +
         `- HABLA (lo que se lee en voz alta) SIEMPRE en ${targetName}, a nivel del alumno.\n` +
         `- Toda explicacion, traduccion, correccion o ayuda en ESPANOL va en lineas\n` +
         `  aparte que empiezan EXACTAMENTE con &quot;TIP:&quot; (el alumno las LEE, no se hablan).\n` +
-        `- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
+        vocabRule +
+        `\n- Ejemplo de formato (adapta el idioma hablado a ${targetName}):\n` +
         `  &lt;frase de practica en ${targetName}&gt;\n` +
         `  TIP: &lt;ayuda breve en espanol&gt;\n` +
-        `- NUNCA metas espanol fuera de una linea &quot;TIP:&quot;. El cuerpo hablado es 100% ${targetName}.`
+        `  VOCAB: &lt;palabra nueva en ${targetName}&gt; = &lt;traduccion&gt;\n` +
+        `- NUNCA metas espanol fuera de una linea &quot;TIP:&quot;/&quot;VOCAB:&quot;. El cuerpo hablado es 100% ${targetName}.`
       : `\n\n[MODO VOZ MULTILINGUE]\n` +
         `- Puedes explicar en espanol y hacer practicar en ${targetName} con naturalidad.\n` +
         `- Si corriges, puedes usar una linea aparte que empiece con &quot;TIP:&quot;.\n` +
-        `- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
+        vocabRule +
+        `\n- Sigue la regla anti-mezcla: no mezcles ambos idiomas dentro de una misma oracion.`;
   }
 
   // MEMORIA DE CONVERSACION: el cliente manda los turnos previos en `history`
@@ -1352,7 +1384,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 18/11/2026 09:01 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 19/11/2026 09:57 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>

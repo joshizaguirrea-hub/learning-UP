@@ -68,6 +68,10 @@ function bubble(text, who, theme) {
  * @param {HTMLElement} [cfg.sidebar] - si viene, la sesion se abre a PANTALLA
  *   COMPLETA con este panel a la derecha (chat a la izquierda) en vez del
  *   modal centrado de siempre. Pensado para features/grammar-sidebar.js.
+ * @param {(term:string, translation?:string) => void} [cfg.onVocabTaught] -
+ *   se llama cada vez que la IA ensena una palabra NUEVA (protocolo "VOCAB:",
+ *   ver worker/bymax-worker.js). Pensado para que features/grammar-sidebar.js
+ *   agregue esa palabra a "Tu guia de clase" en vivo (ver skill-class.js).
  */
 export function openBymaxSession(cfg) {
   const { mode = "conversation", topic = "general", level = "B1" } = cfg || {};
@@ -255,24 +259,30 @@ export function openBymaxSession(cfg) {
   }
 
   /**
-   * Separa la respuesta en lo que se DICE (voz, una sola voz fluida) y lo que
-   * se MUESTRA como ayuda/correccion (lineas que empiezan con "TIP:"). Asi el
-   * audio nunca mezcla idiomas -> fluidez estilo Lerna.
+   * Separa la respuesta en lo que se DICE (voz, una sola voz fluida), lo que
+   * se MUESTRA como ayuda/correccion (lineas "TIP:") y el VOCABULARIO nuevo
+   * que Megan ensena sobre la marcha (lineas "VOCAB: palabra = traduccion",
+   * ver el protocolo en worker/bymax-worker.js). Asi el audio nunca mezcla
+   * idiomas -> fluidez estilo Lerna, y el vocabulario nunca se pierde en el
+   * chat (ver cfg.onVocabTaught, llamado desde pushBot).
    */
   function splitSayTip(text) {
     const say = [];
     const tips = [];
+    const vocabs = [];
     for (const line of String(text).split(/\n/)) {
-      const m = line.match(/^\s*(?:TIP|AYUDA|CORRECCION|CORRECCI\u00D3N)\s*:\s*(.*)$/i);
-      if (m) { if (m[1].trim()) tips.push(m[1].trim()); }
+      const mTip = line.match(/^\s*(?:TIP|AYUDA|CORRECCION|CORRECCI\u00D3N)\s*:\s*(.*)$/i);
+      const mVocab = line.match(/^\s*VOCAB\s*:\s*(.+?)\s*=\s*(.*)$/i);
+      if (mVocab) { if (mVocab[1].trim()) vocabs.push({ term: mVocab[1].trim(), translation: mVocab[2].trim() }); }
+      else if (mTip) { if (mTip[1].trim()) tips.push(mTip[1].trim()); }
       else if (line.trim()) say.push(line.trim());
     }
-    return { say: say.join("\n"), tips };
+    return { say: say.join("\n"), tips, vocabs };
   }
 
   /** Muestra la respuesta del bot con boton de audio (voz de una sola voz). */
   function pushBot(text) {
-    const { say, tips } = splitSayTip(text);
+    const { say, tips, vocabs } = splitSayTip(text);
     const speakText = say || text;
 
     // MODO LISTENING (videollamada): sin texto, solo indicador de audio + repetir.
@@ -310,6 +320,18 @@ export function openBymaxSession(cfg) {
           theme.tipBox },
           el("span", { class: "shrink-0 font-black text-[10px] tracking-widest mt-0.5" }, "TIP"),
           el("span", {}, tip))));
+    }
+    // Vocabulario NUEVO (pedido real: "agrega al lado derecho el vocabulario
+    // que vayamos a dar en la clase"). Se ve en el chat como un TIP (no se
+    // habla) Y, si la sesion tiene panel lateral (Gramatica), se agrega ahi
+    // tambien via cfg.onVocabTaught -- asi queda a mano aunque se suba el chat.
+    for (const v of vocabs) {
+      log.append(el("div", { class: "flex justify-start" },
+        el("div", { class: "max-w-[85%] rounded-xl px-3 py-2 text-xs leading-relaxed flex items-start gap-2 " +
+          "bg-emerald-500/10 border border-emerald-500/30 text-emerald-200" },
+          el("span", { class: "shrink-0 font-black text-[10px] tracking-widest mt-0.5" }, "VOCAB"),
+          el("span", {}, v.translation ? `${v.term} = ${v.translation}` : v.term))));
+      try { cfg?.onVocabTaught?.(v.term, v.translation); } catch (e) { console.error(e); }
     }
     log.scrollTop = log.scrollHeight;
     // speakSmart: una sola voz fluida (multilingue Azure si esta activa, o mono).

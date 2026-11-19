@@ -10,9 +10,18 @@
  * features/bonus.js) -- en vez de que el alumno tenga que recordarlos solo
  * por lo que Megan dijo en el chat.
  *
- * Logica de PRESENTACION pura: arma DOM a partir de datos que YA existen en
- * la leccion/unidad (lesson.grammar, data/topic-verb-decks.js). No llama a la
- * IA ni hace red -- es una referencia ESTATICA junto a un chat que si es vivo.
+ * SEGUNDO PEDIDO (real, de un alumno en vivo): "le digo al profe que no
+ * entiendo esto, o no se como se dice por que no tengo el vocabulario -- que
+ * agregues al lado derecho el vocabulario que vayamos a dar en la clase".
+ * Las palabras NUEVAS que Megan ensena sobre la marcha (no las de la unidad,
+ * que ya estan arriba) tambien se acumulan aqui, en vivo -- ver `addVocab()`
+ * mas abajo y el protocolo "VOCAB:" en worker/bymax-worker.js +
+ * features/bymax-session.js (quien lo detecta y llama a `addVocab`).
+ *
+ * Logica de PRESENTACION: la parte ESTATICA (enfoque/ejemplos/errores/verbos)
+ * sale de datos que YA existen (lesson.grammar, data/topic-verb-decks.js); la
+ * parte DINAMICA (vocabulario en vivo) crece mientras dura la clase. No llama
+ * a la IA ni hace red por si misma.
  */
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
@@ -58,20 +67,57 @@ function verbChip(item) {
     forms ? el("p", { class: "text-xs text-slate-400 mt-0.5" }, forms) : null);
 }
 
+/** Chip de una palabra NUEVA ensenada en vivo (distinto del verde de "done",
+ * para distinguirla de las tarjetas estaticas de arriba). */
+function liveVocabChip(term, translation, lang) {
+  return el("div", { class: "flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 p-2.5" },
+    speakButton(stripMarkup(term), { lang }),
+    el("div", { class: "min-w-0" },
+      el("p", { class: "font-semibold text-emerald-200 text-sm truncate" }, term),
+      translation ? el("p", { class: "text-xs text-slate-400 truncate" }, translation) : null));
+}
+
 /**
  * Arma el panel lateral de la clase de Gramatica.
  * @param {object} unit - unidad del curso (para los verbos del tema, ver
  *   data/topic-verb-decks.js)
  * @param {object} lesson - la leccion de gramatica (usa lesson.grammar)
- * @returns {HTMLElement}
+ * @returns {{node: HTMLElement, addVocab: (term:string, translation?:string) => void}}
+ *   `node` va directo a cfg.sidebar (ver features/skill-class.js); `addVocab`
+ *   lo llama bymax-session.js cada vez que Megan ensena una palabra nueva
+ *   (protocolo "VOCAB:", ver worker/bymax-worker.js).
  */
 export function buildGrammarSidebar(unit, lesson) {
   const g = lesson?.grammar || {};
   const lang = unit?.language || "en";
   const deck = unit && topicVerbDeckFor(unit.id);
 
+  // Seccion DINAMICA (vocabulario en vivo): arranca vacia/oculta -- no tiene
+  // sentido mostrar una tarjeta "Vocabulario de la clase" en blanco antes de
+  // que Megan ensene su primera palabra nueva.
+  const liveVocabList = el("div", { class: "space-y-2" });
+  const liveVocabSection = el("section", {
+    class: "hidden rounded-2xl bg-slate-900 border border-emerald-500/25 shadow-lg p-4",
+  },
+    el("div", { class: "flex items-center gap-2 mb-1" },
+      el("span", { class: "w-5 h-5 text-emerald-300 shrink-0", html: ICONS.bulb }),
+      el("p", { class: "text-sm font-bold uppercase tracking-wide text-emerald-300" }, "Vocabulario de la clase")),
+    el("p", { class: "text-xs text-slate-500 mb-3" }, "Las palabras nuevas que Megan te explique van apareciendo aqui."),
+    liveVocabList);
+
+  /** Agrega una palabra nueva (la mas reciente, arriba) y muestra la tarjeta
+   * si era la primera. Ignora llamadas sin palabra (defensivo). */
+  function addVocab(term, translation) {
+    const t = String(term || "").trim();
+    if (!t) return;
+    liveVocabSection.classList.remove("hidden");
+    liveVocabList.prepend(liveVocabChip(t, String(translation || "").trim(), lang));
+  }
+
   const sections = [
     el("p", { class: "text-xs uppercase tracking-widest text-slate-500 px-1" }, "Tu guia de clase"),
+
+    liveVocabSection,
 
     card("Enfoque de la clase", ICONS.grid,
       g.title ? el("p", { class: "font-bold text-slate-100" }, g.title) : null,
@@ -97,5 +143,5 @@ export function buildGrammarSidebar(unit, lesson) {
       : null,
   ].filter(Boolean);
 
-  return el("div", { class: "flex flex-col gap-4" }, ...sections);
+  return { node: el("div", { class: "flex flex-col gap-4" }, ...sections), addVocab };
 }
