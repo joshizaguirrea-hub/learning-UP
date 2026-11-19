@@ -4,30 +4,38 @@
  * features/bymax-session.js, que lo pinta al lado del chat via cfg.sidebar).
  *
  * POR QUE: Joshua pidio que, al dar la clase de Gramatica, el ENFOQUE de la
- * clase (la regla que Megan esta ensenando), sus ejemplos/errores comunes, y
- * los VERBOS del tema de la unidad queden siempre a la vista -- con el mismo
- * lenguaje visual de tarjetas que ya usa el mazo de verbos (ui/example-card.js,
+ * clase (la regla que Megan esta ensenando) y los VERBOS del tema de la
+ * unidad queden siempre a la vista -- con el mismo lenguaje visual de
+ * tarjetas que ya usa el mazo de verbos (ui/example-card.js,
  * features/bonus.js) -- en vez de que el alumno tenga que recordarlos solo
  * por lo que Megan dijo en el chat.
  *
  * SEGUNDO PEDIDO (real, de un alumno en vivo): "le digo al profe que no
  * entiendo esto, o no se como se dice por que no tengo el vocabulario -- que
  * agregues al lado derecho el vocabulario que vayamos a dar en la clase".
- * Las palabras NUEVAS que Megan ensena sobre la marcha (no las de la unidad,
- * que ya estan arriba) tambien se acumulan aqui, en vivo -- ver `addVocab()`
- * mas abajo y el protocolo "VOCAB:" en worker/bymax-worker.js +
- * features/bymax-session.js (quien lo detecta y llama a `addVocab`).
+ * Dos fuentes de vocabulario conviven aqui:
+ *   1. El vocabulario DE LA UNIDAD (estatico, ya autorado -- lo que "se va a
+ *      dar en la clase"), via unitVocabulary() de core/unit-language.js.
+ *   2. El vocabulario EN VIVO que Megan ensena sobre la marcha, cuando el
+ *      alumno dice "no entiendo esto" -- ver `addVocab()` mas abajo y el
+ *      protocolo "VOCAB:" en worker/bymax-worker.js + bymax-session.js.
  *
- * Logica de PRESENTACION: la parte ESTATICA (enfoque/ejemplos/errores/verbos)
- * sale de datos que YA existen (lesson.grammar, data/topic-verb-decks.js); la
- * parte DINAMICA (vocabulario en vivo) crece mientras dura la clase. No llama
- * a la IA ni hace red por si misma.
+ * TERCER PEDIDO (ajuste, mismo alumno): "no tanto los errores comunes, eso
+ * se puede preguntar" -- se quito esa tarjeta a proposito. Si el alumno la
+ * necesita, se la pide a Megan por chat; no hace falta tenerla precargada
+ * ocupando espacio que mejor se usa en vocabulario.
+ *
+ * Logica de PRESENTACION: la parte ESTATICA (vocab de la unidad, enfoque,
+ * ejemplos, verbos) sale de datos que YA existen; la parte DINAMICA
+ * (vocabulario en vivo) crece mientras dura la clase. No llama a la IA ni
+ * hace red por si misma.
  */
 import { el } from "../ui/dom.js";
 import { ICONS } from "../ui/icons.js";
 import { richText, stripMarkup } from "../ui/richtext.js";
 import { speakButton } from "../ui/speech.js";
 import { topicVerbDeckFor } from "../data/topic-verb-decks.js";
+import { unitVocabulary } from "../core/unit-language.js";
 
 /** Tarjeta contenedora: mismo lenguaje visual (sombra + borde indigo) que el
  * resto del reskin de Gramatica (ver ui/session-theme.js, tema "grammar"). */
@@ -49,14 +57,14 @@ function exampleLine(text, lang) {
     el("p", { class: "text-sm text-slate-100 leading-relaxed" }, richText(text)));
 }
 
-/** Un error comun: lo incorrecto tachado -> lo correcto en verde (mismo
- * lenguaje visual que features/notebook.js:errorCard). */
-function mistakeLine(m) {
-  if (!m?.wrong || !m?.right) return null;
-  return el("div", { class: "rounded-lg bg-rose-500/5 border border-rose-500/20 p-2.5 text-sm" },
-    el("span", { class: "line-through text-rose-300" }, m.wrong),
-    el("span", { class: "mx-2 text-slate-500" }, "\u2192"),
-    el("span", { class: "text-emerald-300 font-semibold" }, m.right));
+/** Chip de una palabra del vocabulario DE LA UNIDAD (estatico -- lo que "se
+ * va a dar en la clase"). Mismo molde visual que verbChip. */
+function unitVocabChip(term, translation, lang) {
+  return el("div", { class: "flex items-center gap-2 rounded-lg bg-slate-800/60 border border-slate-700 p-2.5" },
+    speakButton(stripMarkup(term), { lang }),
+    el("div", { class: "min-w-0" },
+      el("p", { class: "font-semibold text-slate-100 text-sm truncate" }, term),
+      translation ? el("p", { class: "text-xs text-slate-400 truncate" }, translation) : null));
 }
 
 /** Chip de un verbo del tema: base -> pasado / participio. */
@@ -119,6 +127,15 @@ export function buildGrammarSidebar(unit, lesson) {
 
     liveVocabSection,
 
+    (() => {
+      const vocab = unitVocabulary(unit).slice(0, 14); // tope: que no sea una pared de chips
+      return vocab.length
+        ? card("Vocabulario de la unidad", ICONS.book,
+            el("p", { class: "text-xs text-slate-400 -mt-1 mb-1" }, "Lo que vamos a usar en esta clase."),
+            el("div", { class: "grid grid-cols-1 gap-2" }, ...vocab.map((v) => unitVocabChip(v.term, v.translation, lang))))
+        : null;
+    })(),
+
     card("Enfoque de la clase", ICONS.grid,
       g.title ? el("p", { class: "font-bold text-slate-100" }, g.title) : null,
       g.rule ? el("p", { class: "mt-1.5 text-sm text-slate-300 leading-relaxed" }, richText(g.rule)) : null,
@@ -129,11 +146,6 @@ export function buildGrammarSidebar(unit, lesson) {
     (g.examples || []).length
       ? card("Ejemplos de la regla", ICONS.book,
           el("div", { class: "space-y-2" }, ...g.examples.map((ex) => exampleLine(ex, lang))))
-      : null,
-
-    (g.mistakes || []).length
-      ? card("Errores comunes a evitar", ICONS.bulb,
-          el("div", { class: "space-y-2" }, ...g.mistakes.map(mistakeLine).filter(Boolean)))
       : null,
 
     deck?.items?.length
