@@ -22,12 +22,12 @@ const svg = (path) =>
  * Si falta un idioma o una clave, cae a ingles (ver skillLabel).
  */
 const SKILL_LABELS = {
-  en: { grammar: "Grammar", vocabulary: "Vocabulary", reading: "Reading", listening: "Listening", writing: "Writing", speaking: "Speaking" },
-  es: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Lectura", listening: "Escucha", writing: "Escritura", speaking: "Habla" },
-  pt: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Leitura", listening: "Escuta", writing: "Escrita", speaking: "Fala" },
-  it: { grammar: "Grammatica", vocabulary: "Lessico", reading: "Lettura", listening: "Ascolto", writing: "Scrittura", speaking: "Parlato" },
-  fr: { grammar: "Grammaire", vocabulary: "Lexique", reading: "Lecture", listening: "Ecoute", writing: "Ecriture", speaking: "Oral" },
-  ja: { grammar: "\u6587\u6cd5", vocabulary: "\u5358\u8a9e", reading: "\u8aad\u89e3", listening: "\u8074\u89e3", writing: "\u4f5c\u6587", speaking: "\u4f1a\u8a71" },
+  en: { grammar: "Grammar", vocabulary: "Vocabulary", reading: "Reading", listening: "Listening", writing: "Writing", speaking: "Speaking", literature: "Literature" },
+  es: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Lectura", listening: "Escucha", writing: "Escritura", speaking: "Habla", literature: "Literatura" },
+  pt: { grammar: "Gramatica", vocabulary: "Vocabulario", reading: "Leitura", listening: "Escuta", writing: "Escrita", speaking: "Fala", literature: "Literatura" },
+  it: { grammar: "Grammatica", vocabulary: "Lessico", reading: "Lettura", listening: "Ascolto", writing: "Scrittura", speaking: "Parlato", literature: "Letteratura" },
+  fr: { grammar: "Grammaire", vocabulary: "Lexique", reading: "Lecture", listening: "Ecoute", writing: "Ecriture", speaking: "Oral", literature: "Litterature" },
+  ja: { grammar: "\u6587\u6cd5", vocabulary: "\u5358\u8a9e", reading: "\u8aad\u89e3", listening: "\u8074\u89e3", writing: "\u4f5c\u6587", speaking: "\u4f1a\u8a71", literature: "\u6587\u5b66" },
 };
 
 /**
@@ -76,5 +76,16 @@ export const SKILL_META = {
     subtitle: "Conversacion",
     gradient: "from-purple-500 to-fuchsia-800",
     icon: svg('<path d="M21 12a8 8 0 01-11.9 7L3 21l1.9-6.1A8 8 0 1121 12z"/><path d="M8 12h.01M12 12h.01M16 12h.01"/>'),
+  },
+  // Competencia de ANALISIS literario (examen de ubicacion + metas 'Cultura' en
+  // core/study-plan.js). Antes NO vivia aqui -> features/competency.js explotaba
+  // con 'Competencia no encontrada' en cuanto el plan recomendaba empezar por
+  // ella (meta 'Cultura/entretenimiento'). Ningun lesson.skills la usa todavia,
+  // asi que su pantalla cae en 'proximamente' (ver comingSoon en competency.js).
+  literature: {
+    label: "Literature",
+    subtitle: "Analisis e interpretacion de textos",
+    gradient: "from-violet-500 to-purple-800",
+    icon: svg('<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>'),
   },
 };

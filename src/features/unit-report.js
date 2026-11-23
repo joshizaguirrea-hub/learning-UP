@@ -17,9 +17,9 @@ import {
   scoreRing, areaCard, scorePill, sectionCard, vocabChipsCard, errorsCard, tabsView,
 } from "./feedback-dashboard.js";
 
-// Etiqueta + gradiente por competencia (literature no esta en SKILL_META).
-const LIT = { label: "Literatura", gradient: "from-violet-500 to-purple-700" };
-const metaFor = (id) => SKILL_META[id] || (id === "literature" ? LIT : { label: id, gradient: "from-slate-500 to-slate-700" });
+// 'literature' ya vive en SKILL_META (ver data/skill-meta.js); este fallback
+// generico solo cubre un id realmente desconocido (defensivo, no deberia pasar).
+const metaFor = (id) => SKILL_META[id] || { label: id, gradient: "from-slate-500 to-slate-700" };
 
 const TIPS = {
   grammar: "Repasa la estructura y practica tus errores t\u00edpicos abajo.",
