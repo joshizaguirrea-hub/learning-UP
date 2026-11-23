@@ -186,6 +186,31 @@ Nadie junta en un solo lugar y gratis:
   compartida (esto casi nadie lo hace bien), +
 - Gratis primero, pago solo para profesores/certificado.
 
-> Posicionamiento: "un tutor completo + Anki + Busuu + profesores humanos, en uno".
+Posicionamiento: "un tutor completo + Anki + Busuu + profesores humanos, en uno".
 
 _Ultima actualizacion (v2): 2026-07-06 · Autor: Horus_
+
+## 13. Idiomas sin alfabeto latino (japones): dos caminos en paralelo
+
+**Problema:** el metodo de arriba (secciones 1-12) asume que el alumno YA
+conoce el alfabeto del idioma meta -- cierto para ingles/portugues/italiano/
+frances, falso para japones (hiragana, katakana, kanji son un obstaculo
+PREVIO e independiente de aprender a hablar).
+
+**Decision (ADR-008, `docs/DECISIONS.md`):** separar en dos caminos que
+avanzan en paralelo, a ritmos distintos:
+
+- **Camino 1 - Habla y Vocabulario:** las unidades tematicas de siempre
+  (secciones 1-12 sin cambios de fondo), pero el contenido japones se
+  presenta en **ROMAJI primero** (grande, se lee de inmediato) con el kana
+  original chiquito al lado como referencia pasiva -- ver `ui/bilingual-term.js`.
+- **Camino 2 - Escritura:** un segmento INDEPENDIENTE (`features/kana-lab.js`,
+  ruta `/escritura`) que ensena a leer/escribir kana de verdad, a su propio
+  ritmo, reusando el mismo motor de SRS (`services/srs.js`) que el
+  vocabulario -- un caracter es, ni mas ni menos, una tarjeta mas que
+  recordar. Plan completo de escalamiento (hiragana -> katakana -> trazos ->
+  kanji N5) en `docs/ROADMAP-JAPONES.md`.
+
+Este patron (presentacion adaptada al alumno + escritura como segmento
+aparte) se evalua para cualquier futuro idioma sin alfabeto latino (coreano,
+arabe, mandarin...).

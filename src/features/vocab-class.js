@@ -31,6 +31,7 @@ import { askBymax } from "../services/bymax-ai.js";
 import { bymaxAiEnabled } from "../config/bymax.js";
 import { stripMd, parseDeepenAnswer, parseExampleItems, highlightFirstMatch, expandVerbForms } from "../core/ai-deepen.js";
 import { exampleCard } from "../ui/example-card.js";
+import { termDisplay, speakSource } from "../ui/bilingual-term.js";
 
 // Nombre en espanol del idioma META (L1) para la copia de la intro.
 const L1_LANG = { en: "ingles", pt: "portugues", it: "italiano", fr: "frances", ja: "japones", es: "espanol" };
@@ -220,6 +221,7 @@ const GREETING = {
   pt: (n, c) => `Oi! Eu sou ${n}. Vamos aprender ${c} palavras novas juntos. Ouca e repita!`,
   it: (n, c) => `Ciao! Sono ${n}. Impariamo ${c} parole nuove insieme. Ascolta e ripeti!`,
   fr: (n, c) => `Salut! Je suis ${n}. Apprenons ${c} nouveaux mots ensemble. Ecoute et repete!`,
+  ja: (n, c) => `\u306f\u3058\u3081\u307e\u3057\u3066\uff01${n}\u3067\u3059\u3002\u4e00\u7dd2\u306b${c}\u3064\u306e\u65b0\u3057\u3044\u8a00\u8449\u3092\u5b66\u3073\u307e\u3057\u3087\u3046\u3002\u8074\u3044\u3066\u307e\u306d\u3057\u3066\u304f\u3060\u3055\u3044\uff01`,
 };
 
 /**
@@ -246,7 +248,7 @@ export function openVocabClass(unit, opts = {}) {
 
   function say(text, rate) {
     stopVoice();
-    cancelSay = speakMono(text, tts, { rate });
+    cancelSay = speakMono(speakSource(text, unit.language), tts, { rate });
   }
 
   // Al terminar la clase: cierra este POP y abre la ESCALERA de practica.
@@ -367,7 +369,8 @@ export function openVocabClass(unit, opts = {}) {
         el("div", { class: "absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/15 blur-2xl", "aria-hidden": "true" }),
         el("div", { class: "absolute -bottom-12 -left-8 w-32 h-32 rounded-full bg-white/10 blur-2xl", "aria-hidden": "true" }),
         el("div", { class: "relative" },
-          el("p", { class: "text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" }, w.clean),
+          el("p", { class: "text-4xl sm:text-5xl font-black text-white tracking-tight drop-shadow" },
+            termDisplay(w.clean, unit.language, { secondarySize: "text-lg sm:text-xl text-white/70 font-semibold" })),
           el("p", { class: "mt-1 text-xl sm:text-2xl text-white/95 font-semibold" }, w.translation)),
         el("div", { class: "relative flex flex-wrap gap-2 justify-center" },
           btn("Escuchar", ICONS.sound,
@@ -387,7 +390,7 @@ export function openVocabClass(unit, opts = {}) {
           content: bookCols(
             w.example ? el("div", { class: "rounded-2xl bg-sky-500/10 border border-sky-400/30 p-5" },
               el("p", { class: "text-sm font-bold uppercase tracking-wide text-sky-300 mb-1" }, "Ejemplo"),
-              el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c" + w.example + "\u201d"),
+              el("p", { class: "text-xl text-slate-100 italic leading-relaxed" }, "\u201c", termDisplay(w.example, unit.language), "\u201d"),
               el("div", { class: "mt-2" },
                 btn("Escuchar ejemplo", ICONS.sound,
                   "text-base border border-sky-400/30 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20", () => say(w.example, 0.9)))) : null,

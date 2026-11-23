@@ -53,7 +53,7 @@ export async function renderStudent(container, user) {
     el("h1", { class: "sr-only" }, `Inicio de ${firstName(name)}`),
     profileCard(name, profile, xp, srs.learned, lessonsDone),
     coachCard(user, name, units, progressMap, profile.cefr_level),
-    hubGrid(profile, pct)));
+    hubGrid(profile, pct, currentLangCode())));
   focusMainHeading(container);
 }
 
@@ -99,8 +99,13 @@ function miniStat(value, label, color) {
 // --------------------------------------------------------------------------
 // Las 3 puertas grandes
 // --------------------------------------------------------------------------
-function hubGrid(profile, pct) {
-  return el("section", { class: "grid grid-cols-3 gap-2 sm:gap-5 lg:gap-6" },
+function hubGrid(profile, pct, lang) {
+  // La "4ta puerta" de Escritura SOLO aparece estudiando japones -- el resto
+  // de idiomas usa alfabeto latino y no la necesita (ver docs/ROADMAP-JAPONES.md).
+  // Se respeta el diseno de "menos ruido": solo crece la grilla cuando de
+  // verdad hace falta, no se le agrega una puerta vacia a todos los idiomas.
+  const isJa = lang === "ja";
+  return el("section", { class: "grid grid-cols-3 " + (isJa ? "sm:grid-cols-4" : "") + " gap-2 sm:gap-5 lg:gap-6" },
     hubCard({
       href: "#/curso", grad: accentGrad("brand"), icon: ICONS.book,
       title: "Tu curso", subtitle: "Unidades, lecciones y bonos",
@@ -114,7 +119,11 @@ function hubGrid(profile, pct) {
     hubCard({
       href: "#/trabajo", grad: "from-emerald-500 via-teal-600 to-teal-800", icon: ICONS.briefcase,
       title: "Prepara tu entrevista", subtitle: "Simulacro con IA + CV Coach", badge: "TOP",
-    }));
+    }),
+    isJa ? hubCard({
+      href: "#/escritura", grad: "from-rose-500 via-pink-600 to-pink-800", icon: ICONS.book,
+      title: "Escritura japonesa", subtitle: "Aprende hiragana a tu ritmo",
+    }) : null);
 }
 
 // Accesos secundarios (Plan, Profesores, Agenda, Chat) ahora viven en el menu

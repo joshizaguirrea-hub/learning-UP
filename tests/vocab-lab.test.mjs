@@ -107,4 +107,26 @@ test("vocabTeachList descarta vocab sin term/translation y tolera unit vacio", (
   assert.deepEqual(vocabTeachList(null), []);
 });
 
+const JA_UNIT = {
+  id: "ja1", language: "ja",
+  vocab: [
+    { id: "j1", term: "\u3053\u3093\u306b\u3061\u306f (Konnichiwa)", translation: "hola", example: "\u3053\u3093\u306b\u3061\u306f\u3002(Konnichiwa.)" },
+    { id: "j2", term: "\u3055\u3088\u3046\u306a\u3089 (Sayonara)", translation: "adios" },
+    { id: "j3", term: "\u3042\u308a\u304c\u3068\u3046 (Arigatou)", translation: "gracias" },
+  ],
+};
+
+test("vocabTeachList NO le quita el romaji al japones (lo necesita la UI bilingue)", () => {
+  const list = vocabTeachList(JA_UNIT);
+  assert.equal(list[0].clean, "\u3053\u3093\u306b\u3061\u306f (Konnichiwa)");
+});
+
+test("buildVocabLadder en japones: solo reconocer/audio, nunca 'type' (teclado latino)", () => {
+  const deck = buildVocabLadder(JA_UNIT, { max: 100 });
+  assert.ok(deck.length > 0);
+  assert.ok(deck.every((d) => d.kind === "choose" || d.kind === "audio"));
+  // el 'say' (lo que se oye) es el KANA puro, nunca el romaji pegado.
+  for (const ex of deck) assert.ok(!ex.say.includes("("));
+});
+
 console.log(`\n${passed} pruebas en verde.`);

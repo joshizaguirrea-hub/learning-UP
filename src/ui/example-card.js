@@ -18,7 +18,7 @@
  */
 import { el } from "./dom.js";
 import { speakButton } from "./speech.js";
-import { richText, stripMarkup } from "./richtext.js";
+import { termDisplay, speakSource } from "./bilingual-term.js";
 
 // Colores por rol gramatical. Se detecta por palabra clave en el label (en
 // espanol, como lo pide el prompt) -- si no matchea ninguno, usa gris neutro.
@@ -54,8 +54,8 @@ function structureChips(structure) {
 export function exampleCard({ phrase, translation, structure, rule }, lang) {
   return el("div", { class: "rounded-lg bg-slate-900/50 border border-slate-700/60 p-3" },
     el("div", { class: "flex items-center gap-2" },
-      speakButton(stripMarkup(phrase), { lang }),
-      el("p", { class: "text-lg text-slate-100" }, richText(phrase))),
+      speakButton(speakSource(phrase, lang), { lang }),
+      el("p", { class: "text-lg text-slate-100" }, termDisplay(phrase, lang))),
     translation ? el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, translation) : null,
     structureChips(structure),
     rule ? el("p", { class: "mt-1.5 pl-9 text-xs text-violet-300 italic" }, "\uD83D\uDCA1 " + rule) : null);

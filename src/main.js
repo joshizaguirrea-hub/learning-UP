@@ -33,6 +33,7 @@ import { renderProfile } from "./features/profile.js";
 import { renderProfileEdit } from "./features/profile-edit.js";
 import { renderBonus, renderBonusDeck } from "./features/bonus.js";
 import { renderSpeakingCoach } from "./features/speaking-coach.js";
+import { renderKanaLab } from "./features/kana-lab.js";
 import { on, onNotFound, startRouter, go, currentPath } from "./ui/router.js";
 import { el, mount, qs } from "./ui/dom.js";
 import { renderBottomNav, setNavVisible, renderLangSelector } from "./ui/nav.js";
@@ -118,6 +119,7 @@ function setupRoutes() {
   on("/bonus/:id", (params) => requireAuth((u) => renderBonusDeck(app, params, u)));
   on("/pasaporte", () => requireAuth((u) => renderPassport(app, u)));
   on("/coach", () => requireAuth((u) => renderSpeakingCoach(app, u)));
+  on("/escritura", () => requireAuth((u) => renderKanaLab(app, u)));
   onNotFound(renderHome);
 }
 

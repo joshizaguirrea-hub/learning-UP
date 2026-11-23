@@ -15,6 +15,8 @@
  * la dificultad escale pero las palabras se INTERCALEN (desirable difficulty).
  */
 import { normalize } from "./activities.js";
+import { splitJa } from "./ja-script.js";
+import { languageName } from "../data/languages.js";
 
 /** Forma limpia de un termino: sin "to " inicial ni parentesis. */
 export function cleanTerm(term) {
@@ -96,6 +98,9 @@ export function confusable(term, pool) {
 export function buildVocabLadder(unit, opts = {}) {
   const maxWords = opts.maxWords || 6;
   const max = opts.max || 16;
+  const lang = unit?.language || "en";
+  const isJa = lang === "ja";
+  const langName = languageName(lang);
   const vocab = (unit?.vocab || []).filter((v) => v.term && v.translation);
   const words = vocab.slice(0, maxWords);
   const translations = vocab.map((v) => v.translation).filter(Boolean);
@@ -116,10 +121,15 @@ export function buildVocabLadder(unit, opts = {}) {
   const rounds = { recognize: [], cue: [], collocation: [], produce: [], audio: [] };
 
   for (const v of words) {
-    const clean = cleanTerm(v.term);
-    const say = clean;
+    // Japones: "clean" es el ROMAJI (se lee/pronuncia de inmediato, pedido de
+    // Joshua), "say" es el KANA real (lo que de verdad suena -- nunca el
+    // romaji, ver core/ja-script.js). Los demas idiomas quedan IGUAL que antes.
+    const parsed = isJa ? splitJa(v.term) : null;
+    const clean = isJa ? (parsed.romaji || parsed.jp) : cleanTerm(v.term);
+    const say = isJa ? parsed.jp : clean;
 
-    // 1) reconocer: ves la palabra -> eliges significado (en->es)
+    // 1) reconocer: ves la palabra -> eliges significado (vale para CUALQUIER
+    // idioma, incluido japones -- es opcion multiple, no requiere teclado).
     const dTr = pickDistractors(translations, v.translation, 2);
     if (dTr.length === 2) {
       rounds.recognize.push({
@@ -129,10 +139,29 @@ export function buildVocabLadder(unit, opts = {}) {
       });
     }
 
+    if (isJa) {
+      // JAPONES: nada de niveles de TECLADO (pista/colocacion/produccion) --
+      // asumen alfabeto latino ("primera letra", deletreo por edit-distance
+      // en romaji) y no tienen sentido para un silabario; el alumno aun no
+      // escribe kana (eso vive en su propio segmento, features/kana-lab.js).
+      // Solo reconocer (arriba) + trampa auditiva, que valen para cualquier
+      // escritura porque son opcion multiple.
+      const conf = confusable(v.term, terms);
+      if (conf) {
+        const confParsed = splitJa(conf);
+        rounds.audio.push({
+          level: 5, kind: "audio", vocabId: v.id, say,
+          q: "\u00bfQu\u00e9 palabra escuchaste?",
+          options: [{ text: clean, correct: true }, { text: confParsed.romaji || confParsed.jp, correct: false }],
+        });
+      }
+      continue;
+    }
+
     // 2) pista: traduccion + inicial -> escribe la palabra
     rounds.cue.push({
       level: 2, kind: "type", vocabId: v.id, say,
-      q: 'Escribe en ingl\u00e9s: "' + v.translation + '"',
+      q: "Escribe en " + langName + ': "' + v.translation + '"',
       hint: firstHint(v.term), accepts: acceptsFor(v.term), answer: clean,
     });
 
@@ -149,7 +178,7 @@ export function buildVocabLadder(unit, opts = {}) {
     // 4) produccion: solo la traduccion -> escribe la palabra (sin pista)
     rounds.produce.push({
       level: 4, kind: "type", vocabId: v.id, say,
-      q: 'Producci\u00f3n: di "' + v.translation + '" en ingl\u00e9s (sin pista)',
+      q: 'Producci\u00f3n: di "' + v.translation + '" en ' + langName + " (sin pista)",
       accepts: acceptsFor(v.term), answer: clean,
     });
 
@@ -179,13 +208,17 @@ export function buildVocabLadder(unit, opts = {}) {
  */
 export function vocabTeachList(unit, opts = {}) {
   const max = opts.max || 8;
+  const isJa = (unit?.language || "en") === "ja";
   return (unit?.vocab || [])
     .filter((v) => v.term && v.translation)
     .slice(0, max)
     .map((v) => ({
       id: v.id,
       term: v.term,
-      clean: cleanTerm(v.term),
+      // Japones: NO se le quita el romaji (cleanTerm lo descartaria) -- la UI
+      // (ver ui/bilingual-term.js) lo necesita entero para pintar romaji
+      // grande + kana chiquito al lado. Los demas idiomas, igual que siempre.
+      clean: isJa ? v.term : cleanTerm(v.term),
       translation: v.translation,
       example: v.example || "",
     }));

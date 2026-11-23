@@ -36,6 +36,7 @@ import { richText, stripMarkup } from "../ui/richtext.js";
 import { speakButton } from "../ui/speech.js";
 import { topicVerbDeckFor } from "../data/topic-verb-decks.js";
 import { unitVocabulary } from "../core/unit-language.js";
+import { termDisplay, speakSource } from "../ui/bilingual-term.js";
 
 /** Tarjeta contenedora: mismo lenguaje visual (sombra + borde indigo) que el
  * resto del reskin de Gramatica (ver ui/session-theme.js, tema "grammar"). */
@@ -53,17 +54,17 @@ function card(titleText, icon, ...children) {
  * ya usado en grammar.examples de las unidades (ver data/units/work-career-b1.js). */
 function exampleLine(text, lang) {
   return el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700/60 p-3 flex items-start gap-2" },
-    speakButton(stripMarkup(text), { lang }),
-    el("p", { class: "text-sm text-slate-100 leading-relaxed" }, richText(text)));
+    speakButton(speakSource(text, lang), { lang }),
+    el("p", { class: "text-sm text-slate-100 leading-relaxed" }, termDisplay(text, lang)));
 }
 
 /** Chip de una palabra del vocabulario DE LA UNIDAD (estatico -- lo que "se
  * va a dar en la clase"). Mismo molde visual que verbChip. */
 function unitVocabChip(term, translation, lang) {
   return el("div", { class: "flex items-center gap-2 rounded-lg bg-slate-800/60 border border-slate-700 p-2.5" },
-    speakButton(stripMarkup(term), { lang }),
+    speakButton(speakSource(term, lang), { lang }),
     el("div", { class: "min-w-0" },
-      el("p", { class: "font-semibold text-slate-100 text-sm truncate" }, term),
+      el("p", { class: "font-semibold text-slate-100 text-sm truncate" }, termDisplay(term, lang)),
       translation ? el("p", { class: "text-xs text-slate-400 truncate" }, translation) : null));
 }
 
@@ -79,9 +80,9 @@ function verbChip(item) {
  * para distinguirla de las tarjetas estaticas de arriba). */
 function liveVocabChip(term, translation, lang) {
   return el("div", { class: "flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/25 p-2.5" },
-    speakButton(stripMarkup(term), { lang }),
+    speakButton(speakSource(term, lang), { lang }),
     el("div", { class: "min-w-0" },
-      el("p", { class: "font-semibold text-emerald-200 text-sm truncate" }, term),
+      el("p", { class: "font-semibold text-emerald-200 text-sm truncate" }, termDisplay(term, lang)),
       translation ? el("p", { class: "text-xs text-slate-400 truncate" }, translation) : null));
 }
 
