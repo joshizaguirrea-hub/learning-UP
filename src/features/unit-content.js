@@ -27,6 +27,7 @@ import { openVoiceCall } from "./voice-call.js";
 import { openListeningLab } from "./listening-lab.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
+import { openJaWriting } from "./writing-ja.js";
 import { openGrammarInput } from "./grammar-input.js";
 import { openPronunciationLab, hasPronunciation } from "./pronunciation-lab.js";
 import { openCheckpoint, hasCheckpoint } from "./checkpoint.js";
@@ -296,10 +297,16 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       onComplete: markDone,
     });
   } else if (key === "writing") {
-    onclick = () => openWriting(unit, {
-      userId: user?.id,
-      onComplete: markDone,
-    });
+    // Japones: el hub generico de Writing asume que el alumno ya TECLEA el
+    // idioma meta (ensayos, correos...) -- no aplica si todavia no sabe leer
+    // kana. Se manda al puente propio (ver features/writing-ja.js), nunca al
+    // mismo menu de ensayos libres que usan los demas idiomas.
+    onclick = (unit.language === "ja")
+      ? () => openJaWriting(unit, { userId: user?.id, onComplete: markDone })
+      : () => openWriting(unit, {
+          userId: user?.id,
+          onComplete: markDone,
+        });
   } else if (key === "vocabulary") {
     onclick = () => openVocabClass(unit, {
       userId: user?.id, progressId: lesson?.id,

@@ -108,17 +108,24 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
 
 ## Fase 5 — Retirar/adaptar las lecciones "Writing" de las 8 unidades
 
-Las lecciones `skills:["writing"]` de cada unidad (`ja1k-write`, etc.) hoy
-piden formar frases con fichas de KANA puro -- asumen una literacia que el
-alumno recien esta construyendo en el segmento de Escritura. Una vez Fase 1-2
-den cobertura razonable:
+- [x] **La POP "Escritura" de la rueda de competencias** (dentro de cada
+      unidad) ya NO abre el hub genérico de ensayos libres (`features/
+      writing.js` -- fill-in-blanks, correos, ensayos argumentativos...),
+      que asume que el alumno ya TECLEA el idioma meta. Para japones abre un
+      puente propio (`features/writing-ja.js`) que explica el por que y manda
+      directo al Laboratorio de Hiragana (`/escritura`). Marca la leccion de
+      Writing de la unidad como completa al entrar -- la maestria real de
+      kana se mide aparte, en el SRS del Laboratorio.
 
-- [ ] Opcion A (recomendada): esas lecciones pasan a usar fichas en ROMAJI
-      (igual que el resto del curso ahora), manteniendo "Writing" como
-      "produccion de frases" en vez de "reconocimiento de kana disfrazado".
-- [ ] Opcion B: se retiran del todo y "producir frases" se evalua dentro de
-      la clase interactiva con Megan (`skill-class.js`, ya lo hace para
-      otras competencias).
+Las lecciones `skills:["writing"]` DENTRO de cada unidad (`ja1k-write`, etc.,
+con fichas de KANA puro en sus actividades `word_bank`) siguen existiendo en
+los datos pero YA NO SE RENDERIZAN directo (el hub de arriba nunca las leia).
+Son candidatas a limpiar del todo mas adelante:
+
+- [ ] Opcion A: borrar esas actividades de los datos (`ja1k-write`, etc.) --
+      ya no las usa ninguna pantalla.
+- [ ] Opcion B: reusarlas en el futuro Reading Lab/Checkpoint en ROMAJI si
+      aparece un buen caso de uso.
 - [ ] Decidir cuando se llegue a este punto -- no bloquea nada de lo de
       arriba, las unidades siguen funcionando igual mientras tanto.
 
