@@ -120,7 +120,7 @@ function gojuonCard(ready, user) {
                   isReady
                     ? el("button", {
                         type: "button",
-                        class: "w-11 h-11 rounded-lg bg-rose-500/15 border border-rose-400/40 text-rose-100 " +
+                        class: "w-11 h-11 rounded-lg bg-rose-500/15 border border-rose-400/40 text-rose-200 " +
                           "font-bold hover:bg-rose-500/25 focus:outline focus:outline-2 focus:outline-rose-400",
                         title: cell.romaji,
                         onclick: () => openRow(rowDef.row, charsForRow(rowDef.row), user),
@@ -149,10 +149,10 @@ function wordBreakdownCard() {
       "Una palabra que ya conoces de tus clases:"),
     el("div", { class: "mt-3 flex flex-wrap items-center justify-center gap-1.5" },
       ...WORD_BREAKDOWN.parts.map((p) => el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700 px-3 py-2 text-center" },
-        el("p", { class: "text-2xl font-black text-white" }, p.kana),
+        el("p", { class: "text-2xl font-black text-slate-100" }, p.kana),
         el("p", { class: "text-xs text-rose-300 mt-0.5" }, p.romaji)))),
     el("div", { class: "mt-3 text-center" },
-      el("p", { class: "text-3xl font-black text-white" }, WORD_BREAKDOWN.word),
+      el("p", { class: "text-3xl font-black text-slate-100" }, WORD_BREAKDOWN.word),
       el("p", { class: "text-lg text-rose-300 font-semibold mt-1" }, WORD_BREAKDOWN.romaji),
       el("p", { class: "text-sm text-slate-400 mt-1" }, WORD_BREAKDOWN.translation),
       el("p", { class: "text-xs text-slate-500 mt-1 italic" }, "*\u306f se escribe 'ha' pero aqui suena 'wa' -- una excepcion que aprenderas con la practica."),
@@ -215,7 +215,7 @@ function openRow(row, chars, user) {
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" },
         "Caracter " + (idx + 1) + " de " + chars.length),
       el("div", { class: "mt-3 text-center" },
-        el("p", { class: "text-7xl font-black text-white leading-none" }, k.kana),
+        el("p", { class: "text-7xl font-black text-slate-100 leading-none" }, k.kana),
         el("p", { class: "mt-2 text-2xl font-bold text-rose-300" }, k.romaji),
         sb ? el("div", { class: "mt-2 flex justify-center" }, sb) : null),
       el("div", { class: "mt-4 rounded-xl bg-slate-800/60 border border-slate-700 p-3" },
@@ -287,7 +287,7 @@ function openRow(row, chars, user) {
       el("p", { class: "mt-2 text-sm text-slate-400" },
         q.kind === "read" ? "\u00bfC\u00f3mo se lee?" : "\u00bfCual caracter es \u201c" + q.prompt + "\u201d?"),
       el("div", { class: "mt-1 flex items-center gap-2" },
-        el("p", { class: "text-5xl font-black text-white" }, q.prompt),
+        el("p", { class: "text-5xl font-black text-slate-100" }, q.prompt),
         sb),
       el("div", { class: "mt-3" }, ...btns),
       fb, next);
