@@ -51,11 +51,18 @@ function card(titleText, icon, ...children) {
 }
 
 /** Una frase de ejemplo con audio + resaltado (verbo/foco, ver ui/richtext.js)
- * ya usado en grammar.examples de las unidades (ver data/units/work-career-b1.js). */
-function exampleLine(text, lang) {
+ * ya usado en grammar.examples de las unidades (ver data/units/work-career-b1.js).
+ * `translation` es la traduccion al ESPANOL (L1) de ESTE ejemplo puntual --
+ * viene de `grammar.explain.tr[i]` (mismo indice que `examples[i]`, convencion
+ * ya usada en TODAS las unidades). Bug real: esta tarjeta nunca la pintaba --
+ * pasaba desapercibido con el kana puro, pero se nota apenas el texto se lee
+ * facil (romaji) y el alumno quiere saber que significa, no solo como suena. */
+function exampleLine(text, lang, translation) {
   return el("div", { class: "rounded-lg bg-slate-800/60 border border-slate-700/60 p-3 flex items-start gap-2" },
     speakButton(speakSource(text, lang), { lang }),
-    el("p", { class: "text-sm text-slate-100 leading-relaxed" }, termDisplay(text, lang)));
+    el("div", { class: "min-w-0" },
+      el("p", { class: "text-sm text-slate-100 leading-relaxed" }, termDisplay(text, lang)),
+      translation ? el("p", { class: "mt-0.5 text-xs text-slate-400 italic" }, translation) : null));
 }
 
 /** Chip de una palabra del vocabulario DE LA UNIDAD (estatico -- lo que "se
@@ -146,7 +153,8 @@ export function buildGrammarSidebar(unit, lesson) {
 
     (g.examples || []).length
       ? card("Ejemplos de la regla", ICONS.book,
-          el("div", { class: "space-y-2" }, ...g.examples.map((ex) => exampleLine(ex, lang))))
+          el("div", { class: "space-y-2" },
+            ...g.examples.map((ex, i) => exampleLine(ex, lang, g.explain?.tr?.[i]))))
       : null,
 
     deck?.items?.length
