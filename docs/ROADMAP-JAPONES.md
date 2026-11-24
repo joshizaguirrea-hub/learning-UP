@@ -26,7 +26,7 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
 
 ---
 
-## Fase 0 — HECHO (este corte, 2026-11-23)
+## Fase 0 — HECHO (2026-11-23)
 
 - [x] `core/ja-script.js`: separador kana/romaji puro y testeado.
 - [x] `ui/bilingual-term.js`: romaji grande + kana chiquito al lado, para
@@ -43,17 +43,16 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       ingles por falta de entrada en el diccionario de saludos).
 - [x] NUEVO segmento "Escritura japonesa" (`/escritura`, 4ta puerta del hub
       SOLO si el idioma activo es japones): ciclo Aprende -> Quiz -> SRS.
-      Vertical slice: **15 caracteres** (vocales + fila か + fila さ).
 - [x] **Familiarizacion antes de memorizar** (pedido explicito de Joshua): la
-      pantalla principal ahora abre con 3 tarjetas de "nivel basico" ANTES de
-      la practica -- (1) que es hiragana/katakana/kanji y para que sirve cada
+      pantalla principal abre con 3 tarjetas de "nivel basico" ANTES de la
+      practica -- (1) que es hiragana/katakana/kanji y para que sirve cada
       uno, (2) la tabla COMPLETA del gojuon (46 sonidos, `GOJUON_TABLE` en
       data/kana-hiragana.js) marcando que filas ya se pueden practicar (toca
       el caracter) vs "Proximamente", (3) un ejemplo real desglosado
-      (こんにちは = ko+n+ni+chi+wa) mostrando como las silabas
-      se INTEGRAN sin espacios para formar una palabra.
+      (こんにちは = ko+n+ni+chi+wa) mostrando como las silabas se INTEGRAN
+      sin espacios para formar una palabra.
 
-### Pendiente menor de esta misma fase (no bloquea nada, bajo riesgo)
+### Pendiente menor de esta fase (no bloquea nada, bajo riesgo)
 
 - [ ] `features/reading-lab.js` (Paso 1 "Lee y escucha") pinta el texto de la
       leccion de Reading tal cual viene de la unidad (parrafo por parrafo).
@@ -63,19 +62,28 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       Vocabulario/Gramatica. `core/ja-script.js` ya trae `splitJaBlock()`
       listo para esto; falta conectarlo aqui.
 
-## Fase 1 — Completar HIRAGANA (siguiente paso natural)
+## Fase 1 — Completar HIRAGANA — HECHO (2026-11-24)
 
-- [ ] Agregar a `data/kana-hiragana.js` las filas que faltan: た な は ま
-      や ら わ + ん (31 caracteres mas, mismo molde: kana, romaji,
-      mnemotecnia, ejemplo). Es SOLO agregar datos -- el motor
-      (`core/kana-lab.js`) y la UI (`features/kana-lab.js`) ya funcionan.
-- [ ] Dakuten/handakuten (が ざ だ ば ぱ y familias): se leen como su base
-      + sonido sucio/semi-sucio -- mismo molde, filas nuevas.
+- [x] Las **46 sonidos base del gojuon** ya tienen practica interactiva
+      completa (mnemotecnia + ejemplo + quiz + SRS). Se agregaron las 8
+      filas que faltaban: た(ta) な(na) は(ha) ま(ma) や(ya) ら(ra) わ(wa) +
+      ん(n), mismo molde exacto que las 3 primeras (vocales/か/さ).
+- [x] El motor (`core/kana-lab.js`) y la UI (`features/kana-lab.js`) no
+      necesitaron NINGUN cambio de logica -- leen `HIRAGANA` de forma
+      generica, tal como se diseno desde el vertical slice. Solo se
+      agregaron datos + las etiquetas de fila (`ROW_LABEL`).
+- [x] 11 lotes practicables en total; el selector de lotes ahora usa
+      `sm:grid-cols-3 lg:grid-cols-4` para acomodarlos.
+
+### Pendiente de esta fase
+
+- [ ] Dakuten/handakuten (が ざ だ ば ぱ y familias): se leen como su fila
+      base + sonido sucio/semi-sucio -- mismo molde, filas nuevas.
 - [ ] Yoon (きゃ しゃ ちゃ...): combinaciones con や/ゆ/よ chicos -- mismo
       molde, agrupadas por consonante base.
-- [ ] Vista "Progreso de Hiragana" en el hub/perfil: cuantos caracteres ya
-      estan en SRS con `reps >= 1` (reusa `srsStats`-like, ya existe el
-      patron en `services/srs.js`).
+- [ ] Vista "Progreso de Hiragana" en el hub/perfil: cuantos de los 46
+      caracteres ya estan en SRS con `reps >= 1` (reusa el patron de
+      `srsStats` en `services/srs.js`).
 
 ## Fase 2 — Katakana
 
@@ -109,7 +117,7 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
 ## Fase 5 — Retirar/adaptar las lecciones "Writing" de las 8 unidades
 
 - [x] **La POP "Escritura" de la rueda de competencias** (dentro de cada
-      unidad) ya NO abre el hub genérico de ensayos libres (`features/
+      unidad) ya NO abre el hub generico de ensayos libres (`features/
       writing.js` -- fill-in-blanks, correos, ensayos argumentativos...),
       que asume que el alumno ya TECLEA el idioma meta. Para japones abre un
       puente propio (`features/writing-ja.js`) que explica el por que y manda
@@ -135,13 +143,13 @@ Son candidatas a limpiar del todo mas adelante:
 
 1. **Hablar y entender primero** (Fase 0, ya en produccion): es lo que mas
    rapido te hace sentir que "ya sabes algo" -- motivacion temprana real.
-2. **Hiragana completo antes que Katakana**: hiragana es la base de TODA
-   gramatica japonesa (particulas, conjugaciones); katakana es mas acotado
-   (prestamos, nombres extranjeros).
+2. **Hiragana completo antes que Katakana** (Fase 1, ya en produccion):
+   hiragana es la base de TODA gramatica japonesa (particulas,
+   conjugaciones); katakana es mas acotado (prestamos, nombres extranjeros).
 3. **Reconocer antes que escribir**: leer se aprende mas rapido que escribir
    y desbloquea mucho contenido (carteles, menus, subtitulos) antes de poder
    trazar un solo caracter.
 4. **Kanji al final**: es lo mas pesado y lo que mas se beneficia de ya tener
    hiragana/katakana solidos (las lecturas furigana dejan de hacer falta).
 
-_Ultima actualizacion: 2026-11-23 · Autor: Horus_
+_Ultima actualizacion: 2026-11-24 · Autor: Horus_

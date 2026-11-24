@@ -37,6 +37,14 @@ const ROW_LABEL = {
   a: "Vocales \u00b7 a i u e o",
   ka: "Fila \u304b \u00b7 ka ki ku ke ko",
   sa: "Fila \u3055 \u00b7 sa shi su se so",
+  ta: "Fila \u305f \u00b7 ta chi tsu te to",
+  na: "Fila \u306a \u00b7 na ni nu ne no",
+  ha: "Fila \u306f \u00b7 ha hi fu he ho",
+  ma: "Fila \u307e \u00b7 ma mi mu me mo",
+  ya: "Fila \u3084 \u00b7 ya yu yo",
+  ra: "Fila \u3089 \u00b7 ra ri ru re ro",
+  wa: "Fila \u308f \u00b7 wa wo",
+  n: "\u3093 (n) \u00b7 cierra silabas",
 };
 const OK_CLS = "border-emerald-400 bg-emerald-500/25 text-emerald-100";
 const BAD_CLS = "border-rose-400 bg-rose-500/25 text-rose-100";
@@ -65,7 +73,7 @@ export async function renderKanaLab(container, user) {
     wordBreakdownCard(),
     el("section", {},
       el("h2", { class: "text-sm font-bold uppercase tracking-wide text-slate-400 mb-3" }, "Practica por lotes"),
-      el("div", { class: "grid grid-cols-1 sm:grid-cols-3 gap-3" },
+      el("div", { class: "grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3" },
         ...kanaRows().map((row) => rowCard(row, user))))));
 }
 

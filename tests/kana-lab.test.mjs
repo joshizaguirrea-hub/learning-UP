@@ -19,7 +19,7 @@ test("el catalogo de hiragana tiene ids/kana/romaji unicos", () => {
 
 test("kanaRows devuelve las filas en orden, sin repetir", () => {
   const rows = kanaRows();
-  assert.deepEqual(rows, ["a", "ka", "sa"]);
+  assert.deepEqual(rows, ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa", "n"]);
 });
 
 test("charsForRow filtra por fila", () => {
@@ -71,7 +71,11 @@ test("GOJUON_TABLE tiene las 11 filas del gojuon completo (46 sonidos)", () => {
 });
 
 test("readyRows refleja exactamente las filas que ya estan en HIRAGANA", () => {
-  assert.deepEqual(readyRows(), ["a", "ka", "sa"]);
+  assert.deepEqual(readyRows(), ["a", "ka", "sa", "ta", "na", "ha", "ma", "ya", "ra", "wa", "n"]);
+});
+
+test("hiragana base COMPLETO: las 46 sonidos ya tienen practica interactiva", () => {
+  assert.equal(HIRAGANA.length, 46);
 });
 
 test("toda fila 'ready' existe tambien en GOJUON_TABLE (consistencia de datos)", () => {

@@ -2,12 +2,14 @@
  * data/kana-hiragana.js — Catalogo de HIRAGANA para el nuevo segmento de
  * Escritura japonesa (features/kana-lab.js), separado del avance tematico.
  *
- * VERTICAL SLICE (ver docs/PEDAGOGIA.md seccion 7 y docs/ROADMAP-JAPONES.md):
- * arrancamos con las primeras 3 filas del gojuon (vocales + か + さ = 15
- * caracteres) para validar el patron completo -- mnemotecnia + ejemplo +
- * SRS + quiz -- ANTES de escalar a las 7 filas restantes, dakuten/handakuten,
- * yoon, katakana y kanji basico. Escalar despues es solo agregar datos aqui
- * (mismo molde), sin tocar motor ni UI.
+ * ESCALADO (ver docs/ROADMAP-JAPONES.md, Fase 1): arrancamos con 3 filas
+ * (vocales + か + さ) como vertical slice; aqui se completan las 8 filas
+ * restantes (た な は ま や ら わ + ん) -- las 46 sonidos base del gojuon.
+ * Mismo molde exacto, sin tocar motor (core/kana-lab.js) ni UI
+ * (features/kana-lab.js): ambos ya leen este array de forma generica.
+ *
+ * Pendiente (Fase 1-2 del roadmap, no en este archivo): dakuten/handakuten
+ * (が ざ だ ば ぱ...), yoon (きゃ しゃ...) y katakana.
  *
  * Cada caracter: { id, kana, romaji, row, mnemonic, example } -- igual de
  * "pura y testeable" que el resto de data/ (sin DOM, sin red).
@@ -64,6 +66,113 @@ export const HIRAGANA = [
   { id: "hira-so", kana: "\u305d", romaji: "so", row: "sa",
     mnemonic: "Un zigzag como un relampago cruzando el cielo: 'so'.",
     example: { term: "\u305d\u3089 (sora)", translation: "cielo" } },
+
+  // --- Fila た (ta/chi/tsu/te/to) ---
+  { id: "hira-ta", kana: "\u305f", romaji: "ta", row: "ta",
+    mnemonic: "Una cruz con una ramita doblada: imagina decir '\u00a1ta-da!' al revelar algo.",
+    example: { term: "\u305f\u3053 (tako)", translation: "pulpo" } },
+  { id: "hira-chi", kana: "\u3061", romaji: "chi", row: "ta",
+    mnemonic: "Parece un '5' chueco o una persona agachada: 'chi'.",
+    example: { term: "\u3061\u305a (chizu)", translation: "mapa" } },
+  { id: "hira-tsu", kana: "\u3064", romaji: "tsu", row: "ta",
+    mnemonic: "Parece una ola pequenita (tsunami) curvandose: 'tsu'.",
+    example: { term: "\u3064\u304d (tsuki)", translation: "luna" } },
+  { id: "hira-te", kana: "\u3066", romaji: "te", row: "ta",
+    mnemonic: "Parece un brazo doblado sosteniendo un telefono (telephone): 'te'.",
+    example: { term: "\u3066 (te)", translation: "mano (¡la palabra completa!)" } },
+  { id: "hira-to", kana: "\u3068", romaji: "to", row: "ta",
+    mnemonic: "Parece el dedo gordo de un pie apuntando (toe): 'to'.",
+    example: { term: "\u3068\u308a (tori)", translation: "pajaro" } },
+
+  // --- Fila な (na/ni/nu/ne/no) ---
+  { id: "hira-na", kana: "\u306a", romaji: "na", row: "na",
+    mnemonic: "Parecen dos palitos cruzados clavando un papel a la pared: 'na'.",
+    example: { term: "\u306a\u3064 (natsu)", translation: "verano" } },
+  { id: "hira-ni", kana: "\u306b", romaji: "ni", row: "na",
+    mnemonic: "Parece una rodilla (knee) doblada: 'ni'.",
+    example: { term: "\u306b\u304f (niku)", translation: "carne" } },
+  { id: "hira-nu", kana: "\u306c", romaji: "nu", row: "na",
+    mnemonic: "Parece un fideo (noodle) enroscado con un rulo al final: 'nu'.",
+    example: { term: "\u306c\u306e (nuno)", translation: "tela" } },
+  { id: "hira-ne", kana: "\u306d", romaji: "ne", row: "na",
+    mnemonic: "Parece un gato (neko) con la cola enroscada abajo: 'ne'.",
+    example: { term: "\u306d\u3053 (neko)", translation: "gato" } },
+  { id: "hira-no", kana: "\u306e", romaji: "no", row: "na",
+    mnemonic: "Un solo trazo en espiral, como dibujar la palabra 'no' de un jalon.",
+    example: { term: "\u306e\u3069 (nodo)", translation: "garganta" } },
+
+  // --- Fila は (ha/hi/fu/he/ho) ---
+  { id: "hira-ha", kana: "\u306f", romaji: "ha", row: "ha",
+    mnemonic: "Parece una persona con dos piernas riendo a carcajadas: '\u00a1ha-ha!'.",
+    example: { term: "\u306f\u306a (hana)", translation: "flor" } },
+  { id: "hira-hi", kana: "\u3072", romaji: "hi", row: "ha",
+    mnemonic: "Parece una sonrisa curva o una ceja: '\u00a1hi!' (saludo).",
+    example: { term: "\u3072\u3068 (hito)", translation: "persona" } },
+  { id: "hira-fu", kana: "\u3075", romaji: "fu", row: "ha",
+    mnemonic: "Parece el Monte Fuji con sus laderas curvas: 'fu-fuji'.",
+    example: { term: "\u3075\u3086 (fuyu)", translation: "invierno" } },
+  { id: "hira-he", kana: "\u3078", romaji: "he", row: "ha",
+    mnemonic: "Un solo trazo como un techo puntiagudo: '\u00a1he!' al tropezar.",
+    example: { term: "\u3078\u3084 (heya)", translation: "cuarto / habitacion" } },
+  { id: "hira-ho", kana: "\u307b", romaji: "ho", row: "ha",
+    mnemonic: "Parecida a \u306f pero con una antena extra, como una casa con chimenea.",
+    example: { term: "\u307b\u3093 (hon)", translation: "libro" } },
+
+  // --- Fila ま (ma/mi/mu/me/mo) ---
+  { id: "hira-ma", kana: "\u307e", romaji: "ma", row: "ma",
+    mnemonic: "Parece una mama (mama) con el bebe enroscado en los brazos: 'ma'.",
+    example: { term: "\u307e\u3069 (mado)", translation: "ventana" } },
+  { id: "hira-mi", kana: "\u307f", romaji: "mi", row: "ma",
+    mnemonic: "Parece un '3' curveado, como un caracolito: 'mi'.",
+    example: { term: "\u307f\u305a (mizu)", translation: "agua" } },
+  { id: "hira-mu", kana: "\u3080", romaji: "mu", row: "ma",
+    mnemonic: "Parece la cara de una vaca mugiendo: '\u00a1muu!'.",
+    example: { term: "\u3080\u3057 (mushi)", translation: "insecto" } },
+  { id: "hira-me", kana: "\u3081", romaji: "me", row: "ma",
+    mnemonic: "Parece un ojo (eye) mirando de lado: 'me'.",
+    example: { term: "\u3081 (me)", translation: "ojo (¡la palabra completa!)" } },
+  { id: "hira-mo", kana: "\u3082", romaji: "mo", row: "ma",
+    mnemonic: "Parecida a \u3081 pero con una rayita extra arriba: 'mo'.",
+    example: { term: "\u3082\u3082 (momo)", translation: "durazno" } },
+
+  // --- Fila や (ya/yu/yo) ---
+  { id: "hira-ya", kana: "\u3084", romaji: "ya", row: "ya",
+    mnemonic: "Parece una resortera (slingshot) en forma de 'Y': 'ya'.",
+    example: { term: "\u3084\u307e (yama)", translation: "montana" } },
+  { id: "hira-yu", kana: "\u3086", romaji: "yu", row: "ya",
+    mnemonic: "Parece una taza curva, como el simbolo de aguas termales: 'yu'.",
+    example: { term: "\u3086\u304d (yuki)", translation: "nieve" } },
+  { id: "hira-yo", kana: "\u3088", romaji: "yo", row: "ya",
+    mnemonic: "Parece un gancho con un lazo, como decir '\u00a1yo!' saludando.",
+    example: { term: "\u3088\u308b (yoru)", translation: "noche" } },
+
+  // --- Fila ら (ra/ri/ru/re/ro) ---
+  { id: "hira-ra", kana: "\u3089", romaji: "ra", row: "ra",
+    mnemonic: "Parece un globo (balloon) atado a un palito: 'ra'.",
+    example: { term: "\u304b\u3089\u3066 (karate)", translation: "karate (¡ya la conoces!)" } },
+  { id: "hira-ri", kana: "\u308a", romaji: "ri", row: "ra",
+    mnemonic: "Dos trazos simples como un riachuelo (river) fluyendo: 'ri'.",
+    example: { term: "\u308a\u3093\u3054 (ringo)", translation: "manzana" } },
+  { id: "hira-ru", kana: "\u308b", romaji: "ru", row: "ra",
+    mnemonic: "Un solo trazo en rulo, como una montana rusa (loop): 'ru'.",
+    example: { term: "\u3044\u308b (iru)", translation: "haber / estar (cosas vivas)" } },
+  { id: "hira-re", kana: "\u308c", romaji: "re", row: "ra",
+    mnemonic: "Parecida a \u306d pero sin el rulo final, como un gato estirandose: 're'.",
+    example: { term: "\u308c\u3044 (rei)", translation: "cero" } },
+  { id: "hira-ro", kana: "\u308d", romaji: "ro", row: "ra",
+    mnemonic: "Un camino (road) curveado en espiral: 'ro'.",
+    example: { term: "\u3044\u308d (iro)", translation: "color" } },
+
+  // --- Fila わ (wa/wo) + ん ---
+  { id: "hira-wa", kana: "\u308f", romaji: "wa", row: "wa",
+    mnemonic: "Parece una persona saludando con la mano (wave): 'wa'.",
+    example: { term: "\u308f\u305f\u3057 (watashi)", translation: "yo (¡la usas en cada clase!)" } },
+  { id: "hira-wo", kana: "\u3092", romaji: "wo", row: "wa",
+    mnemonic: "Parecida a \u304a pero mas angulosa -- se usa CASI SIEMPRE sola, como particula.",
+    example: { term: "\u307b\u3093\u3092 (hon wo)", translation: "particula de objeto directo (marca lo que se hace)" } },
+  { id: "hira-n", kana: "\u3093", romaji: "n", row: "n",
+    mnemonic: "Un solo gancho: el UNICO sonido que es pura consonante, sin vocal pegada.",
+    example: { term: "\u307b\u3093 (hon)", translation: "libro (\u3093 siempre CIERRA una silaba, nunca la abre)" } },
 ];
 
 /** Agrupa el catalogo por fila (para el selector de lotes en la UI). */
