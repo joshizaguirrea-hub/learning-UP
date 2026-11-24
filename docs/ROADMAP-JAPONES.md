@@ -51,6 +51,23 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       el caracter) vs "Proximamente", (3) un ejemplo real desglosado
       (こんにちは = ko+n+ni+chi+wa) mostrando como las silabas se INTEGRAN
       sin espacios para formar una palabra.
+- [x] **Fix de tema claro** (2026-11-24): `text-rose-100` y `text-white` no
+      tienen correccion de contraste para tema claro (ver `styles/app.css`)
+      -- los caracteres del gojuon y de las flashcards quedaban invisibles.
+      Cambiados a `text-rose-200`/`text-slate-100`, el mismo patron
+      theme-safe que usa el resto del curso.
+- [x] **Fix en el WORKER** (2026-11-24): la pantalla "Ejemplos IA" del Vocab
+      Lab (vocab-class.js, pestana "2. Ejemplos IA") generaba frases en
+      KANJI PURO, sin romaji -- la regla "romaji SIEMPRE" del Worker solo
+      vivia dentro del bloque `freeMode` (Clase/Conversacion/Cuento...), y
+      esa pantalla manda `mode:"chat"` + `examplesInTargetLang:true`, que no
+      pasa por ahi. Se extrajo la regla a una funcion compartida
+      (`jaRomajiRule()`) y se aplica tambien en el bloque de
+      `examplesInTargetLang`. **IMPORTANTE: este fix vive en
+      `worker/bymax-worker.js`, que NO se despliega solo con git push** --
+      hace falta copiar el codigo a Cloudflare a mano (ver
+      `desplegar-worker.html`, ya regenerado con `tools/gen_worker_page.py`)
+      para que el alumno lo vea reflejado.
 
 ### Pendiente menor de esta fase (no bloquea nada, bajo riesgo)
 

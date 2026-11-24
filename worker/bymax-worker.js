@@ -944,26 +944,34 @@ async function handleChat(request, env, origin, economico) {
   // Se sanea porque entra en el prompt: solo letras, espacios y guiones.
   const teacher = String(body.teacher || "").slice(0, 24).replace(/[^\p{L}\s'-]/gu, "").trim() || "Megan";
   systemText = systemText.replaceAll("{TEACHER}", teacher);
+
+  // JAPONES: pedido real de un alumno -- "es una lengua muy extrana para el
+  // latino, pon SIEMPRE como se pronuncia en cada ejemplo donde haya
+  // escritura". El kana/kanji no se lee como el alfabeto latino, asi que
+  // CUALQUIER texto japones (palabra suelta U oracion completa) necesita su
+  // romaji al lado, no solo el vocabulario nuevo. Funcion compartida porque
+  // esta regla aplica en DOS sitios distintos (ver mas abajo): el modo libre
+  // (Clase/Conversacion/Cuento...) Y el modo "Ejemplos en contexto" del Vocab
+  // Lab (vocab-class.js), que NO es freeMode (manda mode:"chat") pero IGUAL
+  // genera japones de verdad que el alumno necesita leer -- antes esta regla
+  // solo vivia dentro del bloque freeMode y esa pantalla se quedaba sin
+  // romaji (bug real reportado: ejemplos en kanji puro, ilegibles).
+  const jaRomajiRule = () => targetLang !== "ja" ? "" :
+    `\n\n[JAPONES PARA HISPANOHABLANTES -- REGLA OBLIGATORIA]\n` +
+    `El alumno apenas esta aprendiendo a leer hiragana/katakana. SIEMPRE que ` +
+    `escribas CUALQUIER texto en japones -- una palabra suelta O una oracion ` +
+    `de ejemplo completa -- agrega INMEDIATAMENTE despues, entre parentesis, ` +
+    `su lectura en romaji (letras latinas). Nunca dejes japones sin su romaji.\n` +
+    `Formato exacto:\n` +
+    `  Palabra: \u53cb\u9054 (tomodachi)\n` +
+    `  Oracion: \u5f7c\u306f\u53cb\u9054\u3067\u3059 (Kare wa tomodachi desu)`;
+
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || "general"}` +
       `\nNIVEL del alumno (MCER): ${level || "B1"}` +
       `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
-      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
-    // JAPONES: pedido real de un alumno -- "es una lengua muy extrana para el
-    // latino, pon SIEMPRE como se pronuncia en cada ejemplo donde haya
-    // escritura". El kana/kanji no se lee como el alfabeto latino, asi que
-    // CUALQUIER texto japones (palabra suelta U oracion completa) necesita su
-    // romaji al lado, no solo el vocabulario nuevo.
-    if (targetLang === "ja") {
-      systemText += `\n\n[JAPONES PARA HISPANOHABLANTES -- REGLA OBLIGATORIA]\n` +
-        `El alumno apenas esta aprendiendo a leer hiragana/katakana. SIEMPRE que ` +
-        `escribas CUALQUIER texto en japones -- una palabra suelta O una oracion ` +
-        `de ejemplo completa -- agrega INMEDIATAMENTE despues, entre parentesis, ` +
-        `su lectura en romaji (letras latinas). Nunca dejes japones sin su romaji.\n` +
-        `Formato exacto:\n` +
-        `  Palabra: \u53cb\u9054 (tomodachi)\n` +
-        `  Oracion: \u5f7c\u306f\u53cb\u9054\u3067\u3059 (Kare wa tomodachi desu)`;
-    }
+      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.` +
+      jaRomajiRule();
   }
 
   // EXCEPCION PUNTUAL a la "Regla de oro" del SYSTEM_PROMPT por defecto
@@ -989,7 +997,8 @@ async function handleChat(request, env, origin, economico) {
       `el usuario: escribelas ENTERAMENTE en ${targetName}, de principio a fin, SIN ninguna palabra ` +
       `en espanol y SIN comillas -- eso NO es Spanglish, es el ejemplo completo que se pidio. ` +
       `Todo lo DEMAS que pida el formato (traducciones, estructura gramatical, notas, reglas) va ` +
-      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
+      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.` +
+      jaRomajiRule();
   }
 
   // PROTOCOLO SAY/TIP/VOCAB para Clase y Conversacion (voz de UNA sola voz,
