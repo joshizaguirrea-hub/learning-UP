@@ -4,7 +4,7 @@
  */
 import assert from "node:assert/strict";
 import { charsForRow, kanaRows, buildKanaQuiz, scorePct } from "../src/core/kana-lab.js";
-import { HIRAGANA, hiraganaByRow, hiraganaById } from "../src/data/kana-hiragana.js";
+import { HIRAGANA, hiraganaByRow, hiraganaById, GOJUON_TABLE, readyRows } from "../src/data/kana-hiragana.js";
 
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
@@ -62,6 +62,21 @@ test("buildKanaQuiz con lote chico igual arma opciones (tira del catalogo comple
 test("scorePct calcula porcentaje", () => {
   assert.equal(scorePct(5, 10), 50);
   assert.equal(scorePct(0, 0), 0);
+});
+
+test("GOJUON_TABLE tiene las 11 filas del gojuon completo (46 sonidos)", () => {
+  assert.equal(GOJUON_TABLE.length, 11);
+  const total = GOJUON_TABLE.reduce((n, r) => n + r.cells.filter(Boolean).length, 0);
+  assert.equal(total, 46);
+});
+
+test("readyRows refleja exactamente las filas que ya estan en HIRAGANA", () => {
+  assert.deepEqual(readyRows(), ["a", "ka", "sa"]);
+});
+
+test("toda fila 'ready' existe tambien en GOJUON_TABLE (consistencia de datos)", () => {
+  const tableRows = GOJUON_TABLE.map((r) => r.row);
+  for (const row of readyRows()) assert.ok(tableRows.includes(row));
 });
 
 console.log(`\n${passed} pruebas en verde.`);

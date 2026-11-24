@@ -41,7 +41,27 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       pegado al kana (`speakSource` siempre manda solo kana).
 - [x] Saludo de la Clase de Vocabulario en japones de verdad (antes caia a
       ingles por falta de entrada en el diccionario de saludos).
+- [x] NUEVO segmento "Escritura japonesa" (`/escritura`, 4ta puerta del hub
+      SOLO si el idioma activo es japones): ciclo Aprende -> Quiz -> SRS.
+      Vertical slice: **15 caracteres** (vocales + fila か + fila さ).
+- [x] **Familiarizacion antes de memorizar** (pedido explicito de Joshua): la
+      pantalla principal ahora abre con 3 tarjetas de "nivel basico" ANTES de
+      la practica -- (1) que es hiragana/katakana/kanji y para que sirve cada
+      uno, (2) la tabla COMPLETA del gojuon (46 sonidos, `GOJUON_TABLE` en
+      data/kana-hiragana.js) marcando que filas ya se pueden practicar (toca
+      el caracter) vs "Proximamente", (3) un ejemplo real desglosado
+      (こんにちは = ko+n+ni+chi+wa) mostrando como las silabas
+      se INTEGRAN sin espacios para formar una palabra.
 
+### Pendiente menor de esta misma fase (no bloquea nada, bajo riesgo)
+
+- [ ] `features/reading-lab.js` (Paso 1 "Lee y escucha") pinta el texto de la
+      leccion de Reading tal cual viene de la unidad (parrafo por parrafo).
+      Para japones esto YA muestra kana y romaji (vienen como lineas
+      separadas en `content.reading`) -- el romaji NO se perdio, solo falta
+      el mismo tratamiento visual (romaji destacado) que ya tiene
+      Vocabulario/Gramatica. `core/ja-script.js` ya trae `splitJaBlock()`
+      listo para esto; falta conectarlo aqui.
 
 ## Fase 1 — Completar HIRAGANA (siguiente paso natural)
 
