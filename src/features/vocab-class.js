@@ -57,8 +57,10 @@ function deepenPrompt(term, translation, langName, isVerb) {
     `basico -- TODA la frase debe estar en ${langName}, NI UNA SOLA PALABRA en espanol (prohibido mezclar ` +
     "idiomas en la misma oracion, eso es spanglish)>\n" +
     "   = <traduccion COMPLETA de esa frase al espanol, en una sola linea>\n" +
-    "   ESTRUCTURA: Sujeto = <palabra(s) del sujeto, en espanol di cual es> | Verbo = <la palabra/forma verbal " +
-    `tal cual aparece en la frase> (<tiempo verbal en espanol>) | Objeto = <complemento, o "-" si no aplica>\n` +
+    "   ESTRUCTURA: Sujeto = <la palabra o frase que es el SUJETO, TAL CUAL aparece en la oracion " +
+    `(NO la traduzcas)> | Verbo = <la palabra/forma verbal ` +
+    `tal cual aparece en la frase> (<tiempo verbal en espanol>) | Objeto = <el complemento TAL CUAL ` +
+    `aparece en la frase (NO lo traduzcas), o "-" si no aplica>\n` +
     "   REGLA: <1 frase breve en espanol explicando una regla gramatical que ilustre esta frase (orden de " +
     "palabras, preposicion, tiempo verbal...); si de verdad no hay nada que explicar, escribe REGLA: ->\n" +
     `2. <otra frase COMPLETA en ${langName}, OTRO contexto/situacion>\n   = <traduccion>\n   ESTRUCTURA: ...\n   REGLA: ...\n\n` +
@@ -75,11 +77,20 @@ function deepenPrompt(term, translation, langName, isVerb) {
   );
 }
 
-/** Prompt para corregir el intento de frase PROPIA del alumno (produccion libre). */
-function useItFeedbackPrompt(term, translation, langName, attempt) {
+/** Prompt para corregir el intento de frase PROPIA del alumno (produccion libre).
+ * `isJa`: el alumno todavia no sabe escribir kana -- responde en ROMAJI, y eso
+ * es LO ESPERADO (no un error a senalar). Ver core/ja-script.js/ADR-008. */
+function useItFeedbackPrompt(term, translation, langName, attempt, isJa) {
+  const jaNote = isJa
+    ? " El alumno TODAVIA NO sabe escribir kana/kanji, asi que responde en ROMAJI (letras latinas) -- " +
+      "eso es EXACTAMENTE lo esperado en esta etapa, NUNCA se lo marques como error ni le pidas kana. " +
+      "Evalua el romaji como si fuera la frase en japones (atencion a particulas wa/ga/wo/ni, orden " +
+      "sujeto-objeto-verbo, forma de desu/masu). Si das una version corregida, escribela en KANA con su " +
+      "romaji entre parentesis inmediatamente despues (formato: texto (romaji))."
+    : "";
   return (
     `Eres profesor de ${langName} para un hispanohablante. El alumno debe usar la palabra/frase ` +
-    `"${term}" (significado: "${translation}") en una frase propia. El alumno escribio:\n"${attempt}"\n\n` +
+    `"${term}" (significado: "${translation}") en una frase propia.${jaNote} El alumno escribio:\n"${attempt}"\n\n` +
     "Evalua en ESPANOL, MAXIMO 3 lineas, sin markdown ni asteriscos:\n" +
     "- Si la uso bien: felicitalo en una frase breve y, solo si suena mejorable, sugiere UNA variante " +
     "mas natural.\n" +
@@ -88,12 +99,15 @@ function useItFeedbackPrompt(term, translation, langName, attempt) {
   );
 }
 
-/** Escenario gratis (sin IA) para que el alumno produzca su propia frase. */
-function scenarioFor(unit, clean) {
+/** Escenario gratis (sin IA) para que el alumno produzca su propia frase.
+ * `isJa`: aclara que puede responder en ROMAJI -- sin esto, pedirle "usa
+ * \u3053\u3093\u306b\u3061\u306f" suena a que debe teclear kana, que todavia no sabe. */
+function scenarioFor(unit, clean, isJa) {
   const topic = (unit.title || "").trim();
-  return topic
+  const base = topic
     ? "Tu turno: escribe una frase sobre \u201c" + topic + "\u201d usando \u201c" + clean + "\u201d."
     : "Tu turno: escribe tu propia frase usando \u201c" + clean + "\u201d.";
+  return isJa ? base + " Puedes responder en romaji (letras latinas), a\u00fan no hace falta el kana." : base;
 }
 
 /**
@@ -174,9 +188,10 @@ function buildDeepenBoxes(w, langLabel, level, lang) {
  */
 function buildUseItBlock(w, unit, langLabel, level) {
   if (!bymaxAiEnabled) return null;
+  const isJa = (unit.language || "en") === "ja";
   const input = el("textarea", {
     rows: "2", maxlength: "200",
-    placeholder: "Escribe tu frase aqu\u00ed...",
+    placeholder: isJa ? "Escribe tu frase en romaji aqu\u00ed... (ej: Watashi wa gakusei desu)" : "Escribe tu frase aqu\u00ed...",
     class: "w-full rounded-xl bg-slate-950/40 border border-fuchsia-400/30 px-4 py-3 text-slate-100 text-lg " +
       "focus:outline focus:outline-2 focus:outline-fuchsia-400 resize-none",
   });
@@ -196,9 +211,9 @@ function buildUseItBlock(w, unit, langLabel, level) {
       out.replaceChildren();
       const { answer, error } = await askBymax({
         mode: "chat", topic: "vocabulario", level: level || "B1", role: "course",
-        question: useItFeedbackPrompt(w.clean, w.translation, langLabel, attempt),
+        targetLang: unit.language || "en",
+        question: useItFeedbackPrompt(w.clean, w.translation, langLabel, attempt, isJa),
       });
-      checkBtn.disabled = false;
       if (error || !answer) { status.textContent = error || "No pude revisarla ahora."; return; }
       status.textContent = "";
       out.replaceChildren(el("div", {
@@ -211,7 +226,7 @@ function buildUseItBlock(w, unit, langLabel, level) {
   return el("div", { class: "rounded-2xl bg-fuchsia-500/10 border border-fuchsia-400/30 p-5" },
     el("p", { class: "text-lg font-bold text-fuchsia-200 flex items-center gap-2" },
       el("span", { class: "w-5 h-5", html: ICONS.chat }), "\u00bfC\u00f3mo la usar\u00edas t\u00fa?"),
-    el("p", { class: "mt-1 text-base text-slate-300" }, scenarioFor(unit, w.clean)),
+    el("p", { class: "mt-1 text-base text-slate-300" }, scenarioFor(unit, w.clean, isJa)),
     el("div", { class: "mt-3" }, input),
     checkBtn, status, out);
 }

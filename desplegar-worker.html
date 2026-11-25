@@ -67,7 +67,7 @@
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Copia el codigo de abajo y pegalo</h3>
-      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1265 lineas.</p>
+      <p class="text-sm text-slate-400 mt-0.5">Usa el boton <b>Copiar todo</b>. Son 1267 lineas.</p>
     </li>
     <li class="step relative pl-10">
       <h3 class="font-semibold text-white">Dale a <b>Deploy</b></h3>
@@ -114,7 +114,7 @@
     <div class="flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-700 sticky top-0 z-10">
       <div class="flex-1 min-w-0">
         <p class="font-semibold text-white text-sm truncate">worker/bymax-worker.js</p>
-        <p class="text-xs text-slate-500">1265 lineas &middot; 66.5 KB &middot; commit ad79701 2026-11-19</p>
+        <p class="text-xs text-slate-500">1267 lineas &middot; 66.7 KB &middot; commit 86a7710 2026-11-24</p>
       </div>
       <button id="copy" type="button"
         class="shrink-0 px-4 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-semibold
@@ -1075,14 +1075,17 @@ async function handleChat(request, env, origin, economico) {
   // latino, pon SIEMPRE como se pronuncia en cada ejemplo donde haya
   // escritura&quot;. El kana/kanji no se lee como el alfabeto latino, asi que
   // CUALQUIER texto japones (palabra suelta U oracion completa) necesita su
-  // romaji al lado, no solo el vocabulario nuevo. Funcion compartida porque
-  // esta regla aplica en DOS sitios distintos (ver mas abajo): el modo libre
-  // (Clase/Conversacion/Cuento...) Y el modo &quot;Ejemplos en contexto&quot; del Vocab
-  // Lab (vocab-class.js), que NO es freeMode (manda mode:&quot;chat&quot;) pero IGUAL
-  // genera japones de verdad que el alumno necesita leer -- antes esta regla
-  // solo vivia dentro del bloque freeMode y esa pantalla se quedaba sin
-  // romaji (bug real reportado: ejemplos en kanji puro, ilegibles).
-  const jaRomajiRule = () =&gt; targetLang !== &quot;ja&quot; ? &quot;&quot; :
+  // romaji al lado, no solo el vocabulario nuevo.
+  //
+  // Se aplica UNA SOLA VEZ, de forma INCONDICIONAL en cuanto targetLang es
+  // &quot;ja&quot; (ver abajo) -- NO depende del modo. Antes vivia duplicada dentro de
+  // freeMode Y de examplesInTargetLang por separado, y cada NUEVO sitio que
+  // generara japones (ej. features/vocab-class.js: &quot;Revisar mi frase&quot;) se
+  // quedaba sin romaji hasta que alguien se acordara de agregarla ahi tambien
+  // -- bug real reportado dos veces por el mismo motivo. Poniendola una sola
+  // vez, condicionada SOLO al idioma, cierra esa clase de bug para siempre:
+  // cualquier llamada futura con targetLang=&quot;ja&quot; la hereda gratis.
+  const jaRomajiRule = () =&gt;
     `\n\n[JAPONES PARA HISPANOHABLANTES -- REGLA OBLIGATORIA]\n` +
     `El alumno apenas esta aprendiendo a leer hiragana/katakana. SIEMPRE que ` +
     `escribas CUALQUIER texto en japones -- una palabra suelta O una oracion ` +
@@ -1091,13 +1094,13 @@ async function handleChat(request, env, origin, economico) {
     `Formato exacto:\n` +
     `  Palabra: \u53cb\u9054 (tomodachi)\n` +
     `  Oracion: \u5f7c\u306f\u53cb\u9054\u3067\u3059 (Kare wa tomodachi desu)`;
+  if (targetLang === &quot;ja&quot;) systemText += jaRomajiRule();
 
   if (freeMode) {
     systemText += `\n\nTEMA/CONTEXTO: ${topic || &quot;general&quot;}` +
       `\nNIVEL del alumno (MCER): ${level || &quot;B1&quot;}` +
       `\nIDIOMA META (el que el alumno aprende): ${targetName}. El alumno es HISPANOHABLANTE.` +
-      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.` +
-      jaRomajiRule();
+      `\nREGLA MAESTRA: toda practica hablada y los ejemplos van en ${targetName} (NO en ingles si el idioma meta no es ingles). Las explicaciones/correcciones van en ESPANOL.`;
   }
 
   // EXCEPCION PUNTUAL a la &quot;Regla de oro&quot; del SYSTEM_PROMPT por defecto
@@ -1123,8 +1126,7 @@ async function handleChat(request, env, origin, economico) {
       `el usuario: escribelas ENTERAMENTE en ${targetName}, de principio a fin, SIN ninguna palabra ` +
       `en espanol y SIN comillas -- eso NO es Spanglish, es el ejemplo completo que se pidio. ` +
       `Todo lo DEMAS que pida el formato (traducciones, estructura gramatical, notas, reglas) va ` +
-      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.` +
-      jaRomajiRule();
+      `en ESPANOL como de costumbre. Sigue AL PIE DE LA LETRA el formato exacto que te de el usuario.`;
   }
 
   // PROTOCOLO SAY/TIP/VOCAB para Clase y Conversacion (voz de UNA sola voz,
@@ -1393,7 +1395,7 @@ export default {
   </section>
 
   <footer class="mt-6 text-center text-xs text-slate-600">
-    Generado el 24/11/2026 14:03 por <code>tools/gen_worker_page.py</code> &middot;
+    Generado el 25/11/2026 11:12 por <code>tools/gen_worker_page.py</code> &middot;
     no edites este archivo a mano: vuelve a correr el script.
   </footer>
 </main>

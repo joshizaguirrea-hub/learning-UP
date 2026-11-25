@@ -105,6 +105,26 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       calificacion por SIMILITUD DE CARACTERES contra el kana puro) +
       `features/speaking-ja.js`. Significado SIEMPRE visible (traduccion
       directa en Nivel 1, pista de la palabra clave en Nivel 2).
+- [x] **Puentes y produccion libre arreglados** (2026-11-25): (1) los chips
+      de ESTRUCTURA (Sujeto/Verbo/Objeto) de "Ejemplos IA" mostraban la
+      palabra TRADUCIDA al espanol en vez de la palabra japonesa real (el
+      prompt decía "en espanol di cual es", ambiguo) -- sin la palabra
+      japonesa a la vista no había forma de conectar la oracion con su
+      traduccion. Se corrigio el prompt (pide la palabra TAL CUAL aparece,
+      sin traducir) y `ui/example-card.js` ahora pinta el VALOR del chip con
+      `termDisplay` (romaji + kana), el mismo "puente" visual que el resto de
+      la frase. (2) El cuadro "¿Como la usarias tu?" (produccion libre en la
+      Clase de Vocabulario) pedía escribir una frase en japones cuando el
+      alumno **todavia no sabe escribir kana** -- otra dinamica imposible de
+      cumplir. Ahora acepta ROMAJI: placeholder, instrucciones y el prompt de
+      correccion a la IA se adaptan (la IA evalua el romaji, nunca lo marca
+      como error, y corrige mostrando kana+romaji). De paso: `jaRomajiRule()`
+      en el Worker se simplifico a UNA sola aplicacion incondicional por
+      `targetLang==="ja"` (antes vivia duplicada en 2 sitios y cada llamada
+      nueva se quedaba sin romaji hasta que alguien se acordara de agregarla
+      -- ahora cualquier llamada futura la hereda gratis). **Recordatorio:
+      este cambio del Worker necesita desplegarse a mano en Cloudflare** (ver
+      `desplegar-worker.html`, ya regenerado).
 
 ## Fase 1 — Completar HIRAGANA — HECHO (2026-11-24)
 

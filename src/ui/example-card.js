@@ -29,8 +29,11 @@ const ROLE_COLOR = [
 ];
 const DEFAULT_ROLE_CLS = "bg-slate-700/40 text-slate-300 border-slate-600";
 
-/** "Sujeto = She | Verbo = applies (presente)" -> chips de colores. */
-function structureChips(structure) {
+/** "Sujeto = She | Verbo = applies (presente)" -> chips de colores. El VALOR
+ * usa termDisplay: en japones pinta romaji + kana (el mismo "puente" hacia
+ * la traduccion que ya tiene el resto de la frase); en los demas idiomas es
+ * texto plano identico a como era antes. */
+function structureChips(structure, lang) {
   const parts = String(structure || "").split("|").map((p) => p.trim()).filter(Boolean);
   if (!parts.length) return null;
   return el("div", { class: "mt-2 flex flex-wrap gap-1.5 pl-9" },
@@ -40,8 +43,8 @@ function structureChips(structure) {
       const value = eq === -1 ? "" : part.slice(eq + 1).trim();
       const role = ROLE_COLOR.find((r) => r.test.test(label));
       return el("span", {
-        class: "text-xs font-semibold px-2 py-1 rounded-full border " + (role?.cls || DEFAULT_ROLE_CLS),
-      }, value ? `${label}: ${value}` : label);
+        class: "text-xs font-semibold px-2 py-1 rounded-full border inline-flex items-center gap-1 " + (role?.cls || DEFAULT_ROLE_CLS),
+      }, label + (value ? ": " : ""), value ? termDisplay(value, lang) : null);
     }));
 }
 
@@ -57,6 +60,6 @@ export function exampleCard({ phrase, translation, structure, rule }, lang) {
       speakButton(speakSource(phrase, lang), { lang }),
       el("p", { class: "text-lg text-slate-100" }, termDisplay(phrase, lang))),
     translation ? el("p", { class: "mt-1 text-sm text-slate-400 pl-9" }, translation) : null,
-    structureChips(structure),
+    structureChips(structure, lang),
     rule ? el("p", { class: "mt-1.5 pl-9 text-xs text-violet-300 italic" }, "\uD83D\uDCA1 " + rule) : null);
 }
