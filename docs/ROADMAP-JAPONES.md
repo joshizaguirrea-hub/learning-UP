@@ -92,6 +92,19 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       "Reto avanzado" opcional al final. Pendiente (roadmap, no urgente): un
       Nivel 3 de dialogo corto reusando `content.reading` con audio oculto,
       como puente entre la escalera y la historia libre.
+- [x] **Habla ESCALONADA** (2026-11-25, pedido directo: "una forma oportuna,
+      sencilla, divertida, con pedagogia de alto nivel"). La POP "Habla"
+      repetia oraciones completas (con particulas/conjugacion) desde la frase
+      1 -- la alberca honda antes de aprender a flotar. Dos bugs reales de
+      paso: (1) el texto objetivo mezclaba kana+romaji y el microfono
+      (reconoce SOLO kana en ja-JP) se comparaba contra ese string mixto --
+      mitad de los "tokens" nunca podian coincidir, calificacion injusta; (2)
+      la calificacion repartia aciertos POR PALABRA separando por espacios,
+      que el japones no usa. Nuevo `core/speaking-ja.js` (Audio-Lingual
+      Method: Nivel 1 palabras sueltas ya vistas -> Nivel 2 frases completas,
+      calificacion por SIMILITUD DE CARACTERES contra el kana puro) +
+      `features/speaking-ja.js`. Significado SIEMPRE visible (traduccion
+      directa en Nivel 1, pista de la palabra clave en Nivel 2).
 
 ## Fase 1 — Completar HIRAGANA — HECHO (2026-11-24)
 

@@ -23,6 +23,7 @@ import { openSkillClass, lessonForSkill } from "./skill-class.js";
 import { coachBubble } from "./unit-coach.js";
 import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
+import { openJaSpeaking } from "./speaking-ja.js";
 import { openVoiceCall } from "./voice-call.js";
 import { openListeningLab } from "./listening-lab.js";
 import { openJaListeningLab } from "./listening-lab-ja.js";
@@ -288,10 +289,15 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       onComplete: markDone,
     });
   } else if (key === "speaking") {
-    onclick = () => openSpeaking(unit, {
-      repeat: true, userId: user?.id, progressId: "speaking-" + unit.id,
-      onComplete: markDone,
-    });
+    // Japones: de palabras sueltas ya conocidas a frases completas (ver
+    // ADR-008 y features/speaking-ja.js) -- arrancar directo en frases con
+    // particulas/conjugacion es tirar al alumno a la alberca honda.
+    onclick = (unit.language === "ja")
+      ? () => openJaSpeaking(unit, { userId: user?.id, progressId: "speaking-" + unit.id, onComplete: markDone })
+      : () => openSpeaking(unit, {
+          repeat: true, userId: user?.id, progressId: "speaking-" + unit.id,
+          onComplete: markDone,
+        });
   } else if (key === "listening") {
     // Japones: la historia libre de IA examina con material nuevo que nadie
     // puede entender todavia (ver ADR-008). Primero se entrena el oido con
