@@ -56,6 +56,18 @@ export const JA8_KINOU = {
           "A: \u4f55\u3092 \u305f\u3079\u307e\u3057\u305f\u304b\u3002(Nani o tabemashita ka.)\n" +
           "B: \u30d4\u30b6\u3068 \u30b1\u30fc\u30ad\u3092 \u305f\u3079\u307e\u3057\u305f\u3002\u3059\u3054\u304f \u304a\u3044\u3057\u304b\u3063\u305f\u3067\u3059\u3002(Piza to k\u0113ki o tabemashita. Sugoku oishikatta desu.)\n" +
           "A: \u3044\u3044\u3067\u3059\u306d\uff01\u308f\u305f\u3057\u3082 \u3044\u304d\u305f\u304b\u3063\u305f\u3067\u3059\u3002(Ii desu ne! Watashi mo ikitakatta desu.)",
+        readingEs: [
+          "Texto 1 - el ayer de Ken",
+          "Ayer estuve ocupado. En la ma\u00f1ana fui a la escuela.",
+          "Al mediod\u00eda com\u00ed sushi con un amigo. Estuvo muy delicioso.",
+          "En la noche vi una pel\u00edcula. Fue divertido, pero me cans\u00e9 mucho.",
+          "Texto 2 - la fiesta del fin de semana",
+          "A: \u00bfC\u00f3mo estuvo la fiesta de la semana pasada?",
+          "B: Estuvo muy divertida.",
+          "A: \u00bfQu\u00e9 comiste?",
+          "B: Com\u00ed pizza y pastel. Estuvo incre\u00edblemente delicioso.",
+          "A: \u00a1Qu\u00e9 bien! Yo tambi\u00e9n quer\u00eda ir.",
+        ],
         glossary: [
           { term: "\u3072\u308b (hiru)", translation: "el medio dia" },
           { term: "\u3068\u3066\u3082 (totemo)", translation: "muy" },

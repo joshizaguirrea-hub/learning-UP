@@ -56,6 +56,18 @@ export const JA6_KAIMONO = {
           "A: \u3058\u3083\u3042\u3001\u3053\u308c\u3092 \u304f\u3060\u3055\u3044\u3002\u3075\u304f\u3082 \u3072\u3068\u3064 \u3044\u304b\u304c\u3067\u3059\u304b\u3002(Jaa, kore o kudasai. Fuku mo hitotsu ikaga desu ka.)\n" +
           "B: \u3044\u3044\u3048\u3001\u304f\u3064\u3060\u3051 \u3067\u3044\u3044\u3067\u3059\u3002\u305c\u3093\u3076\u3067 \u3044\u304f\u3089\u3067\u3059\u304b\u3002(Iie, kutsu dake de ii desu. Zenbu de ikura desu ka.)\n" +
           "A: \u3054\u305b\u3093\u3048\u3093\u3067\u3059\u3002(Go-sen-en desu.)",
+        readingEs: [
+          "Texto 1 - la zapater\u00eda",
+          "En esta tienda hay muchos zapatos. Los zapatos rojos cuestan diez mil yenes.",
+          "Los zapatos amarillos cuestan cinco mil yenes. Los zapatos amarillos son m\u00e1s baratos.",
+          "Los zapatos rojos son caros, pero son muy elegantes.",
+          "Texto 2 - en la caja",
+          "A: Disculpe. \u00bfCu\u00e1nto cuestan estos zapatos?",
+          "B: Cinco mil yenes.",
+          "A: Entonces, deme estos. \u00bfQuiere tambi\u00e9n una prenda de ropa?",
+          "B: No, con los zapatos est\u00e1 bien. \u00bfCu\u00e1nto es en total?",
+          "A: Cinco mil yenes.",
+        ],
         glossary: [
           { term: "\u305f\u304f\u3055\u3093 (takusan)", translation: "muchos/muchas" },
           { term: "\u306e\u307b\u3046\u304c (no h\u014d ga)", translation: "... es mas (comparacion)" },

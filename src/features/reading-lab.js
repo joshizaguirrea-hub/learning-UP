@@ -16,7 +16,7 @@
  * Presentacion pura: la logica esta en core.
  */
 import { el } from "../ui/dom.js";
-import { speak, speakSequence, speakMono } from "../ui/speech.js";
+import { speak, speakSequence, speakMono, speakButton } from "../ui/speech.js";
 import { unitTts } from "../data/languages.js";
 import { cancelCloud } from "../ui/cloud-tts.js";
 import { ICONS } from "../ui/icons.js";
@@ -28,6 +28,7 @@ import { addToNotebook } from "../ui/notebook-store.js";
 import { lessonForSkill } from "./skill-class.js";
 import { openReadingAloud } from "./reading-aloud.js";
 import { splitTexts, buildQuestions, scorePct } from "../core/reading-lab.js";
+import { zipJaReading } from "../core/ja-script.js";
 import { practiceEnd } from "../ui/practice-end.js";
 import { makeResumeKey, saveProgress, loadProgress, clearProgress, resumeCard } from "../ui/resume.js";
 
@@ -107,6 +108,7 @@ export function openReadingLab(unit, opts = {}) {
     saveProgress(rkey, { phase: "read", qIdx: 0, correct: 0 });
     progress.firstChild.style.width = "0%";
     const glossary = (unit.vocab || []).slice(0, 12);
+    const isJa = unit.language === "ja";
     stage.replaceChildren(
       el("p", { class: "text-xs uppercase tracking-wide text-slate-500" }, "Paso 1 \u00b7 Lee y escucha"),
       el("div", { class: "mt-2 flex flex-wrap gap-2" },
@@ -122,15 +124,12 @@ export function openReadingLab(unit, opts = {}) {
         }, "Detener")),
       ...passages.map((p) => el("div", { class: "mt-4 rounded-2xl bg-white/5 border border-white/10 p-4" },
         p.title ? el("p", { class: "font-bold text-indigo-300 mb-1" }, p.title) : null,
-        ...p.body.split(/\n+/).map((para) => el("p", { class: "text-slate-100 leading-relaxed mt-1" }, para)))),
+        isJa
+          ? jaPassageBlock(p.body, lesson?.content?.readingEs)
+          : el("div", {}, ...p.body.split(/\n+/).map((para) => el("p", { class: "text-slate-100 leading-relaxed mt-1" }, para))))),
       glossary.length ? el("div", { class: "mt-4" },
         el("p", { class: "text-xs text-slate-500 mb-1" }, "Glosario (toca para o\u00edr):"),
-        el("div", { class: "flex flex-wrap gap-2" }, ...glossary.map((v) => el("button", {
-          type: "button",
-          class: "text-xs px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-200 hover:bg-white/10",
-          onclick: () => speakMono(v.term, tts, { rate: 0.9 }),
-          title: v.translation || "",
-        }, v.term)))) : null,
+        el("div", { class: "flex flex-wrap gap-2" }, ...glossary.map((v) => glossaryChip(v)))) : null,
       el("button", {
         type: "button",
         class: "mt-5 w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-semibold px-5 py-3 rounded-xl hover:brightness-110 focus:outline focus:outline-2 focus:outline-emerald-300",
@@ -138,6 +137,40 @@ export function openReadingLab(unit, opts = {}) {
       }, questions.length ? "Entend\u00ed, ir a las preguntas \u2192" : "Terminar"));
 
     setTimeout(readPassages, 350); // arranca la lectura sola
+  }
+
+  /**
+   * Pasaje JAPONES: romaji GRANDE (se lee de inmediato), kana chiquito de
+   * referencia (igual que Gramatica/Vocabulario, ver ui/bilingual-term.js) y
+   * la TRADUCCION al espanol siempre visible -- pedido real de un alumno:
+   * "no hago nada leyendo japones sin saber que es". Sin traduccion en los
+   * datos (`content.readingEs` ausente), se sigue mostrando kana+romaji para
+   * no perder informacion, pero sin bloquear nada.
+   */
+  function jaPassageBlock(body, translations) {
+    const lines = zipJaReading(body, translations || []);
+    return el("div", { class: "space-y-2" },
+      ...lines.map((l) => l.blank
+        ? el("div", { class: "h-2" })
+        : el("div", { class: "rounded-xl bg-slate-900/40 border border-white/10 p-3 flex items-start gap-2" },
+            speakButton(l.jp, { lang: "ja" }),
+            el("div", { class: "min-w-0 flex-1" },
+              el("p", { class: "font-bold text-slate-100 leading-snug" }, l.romaji || l.jp),
+              l.romaji ? el("p", { class: "text-xs text-slate-500 mt-0.5" }, l.jp) : null,
+              l.es ? el("p", { class: "text-sm text-emerald-300 mt-1" }, l.es) : null))));
+  }
+
+  /** Chip del glosario: termino + TRADUCCION VISIBLE (antes solo iba en el
+   * `title` -- un tooltip que en celular nunca se ve, asi que la palabra
+   * quedaba sin significado para el alumno). Toca para oirla. */
+  function glossaryChip(v) {
+    return el("button", {
+      type: "button",
+      class: "text-left rounded-xl px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 transition",
+      onclick: () => speakMono(v.term, tts, { rate: 0.9 }),
+    },
+      el("p", { class: "text-xs font-semibold text-slate-200" }, v.term),
+      v.translation ? el("p", { class: "text-[11px] text-slate-400 mt-0.5" }, v.translation) : null);
   }
 
   // -------- FASE 2: preguntas con feedback --------

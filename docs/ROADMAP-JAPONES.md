@@ -67,17 +67,20 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       `worker/bymax-worker.js`, que NO se despliega solo con git push** --
       hace falta copiar el codigo a Cloudflare a mano (ver
       `desplegar-worker.html`, ya regenerado con `tools/gen_worker_page.py`)
-      para que el alumno lo vea reflejado.
-
-### Pendiente menor de esta fase (no bloquea nada, bajo riesgo)
-
-- [ ] `features/reading-lab.js` (Paso 1 "Lee y escucha") pinta el texto de la
-      leccion de Reading tal cual viene de la unidad (parrafo por parrafo).
-      Para japones esto YA muestra kana y romaji (vienen como lineas
-      separadas en `content.reading`) -- el romaji NO se perdio, solo falta
-      el mismo tratamiento visual (romaji destacado) que ya tiene
-      Vocabulario/Gramatica. `core/ja-script.js` ya trae `splitJaBlock()`
-      listo para esto; falta conectarlo aqui.
+      para que el alumno lo vea reflejado. **Desplegado y confirmado por
+      Joshua el 2026-11-24 (version b4117ce7, activa).**
+- [x] **Reading Lab con traduccion real** (2026-11-24, pedido URGENTE de un
+      alumno: "no hago nada leyendo japones sin saber que es"). El Paso 1
+      ("Lee y escucha") mostraba kana + romaji en bucle pero CERO espanol --
+      el alumno veia japones repetido en dos escrituras sin enterarse del
+      significado. Se agrego `content.readingEs` (traduccion linea por linea,
+      mismo orden que produce `core/ja-script.js: zipJaReading()`) a las 8
+      unidades de japones, y el Paso 1 ahora pinta cada linea con: romaji
+      GRANDE (igual que las demas competencias), kana chiquito de referencia,
+      y la traduccion al espanol SIEMPRE visible debajo. De paso se arreglo
+      el glosario (antes la traduccion solo vivia en el `title` -- un tooltip
+      que en celular nunca se ve -- ahora es texto visible en cada chip, para
+      TODOS los idiomas, no solo japones).
 
 ## Fase 1 — Completar HIRAGANA — HECHO (2026-11-24)
 

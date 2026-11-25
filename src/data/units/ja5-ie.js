@@ -56,6 +56,18 @@ export const JA5_IE = {
           "A: \u3042\u3001 \u3042\u308a\u307e\u3057\u305f\u3002\u3042\u308a\u304c\u3068\u3046\u3054\u3056\u3044\u307e\u3059\u3002(A, arimashita. Arigat\u014d gozaimasu.)\n" +
           "B: \u3069\u3046\u3044\u305f\u3057\u307e\u3057\u3066\u3002\u306d\u3053\u3082 \u3044\u307e\u3059\u304b\u3002(D\u014d itashimashite. Neko mo imasu ka.)\n" +
           "A: \u306f\u3044\u3001\u30d9\u30c3\u30c9\u306e \u3057\u305f\u306b \u3044\u307e\u3059\u3002(Hai, beddo no shita ni imasu.)",
+        readingEs: [
+          "Texto 1 - el cuarto de Mar\u00eda",
+          "Este es mi cuarto. Dentro del cuarto hay una mesa y una silla.",
+          "Sobre la mesa hay muchos libros. No hay televisi\u00f3n.",
+          "Debajo de la cama hay un gato. El gato se llama Mika.",
+          "Texto 2 - buscando el libro",
+          "A: Disculpa. \u00bfD\u00f3nde est\u00e1 el libro?",
+          "B: Est\u00e1 sobre la mesa.",
+          "A: Ah, lo encontr\u00e9. Muchas gracias.",
+          "B: De nada. \u00bfTambi\u00e9n hay un gato?",
+          "A: S\u00ed, est\u00e1 debajo de la cama.",
+        ],
         glossary: [
           { term: "\u305f\u304f\u3055\u3093 (takusan)", translation: "muchos/muchas" },
           { term: "\u306d\u3053 (neko)", translation: "gato" },

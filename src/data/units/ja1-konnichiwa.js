@@ -74,6 +74,22 @@ export const JA1_KONNICHIWA = {
           "B: \u308f\u305f\u3057\u306f\u30de\u30ea\u30a2\u3067\u3059\u3002\u30b9\u30da\u30a4\u30f3\u3058\u3093\u3067\u3059\u3002(Watashi wa Maria desu. Supein-jin desu.)\n" +
           "A: \u306f\u3058\u3081\u307e\u3057\u3066\u3001\u30de\u30ea\u30a2\u3055\u3093\u3002(Hajimemashite, Maria-san.)\n" +
           "B: \u306f\u3058\u3081\u307e\u3057\u3066\u3002(Hajimemashite.)",
+        // Traduccion al espanol, UNA por cada linea no vacia de `reading` arriba
+        // (mismo orden, ver core/ja-script.js: zipJaReading). Pedido real de
+        // un alumno: "no hago nada leyendo japones sin saber que es".
+        readingEs: [
+          "Texto 1 - Aya",
+          "Mucho gusto. Soy Aya. Soy japonesa. Soy estudiante.",
+          "Este es Tom. Tom es canadiense. Es profesor.",
+          "Un gusto conocerte.",
+          "Texto 2 - un di\u00e1logo corto",
+          "A: Hola. \u00bfC\u00f3mo est\u00e1s?",
+          "B: Estoy bien. Gracias. \u00bfY t\u00fa?",
+          "A: Yo tambi\u00e9n estoy bien. \u00bfC\u00f3mo te llamas?",
+          "B: Soy Mar\u00eda. Soy espa\u00f1ola.",
+          "A: Mucho gusto, Mar\u00eda.",
+          "B: Mucho gusto.",
+        ],
         glossary: [
           { term: "\u306f\u3058\u3081\u307e\u3057\u3066 (hajimemashite)", translation: "mucho gusto" },
           { term: "\u308f\u305f\u3057\u306f (watashi wa)", translation: "yo (+ tema)" },

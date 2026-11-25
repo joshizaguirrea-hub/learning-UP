@@ -57,6 +57,19 @@ export const JA4_TABEMONO = {
           "B: \u307f\u305a\u3092 \u304f\u3060\u3055\u3044\u3002(Mizu o kudasai.)\n" +
           "A: \u304b\u3057\u3053\u307e\u308a\u307e\u3057\u305f\u3002(Kashikomarimashita.)\n" +
           "B: (\u305f\u3079\u305f \u3042\u3068\u3067) \u3068\u3066\u3082 \u304a\u3044\u3057\u3044\u3067\u3059\uff01(Totemo oishii desu!)",
+        readingEs: [
+          "Texto 1 - las comidas favoritas de Tom",
+          "A Tom le gusta el pescado. Y tambi\u00e9n le gustan las verduras.",
+          "Pero no le gusta la carne. Cada ma\u00f1ana come pan y huevo.",
+          "Le gusta el caf\u00e9, pero casi no toma leche.",
+          "Texto 2 - en el restaurante",
+          "A: Bienvenido. \u00bfQu\u00e9 va a pedir?",
+          "B: Deme pescado y arroz, por favor.",
+          "A: \u00bfVa a tomar algo?",
+          "B: Deme agua, por favor.",
+          "A: Entendido.",
+          "B: (despu\u00e9s de comer) \u00a1Est\u00e1 muy delicioso!",
+        ],
         glossary: [
           { term: "\u305d\u3057\u3066 (soshite)", translation: "y ademas" },
           { term: "\u3067\u3082 (demo)", translation: "pero" },

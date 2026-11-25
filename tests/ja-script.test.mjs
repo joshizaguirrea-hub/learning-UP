@@ -3,7 +3,7 @@
  * Correr con:  node tests/ja-script.test.mjs
  */
 import assert from "node:assert/strict";
-import { splitJa, splitJaBlock, jaSpeakText } from "../src/core/ja-script.js";
+import { splitJa, splitJaBlock, jaSpeakText, zipJaReading } from "../src/core/ja-script.js";
 
 let passed = 0;
 function test(name, fn) { fn(); passed++; console.log(`  ok - ${name}`); }
@@ -54,6 +54,21 @@ test("splitJaBlock conserva lineas vacias como separadores (sin fundirlas)", () 
 test("jaSpeakText devuelve SOLO el kana (nunca el romaji, para el TTS)", () => {
   assert.equal(jaSpeakText("\u3053\u3093\u306b\u3061\u306f (Konnichiwa)"), "\u3053\u3093\u306b\u3061\u306f");
   assert.equal(jaSpeakText("\u3053\u3093\u306b\u3061\u306f"), "\u3053\u3093\u306b\u3061\u306f");
+});
+
+test("zipJaReading empareja cada linea NO vacia con su traduccion, en orden", () => {
+  const block = "\u306f\u3058\u3081\u307e\u3057\u3066\u3002\n(Hajimemashite.)\n\nA: \u3053\u3093\u306b\u3061\u306f\u3002(Konnichiwa.)";
+  const r = zipJaReading(block, ["Mucho gusto.", "A: Hola."]);
+  assert.equal(r.length, 3);
+  assert.equal(r[0].es, "Mucho gusto.");
+  assert.equal(r[1].blank, true);
+  assert.equal(r[2].es, "A: Hola.");
+});
+
+test("zipJaReading tolera traducciones faltantes (cadena vacia, no rompe)", () => {
+  const r = zipJaReading("a\n(A)\nb\n(B)", ["Solo una"]);
+  assert.equal(r[0].es, "Solo una");
+  assert.equal(r[1].es, "");
 });
 
 console.log(`\n${passed} pruebas en verde.`);

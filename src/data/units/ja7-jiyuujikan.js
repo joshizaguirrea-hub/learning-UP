@@ -56,6 +56,18 @@ export const JA7_JIYUUJIKAN = {
           "A: \u30b9\u30dd\u30fc\u30c4\u306f \u3067\u304d\u307e\u3059\u304b\u3002(Sup\u014dtsu wa dekimasu ka.)\n" +
           "B: \u3044\u3044\u3048\u3001\u3042\u307e\u308a \u3067\u304d\u307e\u305b\u3093\u3002\u3067\u3082\u3001\u6cf3\u3050\u3053\u3068\u306f \u3067\u304d\u307e\u3059\u3002(Iie, amari dekimasen. Demo, oyogu koto wa dekimasu.)\n" +
           "A: \u305d\u3046\u3067\u3059\u304b\u3002\u3044\u3044\u3067\u3059\u306d\u3002(S\u014d desu ka. Ii desu ne.)",
+        readingEs: [
+          "Texto 1 - los pasatiempos de Yuki",
+          "El pasatiempo de Yuki es la m\u00fasica. Escucha m\u00fasica seguido.",
+          "Nada, pero no es muy buena nadando. Pero sabe jugar tenis.",
+          "A veces tambi\u00e9n ve pel\u00edculas. Casi no hace deporte.",
+          "Texto 2 - hablando de pasatiempos",
+          "A: \u00bfQu\u00e9 te gusta hacer en tu tiempo libre?",
+          "B: Me gusta leer libros. Leo seguido.",
+          "A: \u00bfSabes hacer deporte?",
+          "B: No, no s\u00e9 hacer mucho. Pero s\u00ed s\u00e9 nadar.",
+          "A: Ya veo. Qu\u00e9 bien.",
+        ],
         glossary: [
           { term: "\u304d\u304d\u307e\u3059 (kikimasu)", translation: "escuchar" },
           { term: "\u3053\u3068\u304c \u3059\u304d\u3067\u3059 (koto ga suki desu)", translation: "me gusta [verbo]+r (gusto por una accion)" },

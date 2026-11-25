@@ -63,3 +63,24 @@ export function splitJaBlock(text) {
 export function jaSpeakText(text) {
   return splitJa(text).jp;
 }
+
+/**
+ * Empareja un bloque japones (ver splitJaBlock) con su traduccion al espanol,
+ * linea por linea (una traduccion por cada entrada NO vacia, en el MISMO
+ * orden). Pedido real de un alumno: "no hago nada leyendo japones sin saber
+ * que es" -- la lectura necesita el SIGNIFICADO visible, no solo romaji/kana
+ * repetidos. Las lineas en blanco se conservan tal cual (separadores).
+ * @param {string} text - bloque japones (lesson.content.reading)
+ * @param {string[]} [translations] - una por cada linea NO vacia, en orden
+ * @returns {Array<{jp: string, romaji: string|null, es?: string, blank?: boolean}>}
+ */
+export function zipJaReading(text, translations = []) {
+  const lines = splitJaBlock(text);
+  let i = 0;
+  return lines.map((l) => {
+    if (l.blank) return l;
+    const es = translations[i] || "";
+    i++;
+    return { ...l, es };
+  });
+}

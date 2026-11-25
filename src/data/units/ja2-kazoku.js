@@ -60,6 +60,19 @@ export const JA2_KAZOKU = {
           "B: \u3044\u3044\u3048\u3001\u3044\u307e\u305b\u3093\u3002\u3042\u306d\u3060\u3051\u3067\u3059\u3002(Iie, imasen. Ane dake desu.)\n" +
           "A: \u3053\u308c\u306f\u3060\u308c\u3067\u3059\u304b\u3002(Kore wa dare desu ka.)\n" +
           "B: \u3053\u308c\u306f\u308f\u305f\u3057\u306e\u3042\u306d\u3067\u3059\u3002(Kore wa watashi no ane desu.)",
+        readingEs: [
+          "Texto 1 - Ken",
+          "Mucho gusto. Soy Ken. Mi familia es de cuatro personas.",
+          "Mi pap\u00e1, mi mam\u00e1, mi hermana mayor y yo. Mi pap\u00e1 es profesor. Mi mam\u00e1 es empleada de oficina.",
+          "Mi hermana se llama Yuki. Yuki es estudiante universitaria. Esta es una foto de mi familia.",
+          "Texto 2 - hablando de la familia",
+          "A: \u00bfCu\u00e1ntas personas hay en tu familia, Ken?",
+          "B: Somos cuatro. Mi pap\u00e1, mi mam\u00e1, mi hermana mayor y yo.",
+          "A: \u00bfTienes hermanos o hermanas menores?",
+          "B: No, no tengo. Solo tengo una hermana mayor.",
+          "A: \u00bfQui\u00e9n es esta?",
+          "B: Esta es mi hermana mayor.",
+        ],
         glossary: [
           { term: "\u3068 (to)", translation: "y (entre sustantivos)" },
           { term: "\u3044\u307e\u3059 / \u3044\u307e\u305b\u3093 (imasu / imasen)", translation: "hay/tengo (persona) / no hay/no tengo" },

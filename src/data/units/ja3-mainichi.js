@@ -57,6 +57,19 @@ export const JA3_MAINICHI = {
           "B: \u306f\u3044\u3001\u305f\u3079\u307e\u3059\u3002\u3053\u30fc\u3072\u30fc\u3082 \u306e\u307f\u307e\u3059\u3002(Hai, tabemasu. K\u014dh\u012b mo nomimasu.)\n" +
           "A: \u4f55\u6642\u306b \u306f\u305f\u3089\u304d\u307e\u3059\u304b\u3002(Nan-ji ni hatarakimasu ka.)\n" +
           "B: \u304f\u3058\u306b \u306f\u305f\u3089\u304d\u307e\u3059\u3002(Ku-ji ni hatarakimasu.)",
+        readingEs: [
+          "Texto 1 - un d\u00eda de Yuki",
+          "Yuki se levanta cada ma\u00f1ana a las 7. Luego, desayuna.",
+          "Va a la escuela a las 8. Por la tarde, estudia en la universidad.",
+          "Regresa a casa a las 5 de la tarde. Por la noche, se duerme a las 11.",
+          "Texto 2 - preguntar por la rutina",
+          "A: \u00bfA qu\u00e9 hora te levantas cada ma\u00f1ana?",
+          "B: Me levanto a las 7:30.",
+          "A: \u00bfDesayunas?",
+          "B: S\u00ed, desayuno. Tambi\u00e9n tomo caf\u00e9.",
+          "A: \u00bfA qu\u00e9 hora trabajas?",
+          "B: Trabajo a las 9.",
+        ],
         glossary: [
           { term: "\u305d\u308c\u304b\u3089 (sorekara)", translation: "despues de eso, luego" },
           { term: "\u3042\u3055\u3054\u306f\u3093 (asa-gohan)", translation: "desayuno" },
