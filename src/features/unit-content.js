@@ -25,6 +25,7 @@ import { openReadingLab } from "./reading-lab.js";
 import { openSpeaking } from "./speaking.js";
 import { openVoiceCall } from "./voice-call.js";
 import { openListeningLab } from "./listening-lab.js";
+import { openJaListeningLab } from "./listening-lab-ja.js";
 import { openVocabClass } from "./vocab-class.js";
 import { openWriting } from "./writing.js";
 import { openJaWriting } from "./writing-ja.js";
@@ -292,10 +293,16 @@ function skillPop(key, unit, progressMap, user, onSkillDone) {
       onComplete: markDone,
     });
   } else if (key === "listening") {
-    onclick = () => openListeningLab(unit, {
-      userId: user?.id,
-      onComplete: markDone,
-    });
+    // Japones: la historia libre de IA examina con material nuevo que nadie
+    // puede entender todavia (ver ADR-008). Primero se entrena el oido con
+    // vocabulario YA visto (features/listening-lab-ja.js); la historia con
+    // IA queda ahi mismo como reto opcional/avanzado.
+    onclick = (unit.language === "ja")
+      ? () => openJaListeningLab(unit, { userId: user?.id, onComplete: markDone })
+      : () => openListeningLab(unit, {
+          userId: user?.id,
+          onComplete: markDone,
+        });
   } else if (key === "writing") {
     // Japones: el hub generico de Writing asume que el alumno ya TECLEA el
     // idioma meta (ensayos, correos...) -- no aplica si todavia no sabe leer

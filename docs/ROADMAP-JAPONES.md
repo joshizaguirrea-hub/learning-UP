@@ -81,6 +81,17 @@ Camino 2 - ESCRITURA (hiragana -> katakana -> kanji basico, a tu ritmo)
       el glosario (antes la traduccion solo vivia en el `title` -- un tooltip
       que en celular nunca se ve -- ahora es texto visible en cada chip, para
       TODOS los idiomas, no solo japones).
+- [x] **Escucha ESCALONADA** (2026-11-24): la POP "Escucha" de la rueda de
+      competencias abria directo el Listening generico (historia de IA de
+      90-140 palabras + 8 preguntas) -- EXAMINA, no ENSENA; imposible para
+      alguien que nunca oyo japones. Nuevo `core/listening-ja.js` +
+      `features/listening-lab-ja.js`: escalera de 2 rondas con vocabulario YA
+      visto en la unidad -- (A) oyes la palabra sola, eliges su significado;
+      (B) oyes la frase de ejemplo, reconoces que palabra (en romaji, no es
+      prueba de oido a ciegas). La historia con IA sigue disponible como
+      "Reto avanzado" opcional al final. Pendiente (roadmap, no urgente): un
+      Nivel 3 de dialogo corto reusando `content.reading` con audio oculto,
+      como puente entre la escalera y la historia libre.
 
 ## Fase 1 — Completar HIRAGANA — HECHO (2026-11-24)
 
